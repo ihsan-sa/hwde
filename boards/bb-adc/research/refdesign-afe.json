@@ -1,0 +1,75 @@
+{
+  "block": "afe",
+  "decisions": [
+    {
+      "what": "Topology family: resistive/attenuator front end + precision buffer + external precision reference (T1/T3), driving the SAR. Reject a bare divider straight into the SAR (T2) and reject using the 3.3 V host rail as VREF with no external reference (T4).",
+      "why": "T2 fails on settling physics, not preference: TI SBAA173A's acquisition-time equation (t_acq_min = (Rs+Rfilt) x Csample x ln(2^(N+1))) shows a representative 12-16 bit precision SAR needs source Z in the low single-digit kohm to settle to 1/2 LSB, while Q9 forces the board's own input impedance (the divider) to >=100 kohm at J1, giving Thevenin Z in the tens of kohm - roughly 10-20x over the direct-drive limit. T4 fails on arithmetic: the host rail is +/-5% (Q7, answered), i.e. +/-165 to +/-250 mV, against a +/-5 mV (25C) / +/-12 mV (0-50C) budget - 20-50x over, before any drift term, and this is not a true ratiometric case since the 0-5V input is independent of the 3.3V rail.",
+      "source": "TI SBAA173A (SAR ADC acquisition time), https://www.ti.com/lit/an/sbaa173a/sbaa173a.pdf, Sec. 4; TI SBAA256, https://www.ti.com/lit/SBAA256; requirements.md Sec. 3/9 (Q7, Q9 answered values)"
+    },
+    {
+      "what": "A buffer between the attenuator and the ADC input is mandatory, not an option to trade away for simplicity.",
+      "why": "The attenuator IS the block's input impedance at J1 (nothing else is there); satisfying Q9 (>=100 kohm at J1) forces divider legs of ~100-150 kohm each, so its own Thevenin resistance is tens of kohm - far above what the SAR sampling node can settle against directly per the SBAA173A equation. The buffer's sole job is to present high-Z to the source and low-Z, fast, to the SAR.",
+      "source": "TI SBAA173A, https://www.ti.com/lit/an/sbaa173a/sbaa173a.pdf; TI 'Optimize Your SAR ADC Design' (Bonnie Baker), https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/14/4478.PA_2D00_001--Optimize_5F00_SAR_5F00_converter_5F00_design-REV-b.pdf"
+    },
+    {
+      "what": "The attenuator element must be a TCR-tracked/matched part (integrated difference amp such as AD8275-class, or a matched resistor network such as LT5400-class), not two generic discrete 0.1% resistors.",
+      "why": "A tolerance spec (0.1%) bounds ratio at one temperature only; it does not bound TCR TRACKING between two discrete resistors from possibly different lots. Worst-case mismatch for generic 0.1%-tolerance thin-film resistors (25-50 ppm/C each, untracked) is ~50-100 ppm/C, which over a +/-25C excursion gives 1250-2500 ppm = 6.25-12.5 mV ratio error alone - up to the entire +/-12 mV over-temp budget. A matched/tracked part (LT5400 0.2 ppm/C typical tracking, or AD8275 1 ppm/C max gain drift) drops this term to 25-125 uV, effectively removing it from the budget.",
+      "source": "LT5400 datasheet, https://www.analog.com/media/en/technical-documentation/data-sheets/5400fc.pdf; AD8275 datasheet Rev. B, https://www.analog.com/media/en/technical-documentation/data-sheets/AD8275.pdf; TCR-vs-tolerance general practice: Electronics Weekly, https://www.electronicsweekly.com/news/products/passives/how-to-design-guide-for-precision-resistors-2009-08/ (25-50 ppm/C figure flagged as an estimate)"
+    },
+    {
+      "what": "An external precision voltage reference (2.048/2.5/4.096 V class, tempco target <=15-25 ppm/C, initial accuracy target <=0.05-0.1%) is required; the host's 3.3 V rail cannot serve as VREF.",
+      "why": "Host rail tolerance is +/-5% (Q7) plus tens of mV of noise - both individually 6-50x the total error budget. A reference in the stated tempco/accuracy class keeps its own contribution to a few mV, leaving headroom for the attenuator, buffer, and ADC terms.",
+      "source": "requirements.md Sec. 3/9 (Q7 answered); general reference-tempco budget arithmetic derived from the board's own +/-5 mV / +/-12 mV targets (Sec. 9 Q2)"
+    },
+    {
+      "what": "Buffer op-amp must be a low input-bias-current (CMOS/JFET, pA-class) part, not a standard bipolar-input precision amp.",
+      "why": "Input bias current multiplies against the divider's Thevenin resistance (tens of kohm, forced by Q9). A bipolar input with Ibias in the tens-hundreds of nA class, e.g. 100 nA x 50 kohm, produces a 5 mV offset alone - the entire 25C budget. A pA-class input at the same impedance is negligible.",
+      "source": "ADI MT-038, 'Op Amp Input Bias Current', https://www.analog.com/media/en/training-seminars/tutorials/MT-038.pdf"
+    },
+    {
+      "what": "Verify the chosen buffer's output linearity/headroom AT the actual load and near the actual full-scale point, not just its 'rail-to-rail' datasheet claim.",
+      "why": "No real output stage reaches the literal supply rail; headroom shrinks under load current and gain/linearity degrade within roughly 50-200 mV of either rail as output transistors approach saturation. If this block's full scale sits near 0 V or near the amp's positive rail, an unverified rail-to-rail claim is a real accuracy risk.",
+      "source": "EDN, 'What does rail to rail output operation really mean?', https://www.edn.com/what-does-rail-to-rail-output-operation-really-mean/; ADI, 'Rail-to-Rail: Railroading and the Electronics of Op Amps', https://www.analog.com/en/resources/technical-articles/railtorail-railroading-and-the-electronics-of-op-amps.html"
+    },
+    {
+      "what": "Add a small series isolation resistor (10-50 ohm class) plus a local capacitor at the ADC's analog input pin, sized to the chosen ADC's acquisition time and sampling capacitance via the SBAA173A equation.",
+      "why": "The cap is the charge reservoir for the SAR's per-conversion sampling transient; the series R isolates the buffer's output stage from the ADC's switched capacitive load so the buffer loop stays stable (an unbuffered/badly isolated RC straight off an op-amp output can ring or fail to settle). This board's 10 kSa/s ceiling is far slower than the vendor worked example found (ADA4807-1 driving a 1 MSPS 16-bit SAR with Rext=20 ohm, Cext=2.7 nF), so bandwidth margin is generous - final component values still need the chosen ADC's real Csample/tACQ, not the representative numbers used in research.",
+      "source": "Digikey, 'Analog Basics - Part 5: Tackling Difficult Input Driving Issues for the SAR ADC', https://www.digikey.com/en/articles/analog-basics-part-5-tackling-difficult-input-driving-issues-for-the-sar-adc; ADI MT-021, https://www.analog.com/media/en/training-seminars/tutorials/MT-021.pdf"
+    },
+    {
+      "what": "Size the SAR reference bulk/bypass capacitor per the ADC's own datasheet, typically in the 1-22 uF class, and check whether the chosen ADC/reference pairing needs a reference buffer to re-settle it before the next conversion.",
+      "why": "SAR reference pins draw a large, fast charge-transfer current once per conversion ('reference kickback'); the bulk cap must re-settle to within the ADC's resolution before the next conversion, not just once at power-up. This gets more demanding as resolution rises - vendor material cites needing reference-buffer output impedance as low as 50 milliohm for >16-bit parts; this board's 12+ bit target is less demanding but the same mechanism applies.",
+      "source": "SAR reference-driver vendor material (search-corroborated across ADI/TI reference-driver discussions); ADI, 'Successive-Approximation ADCs: Ensuring a Valid First Conversion', https://www.analog.com/en/resources/analog-dialogue/articles/successive-approximation-adcs.html"
+    },
+    {
+      "what": "Check first-conversion validity after board power-on explicitly, rather than assuming the reference is settled.",
+      "why": "This board's only supply (3.3 V from the host) arrives at board power-up, and a low-pass-filtered reference can settle meaningfully slower at power-up than while already running.",
+      "source": "ADI, 'Successive-Approximation ADCs: Ensuring a Valid First Conversion', https://www.analog.com/en/resources/analog-dialogue/articles/successive-approximation-adcs.html"
+    },
+    {
+      "what": "If an AD8275-class fixed-ratio integrated difference amp is shortlisted, confirm its gain ratio actually fits a 5 V input into this board's ADC full scale before committing to it.",
+      "why": "AD8275 specifically is G=0.2, sized for +/-10 V-class instrumentation inputs translated to ~0-4 V, not a 0-5 V unipolar input into a 3.3 V-domain SAR. Used as-is (0-5 V x 0.2 = 0-1 V) it wastes roughly 1.3-1.7 effective bits of dynamic range against a 2.5-3.3 V reference. The CLASS of part is right for this problem; this specific ratio is not a clean fit - look for the same class nearer a 0.5-0.66 ratio, or accept the dynamic-range cost, or use a matched resistor network (LT5400-class) with a separately chosen ratio instead.",
+      "source": "AD8275 datasheet Rev. B, https://www.analog.com/media/en/technical-documentation/data-sheets/AD8275.pdf; product page https://www.analog.com/en/products/ad8275.html"
+    },
+    {
+      "what": "Flag for the architect: requirements.md's BOM policy (Sec. 6) names only 'the converter' and 'a precision voltage reference' as allowed to go Extended-tier when Basic stock is thin - it does not name an attenuator/level-translator IC. If the winning attenuator part is thin-stocked, that is an unresolved BOM-policy question.",
+      "why": "Both surviving families (T1 discrete-but-tracked divider, or T3 integrated/matched part) may need a component outside JLC Basic/Preferred stock to meet the TCR-tracking requirement above; this is analogous to the second-rail mode tension already flagged in requirements.md Sec. 1 and should be resolved the same way (owner/architect decision), not silently assumed.",
+      "source": "requirements.md Sec. 6"
+    }
+  ],
+  "layout_notes": [
+    "Reference bypass cap within ~0.1 in (2.5 mm) of the ADC reference pin, short low-inductance connection (target <2 nH), same layer as the ADC (no via between pin and cap); each reference/ground pin pair gets its own return, not shared through a via field. Source: TI Precision Hub, 'SAR ADC PCB Layout: The reference path', https://e2e.ti.com/blogs_/archives/b/precisionhub/posts/sar-adc-pcb-layout-the-reference-path",
+    "Partition analog and digital regions with a solid ground plane under the ADC; keep the SPI clock line especially short and isolated from other digital lines AND from the analog input/reference nodes - clock edges are the fastest, most coupling-prone signal on this board. Cross analog/digital traces at 90 degrees where they must coexist; for a high-resolution target, prefer not crossing at all. Source: TI Precision Hub (above); ADI, 'Design Reliable Digital Interfaces for Successive-Approximation ADCs', https://www.analog.com/en/resources/analog-dialogue/articles/design-reliable-digital-interfaces.html",
+    "Guard the high-impedance divider/attenuator node: a guarded, solder-mask-relieved ring at the sensed node's own potential around the divider mid-point trace and the ADC input pin, to break surface leakage paths from flux/dust/moisture before they reach the sensitive node. Source: Microchip, 'Leakage Currents', https://developerhelp.microchip.com/xwiki/bin/view/products/amplifiers-linear/operational-amplifier-ics/precision-design/leakage-currents/",
+    "J1 (screw terminal) entry: route signal and return from the board edge straight to the divider/attenuator with minimal shared path with any digital return current - the 100 kohm-class input impedance here is far more leakage/coupling-sensitive than a typical signal net, so it should not share a return path with, or run adjacent to, J2's digital lines. Consequence of J1/J2 sitting on different board edges, already assumed in requirements.md Sec. 5."
+  ],
+  "errata": [
+    "Divider TCR MISMATCH (not divider TCR itself) is the single most decision-relevant footgun found: a 0.1% tolerance spec does not bound temperature tracking between two discrete resistors, and worst-case mismatch can consume the entire +/-12 mV over-temp budget by itself. See decisions above.",
+    "Buffer input bias current x divider Thevenin resistance: a standard bipolar-input op-amp's Ibias, multiplied by the divider's tens-of-kohm Thevenin resistance forced by Q9, can alone consume the 25C error budget. Requires a pA-class (CMOS/JFET) input buffer.",
+    "Surface/flux leakage into the high-Z divider node: JLCPCB's default assembly has no board-wash step; no-clean flux residue, dust, and humidity can create leakage paths competing with the divider's own currents at the 100 kohm scale. Mitigate with a guard ring and/or a post-assembly clean. Source: Microchip 'Leakage Currents' page.",
+    "Reference re-settling is a PER-CONVERSION requirement, not just a power-up requirement, and gets more demanding as resolution rises - check against the specific ADC+reference pairing once chosen.",
+    "Reference power-up settling: this board's only supply arrives at board power-on, so first-conversion validity after power-up should be checked explicitly, not assumed, especially if the reference is low-pass filtered.",
+    "Self-heating of the divider resistors: CHECKED, does NOT apply here. A divider sized to >=100 kohm at 5 V full scale dissipates 250 uW or less (V^2/R = 25/100000) - self-heating-driven TCR error is negligible at this impedance. This would matter for a low-impedance Kelvin-sense divider; it does not matter here, precisely because Q9 forces high impedance. Recorded so this isn't silently re-raised later as a generic worry that doesn't apply to this board.",
+    "Open risk, not a footgun yet: all Thevenin-impedance and settling-time numbers in this research (Csample ~20-45 pF, tACQ ~350 ns-1.5 us) are representative/estimated for a 12-16 bit, <=10 kSa/s-class precision SAR, not the specific chosen ADC's real datasheet numbers. Must be re-checked against the actual shortlisted part before final buffer/RC component values are set."
+  ]
+}

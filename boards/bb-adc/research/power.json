@@ -1,0 +1,256 @@
+{
+  "_meta": {
+    "board": "bb-adc",
+    "phase": "P1",
+    "agent": "research-power-architect",
+    "date": "2026-08-16",
+    "sources": "requirements.md (whole file; s9 ANSWERED table binding) + reference/constraints_schema.md + TI SNAA320B (voltage reference selection for data converters) + TI SBVS032 (REF30xx datasheet, cited as a CLASS EXEMPLAR, not a part choice) + ADI MT-031 (grounding data converters) + TI E2E ADS1261-Q1 ferrite thread (forum-grade)",
+    "refdes_note": "U1 = converter, U2 = series voltage reference, U3 = unity-gain buffer (conditional, see reference_architecture.buffer_decision), R1/R2 = attenuator arms, J1 = analog screw terminal, J2 = host header. ALL PROVISIONAL - no schematic exists at P1. P2 must remap to the real refdes.",
+    "netname_note": "Power nets bare per convention: +3V3, GND. The reference output is declared as VREF because the 2.048 V vs 2.5 V call is a P2/P3 decision; if 2.048 V is fixed, P2 may rename to +2V048. Reconcile power.json to the FINAL netlist names before P5 or the entries silently no-op.",
+    "blocks_note": "No `blocks` entry emitted on purpose. reference/knowledge/records/ currently holds buck and spiral-inductor records only - there is no ADC / voltage-reference topology key to retrieve, so a declared block would key an empty retrieval. P2 owns the blocks list and the coverage-mapper run; this is a deliberate omission, not a forgotten field.",
+    "estimate_status": "Every current is an ESTIMATE BY CLASS. No part is chosen. Each is expressed so P3 can test a datasheet against it."
+  },
+
+  "design_point": {
+    "rail_v": {"min": 3.135, "nom": 3.3, "max": 3.465, "hard_floor_not_required_below": 3.0},
+    "rail_source": "host, through J2 (answered Q7: >=50 mA available, +/-5 %, tens of mV of noise, no sub-3.0 V operation required)",
+    "rail_count": 1,
+    "input_span_v": [0.0, 5.0],
+    "accuracy_target": {
+      "at_25c_mv": 5.0,
+      "over_0_50c_mv": 12.0,
+      "at": "the terminal, uncalibrated, on a 5 V reading (answered Q2 = 0.1 % class)",
+      "ppm_of_5v": {"at_25c": 1000, "over_0_50c": 2400}
+    },
+    "sample_rate_max_sa_s": 10000,
+    "interface": "SPI (answered Q3), 1-10 MHz SCLK class",
+    "source_impedance_ohm_max": 1000,
+    "ambient_c": [0, 50],
+    "basis": "requirements.md s1/s3/s4 + answered Q2/Q3/Q7/Q8/Q9"
+  },
+
+  "rails": [
+    {
+      "net": "+3V3",
+      "vin": "host 3.3 V rail through J2 (3.135-3.465 V, >=50 mA, tens of mV noise) - STATED, answered Q7",
+      "topology": "direct",
+      "current_a": 0.011,
+      "current_a_typ": 0.0014,
+      "current_a_peak": 0.0075,
+      "consumers": [
+        {"ref": "U1", "part": "converter AVDD (analog supply)", "typ_a": 0.0006, "peak_a": 0.003,
+         "basis": "ESTIMATE BY CLASS. Low-power SPI delta-sigma / 16-bit SAR at <=10 kSa/s runs 0.2-1.5 mA on AVDD; 3.0 mA covers a part with its input buffer and PGA enabled. No part chosen."},
+        {"ref": "U1", "part": "converter DVDD (digital supply)", "typ_a": 0.0003, "peak_a": 0.0015,
+         "basis": "Dynamic drive current I = C x V x f: 15 pF of trace + header + host input at 3.3 V toggling at 5 MHz (a 10 MHz SCLK) = 0.25 mA per active line. Idle draw is microamps; this term IS the SPI activity."},
+        {"ref": "U2", "part": "series voltage reference (Iq + its load)", "typ_a": 0.00015, "peak_a": 0.0015,
+         "basis": "Iq 42-50 uA for a CMOS series reference (SBVS032) up to ~1 mA for a low-noise grade, PLUS what the converter's REF pin draws: ~0.05 mA average for a delta-sigma with a buffered reference input, 0.1-0.5 mA for a SAR redistributing charge every bit trial (SNAA320B s7 measures 600 uA peaks on a 12-bit example)."},
+        {"ref": "U3", "part": "unity-gain buffer - CONDITIONAL, see reference_architecture.buffer_decision", "typ_a": 0.0003, "peak_a": 0.0015,
+         "basis": "Precision CMOS RRIO amplifier: 60 uA for a micropower grade, up to 1.5 mA for a fast or low-noise one. Budgeted as PRESENT because s7 of power.md concludes it is required; if P3 finds a converter that can face a 2.5 Mohm divider directly, this line comes off."},
+        {"ref": "bias/leakage/decoupling", "part": "everything not itemisable at P1", "typ_a": 0.00005, "peak_a": 0.0005,
+         "basis": "Allowance, not a measurement. No part chosen."}
+      ],
+      "dissipation_w": 0.036,
+      "notes": "Pass-through net: J2 pin -> bulk cap -> per-pin decoupling. NO regulator, NO second rail, NO pi filter, NO ferrite at the entry (mode-excluded, and s3 of power.md shows the bulk cap alone is sufficient at this accuracy class). Declared 11 mA = 7.5 mA peak x ~1.4, against the host's >=50 mA - 4.5x margin. 36 mW at the ceiling, ~5 mW typical: this board has no thermal problem, and at 0.1 % class it has no thermal-gradient problem either (the reference self-heats ~1.1 degC at 3.3 mW in SOT-23 theta-JA 336 degC/W = 11 ppm = 0.05 mV of a 5 V reading)."
+    },
+    {
+      "net": "VREF",
+      "vin": "+3V3",
+      "topology": "ldo",
+      "topology_note": "Series voltage reference (a 3-pin bandgap/XFET series element), NOT a regulator. `ldo` is the nearest schema token; it is a reference IC and must be selected on accuracy/drift, never on regulator specs.",
+      "current_a": 0.001,
+      "current_a_typ": 0.00005,
+      "current_a_peak": 0.0005,
+      "consumers": [
+        {"ref": "U1", "part": "converter REF pin", "typ_a": 0.00005, "peak_a": 0.0005,
+         "basis": "Delta-sigma with a buffered reference input draws tens of uA steadily; a SAR draws a spiky, input-dependent current (SNAA320B s7, Figure 7-2: 600 uA peak on a 12-bit part). The choice of converter architecture sets this number, and it feeds back into the error budget through the reference's load regulation (100 uV/mA max, SBVS032) and the trace IR drop."}
+      ],
+      "dissipation_w": 0.003,
+      "notes": "2.048 V RECOMMENDED over 2.5 V: it makes the attenuator ratio 0.4 (a 3:2 arm ratio), puts terminal full scale at 5.12 V so 5.000 V reads at 97.7 % of scale with 2.3 % of headroom, and gives a binary 31.25 uV LSB at 16 bits. 2.5 V would buy 1.7 dB of signal against the converter's noise floor and cost the headroom. Dropout is NOT the deciding factor: a CMOS series reference of this class specifies its minimum supply at VREF + 0.05 V over temperature (SBVS032), so at 3.135 V there is 1.037 V of margin at 2.048 V and 0.585 V at 2.5 V."
+    },
+    {
+      "net": "GND",
+      "vin": "-",
+      "topology": "direct",
+      "current_a": 0.011,
+      "consumers": [
+        {"ref": "return", "part": "single common return for the analog chain and the SPI interface; leaves the board through J2's GND pin", "typ_a": 0.0014, "peak_a": 0.0075,
+         "basis": "Same current as +3V3. The number is not the point: the CONSTRAINT is geometric (see digital_return_constraints) - a ~10 mA SPI edge current sharing a return system with a node of up to 600 kohm Thevenin impedance."}
+      ],
+      "dissipation_w": 0.0,
+      "notes": "One unbroken B.Cu pour. NOT split into analog and digital planes: every return on this board - analog and digital - leaves through the same GND pin of J2, so a split would lengthen one current path rather than separate two current systems (ADI MT-031's split-plane star assumes the digital currents have their own supply and destination). Single-sided assembly (requirements s7) reserves the whole bottom side for it."
+    }
+  ],
+
+  "power_constraints": [
+    {"net": "+3V3", "current_a": 0.011, "dt_c": 10, "via_amps": 0.5,
+     "note": "11 mA. IPC-2152 width at this current is a hairline; heating is NOT the binding constraint on this net. What binds is impedance to the decoupling caps: route >= 0.5 mm and keep the J2 -> bulk -> per-pin-cap path short. P2 must add that as an explicit width rule - rules_gen cannot derive it from 11 mA."},
+    {"net": "VREF", "current_a": 0.001, "dt_c": 10,
+     "note": "1 mA, and again heating is not the constraint: IR DROP is. R_trace x I_ref must be << LSB/2 (15.6 uV at 16 bits on 2.048 V), which gives R_trace <= 15 mohm, i.e. >= 0.4 mm wide and <= 10 mm long in 1 oz copper (0.49 mohm/square). A minimum-width hairline would put a gain error on the reading. P2 must express this as an explicit track-width/length rule (SNAA320B s7)."},
+    {"net": "GND", "current_a": 0.011, "dt_c": 10, "via_amps": 0.5, "plane_fed": true, "pdn": false,
+     "note": "B.Cu pour, unbroken. plane_fed so check_current treats taps as leaves; pdn false because the return net is not decoupled to anything. The real GND requirements are geometric and live in layout_notes / digital_return_constraints, not in a width number."}
+  ],
+
+  "thermal_constraints": [],
+  "thermal_note": "EMPTY DELIBERATELY. Whole-board dissipation is 36 mW at the declared ceiling and ~5 mW typical; the largest single part dissipation is the reference at ~3 mW. Nothing approaches the ~0.5 W flag threshold, there is no exposed pad, no via array, no heatsink and no airflow requirement. Temperature still binds this design - but as reference tempco and resistor TCR tracking in the error budget (see error_budget), not as a cooling problem.",
+
+  "reference_architecture": {
+    "ratiometric_verdict": {
+      "answer": "REJECTED - by a factor of 50, not marginally.",
+      "arithmetic": "If the converter references the +3V3 host rail, reading error = -(dVREF/VREF) x reading. +/-5 % of 3.3 V (answered Q7) x a 5 V reading = +/-250 mV, against a +/-5 mV budget at 25 C (50x) and +/-12 mV over 0-50 C (21x). A +/-1 % host rail still gives +/-50 mV (10x). For the reference term alone to occupy half the 25 C budget the host's 3.3 V would have to be accurate to +/-0.05 % = +/-1.65 mV: a bench voltage standard, not a host rail.",
+      "why_not_unfair": "Ratiometric measurement cancels exactly when the SOURCE is excited by the same rail that references the converter (bridge, potentiometer across AVDD, ratiometric sensor). Here the source is an independent external voltage (answered Q1/Q9), so there is nothing to cancel. That is a structural fact about this board, not a preference.",
+      "citation": "TI SNAA320B s3.3 - 'Line regulation error directly gets translated into gain error.'"
+    },
+    "reference_options": [
+      {"option": "converter's INTERNAL reference", "verdict": "ALLOWED ONLY IF the datasheet gives MAX (not typical) limits of <= 0.05 % initial accuracy and <= 10 ppm/degC drift covering 0-50 degC. Preferred by the mode when it qualifies - it is one fewer part.",
+       "why": "SNAA320B s4: 'typically internal voltage references are not fully characterized as in depth as external voltage references and often lack maximum worst case values... calculating the worst case gain error of the system is difficult'. An UNCALIBRATED design cannot spend a typical value, so 'typ 0.05 %, max unspecified' is a FAIL however good it looks."},
+      {"option": "EXTERNAL series reference, 2.048 V (2.5 V acceptable)", "verdict": "the default - see part_requirements.reference"},
+      {"option": "shunt reference (TL431 class / LM4040 class)", "verdict": "not preferred", "why": "needs a bias resistor sized for the worst-case rail AND load, wasting current and adding a tolerance term; SNAA320B s6.3 notes shunt references do not reach the PSRR of series parts. Not excluded, but it must beat the series part on the same accuracy table to be chosen."},
+      {"option": "boost the rail to 5 V and measure directly", "verdict": "OUT BY MODE and unnecessary", "why": "a second rail and a second block (requirements s1/s3, answered Q8 = 3.3 V only). The attenuator solves the span problem with two resistors."}
+    ],
+    "rail_to_reference_path": {
+      "dropout": "A CMOS series reference of this class specifies min supply = VREF + 0.001 V unloaded at 25 degC and VREF + 0.05 V over temperature, dropout 1 mV typ / 50 mV max (SBVS032). At the 3.135 V worst-case rail: 1.037 V of margin for 2.048 V, 0.585 V for 2.5 V. REQUIREMENT on the chosen part: Vin_min <= 3.035 V (i.e. >= 100 mV of margin) at its actual load, over 0-50 degC.",
+      "dc_rail_rejection": "Line regulation 110 uV/V typ / 290 uV/V max (REF3020, SBVS032). Over the rail's full 0.33 V span: 95.7 uV on 2.048 V = 47 ppm = 0.23 mV at a 5 V reading = 4.7 % of the 25 degC budget. The SAME rail tolerance costs 250 mV ratiometrically. One 3-pin part turns a 250 mV error into a 0.23 mV error.",
+      "hf_rail_rejection": "A series reference's PSRR is a loop-gain effect: strong at DC and low frequency, largely gone by the SPI clock's 1-10 MHz fundamental and its harmonics. The IC does not reject it; the decoupling does. SNAA320B s6.3: '...especially with bypass and load capacitors... A large supply decoupling capacitor helps to improve the PSRR performance in case of noisy supply.'",
+      "why_hf_matters_at_dc": "Broadband rail noise averages out over samples. Noise CORRELATED WITH THE CONVERSION INSTANT aliases to DC and does not. SCLK is correlated with conversion by construction - that is the only mechanism by which MHz activity becomes a DC error in this budget, and it is what the decoupling and the digital_return_constraints are buying."
+    },
+    "decoupling_requirements": [
+      {"where": "+3V3 at the J2 entry", "what": "1-10 uF X7R bulk, 10 uF preferred", "why": "EARNED BY ARITHMETIC, not reflex: the host feeds this board through ~0.5-1 uH of lead + header. A 1 mA load step in 100 ns across 1 uH is L di/dt = 10 mV on the rail; with a 10 uF local reservoir the same step is dQ/C = 0.1 nC / 10 uF = 10 uV (+ ~5 uV of ESR) - about 600x better. The same cap gives ~30-45 dB at 1 MHz against the host's tens of mV of noise, bringing 30 mVpp to ~1 mVpp at the board."},
+      {"where": "EACH converter supply pin (AVDD and DVDD separately)", "what": "100 nF X7R 0402/0603, <= 2 mm from the pin, own via to the return pour", "why": "One cap per pin, never one shared between two pins. ADI MT-031: decoupling caps 'should be low inductance ceramic types, typically between 0.01 uF and 0.1 uF' and 'mounted as close to the converter as possible to minimize parasitic inductance.'"},
+      {"where": "reference IN pin", "what": "the chosen datasheet's value (SBVS032 recommends 0.47 uF for its family; 100 nF X7R is the common floor)", "why": "It is the reference's only HF rejection above its loop bandwidth."},
+      {"where": "reference OUT pin", "what": "ONLY what the chosen datasheet allows - read it, do not assume", "why": "SBVS032's family 'does not require a load capacitor, and is stable with any capacitive load'. OTHER families REQUIRE an output cap inside a specified range and oscillate outside it. Fitting a habitual 1 uF is a real failure mode here."},
+      {"where": "converter REF pin", "what": "a cap close to the pin, value per the converter datasheet", "why": "SNAA320B s7: 'To increase switching load driving capability, a capacitor must be placed very near to reference pin of SAR ADC. Stability of the reference must also be considered while selecting the cap.'"}
+    ],
+    "avdd_dvdd_partition": {
+      "verdict": "ONE +3V3 net to both pins. NO ferrite bead, NO series resistor between AVDD and DVDD. Separate decoupling at each pin, one solid return.",
+      "why": [
+        "Both pins sit on one net fed from one host rail through a connector. An impedance inserted in the converter's own supply path sits exactly where its datasheet assumes a low one - TI's data-converter applications position is to advise against it because the ferrite 'can choke any instantaneous current demand the ADC has, for example at startup' (TI E2E ADS1261-Q1 thread, forum-grade; the ~5 ohm series R + RC is the alternative offered IF filtering is genuinely needed).",
+        "The classic ferrite-in-VD recommendation (ADI MT-031 Fig. 5) is written for the case where VD is a DIFFERENT supply: 'Some of the newer, high speed ICs may have their analog circuits powered by +5 V, but the digital interface powered by +3 V to interface to 3 V logic. In this case... it is also advisable to connect a ferrite bead in series with the power trace that connects the pin to the +3 V digital logic supply.' There is no digital logic supply on this board.",
+        "It is 'filtering the datasheet does not require', which the block-only scope tier excludes. The mode and the engineering agree."
+      ],
+      "escape_hatch": "IF the chosen converter's own datasheet shows a ferrite or series R in its recommended application circuit, it goes in - it is then a datasheet requirement, which the mode keeps. P3 applies that test.",
+      "grounds": "If the part has separate AGND and DGND pins, join them AT THE DEVICE to the single return pour with minimum lead length. MT-031: 'the AGND and DGND pins should be joined together externally to the analog ground plane with minimum lead lengths'; 'connecting DGND to the digital ground plane applies VNOISE across the AGND and DGND pins and invites disaster!'; and 'The name DGND on an IC tells us that this pin connects to the digital ground of the IC. This does not imply that this pin must be connected to the digital ground of the system.'"
+    },
+    "digital_return_constraints": [
+      {"id": "D1", "constraint": "Every SPI net routes on F.Cu only; the B.Cu pour stays unbroken beneath the entire analog section (J1, both divider arms, the buffer, AIN, VREF, the reference, the converter's analog pins). No B.Cu track, slot or keepout may cross the region bounded by J1's pins, the divider and the converter's AIN/AGND pins. On 2 layers a bottom-side jumper IS a cut in the return plane; if one is unavoidable it sits outside that region and runs perpendicular to the analog return direction."},
+      {"id": "D2", "constraint": "No SPI net runs over, or parallel within 2.5 mm of, AIN / VREF / the divider mid-node. Unavoidable crossings are perpendicular and >= 5 mm from the converter's analog pins.", "basis": "Edge-coupled traces on 1.6 mm FR4 at 2.5 mm spacing couple ~0.02-0.05 pF/cm, so a 3.3 V edge over a 10 mm parallel run injects ~100 fC. Into an UNBUFFERED 600 kohm node with ~20 pF of local capacitance that is ~5 mV at AIN decaying over ~12 us - comparable to the sample period. Into a buffer's ~1-10 ohm closed-loop output it settles in nanoseconds. Estimate is +/-3x; even at one third it is fatal to an unbuffered node."},
+      {"id": "D3", "constraint": "The converter's DVDD/VDD decoupling cap IS the SPI drivers' current loop: cap within 2 mm of the pin, ground via within 1 mm of its pad, loop area <= 20 mm^2.", "basis": "A CMOS output slewing 1 V/ns into 10 pF draws 10 mA (MT-031 Eq. 2). MT-031 Fig. 5: the transient digital currents 'flow in the small loop from VD through the decoupling capacitor and to DGND... will therefore not appear on the external analog ground plane'."},
+      {"id": "D4", "constraint": "Geometry: analog at the J1 end, digital at the J2 end; the converter sits nearer J2's digital pins than the analog nodes do, so no SPI return current has a reason to flow through copper under the divider or the reference. Keep the answered J2 pin order (3V3, GND, then the SPI group) - it puts GND adjacent to the digital pins."},
+      {"id": "D5", "constraint": "HOST-SIDE, recorded not built: where the converter permits, do not clock SPI during the sampling/conversion window - read the previous result between conversions. Free, and it removes the one coupling path that aliases to DC."}
+    ],
+    "power_up": {
+      "sequencing": "NONE REQUIRED, and one rail is the reason: a two-supply converter carries AVDD-vs-DVDD ordering and delta limits, and a single net cannot violate an ordering constraint against itself. No supervisor, no delay element, no soft start, no discharge - and the mode excludes them anyway.",
+      "reference_settling": "Turn-on settling for this class is 120 us to 0.1 % at CL = 0 (SBVS032). TWO CAUTIONS: (a) 0.1 % of 2.048 V is 2 mV = 1000 ppm = the ENTIRE 25 degC budget, so the datasheet's own settling spec is not the number that matters - settling to ~10 ppm takes ~1.67x longer on a single-pole tail, ~200 us; (b) an output cap stretches it (charging 1 uF at a few hundred uA is milliseconds).",
+      "requirement": "The host waits >= 10 ms after +3V3 is applied before trusting a conversion - >= 50x the worst case in this class and invisible to any host. If the converter offers offset/gain self-calibration, run it after that wait.",
+      "inrush": "None to manage: 10 uF charged to 3.3 V is 54 uJ. No limiting.",
+      "hazard_recorded": "The one real ordering hazard is hot-plugging J2 while the host drives SCLK/CS - current then flows through the converter's input clamps into an unpowered rail. Rail and signals arrive on the same connector, so exposure is a single mating event; the mode excludes series/clamp mitigation and answered Q5 accepted the no-protection consequence. Recorded, not proposed."
+    },
+    "buffer_decision": {
+      "verdict": "U3 unity-gain buffer between the divider and the converter is REQUIRED, on three independent grounds, unless P3 finds a converter that defeats all three.",
+      "grounds": [
+        {"ground": "source loading", "arithmetic": "A resistive divider puts the source resistance in series with its top arm: error = -Rs/(Rs+R1+R2). At the answered Rs <= 1 kohm, a 250 kohm divider gives -3990 ppm = -19.9 mV (4x the whole budget); 1 Mohm gives -5.0 mV; 2.5 Mohm gives -2.0 mV (400 ppm); 5 Mohm gives -1.0 mV. So the divider must be 2.5-5 Mohm, NOT the 100 kohm-class part that answered Q9's 'board >= 100 kohm' would permit. P2 option: designing the ratio for a nominal Rs of 500 ohm halves the residual to +/-200 ppm."},
+        {"ground": "converter input current and settling", "arithmetic": "A 2.5 Mohm divider at K = 0.4 presents 600 kohm Thevenin (R1 1.5 Mohm, R2 1.0 Mohm). For bias-current error under 250 ppm the converter's own input current must be <= 800 pA at 50 degC - true of some CMOS delta-sigma inputs, false of most PGA inputs (nA class), and false of any unbuffered switched-cap SAR, which additionally needs Rth x Cs = 12 us of settling per acquisition against a window of ~1 us."},
+        {"ground": "digital coupling", "arithmetic": "constraint D2: ~5 mV of injected step on an unbuffered 600 kohm node, decaying over ~12 us."}
+      ],
+      "mode_position": "NOT a mode violation. block-only excludes 'any second IC the block does not need in order to work'; this one it does need to work AT THE STATED ACCURACY, which the mode explicitly does not relax. P2 records it as SUPPORT with this arithmetic and H1 should see it. If P3 finds a converter that can face a 2.5 Mohm divider directly, the buffer comes off the board.",
+      "not_a_second_rail": "The buffer runs from +3V3 like everything else. It cannot sit AHEAD of the divider (a 0-5 V input exceeds the 3.3 V rail), so it goes after it, where the signal is 0-2.05 V."
+    }
+  },
+
+  "error_budget_ppm_of_5v_reading": {
+    "note": "1000 ppm = 5 mV = the 25 degC budget; 2400 ppm = 12 mV over 0-50 degC. Reference terms assume a 0.05 % / 10 ppm-per-degC grade; drift uses the box method over the full 50 degC span (SNAA320B Table 3-2).",
+    "terms": [
+      {"term": "reference initial accuracy (incl. solder shift)", "at_25c": 500, "adds_0_50c": 0, "source": "0.05 % grade; SNAA320B s3.1 - solder shift is real and often unspecified"},
+      {"term": "reference tempco", "at_25c": 0, "adds_0_50c": 500, "source": "10 ppm/degC x 50 degC"},
+      {"term": "reference thermal hysteresis", "at_25c": 100, "adds_0_50c": 0, "source": "SBVS032: 25 ppm typ / 100 ppm max"},
+      {"term": "reference long-term drift", "at_25c": 24, "adds_0_50c": 0, "source": "SBVS032: 24 ppm / 1000 h"},
+      {"term": "reference line regulation over the host rail span", "at_25c": 47, "adds_0_50c": 0, "source": "290 uV/V max x 0.33 V / 2.048 V"},
+      {"term": "reference load regulation + reference trace IR", "at_25c": 49, "adds_0_50c": 0, "source": "100 uV/mA max at 1 mA / 2.048 V"},
+      {"term": "attenuator ratio error", "at_25c": 500, "adds_0_50c": 0, "source": "0.05 % ratio-matched network REQUIRED (two discrete 0.1 % resistors give ~850 ppm RSS and blow it alone)"},
+      {"term": "attenuator TCR tracking", "at_25c": 0, "adds_0_50c": 250, "source": "5 ppm/degC tracking x 50 degC - a matched NETWORK, not two discretes"},
+      {"term": "converter gain error, uncalibrated", "at_25c": 500, "adds_0_50c": 250, "source": "selection requirement"},
+      {"term": "source loading Rs/(R1+R2)", "at_25c": 400, "adds_0_50c": 0, "source": "Rs <= 1 kohm into 2.5 Mohm; one-sided, so it does not RSS cleanly"}
+    ],
+    "rss": {"at_25c": 960, "over_0_50c": 1140, "mv_at_25c": 4.8, "mv_over_0_50c": 5.7},
+    "worst_case_sum": {"at_25c": 2120, "over_0_50c": 3120, "mv_at_25c": 10.6, "mv_over_0_50c": 15.6},
+    "findings": [
+      "The 25 degC spec is the hard one. Terms grow ~1.5x from 25 degC to 0-50 degC while the allowance grows 2.4x - design to +/-5 mV and the temperature spec follows.",
+      "It CLOSES RSS and FAILS worst-case-sum. SNAA320B s4: 'In the real world, the error is between the worst-case and RSS method of results but closer to the RSS result.' Recorded as a decision for P2/H1, not smoothed over: at 0.1 % class, uncalibrated, with three ~500 ppm terms there is no arrangement of real parts that closes worst-case. The lever, if the owner wants worst-case closure, is a 0.02 %-class reference plus a 0.02 % divider network.",
+      "PREFER a converter with internal offset/gain self-calibration: it removes the 500 ppm converter-gain term and the offset term for free (it calibrates against VREF, so it cannot remove the reference's own error). RSS then falls to ~820 ppm = 4.1 mV at 25 degC.",
+      "'12 bits or better' is functionally '14 bits minimum': at 12 bits the terminal LSB is 1.25 mV so quantisation alone (+/-0.5 LSB = 625 uV) is 12.5 % of the budget; at 16 bits it is 78 uV, 1.6 %.",
+      "Reference NOISE is inside the budget but not invisible: 65 uVrms (10 Hz-10 kHz) on 2.048 V = 32 ppm rms = 0.16 mVrms at a 5 V reading (~1 mVpp), which averaging 100 samples (10 ms at 10 kSa/s) cuts 10x; the 0.1-10 Hz flicker part (28 uVpp = 14 ppm = 0.07 mVpp) does NOT average out (SNAA320B s6.1).",
+      "The word 'uncalibrated' is what makes this hard. A single 25 degC gain constant in the host would remove ~500-700 ppm at a stroke (SNAA320B s5). Not proposed - recorded so the owner can see what the requirement costs."
+    ]
+  },
+
+  "part_requirements": {
+    "reference": {
+      "vout_v": "2.048 preferred (2.5 acceptable)",
+      "initial_accuracy_max": "0.05 % (0.02 % if worst-case closure is wanted) - MAX limit, not typical",
+      "tempco_max_ppm_per_c": 10,
+      "tempco_spec_must_cover_c": [0, 50],
+      "vin_min_v_max": 3.035,
+      "type": "series (shunt allowed only if it beats the series part on the same table)",
+      "iq_ma_max": 1.0,
+      "output_cap": "per the chosen datasheet's stability window - REQUIRED for some families, forbidden-by-value for others; never assume",
+      "reject_class": "0.2 % / 50 ppm-per-degC parts (the REF30xx grade cited throughout this document as a class exemplar) - 0.2 % initial is 10 mV at a 5 V reading, twice the entire 25 degC budget, on its own",
+      "note": "Sits on +3V3 with >= 1.0 V of headroom at 2.048 V. Dropout is not a selection driver here; accuracy, drift and MAX-limit specification are."
+    },
+    "converter_power_related": {
+      "supplies": "single 3.3 V for AVDD and DVDD (must be SPECIFIED for 3.0-3.6 V operation, not merely 'tolerant')",
+      "input_range_must_include_0v": "HARD REQUIREMENT. Many delta-sigma parts with an input buffer or PGA require the input to stay 100-200 mV above AVSS; such a part CANNOT measure a 0 V input on a single 3.3 V rail and would need a negative rail - a second rail and a MODE BOUNDARY. Avoidable entirely by selection (buffer-bypass mode, or a specified range that includes AGND), so it is a selection constraint, not an escalation.",
+      "input_current_max_pa": "800 at 50 degC if it faces the 2.5 Mohm divider directly (600 kohm Thevenin); irrelevant if U3 buffers it",
+      "reference_input": "prefer a steady, small REF-pin current (delta-sigma with a buffered reference input) over a large dynamic draw (SAR charge redistribution) - it feeds straight back into the reference's load-regulation and trace-IR gain terms",
+      "self_calibration": "STRONGLY PREFERRED - internal offset/gain calibration removes two budget terms at zero board cost",
+      "gain_error_uncalibrated_max": "0.05 % FSR if it does NOT self-calibrate",
+      "data_rate": ">= 10 kSa/s single-shot or continuous (many low-power delta-sigmas stop at 2 kSPS; check the settled-conversion time, not just the modulator rate)"
+    },
+    "buffer_conditional": {
+      "when": "required unless the converter defeats all three grounds in reference_architecture.buffer_decision",
+      "supply": "single 3.3 V, specified at 3.0-3.6 V",
+      "topology": "unity-gain follower, CMOS input",
+      "vos_max_uv": 100,
+      "vos_drift_max_uv_per_c": 1,
+      "ib_max_pa": 100,
+      "output_swing": "RRIO; output must reach within ~1 mV of GND at the converter's (near-zero) input load - the residual floor at a 0 V input is an OFFSET, inside budget, and the spec point is at 5 V",
+      "note": "A negative rail to fix the last millivolt at 0 V would be a second rail - OUT BY MODE, and not needed at this accuracy class."
+    },
+    "attenuator": {
+      "r_total_ohm": "2.5 M to 5 M (NOT 100 kohm class - see buffer_decision ground 1)",
+      "ratio": "0.4 for a 2.048 V reference (3:2 arms, e.g. 1.5 M / 1.0 M); 0.5 for 2.5 V (equal arms match and track best but leave zero headroom at 5.000 V)",
+      "form": "ratio-matched NETWORK (0.05 % ratio, <= 5 ppm/degC tracking), not two discrete resistors - two 0.1 % discretes give ~850 ppm RSS of ratio error and ~3000 ppm of untracked drift over 0-50 degC",
+      "owner": "P2/component-scout own this part; it is stated here only because it competes for the same error budget as the reference and it sets the buffer decision."
+    }
+  },
+
+  "layout_notes": [
+    "VREF trace: >= 0.4 mm wide, <= 10 mm long, reference placed adjacent to the converter's REF pin. R_trace x I_ref must be << LSB/2 = 15.6 uV, giving R_trace <= 15 mohm (1 oz = 0.49 mohm/square). This is a GAIN error, not noise (SNAA320B s7).",
+    "One HF ceramic per converter supply pin, <= 2 mm from the pin, each with its own via to the B.Cu pour. Not one cap shared between AVDD and DVDD.",
+    "Bulk 1-10 uF at J2's 3V3 pin, i.e. at the RAIL ENTRY, not at the converter.",
+    "The converter's DVDD cap + its ground via form the SPI drivers' 10 mA current loop: keep that loop under 20 mm^2 (D3).",
+    "B.Cu is ONE unbroken GND pour - not split, not slotted, and no bottom-side track anywhere under the analog section (D1). Single-sided assembly reserves the bottom side for exactly this.",
+    "Analog at the J1 end, digital at the J2 end; SPI nets stay >= 2.5 mm from AIN / VREF / the divider mid-node and never run parallel to them (D2, D4).",
+    "The divider arms and the reference sit close together and close to the converter's analog pins; the divider mid-node (up to 600 kohm) is the most sensitive net on the board and must be the SHORTEST high-impedance run, not the most convenient one.",
+    "AGND and DGND (if separate pins) join at the device to the same pour, minimum lead length (MT-031).",
+    "No thermal features of any kind are required: 36 mW total, no exposed pad, no via array."
+  ],
+
+  "rejected": [
+    {"option": "ratiometric operation against the +3V3 host rail", "why": "+/-250 mV at a 5 V reading against a +/-5 mV budget - 50x over. Arithmetic, not a preference. Ratiometric cancels only when the SOURCE is excited by the same rail; this source is independent."},
+    {"option": "a second rail / boost to 5 V to measure the input directly", "why": "OUT BY MODE (block-only excludes a second rail the block does not need to work) and unnecessary - a two-resistor attenuator solves the span. Answered Q8 fixes 3.3 V as all there is."},
+    {"option": "on-board LDO or regulator to clean up the host rail", "why": "Not needed and mode-excluded. The reference's own line regulation (290 uV/V max) already reduces the rail's +/-5 % to 47 ppm; a regulator would improve a term already worth 4.7 % of the budget while costing a part, a dropout constraint at 3.135 V, and its own noise."},
+    {"option": "ferrite bead or series resistor between AVDD and DVDD", "why": "'Filtering the datasheet does not require' - mode-excluded, and the engineering agrees: one rail, one converter, no separate logic supply, and an inserted impedance can choke the converter's own transient demand. Reinstated ONLY if the chosen converter's datasheet shows it."},
+    {"option": "split analog/digital ground planes", "why": "Every return on this board leaves through the same GND pin of J2. A split lengthens one path rather than separating two current systems. MT-031's split-plane star assumes digital currents with their own supply and destination."},
+    {"option": "pi filter / ferrite on the +3V3 entry", "why": "Mode-excluded, and the bulk-cap arithmetic (600x improvement on a 1 mA/100 ns step, 30-45 dB at 1 MHz) shows the cap alone is sufficient at 0.1 % class."},
+    {"option": "100 kohm-class attenuator", "why": "Legal under answered Q9's 'board >= 100 kohm', but Rs <= 1 kohm into 250 kohm is -19.9 mV of gain error - 4x the entire budget."},
+    {"option": "host-side 25 degC gain calibration", "why": "Would remove ~500-700 ppm and make the budget comfortable, but answered Q2 specifies UNCALIBRATED. Recorded so the cost of that word is visible, not proposed."}
+  ],
+
+  "model_limits": {
+    "currents": "Class estimates with no part chosen; the AVDD/DVDD split in particular moves with the converter architecture. The TOTAL (11 mA declared) is robust - it is 4.5x under the host's stated 50 mA - so no downstream decision depends on the split being right.",
+    "coupling_estimate": "The D2 charge-injection number (~0.02-0.05 pF/cm, ~100 fC, ~5 mV) is a geometry estimate good to about +/-3x. Even at one third it is fatal to an unbuffered 600 kohm node, so the conclusion is insensitive to the error bar.",
+    "reference_numbers": "SBVS032 values are used as a CLASS EXEMPLAR of what a series reference specifies. The 0.05 % / 10 ppm-per-degC grade assumed in the error budget is a REQUIREMENT on the chosen part, not a claim about that family (whose 0.2 % / 50 ppm grade fails this board).",
+    "psrr_vs_frequency": "No measured PSRR-vs-frequency curve was obtained for any candidate reference; the HF conclusion rests on the general loop-gain argument plus SNAA320B s6.3's remedy. P3 should read the chosen part's PSRR plot and confirm the decoupling assumption.",
+    "error_budget": "Terms are combined RSS per SNAA320B s4; the source-loading term is one-sided (always negative) and is included in the RSS anyway, which is slightly conservative. Converter gain/offset numbers are placeholders until P3 - they are stated as selection limits so the budget stays testable.",
+    "net_names": "+3V3 / VREF / GND are this fragment's proposal; P2 must reconcile power.json to the final netlist names before P5."
+  }
+}

@@ -1,0 +1,399 @@
+{
+ "mpn": "OPA320AIDBVR",
+ "lcsc": "C92494",
+ "package": "SOT-23-5 (TI DBV package, R-PDSO-G5, JEDEC MO-178 Variation AA) - 5 pins, no exposed pad",
+ "description": "OPA320AIDBVR - TI SBOS513F (Aug 2010, rev. Dec 2016), 48-page family datasheet covering FOUR variants: OPA320 (single, 5-pin SOT-23/DBV), OPA320S (single+shutdown, 6-pin SOT-23/DBV), OPA2320 (dual, 8-pin SOIC/D or VSSOP/DGK or SON/DRG with exposed pad), OPA2320S (dual+shutdown, 10-pin VSSOP/DGS). THIS FILE IS SCOPED TO THE SINGLE OPA320 IN THE 5-PIN SOT-23 (DBV) PACKAGE ONLY - the exact ordered device, confirmed verbatim on the Package Option Addendum (p.31): 'OPA320AIDBVR ACTIVE SOT-23 DBV 5 3000 Green (RoHS & no Sb/Br) CU NIPDAU Level-2-260C-1 YEAR -40 to 125 RAC' (device marking RAC). Shutdown (SHDN) pin, exposed thermal pad, and all OPA320S/OPA2320/OPA2320S-only rows in the shared Electrical Characteristics table (SHUTDOWN section, channel separation) do NOT apply to this part and are omitted below or flagged N/A. All numeric fields are the OPA320/OPA320S column where the table splits by variant.\n\nUNLESS OTHERWISE NOTED, the Electrical Characteristics table's own default test condition (p.7 header, verbatim) applies to every row below: 'VS = 1.8 V to 5.5 V or +/-0.9 V to +/-2.75 V, TA = 25C, RL = 10 kohm connected to VS/2, VCM = VS/2, VOUT = VS/2, and SHDNx = VS+ (unless otherwise noted)'. This means the tabulated VOS/CMRR/etc. numbers are guaranteed across the WHOLE 1.8-5.5V range, so they cover this board's 3.3V rail directly - EXCEPT the Frequency Response block (GBP/SR/PM/settling/overload-recovery), which carries its own narrower override 'VS = 5 V, CL = 50 pF' (p.8 sub-header) - i.e. those specific AC numbers were measured at 5V, not 3.3V, and at CL=50pF, not whatever load this board's output network actually presents. Figure 25 (Slew Rate vs Supply Voltage, p.14) suggests SR only varies mildly (about 9.5 to 12 V/us) from 1.6V to 5.6V supply, so the 3.3V-vs-5V gap is probably minor for slew rate specifically, but no datasheet-stated GBW/settling number exists AT 3.3V - flagged, not silently assumed equal.\n\n(1) OFFSET VOLTAGE, DRIFT, BIAS CURRENT, CMRR, PSRR (p.7, Electrical Characteristics, default condition above unless noted): VOS = 40 uV typ / 150 uV max. dVOS/dT = 1.5 uV/C typ / 5 uV/C max (condition override: VS=5.5V, TA=-40C to 125C). PSR (offset-voltage-vs-supply, given in uV/V not dB) = 5 uV/V typ / 20 uV/V max at TA=25C, and 15 uV/V max (no typ stated) at TA=-40C to 125C, both at VS=1.8-5.5V. Cross-check: converting the 5 uV/V typ PSR figure to dB gives 20*log10(1/5e-6) = 106.0 dB, matching the front-page Features bullet 'excellent PSRR (106 dB)' (p.1) almost exactly - this conversion is this extractor's own arithmetic, not a separately tabulated dB row, included only as a consistency check between two datasheet-stated figures in different units. IB (input bias current) = 0.2 pA typ / 0.9 pA max at TA=25C, 50 pA max at TA=-40C to 85C, and - FLAGGED, printed exactly as shown, not reconciled - 600 pA max for OPA320/OPA320S at TA=-40C to 125C, which is HIGHER (worse) than the 400 pA max the same row states for OPA2320/OPA2320S at the identical hot/cold corner; the single-channel part is printed as having the worse hot-temperature bias-current spec than the dual. IOS (input offset current) = 0.2 pA typ / 0.9 pA max at 25C, 50 pA max at -40C to 85C, 400 pA max at -40C to 125C (this row does not split by variant). CMRR = 100 dB min / 114 dB typ at VS=5.5V, (V-)-0.1V < VCM < (V+)+0.1V, TA=25C; 96 dB min (no typ given) at the same VS/VCM window over TA=-40C to 125C. The 114 dB typ figure matches the Features bullet 'High CMRR: 114 dB' (p.1) exactly.\n\n(2) OUTPUT SWING TO THE RAILS, WITH LOAD: the ONLY resistive-load rows the datasheet tabulates (p.7-8, 'VO Voltage output swing from both rails') are RL=10 kohm (the LIGHTEST load tested) and RL=2 kohm - there is no lighter-than-10-kohm or true-no-load/current-based swing spec anywhere in the Electrical Characteristics table. At RL=10 kohm to VS/2, TA=25C: 10 mV typ / 20 mV max from EACH rail (i.e. output can get to within 10-20 mV of both V- and V+). At RL=10 kohm, TA=-40C to 125C: 30 mV max (no typ). At RL=2 kohm, TA=25C: 25 mV typ / 35 mV max; at RL=2 kohm, TA=-40C to 125C: 45 mV max (no typ) - i.e. the HEAVIER 2-kohm load swings LESS close to the rails than the lighter 10-kohm load, consistent with a finite output impedance. Figure 18 ('Output Voltage Swing vs Output Current, 8-Pin VSSOP', p.12, viewed directly) plots VOUT from -3V to +3V against IOUT from 0 to 80 mA at VS=+/-2.75V for -40C/+25C/+125C: near IOUT=0 (the chart's finest resolution near the origin) the curves sit close to but visibly short of the +/-2.75V rails, consistent with the tabulated few-mV/few-tens-of-mV headroom; the chart's axis resolution is too coarse (0-80mA range, meant to show the short-circuit knee around the 65mA ISC spec) to read an exact near-zero-current number more precise than the tabulated RL=10kohm row. MOST IMPORTANT FINDING FOR THIS BOARD'S 'must reach 0V' REQUIREMENT: Section 8.1.4 'Driving ADC'S' (p.24-25) and Figure 44 ('Driving the ADS8326', a 16-bit 250-kSPS SAR ADC - the closest thing to this board's own application in the whole datasheet) carries footnote (2), verbatim: 'Single-supply applications lose a small number of ADC codes near ground as a result of op amp output swing limitation. If a negative power supply is available, this simple circuit creates a -0.3-V supply to allow output swing to true ground potential.' TI's own reference design does NOT tie V- straight to 0V for this exact use case; it generates a slightly-negative V- (about -0.3V, via a BAS40 diode SD1 clamped through a 50-kohm resistor off an available -5V rail) specifically so the output can reach TRUE 0V without losing codes near ground. This board ties V- directly to GND (single +3.3V supply, no negative rail) - the datasheet's own applications section is flagging exactly the failure mode this board's requirement ('output must reach 0V') is worried about, and shows the fix TI itself uses is a small negative V- offset, not a pure single-supply tie. Also from that same figure: R1=100 ohm (footnote 1: 'Suggested value; may require adjustment based on specific application') in series between the OPA320 output and the ADS8326 +IN pin, with a 1-nF capacitor (footnote 1 also covers this) from that node to ground - i.e. TI's own ADC-driving reference design already uses BOTH a series isolation resistor and a following capacitor at the sampling node, not a bare wire.\n\n(3) INPUT COMMON-MODE RANGE: VCM = (V-)-0.1V to (V+)+0.1V (p.7 table), and this genuinely extends below the negative rail (not just nominally) per the mechanism described in Sec 7.3.3 'Rail-to-Rail Input' (p.17, verbatim): 'The design of the OPA320 amplifiers include an internal charge-pump that powers the amplifier input stage with an internal supply rail at approximately 1.6 V above the external supply (VS+). This internal supply rail allows the single differential input pair to operate and remain very linear over a very wide input common mode range. A unique zero-crossover input topology eliminates the input offset transition region typical of many rail-to-rail, complementary input stage operational amplifiers. This topology allows the OPA320 to provide superior common-mode performance (CMRR > 110 dB, typical) over the entire common-mode input range, which extends 100 mV beyond both power-supply rails.' Practical implication for this board: because it is a SINGLE differential input pair (not the classic dual-complementary- pair rail-to-rail design), there is no crossover-distortion glitch region at some mid-supply common-mode point - CMRR/offset stay well-behaved across the whole swing, including near 0V.\n\n(4) GBW, SLEW RATE, SETTLING TIME (p.8, 'FREQUENCY RESPONSE, VS = 5 V, CL = 50 pF' sub-header - see the condition-mismatch flag above): GBP (gain-bandwidth product) = 20 MHz typ, unity gain (matches the Features bullet 'Wide Bandwidth: 20 MHz'). SR (slew rate) = 10 V/us typ, G=+1 (matches Features bullet 'Slew Rate: 10 V/us'). PM (phase margin) = 47 deg typ. Settling time tS, all rows at '2-V step, G=+1' (this board's actual closed-loop config is also G=+1, a lucky match) - RL is NOT restated for this row; the table's own default RL=10 kohm to VS/2 is presumed to still apply since only VS and CL were overridden by the sub-header, but this is an inference, not a re-stated number: to 0.1% = 0.25 us typ; to 0.01% = 0.32 us typ; to 0.0015% = 0.5 us typ (footnote 1: 'Based on simulation' - NOT production tested, the loosest-confidence number of the three). FLAG DIRECTLY RELEVANT TO THIS BOARD: 0.0015% = 15 ppm is the TIGHTEST settling precision this datasheet publishes anywhere, and it is simulation-only. This board's acquisition window is 9.0 us and needs settling to about 7.6 ppm - roughly 2x tighter than the datasheet's own tightest (and least-certain) published settling figure. There is no datasheet-stated settling number at 7.6 ppm; a reviewer checking this board's timing margin against the datasheet will find the nearest anchor is the 0.5 us/15 ppm simulated row, not a direct match. Overload recovery time = 100 ns typ (VIN x G > VS, p.8), positive/negative recovery symmetric (Sec 7.3.9, p.20 - Figures 38/39 viewed as axis labels only, not deep-read since not requested).\n\n(5) OPEN-LOOP OUTPUT IMPEDANCE R_O: tabulated RO = 90 ohm (single typ-only value, no min/max columns filled), condition IO=0 mA, f=1 MHz (p.8). Section 7.3.7 'Output Impedance' (p.18, verbatim, in full since this is load-bearing for this board's isolation-resistor sizing method): 'The open-loop output impedance of the OPA320 common-source output stage is approximately 90 ohm. When the op amp is connected with feedback, this value is reduced significantly by the loop gain. For example, with 130 dB (typical) of open-loop gain, the output impedance is reduced in unity-gain to less than 0.03 ohm. For each decade rise in the closed-loop gain, the loop gain is reduced by the same amount, which results in a ten-fold increase in effective output impedance. While the OPA320 output impedance remains very flat over a wide frequency range, at higher frequencies the output impedance rises as the open-loop gain of the op amp drops. However, at these frequencies the output also becomes capacitive as a result of parasitic capacitance. This architecture in turn prevents the output impedance from becoming too high, which can cause stability problems when driving large capacitive loads.' THIS DATASHEET DOES PUBLISH AN EXPLICIT R_O-VS-FREQUENCY CURVE: Figure 19 'Open-Loop Output Impedance vs Frequency' (p.13, viewed directly as an image, not just text-extracted axis labels). Axes: Frequency 1 Hz to 100 MHz (log), Impedance 10 to 1000 ohm (log), condition VS=+/-2.75V (i.e. the max 5.5V total supply, single curve, no other supply variant plotted on this particular figure unlike some others). Visually, the curve sits essentially FLAT around roughly 90-100 ohm from the low-frequency end of the axis up through roughly the 1-10 MHz region, then rises steeply toward the high-frequency end of the plot (approaching/exceeding 1 kohm as the axis reaches 100 MHz) - consistent with the prose's own explanation that the rise happens as open-loop gain rolls off approaching the 20-MHz GBW corner. No numeric corner frequency is printed on the plot itself (only the axis gridlines); the flat-vs-rising transition is a visual read, not a labeled datasheet number. BOTTOM LINE for the isolation-resistor sizing method: YES, this datasheet publishes an open-loop R_O-vs-frequency curve, and YES it is genuinely flat (resistive, not reactive-dominated) across a wide band that covers essentially any frequency this board's signal chain cares about, only departing from flat well up into the amplifier's own GBW roll-off region. Separately, and worth keeping distinct: this board actually operates U3 in closed-loop unity gain, where the datasheet's own text above gives an explicit closed-loop DC output impedance of <0.03 ohm (from 130 dB typ open-loop gain) - three orders of magnitude below the 90-ohm open-loop figure - which is the number that actually sets the loaded divider ratio into any downstream isolation resistor/ADC input in normal (non-slewing, in-band) operation.\n\n(6) CAPACITIVE-LOAD STABILITY: the Electrical Characteristics table's own 'CL Capacitive load drive' row (p.8) just says 'See Typical Characteristics' - no number in the table itself. Section 7.3.8 'Capacitive Load and Stability' (p.19, verbatim, in full): 'The OPA320 is designed to be used in applications where driving a capacitive load is required... An op amp in the unity-gain (1-V/V) buffer configuration and driving a capacitive load exhibits a greater tendency to become unstable than an amplifier operated at a higher noise gain... When operating in the unity-gain configuration, the OPA320 remains stable with a pure capacitive load up to approximately 1 nF. The equivalent series resistance (ESR) of some very large capacitors (CL > 1 uF) is sufficient to alter the phase characteristics in the feedback loop such that the amplifier remains stable... One technique for increasing the capacitive load drive capability of the amplifier operating in unity gain is to insert a small resistor (RS), typically 10 ohm to 20 ohm, in series with the output... This resistor significantly reduces the overshoot and ringing associated with large capacitive loads. A possible problem with this technique is that a voltage divider is created with the added series resistor and any resistor connected in parallel with the capacitive load... For instance, with a load resistance, RL = 10 kohm and RS = 20 ohm, the gain error is only about 0.2%. However, when RL is decreased to 600 ohm, which the OPA320 is able to drive, the error increases to 7.5%.' THIS BOARD'S EXACT CONFIG IS UNITY-GAIN (G=+1), SO THE ~1 nF STABLE-CAPACITIVE-LOAD FIGURE AND THE 10-20 OHM RS RECOMMENDATION APPLY DIRECTLY, NOT AS AN EXTRAPOLATION. Figure 20 'Small-Signal Overshoot vs Load Capacitance' (p.13) / duplicated as Figure 37 with the same data captioned '100-mVPP Output Step' (p.19) - viewed directly as an image: linear-linear axes, Capacitive Load 0 to 3000 pF, Overshoot 0 to 70%, four curves (G=1 VS=1.8V; G=1 VS=5.5V; G=10 VS=1.8V; G=10 VS=5.5V). This curve's range (0-3000 pF) DOES cover the 1-nF stability limit and beyond, so it is informative there, unlike a curve that stopped at 1 nF. Visual read (approximate, not pixel-exact): both G=1 curves rise steeply, already in the 40-55% overshoot range by about 500-750 pF, reaching roughly 60-70% by 1500-3000 pF (i.e. already large overshoot well before 1 nF, which is presumably why the stability text calls 1 nF the 'stable' limit rather than a 'no overshoot' limit - stable is not the same claim as clean). Both G=10 curves rise more gradually, reaching only roughly 30-35% overshoot by 3000 pF. Section 7.3.5 'Feedback Capacitor Improves Response' (p.18) and Section 7.3.6 'EMI Susceptibility and Input Filtering' (p.18, internal input LPF, cutoff approximately 580 MHz -3dB, 20 dB/decade rolloff - both common-mode and differential-mode filtering) are adjacent but not directly requested; noted for completeness, not deep-extracted.\n\n(7) LAYOUT: see the layout_notes array for verbatim/near-verbatim bullets with page citations from Sec 7.3.1 (p.16), Sec 9 Power Supply Recommendations (p.28), Sec 10.1 Layout Guidelines (p.28), the Figure 49 Layout Example callouts (p.28, viewed directly as an image to get the callout-to-component mapping right, since PDF text extraction scrambles the reading order of annotated schematics), the Sec 8.1.2 guard-trace/leakage note (p.23, stated for transimpedance circuits but a general high-impedance-node principle), and the Sec 8.1.4/Figure 44 ADC-driving circuit (p.24-25, viewed directly as an image).\n\nPACKAGE / PINOUT CONFIRMATION: Pin Configuration and Functions (p.4, 'OPA320 DBV Package, 5-Pin SOT-23, Top View', table 'Pin Functions: OPA320 and OPA320S') gives, for the OPA320 (non-S) column: pin 1 = OUT/VOUT (O), pin 2 = V- (negative/lowest supply), pin 3 = +IN (I), pin 4 = -IN (I), pin 5 = V+ (positive/highest supply). No SHDN pin on this 5-pin variant (SHDN is pin 5 on the DIFFERENT 6-pin OPA320S package - not this part). No exposed pad on the OPA320 DBV package - the ONLY package in this whole family with an exposed thermal pad is the OPA2320 DRG (SON-8, dual), footnote 'Connect thermal pad to V-', which is a completely different die/package not used here. Confirmed independently on the DBV(R-PDSO-G5) mechanical drawing (p.40, PDF page index 39, viewed directly) which shows a plain 5-lead SOT-23 body with no thermal pad feature. Mechanical/land-pattern pages for the DBV-5 (as opposed to the visually near-identical but 6-lead DBV-6 used by OPA320S, and the D/DGK/DGS/DRG pages for the dual variants, all interleaved in the same unnumbered mechanical addendum, PDF pages 36-47) were identified and read directly: outline drawing 4073253-4/N (12/14) on PDF page 40, land-pattern drawing 4209593-3/C (08/11) on PDF page 41 - see land_pattern below for the extracted dimensions. JEDEC MO-178 Variation AA.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "OUT",
+   "type": "output",
+   "notes": "Output (also silkscreened VOUT in some figures). Pin Functions table, p.4. Open-loop output resistance ~90 ohm typ (IO=0mA, f=1MHz, p.8); Sec 7.3.7 (p.18) states this reduces to less than 0.03 ohm in closed-loop unity-gain via ~130 dB typ open-loop gain, and that the open-loop R_O stays flat vs frequency up to a wide band before rising near the 20-MHz GBW corner (Figure 19, p.13). Stable driving a pure capacitive load up to approximately 1 nF in unity-gain (Sec 7.3.8, p.19); beyond that TI recommends a 10-20 ohm series isolation resistor RS, which trades off against gain error into the load resistance (0.2% at RL=10k/RS=20; 7.5% at RL=600/RS=20). Output voltage swing from either rail: 10 mV typ / 20 mV max at RL=10 kohm, 25C - the LIGHTEST resistive load this datasheet tabulates (p.7-8); no true no-load/near-zero-current swing number is separately stated. TI's own ADC-driving reference circuit (Figure 44, p.25) flags that single-supply operation loses a few ADC codes near ground because of this swing limitation, and shows an optional -0.3V V- bias generator as the fix - see description."
+  },
+  {
+   "pin": "2",
+   "name": "V-",
+   "type": "power_in",
+   "notes": "Negative (lowest) power supply, p.4. This board ties V- directly to GND (single +3.3V supply, no negative rail). Datasheet's generic bypass guidance (Sec 7.3.1, p.16; Sec 9/10.1, p.28) calls for a local ceramic cap 'between each supply pin and ground' - Figure 49 Layout Example (p.28) draws a low-ESR ceramic bypass cap directly at this pin. On a hard GND tie there is no supply impedance to bypass, so this board does not need a separate physical cap here the way it does at V+ - see decoupling entries. NOTE: Section 8.1.4/Figure 44 (p.25) shows TI's OWN ADC-driving reference design does NOT tie this pin straight to 0V - it generates a small negative bias (~-0.3V, via a diode-clamped network off an available -5V rail) specifically to let VOUT reach true 0V without losing ADC codes near ground. Relevant to this board's stated 'output must reach 0V' requirement - see description item (2)."
+  },
+  {
+   "pin": "3",
+   "name": "+IN",
+   "type": "input",
+   "notes": "Positive (noninverting) input, p.4. True rail-to-rail input via an internal charge pump (~1.6V above V+) plus a zero-crossover input topology (Sec 7.3.3, p.17) - common- mode range (V-)-0.1V to (V+)+0.1V genuinely extends below the negative rail, and because it uses a SINGLE differential input pair (not dual complementary pairs) there is no crossover-distortion glitch region at any particular common-mode point. Input bias current +/-0.2 pA typ / +/-0.9 pA max at 25C, rising to +/-600 pA max for OPA320/OPA320S at -40C to 125C (printed HIGHER than the dual variant's 400 pA max at the same corner - see abs_max and description flag). Input capacitance 5 pF differential + 4 pF common-mode (~9 pF combined per Sec 7.3.5/8.1.1, p.18/22). Layout (Figure 49 callout, p.28, verbatim): 'Run the input traces as far away from the supply lines as possible.' For high-impedance sources, Sec 8.1.2 (p.23, stated for transimpedance circuits but a general leakage-control principle) recommends a guard trace encircling the input node, driven at the same voltage, to control PCB leakage."
+  },
+  {
+   "pin": "4",
+   "name": "-IN",
+   "type": "input",
+   "notes": "Negative (inverting) input, p.4. On this board wired directly to OUT (pin 1) for unity-gain follower operation. Same input bias current / input capacitance figures as +IN (pin 3) - see that entry and abs_max. Figure 49 Layout Example (p.28) shows the RG/RF feedback network returning to this pin with the callout (verbatim): 'Place components close to the device and to each other to reduce parasitic errors.' For this board's unity-gain follower, RF is a direct short from OUT to this pin (0 ohm) and RG is omitted, but the short-feedback-trace placement principle still applies."
+  },
+  {
+   "pin": "5",
+   "name": "V+",
+   "type": "power_in",
+   "notes": "Positive (highest) power supply, p.4. This board: +3.3V, within the 1.8-5.5V specified range (Recommended Operating Conditions, p.6). CAUTION (Sec 9, p.28, verbatim): 'Supply voltages larger than 6 V can permanently damage the device.' Quiescent current (OPA320/OPA320S) 1.5 mA typ / 1.75 mA max at VS=5.5V, 25C, rising to 1.85 mA max over -40C to 125C (p.9). Bypass cap required close to this pin - see decoupling below; Figure 49 Layout Example (p.28) draws a low-ESR ceramic cap directly at this pin with the same callout as at V-."
+  }
+ ],
+ "decoupling": [
+  {
+   "pins": [
+    "5"
+   ],
+   "value": "0.1 uF ceramic (acceptable range 0.001 uF to 0.1 uF per Sec 7.3.1, p.16)",
+   "placement": "As close to the pin as possible; minimum-inductance trace to ground (Sec 10.1 Layout Guidelines, p.28). Figure 49 Layout Example (p.28) draws this cap directly between V+ and GND.",
+   "notes": "Sec 9 Power Supply Recommendations (p.28, verbatim): 'Place 0.1-uF bypass capacitors close to the power-supply pins to reduce errors coupling in from noisy or high- impedance power supplies.' Sec 7.3.1 (p.16, verbatim): 'The power-supply pins should have local bypass ceramic capacitors (typically 0.001 uF to 0.1 uF).'"
+  },
+  {
+   "pins": [
+    "2"
+   ],
+   "value": "0.1 uF ceramic (acceptable range 0.001 uF to 0.1 uF per Sec 7.3.1, p.16)",
+   "placement": "As close to the pin as possible; minimum-inductance trace to ground.",
+   "notes": "Datasheet guidance (Sec 7.3.1/9/10.1) applies this symmetrically to 'each supply pin', and Figure 49 (p.28) draws an identical cap at V- for split-supply use. On THIS board V- (pin 2) ties directly to GND (single +3.3V supply) - there is no supply impedance on a hard ground tie, so no separate physical decoupling cap is needed at this pin in practice; entry kept for fidelity to the datasheet's generic per-pin guidance."
+  }
+ ],
+ "land_pattern": {
+  "package": "DBV (R-PDSO-G5), Plastic Small-Outline Package, JEDEC MO-178 Variation AA. TI mechanical outline drawing 4073253-4/N (12/14) and land-pattern drawing 4209593-3/C (08/11), both viewed directly (unnumbered mechanical addendum pages, PDF page indices 39-40 i.e. PDF physical pages 40-41; no printed page number on these pages).",
+  "pad_count": 5,
+  "pitch_mm": 0.95,
+  "pad_size_mm": [
+   0.6,
+   1.05
+  ],
+  "row_spacing_mm": 2.7,
+  "pin1": "1",
+  "notes": "Land pattern (drawing 4209593-3/C): copper pad 0.60mm x 1.05mm; solder mask opening 0.07mm expansion all around beyond the copper pad (non-solder-mask-defined); row spacing (3-pad row to 2-pad row center-to-center) 2.70mm. WITHIN the 3-pad row (pins 1,2,3) pitch is 0.95mm; the 2-pad row (pins 4,5) is at DOUBLE pitch, 1.90mm center-to-center, because a 5-lead SOT-23 omits the middle (6th) lead position that the 6-lead DBV/SOT-23-6 package (OPA320S) uses - do not lay out pins 4/5 at 0.95mm pitch. Stencil (for a 0.127mm/5-mil stencil): individual opening approximately 0.55mm x 1.00mm, same 1.90/0.95/2.70mm pitch/spacing as the copper pads. Drawing notes (verbatim, abbreviated): 'Customers should place a note on the circuit board fabrication drawing not to alter the center solder mask defined pad.' 'Publication IPC-7351 is recommended for alternate designs.' Package outline (drawing 4073253-4/N): body length (D) 3.05mm max / 2.75mm min; body width (E1) 1.75mm max / 1.45mm min; lead-tip-to-lead-tip span (E) 3.00mm max / 2.60mm min; height (A) 1.45mm MAX; standoff (A1) 0.15mm max / 0.00mm min; lead width (b) 0.50mm max / 0.30mm min; pitch (e) 0.95mm BSC; foot length 0.60mm max / 0.30mm min; foot angle 0-8 deg. No exposed pad (plain 5-lead SOT-23 body in the outline drawing - matches the Pin Functions table, which lists no thermal-pad row for OPA320/OPA320S)."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "[p.16, Sec 7.3.1 Operating Voltage, verbatim] 'The power-supply pins should have local bypass ceramic capacitors (typically 0.001 uF to 0.1 uF).'",
+  "[p.28, Sec 9 Power Supply Recommendations, verbatim] 'Place 0.1-uF bypass capacitors close to the power-supply pins to reduce errors coupling in from noisy or high-impedance power supplies.' CAUTION (verbatim): 'Supply voltages larger than 6 V can permanently damage the device; see the Absolute Maximum Ratings.'",
+  "[p.28, Sec 10.1 Layout Guidelines, verbatim, in full] 'The OPA320 is a wideband amplifier. To realize the full operational performance of the device, good high-frequency PCB layout practices are required. The bypass capacitors must be connected between each supply pin and ground as close to the device as possible. The bypass capacitor traces should be designed for minimum inductance.'",
+  "[p.28, Figure 49 Layout Example - viewed directly to get callout-to-component mapping right; text extraction of annotated schematics is not reliably ordered] Three annotated callouts on the reference layout: 'Use a low-ESR, ceramic bypass capacitor.' (shown TWICE, at both the V- pin and the V+ pin, cap drawn directly at each pin-to-GND node). 'Run the input traces as far away from the supply lines as possible.' (at the +IN / VIN node). 'Place components close to the device and to each other to reduce parasitic errors.' (at the RG/RF feedback network on -IN). The example circuit shown is a non-inverting gain stage (RG to GND, RF feedback to OUT); for this board's unity-gain follower use, RF is a direct short (OUT to -IN) and RG is omitted, but the short-trace/close-placement principle still applies to that feedback connection.",
+  "[p.23, Sec 8.1.2 Optimizing the Transimpedance Circuit, item 4, verbatim - stated for transimpedance circuits specifically, but a general PCB leakage-control principle applicable to any high-impedance input node, not layout-section-verbatim] 'Circuit board leakage can degrade the performance of an otherwise well-designed amplifier. Clean the circuit board carefully. A circuit board guard trace that encircles the summing junction and is driven at the same voltage can help control leakage.'",
+  "[p.18, Sec 7.3.7 Output Impedance, verbatim, in full] 'The open-loop output impedance of the OPA320 common-source output stage is approximately 90 ohm. When the op amp is connected with feedback, this value is reduced significantly by the loop gain. For example, with 130 dB (typical) of open-loop gain, the output impedance is reduced in unity-gain to less than 0.03 ohm. For each decade rise in the closed-loop gain, the loop gain is reduced by the same amount, which results in a ten-fold increase in effective output impedance. While the OPA320 output impedance remains very flat over a wide frequency range, at higher frequencies the output impedance rises as the open-loop gain of the op amp drops. However, at these frequencies the output also becomes capacitive as a result of parasitic capacitance. This architecture in turn prevents the output impedance from becoming too high, which can cause stability problems when driving large capacitive loads.'",
+  "[p.19, Sec 7.3.8 Capacitive Load and Stability, verbatim, in full] 'The OPA320 is designed to be used in applications where driving a capacitive load is required... An op amp in the unity-gain (1-V/V) buffer configuration and driving a capacitive load exhibits a greater tendency to become unstable than an amplifier operated at a higher noise gain. The capacitive load, in conjunction with the op amp output resistance, creates a pole within the feedback loop that degrades the phase margin... When operating in the unity-gain configuration, the OPA320 remains stable with a pure capacitive load up to approximately 1 nF. The equivalent series resistance (ESR) of some very large capacitors (CL > 1 uF) is sufficient to alter the phase characteristics in the feedback loop such that the amplifier remains stable... One technique for increasing the capacitive load drive capability of the amplifier operating in unity gain is to insert a small resistor (RS), typically 10 ohm to 20 ohm, in series with the output... A possible problem with this technique is that a voltage divider is created with the added series resistor and any resistor connected in parallel with the capacitive load... with RL = 10 kohm and RS = 20 ohm, the gain error is only about 0.2%. However, when RL is decreased to 600 ohm... the error increases to 7.5%.'",
+  "[p.24-25, Sec 8.1.4 Driving ADC'S + Figure 44, verbatim/paraphrased - viewed directly as an image] 'The OPA320 series op amps are well-suited for driving sampling analog-to- digital converters (ADC's) with sampling speeds up to 1 MSPS... can be used to buffer the ADC switched input capacitance and resulting charge injection.' Figure 44 ('Driving the ADS8326', a 16-bit 250-kSPS SAR ADC) shows the OPA320 as a unity-gain buffer driving the ADC's +IN through a series R1=100 ohm (footnote 1: 'Suggested value; may require adjustment based on specific application') into a 1-nF capacitor at the ADC input node (-IN tied to GND; REF driven by a REF3240 4.096V reference, separately 100nF-decoupled). Footnote 2 (verbatim): 'Single-supply applications lose a small number of ADC codes near ground as a result of op amp output swing limitation. If a negative power supply is available, this simple circuit creates a -0.3-V supply to allow output swing to true ground potential.' The optional network shown (labeled 'Optional' on the schematic) generates that -0.3V for V- using a BAS40 diode (SD1) clamped through a 50-kohm resistor off an available -5V rail, with a 100nF cap - i.e. TI's own reference design for this near-identical application does not tie V- straight to 0V.",
+  "[p.4, Pin Functions: OPA2320 table, footnote 2] Exposed thermal die pad exists ONLY on the OPA2320 DRG (SON-8, dual) package variant ('Connect thermal pad to V-'). The OPA320 DBV (5-pin SOT-23) package used on this board has NO exposed pad - confirmed both on the Pin Functions table (no thermal-pad row for OPA320/OPA320S) and directly on the DBV(R-PDSO-G5) mechanical outline drawing (PDF page 40)."
+ ],
+ "abs_max": [
+  {
+   "param": "Supply voltage, VS=(V+)-(V-) (Absolute Maximum Ratings, p.6)",
+   "value": 6,
+   "unit": "V"
+  },
+  {
+   "param": "Signal input pin voltage (Absolute Maximum Ratings, p.6; inputs diode-clamped to supply rails, footnote 2: signals swinging more than 0.5V beyond the rails should be current-limited to <=10mA)",
+   "value": "(V-)-0.5 to (V+)+0.5",
+   "unit": "V"
+  },
+  {
+   "param": "Signal input pin current (Absolute Maximum Ratings, p.6, footnote 2)",
+   "value": "-10 to 10",
+   "unit": "mA"
+  },
+  {
+   "param": "Output short-circuit current duration (Absolute Maximum Ratings, p.6, footnote 3: short-circuit to ground, one amplifier per package)",
+   "value": "Continuous"
+  },
+  {
+   "param": "Operating free-air temperature range, TA (Absolute Maximum Ratings, p.6)",
+   "value": "-40 to 150",
+   "unit": "degC"
+  },
+  {
+   "param": "Junction temperature, TJ (Absolute Maximum Ratings, p.6)",
+   "value": 150,
+   "unit": "degC"
+  },
+  {
+   "param": "Storage temperature, Tstg (Absolute Maximum Ratings, p.6)",
+   "value": "-65 to 150",
+   "unit": "degC"
+  },
+  {
+   "param": "ESD - Human Body Model (HBM), per ANSI/ESDA/JEDEC JS-001 (p.6)",
+   "value": 4000,
+   "unit": "V"
+  },
+  {
+   "param": "ESD - Charged Device Model (CDM), per JEDEC JESD22-C101 (p.6)",
+   "value": 1000,
+   "unit": "V"
+  },
+  {
+   "param": "ESD - Machine Model (MM) (p.6)",
+   "value": 200,
+   "unit": "V"
+  },
+  {
+   "param": "Specified supply voltage range, VS (Recommended Operating Conditions, p.6 - guarantees the Electrical Characteristics table, not a destructive limit)",
+   "value": "1.8 to 5.5",
+   "unit": "V"
+  },
+  {
+   "param": "Specified temperature range, TA (Recommended Operating Conditions, p.6)",
+   "value": "-40 to 125",
+   "unit": "degC"
+  },
+  {
+   "param": "Junction-to-ambient thermal resistance RthJA, OPA320 DBV 5-pin SOT-23 (p.6)",
+   "value": 219.3,
+   "unit": "degC/W"
+  },
+  {
+   "param": "Junction-to-case(top) thermal resistance RthJC(top), OPA320 DBV 5-pin (p.6)",
+   "value": 107.5,
+   "unit": "degC/W"
+  },
+  {
+   "param": "Junction-to-board thermal resistance RthJB, OPA320 DBV 5-pin (p.6)",
+   "value": 57.5,
+   "unit": "degC/W"
+  },
+  {
+   "param": "Junction-to-top characterization parameter psiJT, OPA320 DBV 5-pin (p.6)",
+   "value": 7.4,
+   "unit": "degC/W"
+  },
+  {
+   "param": "Junction-to-board characterization parameter psiJB, OPA320 DBV 5-pin (p.6)",
+   "value": 56.9,
+   "unit": "degC/W"
+  },
+  {
+   "param": "VOS input offset voltage, typ (default table condition: VS=1.8-5.5V, TA=25C, RL=10k to VS/2, VCM=VOUT=VS/2, p.7)",
+   "value": 40,
+   "unit": "uV"
+  },
+  {
+   "param": "VOS input offset voltage, max (same condition, p.7)",
+   "value": 150,
+   "unit": "uV"
+  },
+  {
+   "param": "dVOS/dT input offset voltage vs temperature, typ (VS=5.5V, TA=-40C to 125C, p.7)",
+   "value": 1.5,
+   "unit": "uV/degC"
+  },
+  {
+   "param": "dVOS/dT input offset voltage vs temperature, max (VS=5.5V, TA=-40C to 125C, p.7)",
+   "value": 5,
+   "unit": "uV/degC"
+  },
+  {
+   "param": "PSR input offset voltage vs power supply, typ (VS=1.8-5.5V, TA=25C, p.7; not stated in dB - see description for a dB cross-check against the Features-bullet 106dB figure)",
+   "value": 5,
+   "unit": "uV/V"
+  },
+  {
+   "param": "PSR input offset voltage vs power supply, max (VS=1.8-5.5V, TA=25C, p.7)",
+   "value": 20,
+   "unit": "uV/V"
+  },
+  {
+   "param": "PSR input offset voltage vs power supply, max over temp (VS=1.8-5.5V, TA=-40C to 125C, p.7; no typ stated for this row)",
+   "value": 15,
+   "unit": "uV/V"
+  },
+  {
+   "param": "IB input bias current, typ (TA=25C, p.7)",
+   "value": 0.2,
+   "unit": "pA"
+  },
+  {
+   "param": "IB input bias current, max (TA=25C, p.7)",
+   "value": 0.9,
+   "unit": "pA"
+  },
+  {
+   "param": "IB input bias current, max (TA=-40C to 85C, p.7)",
+   "value": 50,
+   "unit": "pA"
+  },
+  {
+   "param": "IB input bias current, max, OPA320/OPA320S variant (TA=-40C to 125C, p.7 - FLAG: printed HIGHER than the OPA2320/OPA2320S max of 400pA at this identical corner; transcribed as printed, not reconciled)",
+   "value": 600,
+   "unit": "pA"
+  },
+  {
+   "param": "IOS input offset current, typ (TA=25C, p.7)",
+   "value": 0.2,
+   "unit": "pA"
+  },
+  {
+   "param": "IOS input offset current, max (TA=25C, p.7)",
+   "value": 0.9,
+   "unit": "pA"
+  },
+  {
+   "param": "IOS input offset current, max (TA=-40C to 85C, p.7)",
+   "value": 50,
+   "unit": "pA"
+  },
+  {
+   "param": "IOS input offset current, max (TA=-40C to 125C, p.7)",
+   "value": 400,
+   "unit": "pA"
+  },
+  {
+   "param": "CMRR common-mode rejection ratio, min (VS=5.5V, (V-)-0.1V<VCM<(V+)+0.1V, TA=25C, p.7)",
+   "value": 100,
+   "unit": "dB"
+  },
+  {
+   "param": "CMRR common-mode rejection ratio, typ (same condition, p.7)",
+   "value": 114,
+   "unit": "dB"
+  },
+  {
+   "param": "CMRR common-mode rejection ratio, min over temp (VS=5.5V, same VCM range, TA=-40C to 125C, p.7; no typ stated for this row)",
+   "value": 96,
+   "unit": "dB"
+  },
+  {
+   "param": "VO output voltage swing from either rail, typ (RL=10 kohm to VS/2, TA=25C - lightest resistive load tabulated, p.7-8)",
+   "value": 10,
+   "unit": "mV"
+  },
+  {
+   "param": "VO output voltage swing from either rail, max (RL=10 kohm to VS/2, TA=25C, p.7-8)",
+   "value": 20,
+   "unit": "mV"
+  },
+  {
+   "param": "VO output voltage swing from either rail, max (RL=10 kohm to VS/2, TA=-40C to 125C, p.7-8; no typ stated)",
+   "value": 30,
+   "unit": "mV"
+  },
+  {
+   "param": "VO output voltage swing from either rail, typ (RL=2 kohm to VS/2, TA=25C, p.7-8)",
+   "value": 25,
+   "unit": "mV"
+  },
+  {
+   "param": "VO output voltage swing from either rail, max (RL=2 kohm to VS/2, TA=25C, p.7-8)",
+   "value": 35,
+   "unit": "mV"
+  },
+  {
+   "param": "VO output voltage swing from either rail, max (RL=2 kohm to VS/2, TA=-40C to 125C, p.7-8; no typ stated)",
+   "value": 45,
+   "unit": "mV"
+  },
+  {
+   "param": "ISC output short-circuit current, typ (VS=5.5V, p.8)",
+   "value": 65,
+   "unit": "mA"
+  },
+  {
+   "param": "VCM common-mode voltage range (p.7; genuinely extends below V- per Sec 7.3.3 zero-crossover/charge-pump input topology, p.17)",
+   "value": "(V-)-0.1 to (V+)+0.1",
+   "unit": "V"
+  },
+  {
+   "param": "GBP gain-bandwidth product, typ (unity gain, VS=5V, CL=50pF, p.8)",
+   "value": 20,
+   "unit": "MHz"
+  },
+  {
+   "param": "SR slew rate, typ (G=+1, VS=5V, CL=50pF, p.8)",
+   "value": 10,
+   "unit": "V/us"
+  },
+  {
+   "param": "PM phase margin, typ (VS=5V, CL=50pF, p.8)",
+   "value": 47,
+   "unit": "deg"
+  },
+  {
+   "param": "tS settling time to 0.1%, typ (2-V step, G=+1, VS=5V, CL=50pF; RL not restated by this sub-header, table default RL=10k to VS/2 presumed to still apply - inferred, not re-stated, p.8)",
+   "value": 0.25,
+   "unit": "us"
+  },
+  {
+   "param": "tS settling time to 0.01%, typ (same condition as the 0.1% row, p.8)",
+   "value": 0.32,
+   "unit": "us"
+  },
+  {
+   "param": "tS settling time to 0.0015% (=15 ppm), typ (same condition as the 0.1% row, p.8; footnote 1: 'Based on simulation' - NOT production tested; this is the TIGHTEST settling precision published anywhere in this datasheet, about 2x looser than this board's ~7.6 ppm target - see description flag)",
+   "value": 0.5,
+   "unit": "us"
+  },
+  {
+   "param": "Overload recovery time, typ (VIN x G > VS, p.8)",
+   "value": 100,
+   "unit": "ns"
+  },
+  {
+   "param": "RO open-loop output resistance, typ (IO=0mA, f=1MHz, p.8; single value, no separate min/max columns filled)",
+   "value": 90,
+   "unit": "ohm"
+  },
+  {
+   "param": "RO closed-loop output resistance in unity gain - TI-stated in prose (Sec 7.3.7, p.18, verbatim: 'with 130 dB (typical) of open-loop gain, the output impedance is reduced in unity-gain to less than 0.03 ohm'), not a separately tabulated row",
+   "value": "< 0.03",
+   "unit": "ohm"
+  },
+  {
+   "param": "Maximum stable pure capacitive load in unity-gain (G=+1) configuration, typ (Sec 7.3.8, p.19, verbatim 'approximately 1 nF' - this board's actual closed-loop config)",
+   "value": 1,
+   "unit": "nF"
+  },
+  {
+   "param": "Recommended series isolation resistor RS range for driving capacitive loads beyond the unity-gain stability limit (Sec 7.3.8, p.19)",
+   "value": "10 to 20",
+   "unit": "ohm"
+  },
+  {
+   "param": "Gain error introduced by RS=20 ohm isolation resistor at RL=10 kohm (Sec 7.3.8, p.19, worked example)",
+   "value": 0.2,
+   "unit": "%"
+  },
+  {
+   "param": "Gain error introduced by RS=20 ohm isolation resistor at RL=600 ohm (Sec 7.3.8, p.19, worked example)",
+   "value": 7.5,
+   "unit": "%"
+  },
+  {
+   "param": "Input capacitance, differential (p.8)",
+   "value": 5,
+   "unit": "pF"
+  },
+  {
+   "param": "Input capacitance, common-mode (p.8)",
+   "value": 4,
+   "unit": "pF"
+  },
+  {
+   "param": "Input capacitance, combined approximate figure stated in prose (Sec 7.3.5/8.1.1, p.18/22, verbatim 'approximately 9 pF')",
+   "value": 9,
+   "unit": "pF"
+  },
+  {
+   "param": "IQ quiescent current per amplifier, OPA320/OPA320S, typ (IO=0mA, VS=5.5V, TA=25C, p.9)",
+   "value": 1.5,
+   "unit": "mA"
+  },
+  {
+   "param": "IQ quiescent current per amplifier, OPA320/OPA320S, max (IO=0mA, VS=5.5V, TA=25C, p.9)",
+   "value": 1.75,
+   "unit": "mA"
+  },
+  {
+   "param": "IQ quiescent current per amplifier, OPA320/OPA320S, max over temp (IO=0mA, VS=5.5V, TA=-40C to 125C, p.9; no typ stated)",
+   "value": 1.85,
+   "unit": "mA"
+  },
+  {
+   "param": "Power-on time, typ (V+ = 0V to 5V, to 90% IQ level, p.9)",
+   "value": 28,
+   "unit": "us"
+  }
+ ],
+ "source_pdf": "boards/bb-adc/parts/C92494.pdf (TI SBOS513F, Aug 2010 - rev. Dec 2016; covers OPA320/OPA2320/OPA320S/OPA2320S family, this file scoped to OPA320 in the 5-pin SOT-23/DBV package only)"
+}

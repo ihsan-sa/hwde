@@ -1,0 +1,203 @@
+{
+  "block": "afe-support",
+  "candidates": [
+    {
+      "mpn": "ADR4525ARZ-R7",
+      "lcsc": "C403698",
+      "package": "SOIC-8",
+      "basic": false,
+      "stock": 5127,
+      "price": 7.1017,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Analog-Devices-ADR4525ARZ-R7_C403698.pdf",
+      "rank": 1,
+      "fit": "[vref] A-grade 2.5V series ref, verified via ADI-compatible clone datasheet cross-check: 0.04% initial (2.0mV of a 5V terminal reading) + 8ppm/C max tempco (~1.0mV/25C step) = ~3.0mV worst-case over 0-50C, best accuracy margin of any vref checked. FLAG: needs VIN>=Vout+0.3V=2.8V, only 335mV headroom at worst-case 3.135V host rail - real but survivable on a clean supply. B-grade ADR4525BRZ-R7 (C403914, stock 1777, $7.78) tightens to 0.02%/2ppm (~1.6mV over 0-50C) if the extra cost is worth it."
+    },
+    {
+      "mpn": "MAX6070AAUT25+T",
+      "lcsc": "C143530",
+      "package": "SOT-23-6",
+      "basic": false,
+      "stock": 670,
+      "price": 2.974,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Analog-Devices-Inc--Maxim-Integrated-MAX6070AAUT25-T_C143530.pdf",
+      "rank": 2,
+      "fit": "[vref] A-grade 2.5V series ref: catalog 0.04% initial (2.0mV) + 6ppm/C tempco (~0.75mV/25C step) = ~2.75mV over 0-50C, matching ADR4525's class. NOT independently datasheet-verified this session (analog.com and mouser.com both timed out; LCSC's own PDF mirror is a placeholder notice for every MAX6070 row tried) - numbers are catalog-sourced only. Same 335mV dropout-margin flag as ADR4525 (VIN_min 2.8V). 2.048V sibling MAX6070BAUT21+T (C3680522) gives 435mV margin instead but only 52 in stock - thin."
+    },
+    {
+      "mpn": "REF3320AIDCKR",
+      "lcsc": "C469907",
+      "package": "SC-70-3",
+      "basic": false,
+      "stock": 3188,
+      "price": 1.7103,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1912200932_Texas-Instruments-REF3320AIDCKR_C469907.pdf",
+      "rank": 3,
+      "fit": "[vref] 2.048V, verified via TI datasheet: best dropout margin of the whole set (VIN_min = Vout+0.2V = 2.248V -> 887mV headroom at 3.135V). BUT 0.15% max initial accuracy alone = 7.5mV, already exceeds the entire +/-5mV 25C budget before tempco (30ppm/C max -> +3.75mV/25C step, ~11.25mV over 0-50C) is even added. Does not meet the stated 0.1% target uncalibrated - ranked here for dropout/stock/price, not accuracy fitness; flag this conflict for the architect."
+    },
+    {
+      "mpn": "REF3325AIDCKR",
+      "lcsc": "C139629",
+      "package": "SC-70-3",
+      "basic": false,
+      "stock": 5666,
+      "price": 1.0566,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Texas-Instruments-REF3325AIDCKR_C139629.pdf",
+      "rank": 4,
+      "fit": "[vref] Same REF33xx family as REF3320, 2.5V output, verified via same TI datasheet. VIN_min=2.7V -> 435mV headroom at 3.135V. Same accuracy shortfall as REF3320 (0.15% max=7.5mV@25C alone exceeds the 5mV budget; ~11.25mV over 0-50C). Best stock (5666) and cheapest ($1.06) of every vref candidate checked - the default/free option, not the accuracy-fit one."
+    },
+    {
+      "mpn": "MCP1501T-25E/CHY",
+      "lcsc": "C625319",
+      "package": "SOT-23-6",
+      "basic": false,
+      "stock": 3098,
+      "price": 1.6861,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2210180330_Microchip-Tech-MCP1501T-25E-CHY_C625319.pdf",
+      "rank": 5,
+      "fit": "[vref] 2.5V buffered bandgap ref, verified via Microchip datasheet: VIN_min 2.70V (435mV headroom at 3.135V). 0.1% max initial accuracy = 5.0mV, consumes the ENTIRE 25C budget alone with nothing left for divider/buffer/ADC; +50ppm/C max tempco adds ~6.25mV/25C step -> ~11.25mV over 0-50C, at the wall. 2.048V sibling MCP1501T-20E/CHY (C98139, stock 693, $1.82) gives 885mV dropout margin instead, identical accuracy numbers."
+    },
+    {
+      "mpn": "LM4040A25IDBZR",
+      "lcsc": "C9421",
+      "package": "SOT-23",
+      "basic": false,
+      "stock": 5351,
+      "price": 1.9676,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809141212_Texas-Instruments-LM4040A25IDBZR_C9421.pdf",
+      "rank": 6,
+      "fit": "[vref] SHUNT reference (2.5V A-grade), verified via TI datasheet (family table read at 2.048V, same %-based spec applies per TI's own feature-page bullets). Needs an external bias resistor from the 3.135-3.465V rail; the resulting bias-current swing adds a small (sub-1mV) extra term via LM4040's dV/dI spec (2.5typ/6max mV per 1-15mA excursion), plus materially worse line rejection than any series part (no PSRR spec at all, only its 0.3-1.1ohm dynamic impedance). Accuracy alone: 0.1%+100ppm/C max = 17.5mV over 0-50C, worst of every candidate checked, exceeds the entire 0-50C budget outright on its own."
+    },
+    {
+      "mpn": "LT5400BHMS8E-6#TRPBF",
+      "lcsc": "C1739858",
+      "package": "MSOP-8",
+      "basic": false,
+      "stock": 1278,
+      "price": 13.8684,
+      "datasheet": "https://www.analog.com/media/en/technical-documentation/data-sheets/5400fc.pdf",
+      "rank": 1,
+      "fit": "[divider-a, matched network] Quad matched thin-film network, B-grade: ratio matching 0.025% (1.25mV of a 5V terminal reading) + 0.2ppm/C TYPICAL tracking (~0.025mV/25C step) = ~1.3mV over 0-50C - best tempco stability of any divider candidate found, confirmed against ADI's own product page after LCSC's PDF mirror served only a placeholder notice. A-grade LT5400AIMS8E-1#TRPBF (C1739156, stock 88, $20.27) tightens ratio to 0.01% (~0.5mV) if stock allows. Priciest divider option by far but all 4 resistors are freely wireable into any ratio."
+    },
+    {
+      "mpn": "RNCF0603TKW1K00",
+      "lcsc": "C2601959",
+      "package": "0603",
+      "basic": false,
+      "stock": 932,
+      "price": 3.5064,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_SEI-Stackpole-Elec-RNCF0603TKW1K00_C2601959.pdf",
+      "rank": 2,
+      "fit": "[divider-b, discrete] Stackpole RNCF thin-film, 0.01% tol / 2ppm/C TCR (catalog-verified). Two uncorrelated pieces (per the sqrt(2) convention for an untracked pair): ratio tol ~0.0141% (0.71mV@5V) + ratio TCR ~2.83ppm/C (~0.35mV/25C step) = ~1.06mV over 0-50C - nearly matches LT5400-B at roughly half the per-pair cost ($7-8.7 for two vs $13.87), using an ordinary 2-piece chip-resistor BOM line instead of a specialty 8-pin part. Stock is per-value (60-1006 depending on resistance); adequate for qty 5 but not deep - re-check availability of whichever two exact values P2 lands on."
+    },
+    {
+      "mpn": "MPMT1003AT1",
+      "lcsc": "C2654068",
+      "package": "SOT-23",
+      "basic": false,
+      "stock": 594,
+      "price": 3.2184,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Vishay-Intertech-MPMT1003AT1_C2654068.pdf",
+      "rank": 3,
+      "fit": "[divider-a, matched network] Vishay purpose-built SOT-23 divider IC, 50k/50k (1:1 tap = exact 2:1 total divide), B-grade: 0.1% absolute / 0.05% RATIO tolerance, 25ppm/C absolute / 2ppm/C typ RATIO TRACKING (all verified via Vishay MPM datasheet). Ratio error 0.05%=2.5mV@25C + 2ppm/C*25C=0.25mV/step -> ~2.75mV over 0-50C. Its stocked 1:1 ratio lands exactly right for a 2.5V-class vref design (halves 5V to 2.5V) - a genuine BOM-simplicity win if that vref voltage is chosen. Sibling MPMT10019001AT1 (1k/9k, 9:1 ratio, C2654060, stock 826, $5.12) is the only other MPM-family row found in JLC stock; JLC does not appear to stock the tighter Q/Z grades (0.05%abs/0.01%ratio) of this Vishay family."
+    },
+    {
+      "mpn": "ACASA1001U1001P1AT",
+      "lcsc": "C1731577",
+      "package": "0603x4",
+      "basic": false,
+      "stock": 715,
+      "price": 2.9287,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Vishay-Intertech-ACASA1001U1001P1AT_C1731577.pdf",
+      "rank": 4,
+      "fit": "[divider-a, matched network] Vishay ACAS 0612 4x0603 array, U-grade (best catalog grade, verified via Vishay ACAS datasheet): 0.05% RATIO matching, 5ppm/C RATIO tracking. Ratio error 0.05%=2.5mV@25C + 5ppm/C*25C=0.625mV/step -> ~3.1mV over 0-50C. This specific row is all-equal 1k/1k/1k/1k (1:1 design) - non-1:1 ratios need the series/parallel-combination technique Vishay's own app note describes to synthesize a ratio from the 4 matched elements (max 1:5 span per the datasheet, well inside anything this board needs). Mixed-value rows exist at JLC only in the looser S-grade (25ppm abs/15ppm tracking, e.g. ACASA1002S5002P100 at 10k/50k)."
+    },
+    {
+      "mpn": "ERA-3VRW1001V",
+      "lcsc": "C1863024",
+      "package": "0603",
+      "basic": false,
+      "stock": 3265,
+      "price": 0.6699,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2403271633_PANASONIC-ERA-3VRW1001V_C1863024.pdf",
+      "rank": 5,
+      "fit": "[divider-b, discrete] Panasonic ERA thin-film, 0.05% tol / 10ppm/C TCR (catalog-verified). Two uncorrelated pieces: ratio tol ~0.0707% (3.54mV@5V) + ratio TCR ~14.1ppm/C (~1.77mV/25C step) = ~5.3mV over 0-50C - already exceeds the +/-5mV 25C figure on its own before anything else is added. Cheap ($0.67 x2) and well-stocked (1.7-3.3k per value); only usable if the reference and buffer legs leave generous spare budget, which the top vref picks here (~1.6-3mV) do not comfortably allow alongside it."
+    },
+    {
+      "mpn": "RT0603BRD0710KL",
+      "lcsc": "C95204",
+      "package": "0603",
+      "basic": false,
+      "stock": 1274317,
+      "price": 0.0331,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811082117_YAGEO-RT0603BRD0710KL_C95204.pdf",
+      "rank": 6,
+      "fit": "[divider-b, discrete] YAGEO RT-series, 0.1% tol / 25ppm/C TCR - the default/cheapest/best-stocked precision resistor at JLC (hundreds of thousands to 1.27M units per value, $0.03). Two uncorrelated pieces: ratio tol ~0.141% (7.07mV@5V) + ratio TCR ~35.4ppm/C (~4.42mV/25C step) = ~11.5mV over 0-50C, right at the 12mV wall with zero margin left for reference/buffer/ADC. This is what a bare-bones divider naturally reaches for; the numbers show plainly why it does not meet this board's 0.1% target on its own."
+    },
+    {
+      "mpn": "OPA333AIDBVR",
+      "lcsc": "C30878",
+      "package": "SOT-23-5",
+      "basic": false,
+      "stock": 8448,
+      "price": 1.4191,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1810221831_Texas-Instruments-OPA333AIDBVR_C30878.pdf",
+      "rank": 1,
+      "fit": "[buffer] Zero-drift chopper, RRIO, verified via TI datasheet: Vos 2uV typ/10uV max, dVos/dT 0.02typ/0.05uV/C max, Ib 200pA max@25C/400pA max full temp, CMRR 106min/130typ dB. Terminal error: ~0.01mV@25C, ~0.013mV over 0-50C - two to three orders of magnitude under budget, effectively removes the buffer from the error accounting entirely. GBW only 350kHz/SR 0.16V/us (plenty for a DC-ish 10kSa/s signal); Iq 17-25uA. Cheaper UMW-brand clone rows exist (C-code differs, ~$0.23-0.43) but were not independently verified - use the genuine TI row unless the clone is separately checked."
+    },
+    {
+      "mpn": "OPA320AIDBVR",
+      "lcsc": "C92494",
+      "package": "SOT-23-5",
+      "basic": false,
+      "stock": 2191,
+      "price": 1.5032,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809251712_Texas-Instruments-OPA320AIDBVR_C92494.pdf",
+      "rank": 2,
+      "fit": "[buffer] Precision RRIO, NOT zero-drift, verified via TI datasheet: Vos 40uV typ/150uV max, dVos/dT 1.5typ/5uV/C max, Ib 0.9pA max@25C/600pA max full temp, CMRR 100min/114typ dB. Terminal error: ~0.15mV@25C, ~0.28mV over 0-50C - still comfortably inside budget. GBW 20MHz/SR 10V/us, settles to 0.01% in 0.32us (2V step) - fastest, best-characterized settling of any buffer candidate, TI markets this part explicitly for driving SAR ADCs. Iq 1.45mA, 60-85x OPA333's - the real tradeoff if quiescent current matters on this board's small budget."
+    },
+    {
+      "mpn": "AD8605ARTZ-REEL7",
+      "lcsc": "C9641",
+      "package": "SOT-23-5",
+      "basic": false,
+      "stock": 13600,
+      "price": 3.0404,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809191714_Analog-Devices-AD8605ARTZ-REEL7_C9641.pdf",
+      "rank": 3,
+      "fit": "[buffer] ADI low-power precision RRIO, CMOS input, best genuine-brand stock of any buffer candidate (13600). Vos/drift NOT independently verified this session - ADI's datasheet is not mirrored on LCSC (placeholder notice only) and both analog.com and mouser.com timed out from this environment; ranked below OPA333/OPA320 for that reason, not a known weakness. WARNING, verified directly: every OTHER 'AD8605'-branded JLC row (TECH PUBLIC/XBLW/JSMSEMI/HGSEMI/MSKSEMI/Tokmas) is a clone from a different manufacturer - one clone datasheet pulled (TECH PUBLIC TPAD8605ARTZ) specs a 5mV MAX offset, roughly 30-300x looser than AD8605's reputation. Only this genuine Analog-Devices-branded row should be used if AD8605 is chosen."
+    },
+    {
+      "mpn": "TLV9001IDBVR",
+      "lcsc": "C398363",
+      "package": "SOT-23-5",
+      "basic": false,
+      "stock": 8305,
+      "price": 0.1052,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2410010130_Texas-Instruments-TLV9001IDBVR_C398363.pdf",
+      "rank": 4,
+      "fit": "[buffer] Commodity RRIO CMOS op-amp, verified via TI datasheet: Vos +/-0.4mV typ/+/-1.6mV max@25C (no max given for full-temp drift, 0.6uV/C typ), Ib 5pA typ, CMRR 63-95dB depending on CM range. Terminal error from offset alone: 1.6mV@25C = 32% of the entire 5mV budget, before reference/divider/ADC are even added - usable only if the rest of the chain leaves generous margin, which the accuracy-fit vref+divider picks here (~1.3-3mV combined) do not. Cheapest RRIO op-amp checked ($0.11), fast (2.5-3us settling to 0.01%)."
+    },
+    {
+      "mpn": "MCP6001T-I/OT",
+      "lcsc": "C116490",
+      "package": "SOT-23-5",
+      "basic": false,
+      "stock": 175426,
+      "price": 0.2635,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Microchip-Tech-MCP6001T-I-OT_C116490.pdf",
+      "rank": 5,
+      "fit": "[buffer] The default/cheapest/best-stocked RRIO op-amp at JLC (175k units, $0.26), verified via Microchip datasheet: Vos -4.5mV/+4.5mV max @25C, dVos/dT 2.0uV/C typ, Ib ~1pA typ, CMRR 60dB min/76dB typ - the weakest CMRR/offset of every buffer candidate. Terminal error from offset alone: 4.5mV@25C = 90% of the entire budget consumed with nothing left for reference/divider/ADC - a clear disqualifier for this board's 0.1% target despite being the obvious reach-for-it default part everywhere else."
+    },
+    {
+      "mpn": "ADA4505-1ARJZ-R7",
+      "lcsc": "C2058974",
+      "package": "SOT-23-5",
+      "basic": false,
+      "stock": 66,
+      "price": 2.3171,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2202010900_Analog-Devices-ADA4505-1ARJZ-R7_C2058974.pdf",
+      "rank": 6,
+      "fit": "[buffer] ADI low-power RRIO CMOS single, Iq only 10uA (competitive with OPA333's power draw, well under OPA320's 1.45mA). Vos/drift NOT independently verified this session (same ADI-datasheet access gap as AD8605). Genuine single-channel stock is thin (66 units, barely 2.6x the 5x-qty-5=25 floor) - flag as a reorder risk if chosen. Listed as the second low-power alternative to OPA333, not because its precision numbers are confirmed."
+    }
+  ]
+}

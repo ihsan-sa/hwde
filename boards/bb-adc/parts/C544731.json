@@ -1,0 +1,763 @@
+{
+ "mpn": "ADS8326IBDGKR",
+ "lcsc": "C544731",
+ "package": "DGK (MSOP-8 / VSSOP-8, JEDEC MO-187, TI mechanical dwg DGK0008A). This PDF (SBAS343C) also covers the DRB package (SON-8, VSON-1mm, dwg DRB0008B) - NOT used here (parts.json orders ADS8326IBDGKR = DGK). Every pinout/land_pattern/exposed_pad value below is the DGK/MSOP-8 column/drawing only; DRB is noted only where it differs in a way that could otherwise be confused for this part (exposed pad).",
+ "description": "ADS8326IBDGKR (Texas Instruments ADS8326, SBAS343C, MAY 2007-REVISED SEPTEMBER 2009, 40 PDF pages) - 16-bit, high-speed (250 kSPS), 2.7V to 5.5V micropower sampling SAR ADC. Differential input (+IN/-IN), external reference (REF, 0.1V to VDD), synchronous 3-wire serial interface (SPI/SSI-compatible: CS/SHDN, DCLOCK, DOUT).\n\nGRADE ORDERED: IB (Ordering Information table, p.2/printed p.2: ADS8326IBDGKR, Tape and Reel 2500, MSOP-8/DGK, -40C to +85C, marking D26). The IB grade has the TIGHTER linearity/offset/gain spec (max INL +/-1.5 LSB vs the plain 'I' grade's +/-3 LSB at VDD=5V) - matches parts.json's role note that IB is required to close this board's 0.1% error budget. ALL numeric fields below are the IB-grade column unless a param name ends '_Igrade', kept only for contrast.\n\nPAGE NUMBERING (verified by direct re-read): for the main datasheet body (printed pages 1-28), physical PDF page N = printed footer page N - no offset (confirmed: physical page 7 opens on the printed-footer '7' Pin Configuration page). Package/tape-reel/addendum pages (physical 29 onward: Package Option Addendum, Tape and Reel Information, Package Outline/Board Layout/Stencil drawings) carry no running footer number - cited below by physical PDF page instead.\n\nVDD TABLE CHOICE FOR THIS BOARD: the datasheet publishes two full Electrical Characteristics tables, 'VDD = +5V' (printed p.3-4, VREF=+5V, fSAMPLE=250kHz) and 'VDD = +2.7V' (printed p.5-6, VREF=+2.5V, fSAMPLE=200kHz, VDD range 2.7-3.6V). This board's rail is 3.135-3.465V (parts.json C1 role note) - the '+2.7V' table is the applicable spec, NOT the '+5V' table. This matters for error-budget math: IB-grade INL max is LOOSER at 2.7V (+/-2.5 LSB) than at 5V (+/-1.5 LSB); IB-grade gain error is also wider at 2.7V (+/-16 LSB vs +/-12 LSB at 5V). DNL and offset-error VOS are the only DC-accuracy rows that come out numerically identical in both tables. abs_max entries below are suffixed _5V or _2p7V wherever the two tables disagree; unsuffixed params are stated once because both tables agree.\n\nTHREE BOARD-CRITICAL FACTS (verbatim-grounded):\n1. -IN remote sense + its flat CM window: ANALOG INPUT section (printed p.20) states verbatim: 'The range of the -IN input is limited to -0.3V to +0.5V. As a result of this limitation, the differential input could be used to reject signals that are common to both inputs in the specified range. Thus, the -IN input is best used to sense a remote signal ground that may move slightly with respect to the local ground potential.' Recommended Operating Conditions (printed p.3) lists this as a flat, standalone row: '-IN to GND: -0.3 / 0(typ) / +0.5 V' - no VDD or VREF term anywhere in that row (contrast the +IN row, which IS VDD-dependent: 'VDD + 0.2'). Confirmed VDD-independent three times over: identical -0.3/+0.5 numbers appear in Rec Op Cond AND in both the 5V and 2.7V Electrical Characteristics tables ('Operating common-mode signal' row, printed p.3 and p.5).\n   SEPARATE, NARROWER mechanism (do not conflate with the above): Figure 39 'Analog Input: Common-Mode Voltage Range vs VREF' (printed p.20) and the adjacent text ('The +IN input should always remain within the range of GND - 0.3V to VDD + 0.3V, or -IN to -IN + VREF, whichever limit is reached first') describe how +IN's own ceiling - not -IN's flat window - is the tighter of (VDD+0.2) or (common-mode + VREF). Algebraically this caps the usable common-mode/-IN placement at CM_max = VDD + 0.2 - VREF, which is LOOSER than the flat +0.5V bound whenever VREF is well below VDD, but becomes the binding (tighter) constraint as VREF approaches VDD (e.g. VREF=VDD gives CM_max=0.2V, tighter than +0.5V). This is a derived relationship from the +IN recommended-operating-conditions row and Figure 39, not itself a separate tabulated spec line.\n2. VDD series-resistor entry: LAYOUT section (printed p.26) verbatim: 'power to the ADS8326 should be clean and well-bypassed. A 0.1uF ceramic bypass capacitor should be placed as close as possible to the ADS8326 package. In addition, a 1uF to 10uF capacitor and a 5ohm or 10ohm series resistor may be used to low-pass filter a noisy supply.' Application Circuits Figure 44/45 (printed p.27) draw the same 5ohm-series / 0.1uF-close / 10uF-bulk network at the AVDD entry to the converter+reference+buffer group. Matches this board's R7 (10 ohm) + C2 (100nF close) + C1/C8 (10uF) already in parts.json.\n3. REF bypass + current-limit-resistor position: REFERENCE INPUT section (printed p.22) verbatim: 'To ensure a stable reference voltage, a 47uF tantalum capacitor with low ESR should be connected as close as possible to the input pin. If a high output impedance reference source is used, an additional operational amplifier with a current-limiting resistor must be placed in front of the capacitors.' 'In front of the capacitors' = between the source/op-amp and the 47uF cap (source -> resistor -> node -> 47uF -> REF pin), NOT between the cap and the REF pin. LAYOUT section (printed p.26) restates: 'The reference should be similarly bypassed with a 47uF capacitor... If the reference voltage originates from an op amp, make sure that the op amp can drive the bypass capacitor without oscillation (the series resistor can help in this case).' OPEN: parts.json's current part list (R1-R7, C1-C8) has no resistor between U2 (ADR4520B reference) and the REF-pin bypass network (C3/C4) - flagging for the coordinator, not fixing here.\n\nTIMING (Table 1, physical PDF page 9, printed p.9 'TIMING INFORMATION'/'Timing Characteristics'): tSMPL (analog input sample time) = 4.5 min / 5.0 max DCLOCKs; tCONV (conversion time) = 16 DCLOCKs; tCYC (complete cycle time) = 22 DCLOCKs (text note: '(1) A minimum of 22 clock cycles are required for 16-bit conversion'); DCLOCK range 24kHz-6MHz at VDD=5V (24kHz-4.8MHz at VDD=2.7-3.6V, per the two Electrical Characteristics tables' 'Clock frequency fDCLOCK' rows); sampling capacitance C(SAMPLE) = 48pF (Equivalent Analog Input Circuit, printed p.7, and 'Input capacitance...during sampling' row in both Electrical Characteristics tables) - matches parts.json C7's own '20xC_SH=960pF floor' cross-check (20x48=960) exactly.\n\nEXPOSED PAD: visually confirmed on the Pin Configuration figure (physical PDF page 7) that the DGK/MSOP-8 diagram is a plain 8-lead rectangle with NO center pad drawn, while the DRB/SON-8 diagram directly below it shows a dashed-outline box explicitly labeled '(Thermal Pad)'. Footnote (1) ('The thermal pad is internally connected to the substrate. This pad can be connected to the analog ground or left floating...') is captioned under both figures collectively, but its substance - and the physical pad itself - exists only for DRB. DGK/MSOP-8 (the package actually ordered) has no exposed/thermal pad. The DGK0008A package-outline and land-pattern drawings (physical PDF pages 33-35) independently confirm this: no exposed-pad geometry appears anywhere on either drawing.",
+ "pinout": [
+  {
+   "pin": "1",
+   "name": "REF",
+   "type": "analog",
+   "notes": "Reference input (Pin Assignments table, physical p.7: 'Analog input / Reference input'). Sets the analog input range; must be between 0.1V and VDD (Recommended Operating Conditions and Reference Input section, printed p.3/p.22). Equivalent Reference Input Circuit (physical p.7): RON 50 ohm, internal switched cap 24pF, diode-clamped to VDD/GND (turn-on 0.35V, same diode spec as the analog input circuit). Reference input resistance 5 Gohm in Power-Down mode (CS high) or between conversions (CS low, fSAMPLE=0Hz) - see abs_max reference_input_resistance_*. Recommended bypass: 47uF low-ESR (tantalum, per datasheet's own example) as close as possible to this pin; if driven by a high-output-impedance source, add an op-amp buffer with a current-limiting resistor placed IN FRONT OF (source-side of) the bypass cap(s) - see description item 3 and layout_notes. TI's own example circuits (Fig 42/44/45) use an OPA350 to buffer this pin; this board uses ADR4520B (parts.json U2) with no separate buffer op-amp."
+  },
+  {
+   "pin": "2",
+   "name": "+IN",
+   "type": "analog",
+   "notes": "Noninverting analog input (Pin Assignments table). Differential pair with pin 3 (-IN); signal = (+IN) - (-IN), full-scale range 0 to VREF. Equivalent Analog Input Circuit (physical p.7): RON 50 ohm, C(SAMPLE)=48pF, diode-clamped to VDD/GND (turn-on 0.35V). Recommended Operating Conditions: +IN to GND range is -0.3V to VDD+0.2V - VDD-DEPENDENT, unlike -IN (see pin 3 notes and description item 1). Source must be able to charge the 48pF sampling capacitance to a 16-bit settling level within 4.5 DCLOCKs (tAQ/tSMPL min) - see abs_max acquisition/tSMPL params. Datasheet recommends matching +IN/-IN source impedance and optionally adding a small (~20pF) cap between +IN and -IN to help match impedance (Analog Input section, printed p.21); its own example driving circuit (Fig 41) uses an OPA365 buffer with 10ohm+50ohm+48pF+1000pF per input leg - this board uses OPA320 (parts.json U3) as the buffer instead."
+  },
+  {
+   "pin": "3",
+   "name": "-IN",
+   "type": "analog",
+   "notes": "Inverting analog input (Pin Assignments table). NOT resampled later in the conversion cycle (unlike some competing converters) - the +IN/-IN difference is captured on the internal cap array once, at Hold. DEDICATED REMOTE SENSE: datasheet's own words (Analog Input section, printed p.20, verbatim): 'the -IN input is best used to sense a remote signal ground that may move slightly with respect to the local ground potential.' Its allowed range is a FLAT window, -0.3V to +0.5V, stated identically in Recommended Operating Conditions ('-IN to GND') and in both Electrical Characteristics tables ('Operating common-mode signal') at VDD=5V and VDD=2.7V - no VDD or VREF term in any of these three citations, i.e. this bound does NOT move with supply or reference voltage. Do not confuse with the separate, VREF-dependent ceiling on +IN's own headroom described in Figure 39 (see description item 1 and layout_notes) - that mechanism only tightens the usable common-mode point as VREF approaches VDD and is a different citation. Same Equivalent Analog Input Circuit as +IN (RON 50 ohm to GND/VDD rails, diode-clamped)."
+  },
+  {
+   "pin": "4",
+   "name": "GND",
+   "type": "ground",
+   "notes": "Power-supply connection, Ground (Pin Assignments table). LAYOUT section (printed p.26) verbatim: 'The GND pin...should be placed on a clean ground point. In many cases, this will be the analog ground. Avoid connecting the GND pin too close to the grounding point for a microprocessor, microcontroller, or digital signal processor. If needed, run a ground trace directly from the converter to the power-supply connection point. The ideal layout will include an analog ground plane for the converter and associated analog circuitry.'"
+  },
+  {
+   "pin": "5",
+   "name": "CS/SHDN",
+   "type": "input",
+   "notes": "Digital input, active-low chip select / active-high shutdown (Pin Assignments table: 'Chip select when low; Shutdown mode when high'). Falling edge initiates conversion + data transfer. CS high fully powers down BOTH analog and digital sections; CS low at the end of a conversion (while still clocking) only shuts down the analog section (Power Dissipation section, printed p.25) - CS must go high to reach full low-power state. Logic family/levels: CMOS at VDD=4.5-5.5V (VIH>=0.7xVDD, VIL<=0.3xVDD); LVCMOS at VDD=2.7-3.6V (VIH>=2V @VDD=3.6V, VIL<=0.8V @VDD=2.7V) - this board's ~3.3V rail uses the LVCMOS row."
+  },
+  {
+   "pin": "6",
+   "name": "DOUT",
+   "type": "tristate",
+   "notes": "Digital output, serial output data word (Pin Assignments table). Tri-states after the repeated MSB (B15) has been re-clocked out following the main 16-bit transfer (tDIS/tEN govern the Hi-Z transitions - see abs_max). Data format: Straight Binary, MSB first during the main 16-DCLOCK window; if CS remains low past that, DOUT continues shifting out LSB-first repeated data then zeroes indefinitely (Digital Interface section, printed p.23). Equivalent Digital I/O circuit (physical p.7): diode-clamped to VDD/GND, load test circuit uses 3k ohm + 100pF."
+  },
+  {
+   "pin": "7",
+   "name": "DCLOCK",
+   "type": "clock",
+   "notes": "Digital input, data clock (Pin Assignments table: 'synchronizes the serial data transfer and determines conversion speed'). Each bit transmitted on the DCLOCK falling edge; most receivers capture on the following rising edge (falling-edge capture is also usable if the DOUT hold time tHDO is acceptable). Range 24kHz to 6MHz (VDD=5V) / 24kHz to 4.8MHz (VDD=2.7-3.6V); duty cycle unimportant as long as min high/low time (200ns at VDD>=4.75V) is met. Minimum frequency set by leakage on the internal sampling capacitors, not a hard digital floor."
+  },
+  {
+   "pin": "8",
+   "name": "VDD",
+   "type": "power_in",
+   "notes": "Power-supply connection, Power supply (Pin Assignments table). Range 2.7V to 5.5V (two operating classes: 'low-voltage'/LVCMOS 2.7-3.6V, and '5V logic'/CMOS 4.5-5.5V). Recommended bypass: 0.1uF ceramic as close as possible to the package, optionally preceded by a 1uF-10uF capacitor and a 5 ohm or 10 ohm series resistor to low-pass filter a noisy supply (see description item 2 and layout_notes) - matches this board's R7(10 ohm)+C1/C8(10uF)+C2(100nF) network (parts.json)."
+  }
+ ],
+ "decoupling": [
+  {
+   "pins": [
+    "VDD"
+   ],
+   "value": "0.1 uF ceramic",
+   "placement": "as close as possible to the ADS8326 package (VDD pin)",
+   "notes": "LAYOUT section, printed p.26, verbatim: 'power to the ADS8326 should be clean and well-bypassed. A 0.1uF ceramic bypass capacitor should be placed as close as possible to the ADS8326 package.'"
+  },
+  {
+   "pins": [
+    "VDD"
+   ],
+   "value": "1 uF to 10 uF bulk capacitor + 5 ohm or 10 ohm series resistor",
+   "placement": "series resistor between the (possibly noisy) supply source and the VDD node; bulk cap at that same node, ahead of the 0.1uF close-in cap",
+   "notes": "Same LAYOUT-section sentence, continued: 'In addition, a 1uF to 10uF capacitor and a 5ohm or 10ohm series resistor may be used to low-pass filter a noisy supply.' Application Circuits Figure 44/45 (printed p.27) draw the equivalent network at the AVDD entry. This board: R7=10 ohm, C1/C8=10uF, C2=100nF (parts.json)."
+  },
+  {
+   "pins": [
+    "REF"
+   ],
+   "value": "47 uF low-ESR capacitor (tantalum in the datasheet's own example; this board uses a ceramic X7R substitute per parts.json C3's esr_note)",
+   "placement": "as close as possible to the reference input pin",
+   "notes": "Reference Input section, printed p.22, verbatim: 'To ensure a stable reference voltage, a 47uF tantalum capacitor with low ESR should be connected as close as possible to the input pin.' Restated in LAYOUT section, printed p.26: 'The reference should be similarly bypassed with a 47uF capacitor.'"
+  },
+  {
+   "pins": [
+    "REF"
+   ],
+   "value": "optional series (current-limiting) resistor, value not stated by the datasheet",
+   "placement": "IN FRONT OF the 47uF capacitor, i.e. between the reference source/op-amp output and the capacitor node (source -> resistor -> node -> 47uF -> REF pin) - NOT between the capacitor and the REF pin",
+   "notes": "Reference Input section, printed p.22, verbatim, continued: 'If a high output impedance reference source is used, an additional operational amplifier with a current-limiting resistor must be placed in front of the capacitors.' LAYOUT section, printed p.26: 'If the reference voltage originates from an op amp, make sure that the op amp can drive the bypass capacitor without oscillation (the series resistor can help in this case).' OPEN: this board's current parts.json list (R1-R7) has no resistor positioned between U2/ADR4520B and the REF bypass network (C3/C4) - flagged for the coordinator."
+  }
+ ],
+ "land_pattern": {
+  "package": "DGK0008A - VSSOP-8/MSOP-8, 1.1mm max height, JEDEC MO-187 (TI mechanical dwg 4214862/A, 04/2023). Values below read from the 'EXAMPLE BOARD LAYOUT' (recommended land pattern) drawing, physical PDF page 34, and cross-checked against the 'PACKAGE OUTLINE' drawing (physical PDF page 33) and 'EXAMPLE STENCIL DESIGN' (physical PDF page 35) - all three pages were opened as page images (not just text-extracted) because dimension-leader-to-value association is unreliable from flattened PDF text on mechanical drawings.",
+  "pad_count": 8,
+  "pitch_mm": 0.65,
+  "pad_size_mm": [
+   0.45,
+   1.4
+  ],
+  "row_spacing_mm": 4.4,
+  "pin1": "1",
+  "notes": "pad_size_mm = [width, length] = [0.45, 1.4] mm, read directly off the land-pattern drawing's '8X (0.45)' (vertical bracket, pitch-direction width of each pad) and '8X (1.4)' (horizontal bracket, radial length of each pad away from the body center) callouts. pitch_mm=0.65 from the drawing's '6X (0.65)' callout (0.65mm center-to-center between the 4 pads on each side; '6X' = 3 gaps/side x 2 sides). row_spacing_mm=4.4 is the drawing's single '(4.4)' horizontal dimension, spanning OUTER pad edge (column 1/4) to OUTER pad edge (column 5/8) - i.e. total footprint span, not a pad-center-to-pad-center figure. Pin 1 is top-left, pins 1-4 run top-to-bottom on the left column, pins 5-8 run bottom-to-top on the right column (standard SOIC-style numbering; matches the Pin Configuration figure on physical PDF page 7). Package-outline cross-check (physical PDF page 33): body 2.9-3.1mm x 2.9-3.1mm, lead tip-to-tip span 4.75-5.05mm typ, height 1.1mm max, lead pitch 0.65mm BSC, lead width 0.25-0.38mm, standoff/foot length 0.4-0.7mm, foot angle 0-8deg - all consistent with a standard, JEDEC-registered VSSOP-8/MSOP-8 (matches common EDA-library 'MSOP-8_3x3mm_P0.65mm' style footprints). No exposed pad anywhere on any of the three DGK0008A drawings - see exposed_pad."
+ },
+ "exposed_pad": {
+  "present": false
+ },
+ "layout_notes": [
+  "LAYOUT header (printed p.26, verbatim): 'For optimum performance, care should be taken with the physical layout of the ADS8326 circuitry. This is particularly true if the reference voltage is low and/or the conversion rate is high. At a 250kHz conversion rate, the ADS8326 makes a bit decision every 167ns... The basic SAR architecture is sensitive to spikes on the power supply, reference, and ground connections that occur just prior to latching the comparator output. Thus, during any single conversion for an n-bit SAR converter, there are n windows in which large external transient voltages can easily affect the conversion result.' Sources: switching power supplies, digital logic, high-power devices; can be hard to trace if the glitch is near-synchronous with DCLOCK since the phase relationship drifts with time/temperature.",
+  "VDD bypass/filter: 0.1uF ceramic as close as possible to the package; optionally a 1uF-10uF capacitor plus a 5ohm or 10ohm series resistor ahead of it to low-pass filter a noisy supply (LAYOUT section, printed p.26; Application Circuits Fig 44/45, printed p.27). See decoupling array.",
+  "REF bypass/filter: 47uF low-ESR (tantalum in the vendor's own example) as close as possible to the REF pin; if the reference source has high output impedance, add an op-amp buffer PLUS a current-limiting resistor placed in front of (source-side of) the bypass capacitor(s); if the buffering op-amp itself is being used, confirm it can drive the bypass capacitance without oscillating - 'the series resistor can help in this case' (Reference Input + LAYOUT sections, printed p.22 and p.26). See decoupling array and description item 3.",
+  "GND placement: put GND on a clean (ideally analog) ground point; avoid routing it close to a microprocessor/microcontroller/DSP ground; run a dedicated ground trace from the converter to the power-supply connection point if needed; an analog ground plane for the converter and associated analog circuitry is the ideal layout (LAYOUT section, printed p.26).",
+  "-IN dedicated remote-sense + its FLAT common-mode window (-0.3V to +0.5V, independent of VDD and VREF - confirmed identically in Recommended Operating Conditions and both Electrical Characteristics tables): see description item 1 and pin 3 notes for the verbatim quote and full citation trail.",
+  "SEPARATE, narrower mechanism - Figure 39 'Common-Mode Voltage Range vs VREF' (printed p.20): +IN's own ceiling (GND-0.3V to VDD+0.2V, or -IN+VREF, whichever binds first) means the usable common-mode/-IN operating point is additionally capped near CM_max = VDD + 0.2 - VREF as VREF approaches VDD. This is a DIFFERENT citation from the flat -IN window above and only becomes the binding constraint at high VREF/VDD ratios - do not conflate the two when reasoning about this board's headroom. See description item 1 for the full derivation.",
+  "Input source-impedance matching: keep +IN and -IN source impedance/capacitance matched to preserve CMRR-like rejection of common signals; a small (~20pF) cap between +IN and -IN can help match their impedance (Analog Input section, printed p.21). Vendor's own recommended input-buffer circuit (Figure 41, printed p.21) uses an OPA365 per input leg with 10ohm + 50ohm(internal RON) + 48pF(internal C_SAMPLE) + an external 1000pF, in both single-ended and fully-differential forms.",
+  "Reference buffering / capacitive load: in Power-Down mode (or between conversions), REF input resistance is 5 Gohm; the reference bypass capacitor must recharge before each new conversion, so any op-amp driving REF needs good dynamic response into that capacitive load (Reference Input section, printed p.22). Vendor's own example uses an OPA350 for this role (Fig 42/44/45).",
+  "Noise/averaging: transition noise at a 5V reference is <3 output codes over 1000 conversions (<+/-0.5 LSB, 3-sigma); averaging n consecutive conversions reduces transition noise by 1/sqrt(n) (e.g. n=4 halves it to +/-0.25 LSB) - valid for near-DC input signals only (Reference Input/Noise/Averaging sections, printed p.22).",
+  "Power-on reset: bias circuit is self-starting; a static current of roughly 1.5mA (at VDD=5V) may persist after power-up until the device is put into power-down. TI recommends running one dummy conversion (CS toggled normally) once the supply reaches at least 2.4V to force the device into its power-down state (Power-On Reset section, printed p.25).",
+  "Short-cycling: because DOUT is updated with each bit as it is generated, CS can be pulled high early to terminate a conversion after fewer than 16 bits (e.g. 3-4 bits for a coarse threshold check) - lowers power and/or increases effective throughput when full 16-bit resolution isn't needed every sample (Power Dissipation/Short Cycling section, printed p.25). Not used by this board's fixed 16-bit acquisition per architecture docs, noted for completeness.",
+  "Logic family changes with VDD: CMOS thresholds (VIH>=0.7xVDD, VIL<=0.3xVDD) apply at the 4.5-5.5V ('5V logic') operating class; LVCMOS thresholds (VIH>=2V @3.6V, VIL<=0.8V @2.7V) apply at the 2.7-3.6V ('low-voltage') class. This board's ~3.3V rail is in the LVCMOS class - confirm the host MCU's SPI I/O levels against the LVCMOS row, not the CMOS row.",
+  "Package/exposed-pad: the DGK/MSOP-8 package actually ordered has NO exposed or thermal pad - visually confirmed on the Pin Configuration figure (physical PDF page 7: DGK diagram is a plain 8-lead rectangle) and on all three DGK0008A mechanical drawings (physical PDF pages 33-35: no exposed-pad geometry). Footnote (1) about a thermal pad tied to the substrate ('can be connected to analog ground or left floating; keep separate from digital ground if possible') is captioned under BOTH the DGK and DRB diagrams on that page, but only the DRB/SON-8 diagram actually draws a pad (dashed box, explicitly labeled '(Thermal Pad)') - the footnote's substance applies to DRB only, not to this board's DGK part."
+ ],
+ "abs_max": [
+  {
+   "param": "supply_voltage_vdd_to_gnd_abs_min",
+   "value": -0.3,
+   "unit": "V"
+  },
+  {
+   "param": "supply_voltage_vdd_to_gnd_abs_max",
+   "value": 7,
+   "unit": "V"
+  },
+  {
+   "param": "analog_input_voltage_abs_min",
+   "value": -0.3,
+   "unit": "V"
+  },
+  {
+   "param": "analog_input_voltage_abs_max",
+   "value": "VDD + 0.3",
+   "unit": "V"
+  },
+  {
+   "param": "reference_input_voltage_abs_min",
+   "value": -0.3,
+   "unit": "V"
+  },
+  {
+   "param": "reference_input_voltage_abs_max",
+   "value": "VDD + 0.3",
+   "unit": "V"
+  },
+  {
+   "param": "digital_input_voltage_abs_min",
+   "value": -0.3,
+   "unit": "V"
+  },
+  {
+   "param": "digital_input_voltage_abs_max",
+   "value": "VDD + 0.3",
+   "unit": "V"
+  },
+  {
+   "param": "input_current_any_pin_except_supply_min",
+   "value": -20,
+   "unit": "mA"
+  },
+  {
+   "param": "input_current_any_pin_except_supply_max",
+   "value": 20,
+   "unit": "mA"
+  },
+  {
+   "param": "operating_junction_temp_abs_max_min",
+   "value": -40,
+   "unit": "degC"
+  },
+  {
+   "param": "operating_junction_temp_abs_max_max",
+   "value": 150,
+   "unit": "degC"
+  },
+  {
+   "param": "operating_free_air_temp_TA_min",
+   "value": -40,
+   "unit": "degC"
+  },
+  {
+   "param": "operating_free_air_temp_TA_max",
+   "value": 85,
+   "unit": "degC"
+  },
+  {
+   "param": "storage_temp_min",
+   "value": -65,
+   "unit": "degC"
+  },
+  {
+   "param": "storage_temp_max",
+   "value": 150,
+   "unit": "degC"
+  },
+  {
+   "param": "lead_temp_10s_1_6mm_from_case",
+   "value": 260,
+   "unit": "degC"
+  },
+  {
+   "param": "theta_jc_DGK_this_package",
+   "value": 39.1,
+   "unit": "degC/W"
+  },
+  {
+   "param": "theta_ja_DGK_this_package",
+   "value": 206.3,
+   "unit": "degC/W"
+  },
+  {
+   "param": "derating_factor_DGK_above_TA25C",
+   "value": 4.847,
+   "unit": "mW/degC"
+  },
+  {
+   "param": "power_rating_DGK_at_TA25C",
+   "value": 606,
+   "unit": "mW"
+  },
+  {
+   "param": "power_rating_DGK_at_TA70C",
+   "value": 388,
+   "unit": "mW"
+  },
+  {
+   "param": "power_rating_DGK_at_TA85C",
+   "value": 315,
+   "unit": "mW"
+  },
+  {
+   "param": "theta_jc_DRB_not_this_package",
+   "value": 5,
+   "unit": "degC/W"
+  },
+  {
+   "param": "theta_ja_DRB_not_this_package",
+   "value": 45.8,
+   "unit": "degC/W"
+  },
+  {
+   "param": "supply_voltage_low_voltage_class_min",
+   "value": 2.7,
+   "unit": "V"
+  },
+  {
+   "param": "supply_voltage_low_voltage_class_max",
+   "value": 3.6,
+   "unit": "V"
+  },
+  {
+   "param": "supply_voltage_5v_class_min",
+   "value": 4.5,
+   "unit": "V"
+  },
+  {
+   "param": "supply_voltage_5v_class_typ",
+   "value": 5.0,
+   "unit": "V"
+  },
+  {
+   "param": "supply_voltage_5v_class_max",
+   "value": 5.5,
+   "unit": "V"
+  },
+  {
+   "param": "reference_input_voltage_recommended_min",
+   "value": 0.1,
+   "unit": "V"
+  },
+  {
+   "param": "reference_input_voltage_recommended_max",
+   "value": "VDD",
+   "unit": "V"
+  },
+  {
+   "param": "minus_in_to_gnd_min",
+   "value": -0.3,
+   "unit": "V"
+  },
+  {
+   "param": "minus_in_to_gnd_typ",
+   "value": 0,
+   "unit": "V"
+  },
+  {
+   "param": "minus_in_to_gnd_max",
+   "value": 0.5,
+   "unit": "V"
+  },
+  {
+   "param": "plus_in_to_gnd_min",
+   "value": -0.3,
+   "unit": "V"
+  },
+  {
+   "param": "plus_in_to_gnd_max",
+   "value": "VDD + 0.2",
+   "unit": "V"
+  },
+  {
+   "param": "plus_in_minus_minus_in_fsr_min",
+   "value": 0,
+   "unit": "V"
+  },
+  {
+   "param": "plus_in_minus_minus_in_fsr_max",
+   "value": "VREF",
+   "unit": "V"
+  },
+  {
+   "param": "operating_junction_temp_recommended_min",
+   "value": -40,
+   "unit": "degC"
+  },
+  {
+   "param": "operating_junction_temp_recommended_max",
+   "value": 125,
+   "unit": "degC"
+  },
+  {
+   "param": "input_resistance_RON_off_5V_typ",
+   "value": 5,
+   "unit": "Gohm"
+  },
+  {
+   "param": "input_resistance_RON_on_5V_typ",
+   "value": 50,
+   "unit": "ohm"
+  },
+  {
+   "param": "input_resistance_RON_on_5V_max",
+   "value": 100,
+   "unit": "ohm"
+  },
+  {
+   "param": "input_resistance_RON_on_2p7V_typ",
+   "value": 100,
+   "unit": "ohm"
+  },
+  {
+   "param": "input_resistance_RON_on_2p7V_max",
+   "value": 150,
+   "unit": "ohm"
+  },
+  {
+   "param": "input_capacitance_sampling_C_SAMPLE",
+   "value": 48,
+   "unit": "pF"
+  },
+  {
+   "param": "input_leakage_current_max",
+   "value": 50,
+   "unit": "nA"
+  },
+  {
+   "param": "differential_input_capacitance_sampling",
+   "value": 20,
+   "unit": "pF"
+  },
+  {
+   "param": "full_power_bandwidth_FSBW_5V_typ",
+   "value": 500,
+   "unit": "kHz"
+  },
+  {
+   "param": "full_power_bandwidth_FSBW_2p7V_typ",
+   "value": 60,
+   "unit": "kHz"
+  },
+  {
+   "param": "resolution_bits",
+   "value": 16,
+   "unit": "bits"
+  },
+  {
+   "param": "INL_IBgrade_5V_min",
+   "value": -1.5,
+   "unit": "LSB"
+  },
+  {
+   "param": "INL_IBgrade_5V_max",
+   "value": 1.5,
+   "unit": "LSB"
+  },
+  {
+   "param": "INL_IBgrade_2p7V_min",
+   "value": -2.5,
+   "unit": "LSB"
+  },
+  {
+   "param": "INL_IBgrade_2p7V_max",
+   "value": 2.5,
+   "unit": "LSB"
+  },
+  {
+   "param": "INL_Igrade_5V_min",
+   "value": -3,
+   "unit": "LSB"
+  },
+  {
+   "param": "INL_Igrade_5V_max",
+   "value": 3,
+   "unit": "LSB"
+  },
+  {
+   "param": "DNL_IBgrade_min",
+   "value": -1,
+   "unit": "LSB"
+  },
+  {
+   "param": "DNL_IBgrade_max",
+   "value": 1,
+   "unit": "LSB"
+  },
+  {
+   "param": "DNL_Igrade_max",
+   "value": 2,
+   "unit": "LSB"
+  },
+  {
+   "param": "offset_error_VOS_IBgrade_min",
+   "value": -1,
+   "unit": "mV"
+  },
+  {
+   "param": "offset_error_VOS_IBgrade_max",
+   "value": 1,
+   "unit": "mV"
+  },
+  {
+   "param": "offset_error_drift_TCVOS_max",
+   "value": 0.2,
+   "unit": "ppm/degC"
+  },
+  {
+   "param": "gain_error_GERR_IBgrade_5V_min",
+   "value": -12,
+   "unit": "LSB"
+  },
+  {
+   "param": "gain_error_GERR_IBgrade_5V_max",
+   "value": 12,
+   "unit": "LSB"
+  },
+  {
+   "param": "gain_error_GERR_IBgrade_2p7V",
+   "value": 16,
+   "unit": "LSB"
+  },
+  {
+   "param": "gain_error_GERR_Igrade_2p7V",
+   "value": 33,
+   "unit": "LSB"
+  },
+  {
+   "param": "gain_error_drift_TCGERR_max",
+   "value": 0.3,
+   "unit": "ppm/degC"
+  },
+  {
+   "param": "noise_rms",
+   "value": 30,
+   "unit": "uVrms"
+  },
+  {
+   "param": "power_supply_rejection_5V",
+   "value": 0.5,
+   "unit": "LSB"
+  },
+  {
+   "param": "conversion_time_tCONV_min_5V",
+   "value": 2.667,
+   "unit": "us"
+  },
+  {
+   "param": "conversion_time_tCONV_max_5V",
+   "value": 666.7,
+   "unit": "us"
+  },
+  {
+   "param": "acquisition_time_tAQ_5V_at_fDCLOCKmax",
+   "value": 0.75,
+   "unit": "us"
+  },
+  {
+   "param": "throughput_rate_max_5V",
+   "value": 250,
+   "unit": "kSPS"
+  },
+  {
+   "param": "clock_frequency_fDCLOCK_min",
+   "value": 0.024,
+   "unit": "MHz"
+  },
+  {
+   "param": "clock_frequency_fDCLOCK_max_5V",
+   "value": 6,
+   "unit": "MHz"
+  },
+  {
+   "param": "clock_frequency_fDCLOCK_max_2p7V",
+   "value": 4.8,
+   "unit": "MHz"
+  },
+  {
+   "param": "conversion_time_tCONV_min_2p7V",
+   "value": 3.333,
+   "unit": "us"
+  },
+  {
+   "param": "acquisition_time_tAQ_2p7V_at_fDCLOCKmax",
+   "value": 0.9375,
+   "unit": "us"
+  },
+  {
+   "param": "throughput_rate_max_2p7V",
+   "value": 200,
+   "unit": "kSPS"
+  },
+  {
+   "param": "reference_input_resistance_powerdown",
+   "value": 5,
+   "unit": "Gohm"
+  },
+  {
+   "param": "reference_input_capacitance",
+   "value": 24,
+   "unit": "pF"
+  },
+  {
+   "param": "reference_input_current_max_at_250kHz_5V",
+   "value": 220,
+   "unit": "uA"
+  },
+  {
+   "param": "reference_input_current_max_at_10kHz_5V",
+   "value": 14,
+   "unit": "uA"
+  },
+  {
+   "param": "reference_input_current_powerdown",
+   "value": 0.1,
+   "unit": "uA"
+  },
+  {
+   "param": "VIH_min_5V_class",
+   "value": "0.7 x VDD",
+   "unit": "V"
+  },
+  {
+   "param": "VIH_max_5V_class",
+   "value": "VDD + 0.3",
+   "unit": "V"
+  },
+  {
+   "param": "VIL_min_5V_class",
+   "value": -0.3,
+   "unit": "V"
+  },
+  {
+   "param": "VIL_max_5V_class",
+   "value": "0.3 x VDD",
+   "unit": "V"
+  },
+  {
+   "param": "VIH_min_2p7V_class_at_3p6V",
+   "value": 2,
+   "unit": "V"
+  },
+  {
+   "param": "VIL_max_2p7V_class_at_2p7V",
+   "value": 0.8,
+   "unit": "V"
+  },
+  {
+   "param": "digital_input_current_IIN_max",
+   "value": 50,
+   "unit": "nA"
+  },
+  {
+   "param": "digital_input_capacitance_CI",
+   "value": 5,
+   "unit": "pF"
+  },
+  {
+   "param": "VOH_min_5V_class_at_IOH100uA",
+   "value": 4.44,
+   "unit": "V"
+  },
+  {
+   "param": "VOL_max_5V_class_at_IOL100uA",
+   "value": 0.5,
+   "unit": "V"
+  },
+  {
+   "param": "VOH_min_2p7V_class_at_IOH100uA",
+   "value": "VDD - 0.2",
+   "unit": "V"
+  },
+  {
+   "param": "VOL_max_2p7V_class_at_IOL100uA",
+   "value": 0.2,
+   "unit": "V"
+  },
+  {
+   "param": "output_hiZ_leakage_IOZ_max",
+   "value": 50,
+   "unit": "nA"
+  },
+  {
+   "param": "output_capacitance_CO",
+   "value": 5,
+   "unit": "pF"
+  },
+  {
+   "param": "load_capacitance_CL_test_condition",
+   "value": 30,
+   "unit": "pF"
+  },
+  {
+   "param": "operating_supply_current_IDD_max_2p7V_at_200kHz",
+   "value": 2.0,
+   "unit": "mA"
+  },
+  {
+   "param": "operating_supply_current_IDD_max_5V_at_250kHz",
+   "value": 3.0,
+   "unit": "mA"
+  },
+  {
+   "param": "power_down_supply_current_IDD_2p7V",
+   "value": 0.1,
+   "unit": "uA"
+  },
+  {
+   "param": "power_down_supply_current_IDD_5V",
+   "value": 0.2,
+   "unit": "uA"
+  },
+  {
+   "param": "power_dissipation_max_2p7V_at_200kHz",
+   "value": 5.4,
+   "unit": "mW"
+  },
+  {
+   "param": "power_dissipation_max_5V_at_250kHz",
+   "value": 15,
+   "unit": "mW"
+  },
+  {
+   "param": "power_dissipation_powerdown_2p7V",
+   "value": 0.3,
+   "unit": "uW"
+  },
+  {
+   "param": "power_dissipation_powerdown_5V",
+   "value": 0.6,
+   "unit": "uW"
+  },
+  {
+   "param": "tSMPL_min_dclocks",
+   "value": 4.5,
+   "unit": "DCLOCKs"
+  },
+  {
+   "param": "tSMPL_max_dclocks",
+   "value": 5.0,
+   "unit": "DCLOCKs"
+  },
+  {
+   "param": "tCONV_dclocks",
+   "value": 16,
+   "unit": "DCLOCKs"
+  },
+  {
+   "param": "tCYC_min_dclocks",
+   "value": 22,
+   "unit": "DCLOCKs"
+  },
+  {
+   "param": "tCSD_max_ns",
+   "value": 0,
+   "unit": "ns"
+  },
+  {
+   "param": "tSUCS_min_ns",
+   "value": 20,
+   "unit": "ns"
+  },
+  {
+   "param": "tHDO_min_ns",
+   "value": 5,
+   "unit": "ns"
+  },
+  {
+   "param": "tHDO_max_ns",
+   "value": 15,
+   "unit": "ns"
+  },
+  {
+   "param": "tDIS_min_ns",
+   "value": 70,
+   "unit": "ns"
+  },
+  {
+   "param": "tDIS_max_ns",
+   "value": 100,
+   "unit": "ns"
+  },
+  {
+   "param": "tEN_min_ns",
+   "value": 20,
+   "unit": "ns"
+  },
+  {
+   "param": "tEN_max_ns",
+   "value": 50,
+   "unit": "ns"
+  },
+  {
+   "param": "tF_min_ns",
+   "value": 5,
+   "unit": "ns"
+  },
+  {
+   "param": "tF_max_ns",
+   "value": 25,
+   "unit": "ns"
+  },
+  {
+   "param": "tR_min_ns",
+   "value": 7,
+   "unit": "ns"
+  },
+  {
+   "param": "tR_max_ns",
+   "value": 25,
+   "unit": "ns"
+  },
+  {
+   "param": "min_dclock_high_low_time",
+   "value": 200,
+   "unit": "ns"
+  },
+  {
+   "param": "power_on_reset_static_current_typ",
+   "value": 1.5,
+   "unit": "mA"
+  },
+  {
+   "param": "power_on_min_supply_before_dummy_conversion",
+   "value": 2.4,
+   "unit": "V"
+  }
+ ],
+ "source_pdf": "boards/bb-adc/parts/C544731.pdf"
+}

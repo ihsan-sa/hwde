@@ -1,0 +1,78 @@
+{
+ "script": "netlist_audit",
+ "status": "pass",
+ "board": "bb-adc.net",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "audit.netlist": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "netlist_audit",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "VREF",
+   "refs": [
+    "C3",
+    "C5",
+    "U1",
+    "U2"
+   ],
+   "msg": "declared power net 'VREF' feeds no power_in pin",
+   "source": "audit.netlist",
+   "items": [
+    {
+     "msg": "declared power net 'VREF' feeds no power_in pin",
+     "pos": null
+    }
+   ],
+   "kind": "power_no_consumers"
+  }
+ ],
+ "mode": "audit",
+ "nets": 19,
+ "components": 24,
+ "unconnected_pins": 5,
+ "constraint_nets_checked": 8,
+ "constraint_refs_checked": 22,
+ "pins_expected": 59,
+ "pins_connected": 59,
+ "decoupling_associations": 6,
+ "power": [
+  {
+   "net": "+3V3",
+   "nodes": 7,
+   "power_in": 2,
+   "power_out": 0
+  },
+  {
+   "net": "VREF",
+   "nodes": 4,
+   "power_in": 0,
+   "power_out": 1
+  },
+  {
+   "net": "VDD_ADC",
+   "nodes": 4,
+   "power_in": 1,
+   "power_out": 0
+  },
+  {
+   "net": "GND",
+   "nodes": 16,
+   "power_in": 3,
+   "power_out": 0
+  }
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-18T04:28:21+00:00",
+ "input": "boards\\bb-adc\\kicad\\bb-adc.net",
+ "input_digest": "netlist_canonical:7230e923865114bfb5e6418cc05e126dd20cd439cc8a476d1d6669db97c1a59b"
+}

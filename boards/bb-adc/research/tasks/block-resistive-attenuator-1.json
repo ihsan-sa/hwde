@@ -1,0 +1,188 @@
+{
+ "id": "block-resistive-attenuator-1",
+ "slot": "block:B1",
+ "kind": "block",
+ "token": "resistive-attenuator",
+ "phase": "P2",
+ "status": "closed",
+ "outcome": "verified",
+ "opened": "2026-08-16T19:06:25",
+ "closed": "2026-08-16T19:55:10",
+ "coverage_report": "boards/bb-adc/log/coverage-P2.json",
+ "gap": {
+  "slot": "block:B1",
+  "kind": "block",
+  "topology": "resistive-attenuator",
+  "operating_point": {
+   "vin_max_v": 5.0,
+   "vout_max_v": 2.048,
+   "ratio": 0.4,
+   "rtot_ohm": 1000000,
+   "rthev_ohm": 240000,
+   "source_z_max_ohm": 200,
+   "element_count": 5,
+   "tol_pct": 0.02,
+   "tcr_ppm_per_c": 10,
+   "pdiss_w": 2.5e-05,
+   "error_budget_mv": 5.0,
+   "ambient_max_c": 50,
+   "board_layers": 2,
+   "element_kind": "discrete-equal-string",
+   "guard_kind": "driven-guard",
+   "coupling_kind": "dc",
+   "source_kind": "dc-input"
+  },
+  "missing": [
+   {
+    "class": "coverage-checklist",
+    "min_level": null
+   }
+  ],
+  "reasons": [
+   "no coverage checklist for block 'resistive-attenuator' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+  ],
+  "related_records": [],
+  "principle_parents": [],
+  "task": "research block 'resistive-attenuator': produce its coverage checklist, then populate it"
+ },
+ "checklist_needed": true,
+ "caps": {
+  "depth_per_gap": 4,
+  "attempt_factor": 3
+ },
+ "sources": [
+  {
+   "n": 1,
+   "url": "https://www.vishay.com/docs/28194/incresarr.pdf",
+   "final_url": "https://www.vishay.com/docs/28194/incresarr.pdf",
+   "host": "www.vishay.com",
+   "domain": "vishay.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-appnote",
+   "declared_tier": "vendor-appnote",
+   "about": "precision resistor arrays / dividers",
+   "file": "research/sources/incresarr.pdf",
+   "sha256": "5a4c3b36a3a0ede62ae98d6db503f5b5afc64244b47c338c7dcdfa68ee4ba8eb",
+   "bytes": 137939,
+   "content_type": "application/pdf",
+   "pages": 4,
+   "fetched": "2026-08-16T19:10:17",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 2,
+   "url": "https://www.ti.com/lit/an/snoa664/snoa664.pdf",
+   "final_url": "https://www.ti.com/lit/an/snoa664/snoa664.pdf",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "AN-241 high impedance op amps: guarding",
+   "file": "research/sources/snoa664.pdf",
+   "sha256": "f6ab3bc54fee79e5bb123a5274c5a3b38be7a413af0841a2db66baf233bcdc8f",
+   "bytes": 173551,
+   "content_type": "application/pdf",
+   "pages": 10,
+   "fetched": "2026-08-16T19:10:22",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 3,
+   "url": "https://www.vishay.com/docs/60108/nonlinea.pdf",
+   "final_url": "https://www.vishay.com/docs/60108/nonlinea.pdf",
+   "host": "www.vishay.com",
+   "domain": "vishay.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-appnote",
+   "declared_tier": "vendor-appnote",
+   "about": "resistor nonlinearity: VCR and PCR/self-heating",
+   "file": "research/sources/nonlinea.pdf",
+   "sha256": "649dd7b461c88b2f24d0c91c3545596ef588a4108409986147dc22a2c2142a9c",
+   "bytes": 135187,
+   "content_type": "application/pdf",
+   "pages": 10,
+   "fetched": "2026-08-16T19:13:16",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 4,
+   "url": "https://www.ti.com/lit/pdf/sprad89",
+   "final_url": "https://www.ti.com/lit/an/sprad89/sprad89.pdf?ts=1786915599216",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "interfacing 5 V signals to 3.3 V SAR ADCs: divider attenuation + source impedance",
+   "file": "research/sources/sprad89.pdf",
+   "sha256": "ef908df544ab8b905600130af992f3f1fa2a7500ea1e062b319a026230061a7d",
+   "bytes": 321567,
+   "content_type": "application/pdf",
+   "pages": 10,
+   "fetched": "2026-08-16T19:14:33",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  }
+ ],
+ "attempts": [],
+ "verdicts": {
+  "resistive-attenuator-bottom-node-is-a-reference": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read sprad89 p4 and p7 visually. p4 fig 3-1 is the divider with R2 to a single ground symbol and the sentence about shorting the ladder ground to the clean analog ground (ADC ground or ADC negative reference) to eliminate unnecessary ground noise injection is verbatim. p7 s4.2 states common ground noise will not be attenuated by the resistor divider circuit, with eqs 9-10 giving 3.3/5=0.66 and 20log(0.66) about -3.6 dB against the ideal 6.02N+1.76; s4.1 eq 8 independently multiplies a downstream offset by (R1+R2)/R1 = 1/K, so the unity-pass direction is the source own conclusion, not an inference. Record extension to this board checks: 20log(0.4) = -7.96 dB and 1 mV / 0.4 = 2.5 mV input-referred. The dc coupling_kind envelope is a researcher-chosen bound but envelope_note says so plainly and the source is dc-coupled throughout.",
+   "ts": "2026-08-16T19:38:43"
+  },
+  "resistive-attenuator-high-z-tap-guard-and-leakage": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read snoa664 p4, p5, p3 visually (doc p3, p4, p2). p4 ELECTRICAL GUARDING gives the definition - input circuitry surrounded by a conductive trace connected to a low impedance point at the same potential as the inputs, absorbing board leakage - plus guard ring on BOTH sides, surface leakage virtually eliminated while bulk leakage falls only about an order of magnitude depending on board thickness and the width of the guard ring, and Teflon inserts/standoffs. Fig 5 caption is verbatim: same potential AND a low enough impedance to absorb board leakage without introducing excessive offset. Fig 5 a/b/c drivers are read correctly (inverting from the + input reference, follower from the output, non-inverting from the feedback divider tap), so the record refusal to let the high-Z node drive its own guard is consistent with the figure. p5 fig 6 is the metal-can bottom view with a closed guard around the two input pins only, caption repeating both-sides and ring width; DIP guard pins, locate close to the source, and microphonic e_n = dC/C x V are all present. p3 reliability paragraph is verbatim. The envelope claim that the source works the 10 Mohm to 1 Gohm regime is corroborated on the uncited p6 - standard precision resistors available up to 10 Mohm, up to 1 Gohm at a cost premium, 1 Gohm follower in fig 9. The 100 kohm floor is the researcher own call and envelope_note does not pretend otherwise.",
+   "ts": "2026-08-16T19:39:02"
+  },
+  "resistive-attenuator-loading-source-and-load": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Re-ruled after the researcher added snoa664 p6 under my earlier caveat; verdict unchanged. Re-read snoa664 p6 (doc p5) visually - the one page of this record I had not seen. Fig 9 is the LM11 follower with R3 10k, R2 10M and R1 1M exactly as the note says; text and caption confirm the 1 Gohm input resistance built from standard values, offset voltage multiplied by 100 with the input open, and the error reduced once the source is below 1 Gohm. The ac-coupled sentence is verbatim including its trailing clause - For an ac-coupled input, a second 10 Mohm resistor could be connected in series with the inverting input to virtually eliminate bias current error; bypassing it would give minimal noise. Fig 11 text is verbatim on both fragments the note uses - the error can be made dependent on offset current rather than bias current, and the summing node would be offset several hundred millivolts from ground - and the magnitude is consistent with the page own circuit (an LM11-class bias current through a 10 Gohm feedback resistor is a few hundred mV). The bias-current clause is therefore sourced now, and the generalization to I_B x (R1//R2) for an attenuator is sound. Imprecision, not a refutation: the page attributes the several-hundred-mV summing-node offset to the large-value-resistor alternative and the offset-versus-bias-current improvement to the fig 11 method, while the note attributes both to matching or not matching the resistance the two inputs see; the balancing claim is still supported on the same page by the ac-coupled sentence. Everything I verified on the four sprad89 pages is untouched - rule fields, envelope and every number are unchanged, the prose gained only the AN-241 parenthetical. Note the prose is now 1498 of the 1500-char cap, so any further edit must trim first.",
+   "ts": "2026-08-16T19:53:33"
+  },
+  "resistive-attenuator-ratio-from-relative-specs": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Re-stamped so the verification block describes the current text; verdict unchanged. The only edit is the closing clause, reworded exactly along the nit in my previous note - discretes carry no MATCHING spec, so that difference is bounded only by the absolute tolerance, worst case twice it. That is arithmetic on the +/-0.1 percent discrete spec block I already read on incresarr p1; it adds no source, changes no number, and it now agrees with the sibling TCR record instead of overreaching past it. Everything else stands as previously verified against incresarr p1, p2, p3: both spec blocks (discrete +/-25 ppm/K and +/-0.1 percent; array +/-25 ppm/K, +/-0.25 percent absolute, 10 ppm/K tracking, 0.1 percent matching), the identical V=10 network in figs 1 and 3 with R1=100 and R2=900, figs 2 and 4 on one 0 to 0.7 percent axis at about 0.65 percent versus under 0.3 percent, fig 6 clustering R1..R4 inside the +/-0.05 percent matching band while free in the +/-0.25 percent absolute band, and the correct absence of an envelope at level principle.",
+   "ts": "2026-08-16T19:53:43"
+  },
+  "resistive-attenuator-self-heating-and-gradient": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read nonlinea p3, p5, p6 and incresarr p3 visually. nonlinea p3 carries all of it: the two factors setting film temperature (ambient change INCLUDING the influence of neighboring heat producing components, and self heating), eq 1 dT_SH = P x Rth, the statement that for surface mounted resistors Rth depends on the PCB material and on the size of mounting pads and traces and should be communicated to vendors, and the PCR paragraph - at steady state the heat flows through the substrate to the PCB so the substrate is cooler than the resistive alloy, causing thermal strains that may even break the substrate, a difference of order a few ppm/C booked as eq 2. p5 quote is exact: temperature differences between the two resistors may occur, even if they share the same substrate, due to difference in power density, in heat dissipation properties or in influence of adjacent heat producing devices. p6 fig 8 reads correctly - thick film steps to about +100 ppm, thin film droops past -100 ppm across the 9 s, foil settles near zero in roughly 1-2 s - and the surrounding text makes exactly the electrical-vs-thermal settling point the record draws. incresarr p3 fig 8 is the IR thermograph and its quote about homogeneous heat distribution almost regardless of whether power is applied to one or several resistors is verbatim. The equal-power / thermally-symmetric layout rule is flagged in the prose as the consequence (so), not as a source quote. The 0.25 W pdiss cap is a researcher bound with an honest rationale, and the substrate-cracking risk it leans on is genuinely in the source.",
+   "ts": "2026-08-16T19:39:53"
+  },
+  "resistive-attenuator-tcr-tracking-not-absolute-tcr": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Re-ruled after correction; the refutation is cured. Re-read nonlinea p1 and p5 visually. p1 (abstract) does carry the same-substrate sentence and the record now quotes it IN FULL, character-for-character, including the qualifier I flagged as dropped - but even in this case the ratio of resistance values is influenced by the magnitude of their TCR. The rest of the new p1 note is verbatim too: TCR specified 5 ppm/C for two vendors, 10 for three, 25 for one; the differ-greatly-in-the-non-linearity sentence with TCR rising in some parts and falling in others; and the warning that a vendor TCR referring to a different temperature range may lead to wrong results especially when the curve has a large curvature. The p5 note now claims only what p5 carries - eq 9 plus the verbatim conclusion that high ratio stability requires both low absolute TCR values of both resistors and low change of their TCR with temperature - and its explicit NOTE that the same-substrate sentence lives on p1 is correct. Trim check: the 1476-char prose dropped the fig-1 spread detail and the alloy names; nothing surviving depends on them, p2 stays load-bearing through the chord-slope definition and the FR4-vs-ceramic claim, so no citation is orphaned, and the mandatory quote survived intact. The unprompted rule split holds on the sources: same_substrate_bounds is the p1 qualifier plus the p5 conclusion, sourced twice; discrete_string_tracking_bound is arithmetic on an absolute spec backed by incresarr p3, whose text explains tracking can be specified BECAUSE elements share sputtering, heat treatment and substrate - the source own reason discretes do not get one. Tables 1 and 2 re-checked against p6 and p7, still exact. One flag, not a refutation: the p5 note says eq 9 assumes constant TCR while the page prints Equation 8 - an evident numbering slip in the source, since eq 8 on p4 is the TCR_25C chord formula, and the record corrects it silently but outside its quotation marks.",
+   "ts": "2026-08-16T19:53:19"
+  }
+ },
+ "queue_entry": "2026-08-16-research-task-block-resistive-attenuator-1-6",
+ "updated": "2026-08-16T19:55:10",
+ "summary": {
+  "verified": 6,
+  "refuted": 0,
+  "checklists": 1,
+  "sources": 4
+ }
+}

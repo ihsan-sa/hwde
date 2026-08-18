@@ -1,0 +1,361 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "boards\\bb-adc\\parts\\C579305.pdf",
+ "lcsc": "C579305",
+ "n_pages": 32,
+ "text_chars": 50088,
+ "pages_trimmed": 0,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": " \nUltralow Noise, High Accuracy  \nVoltage References \nData Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \n \nRev. 0 \nInformation furnished by Analog Devices is believed to be accurate and reliable. However, no \nresponsibility is assumed by Analog Devices for its use, nor for any infringements of patents or other \nrights of third parties that may result from its use. Specifications subject to change without notice. No \nlicense is granted by implication or otherwise under any patent or patent rights of Analog Devices. \nTrademarks and registered trademarks are the property of their respective owners. \n  \n \nOne Technology Way, P.O. Box 9106, Norwood, MA 02062- 9106, U.S.A. \nTel: 781.329.4700 www.analog.com  \nFax: 781.461.3113 \u00a92012 Analog Devices, Inc. All rights reserved. \nFEATURES \nMaximum temperature coefficient (TCVOUT): 2 ppm/\u00b0C \nOutput noise (0.1 Hz to 10 Hz) \nLess than 1 \u03bcV p-p at VOUT of 2.048 V typical \nInitial output voltage error: \u00b10.02% (maximum) \nInput voltage range: 3 V to 15 V \nOperating temperature: \u221240\u00b0C to +125\u00b0C \nOutput current: +10 mA source/\u221210 mA sink \nLow quiescent current: 950 \u03bcA (maximum) \nLow dropout voltage: 300 mV at 2 mA (VOUT \u2265 3 V)  \n8-lead SOIC package \nAPPLICATIONS \nPrecision data acquisition systems \nHigh resolution data converters \nHigh precision measurement devices \nIndustrial instrumentation \nMedical devices \nAutomotive battery monitoring \nPIN CONFIGURATION \n \nFigure 1. 8-Lead SOIC \n \n \n \nGENERAL DESCRIPTION\nThe ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ \nADR4550 devices are high precision, low power, low noise \nvoltage references featuring \u00b10.02% maximum initial error, \nexcellent temperature stability, and low output noise. \nThis family of voltage references uses an innovative core \ntopology to achieve high accuracy while offering industry-leading \ntemperature stability and noise performance. The low, thermally \ninduced output voltage hysteresis and low long-term output \nvoltage drift of the devices also improve system accuracy over \ntime and temperature variations. \nA maximum operating current of 950 \u03bcA and a maximum low \ndropout voltage of 300 mV allow the devices to function very \nwell in portable equipment. \nThe ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ \nADR4550 series of references is provided in an 8-lead SOIC \npackage and is available in a wide range of output voltages, all of \nwhich are specified over the extended industrial temperature \nrange of \u221240\u00b0C to +125\u00b0C. \n \n \nTable 1. Selection Guide  \nModel  Output Voltage (V) \nADR4520 2.048 \nADR4525 2.5 \nADR4530 3.0 \nADR4533 3.3 \nADR4540 4.096 \nADR4550 5.0 \n \nTable 2. Voltage Reference Choices from Analog Devices \nVOUT (V) \nLow Cost/ \nLow Power Micropower \nUltralow \nNoise \nHigh Voltage,  \nHigh Performance \n2.048 ADR360 REF191 ADR430  \n ADR3420  ADR440  \n2.5 ADR3425 ADR291 ADR431 ADR03 \n AD1582 REF192 ADR441 AD780 \n ADR361    \n5.0 ADR3450 ADR293  ADR435 ADR02 \n AD1585 REF195 ADR445 AD586 \n ADR365    \n \nNC 1\nVIN 2\nNC 3\nGND 4\nTP8\nNC7\nVOUT6\nNC5\nNOTES\n1. NC = NO CONNECT.\n2. TP = TEST PIN. DO NOT CONNECT.\nADR4520/ADR4525/\nADR4530/ADR4533/\nADR4540/ADR4550\nTOP VIEW\n(Not to Scale)\n10203-001"
+  },
+  {
+   "page": 1,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 2 of 32 \nTABLE OF CONTENTS \nFeatures .............................................................................................. 1 \nApplications ....................................................................................... 1 \nPin Configuration ............................................................................. 1 \nGeneral Description ......................................................................... 1 \nRevision History ............................................................................... 2 \nSpecifications ..................................................................................... 3 \nADR4520 Electrical Characteristics........................................... 3 \nADR4525 Electrical Characteristics........................................... 4 \nADR4530 Electrical Characteristics........................................... 5 \nADR4533 Electrical Characteristics........................................... 6 \nADR4540 Electrical Characteristics........................................... 7 \nADR4550 Electrical Characteristics........................................... 8 \nAbsolute Maximum Ratings ............................................................ 9 \nThermal Resistance ...................................................................... 9 \nESD Caution .................................................................................. 9 \nPin Configuration and Function Descriptions ........................... 10 \nTypical Performance Characteristics ........................................... 11 \nADR4520 ..................................................................................... 11 \nADR4525 ..................................................................................... 14 \nADR4530 ..................................................................................... 17 \nADR4533 ..................................................................................... 20 \nADR4540 ..................................................................................... 23 \nADR4550 ..................................................................................... 26 \nTerminology .................................................................................... 29 \nTheory of Operation ...................................................................... 30 \nLong-Term Drift ......................................................................... 30 \nPower Dissipation....................................................................... 30 \nApplications Information .............................................................. 31 \nBasic Voltage Reference Connection ....................................... 31 \nInput and Output Capacitors .................................................... 31 \nLocation of Reference in System .............................................. 31 \nSample Applications ................................................................... 31 \nOutline Dimensions ....................................................................... 32 \nOrdering Guide ............................................................................... 32 \n \nREVISION HISTORY \n4/12\u2014Revision 0: Initial Version \n "
+  },
+  {
+   "page": 2,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 3 of 32 \nSPECIFICATIONS \nADR4520 ELECTRICAL CHARACTERISTICS \nUnless otherwise noted, VIN = 3 V to 15 V,  IL = 0 mA, TA = 25\u00b0C. \nTable 3.  \nParameter Symbol Test Conditions/Comments Min Typ Max Unit \nOUTPUT VOLTAGE VOUT   2.048  V \nINITIAL OUTPUT VOLTAGE ERROR VOUT_ERR B grade   \u00b10.02 % \n     410 \u03bcV \n  A grade   \u00b10.04 % \n     820 \u03bcV \nSOLDER HEAT SHIFT    \u00b10.02  % \nTEMPERATURE COEFFICIENT TCVOUT B grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   2 ppm/\u00b0C \n  A grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   4 ppm/\u00b0C \nLINE REGULATION \u0394VOUT/\u0394VIN \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  1 10 ppm/V \nLOAD REGULATION \u0394VOUT/\u0394IL IL = 0 mA to +10 mA source, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  30 80 ppm/mA \n  IL = 0 mA to \u221210 mA sink, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  100 120 ppm/mA \nQUIESCENT CURRENT IQ \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load  700 950 \u03bcA \nDROPOUT VOL TAGE VDO \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load   1 V \n  \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, IL = 2 mA   1 V \nRIPPLE REJECTION RATIO RRR fIN = 1 kHz  90  dB \nOUTPUT CURRENT CAPACITY IL      \nSinking     \u22128 mA \nSourcing     10 mA \nOUTPUT VOLTAGE NOISE eNp-p 0.1 Hz to 10.0 Hz  1.0  \u03bcV p-p \nOUTPUT VOLTAGE NOISE DENSITY eN 1 kHz  35.8  nV/\u221aHz \nOUTPUT VOLTAGE HYSTERESIS \u0394VOUT_HYS TA = temperature cycled from +25\u00b0C to \u221240\u00b0C to \n+125\u00b0C and back to +25\u00b0C \n 50  ppm \nLONG-TERM DRIFT \u0394VOUT_LTD 1000 hours at 60\u00b0C  25  ppm \nTURN-ON SETTLING TIME tR IL = 0 mA, CL = 1 \u00b5F, CIN = 0.1 \u00b5F, RL = 1 k\u2126  90  \u00b5s \nLOAD CAPACITANCE   1  100 \u00b5F \n "
+  },
+  {
+   "page": 3,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 4 of 32 \nADR4525 ELECTRICAL CHARACTERISTICS \nUnless otherwise noted, VIN = 3 V to 15 V,  IL = 0 mA, TA = 25\u00b0C. \nTable 4.  \nParameter Symbol Test Conditions/Comments Min Typ Max Unit \nOUTPUT VOLTAGE VOUT   2.500  V \nINITIAL OUTPUT VOLTAGE ERROR VOUT_ERR B grade   \u00b10.02 % \n     500 \u03bcV \n  A grade   \u00b10.04 % \n     1 mV \nSOLDER HEAT SHIFT    \u00b10.02  % \nTEMPERATURE COEFFICIENT TCVOUT B grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   2 ppm/\u00b0C \n  A grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   4 ppm/\u00b0C \nLINE REGULATION \u0394VOUT/\u0394VIN \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  1 10 ppm/V \nLOAD REGULATION \u0394VOUT/\u0394IL IL = 0 mA to +10 mA source, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  30 80 ppm/mA \n  IL = 0 mA to \u221210 mA sink, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  60 120 ppm/mA \nQUIESCENT CURRENT IQ \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load  700 950 \u03bcA \nDROPOUT VOL TAGE VDO \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load   500 mV \n  \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, IL = 2 mA   500 mV \nRIPPLE REJECTION RATIO RRR fIN = 1 kHz  90  dB \nOUTPUT CURRENT CAPACITY IL      \nSinking     \u221210 mA \nSourcing     10 mA \nOUTPUT VOLTAGE NOISE eNp-p 0.1 Hz to 10.0 Hz  1.25  \u03bcV p-p \nOUTPUT VOLTAGE NOISE DENSITY eN 1 kHz  41.3  nV/\u221aHz \nOUTPUT VOLTAGE HYSTERESIS \u0394VOUT_HYS TA = temperature cycled from +25\u00b0C to \u221240\u00b0C to \n+125\u00b0C and back to +25\u00b0C \n 50  ppm \nLONG-TERM DRIFT \u0394VOUT_LTD 1000 hours at 60\u00b0C  25  ppm \nTURN-ON SETTLING TIME tR IL = 0 mA, CL = 1 \u00b5F, CIN = 0.1 \u00b5F, RL = 1 k\u2126  125  \u00b5s \nLOAD CAPACITANCE   1  100 \u00b5F \n "
+  },
+  {
+   "page": 4,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 5 of 32 \nADR4530 ELECTRICAL CHARACTERISTICS \nUnless otherwise noted, VIN = 3.1 V to 15 V,  IL = 0 mA, TA = 25\u00b0C. \nTable 5.  \nParameter Symbol Test Conditions/Comments Min Typ Max Unit \nOUTPUT VOLTAGE VOUT   3.000  V \nINITIAL OUTPUT VOLTAGE ERROR VOUT_ERR B grade   \u00b10.02 % \n     600 \u03bcV \n  A grade   \u00b10.04 % \n     1.2 mV \nSOLDER HEAT SHIFT    \u00b10.02  % \nTEMPERATURE COEFFICIENT TCVOUT B grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   2 ppm/\u00b0C \n  A grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   4 ppm/\u00b0C \nLINE REGULATION \u0394VOUT/\u0394VIN \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  1 10 ppm/V \nLOAD REGULATION \u0394VOUT/\u0394IL IL = 0 mA to +10 mA source, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  30 80 ppm/mA \n  IL = 0 mA to \u221210 mA sink, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  60 120 ppm/mA \nQUIESCENT CURRENT IQ \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load  700 950 \u03bcA \nDROPOUT VOL TAGE VDO \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load   100 mV \n  \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, IL = 2 mA   300 mV \nRIPPLE REJECTION RATIO RRR fIN = 1 kHz  90  dB \nOUTPUT CURRENT CAPACITY IL      \nSinking     \u221210 mA \nSourcing     10 mA \nOUTPUT VOLTAGE NOISE eNp-p 0.1 Hz to 10.0 Hz  1.6  \u03bcV p-p \nOUTPUT VOLTAGE NOISE DENSITY eN 1 kHz  60  nV/\u221aHz \nOUTPUT VOLTAGE HYSTERESIS \u0394VOUT_HYS TA = temperature cycled from +25\u00b0C to \u221240\u00b0C to \n+125\u00b0C and back to +25\u00b0C \n 50  ppm \nLONG-TERM DRIFT \u0394VOUT_LTD 1000 hours at 60\u00b0C  25  ppm \nTURN-ON SETTLING TIME tR IL = 0 mA, CL = 0.1 \u00b5F, CIN = 0.1 \u00b5F, RL = 1 k\u2126  130  \u00b5s \nLOAD CAPACITANCE   0.1  100 \u00b5F \n "
+  },
+  {
+   "page": 5,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 6 of 32 \nADR4533 ELECTRICAL CHARACTERISTICS \nUnless otherwise noted, VIN = 3.4 V to 15 V,  IL = 0 mA, TA = 25\u00b0C. \nTable 6.  \nParameter Symbol Test Conditions/Comments Min Typ Max Unit \nOUTPUT VOLTAGE VOUT   3.300  V \nINITIAL OUTPUT VOLTAGE ERROR VOUT_ERR B grade   \u00b10.02 % \n     660 \u00b5V \n  A grade   \u00b10.04 % \n     1.32 mV \nSOLDER HEAT SHIFT    \u00b10.02  % \nTEMPERATURE COEFFICIENT TCVOUT B grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   2 ppm/\u00b0C \n  A grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   4 ppm/\u00b0C \nLINE REGULATION \u0394VOUT/\u0394VIN \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  1 10 ppm/V \nLOAD REGULATION \u0394VOUT/\u0394IL IL = 0 mA to +10 mA source, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  30 80 ppm/mA \n  IL = 0 mA to \u221210 mA sink, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  60 120 ppm/mA \nQUIESCENT CURRENT IQ \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load  700 950 \u03bcA \nDROPOUT VOL TAGE VDO \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load   100 mV \n  \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, IL = 2 mA   300 mV \nRIPPLE REJECTION RATIO RRR fIN =1 kHz  90  dB \nOUTPUT CURRENT CAPACITY IL      \nSinking     \u221210 mA \nSourcing     10 mA \nOUTPUT VOLTAGE NOISE eNp-p 0.1 Hz to 10.0 Hz  2.1  \u03bcV p-p \nOUTPUT VOLTAGE NOISE DENSITY eN 1 kHz  64.2  nV/\u221aHz \nOUTPUT VOLTAGE HYSTERESIS \u0394VOUT_HYS TA = temperature cycled from +25\u00b0C to \u221240\u00b0C to \n+125\u00b0C and back to +25\u00b0C \n 50  ppm \nLONG-TERM DRIFT \u0394VOUT_LTD 1000 hours at 60\u00b0C  25  ppm \nTURN-ON SETTLING TIME tR IL = 0 mA, CL = 0.1 \u00b5F, CIN = 0.1 \u00b5F, RL = 1 k\u2126  135  \u00b5s \nLOAD CAPACITANCE   0.1  100 \u00b5F \n "
+  },
+  {
+   "page": 6,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 7 of 32 \nADR4540 ELECTRICAL CHARACTERISTICS \nUnless otherwise noted, VIN = 4.2 V to 15 V,  IL = 0 mA, TA = 25\u00b0C. \nTable 7.  \nParameter Symbol Test Conditions/Comments Min Typ Max Unit \nOUTPUT VOLTAGE VOUT   4.096  V \nINITIAL OUTPUT VOLTAGE ERROR VOUT_ERR B grade   \u00b10.02 % \n     820 \u03bcV \n  A grade   \u00b10.04 % \n     1.64 mV \nSOLDER HEAT SHIFT    \u00b10.02  % \nTEMPERATURE COEFFICIENT TCVOUT B grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   2 ppm/\u00b0C \n  A grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   4 ppm/\u00b0C \nLINE REGULATION \u0394VOUT/\u0394VIN \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  1 10 ppm/V \nLOAD REGULATION \u0394VOUT/\u0394IL IL = 0 mA to +10 mA source, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  25 80 ppm/mA \n  IL = 0 mA to \u221210 mA sink, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  50 120 ppm/mA \nQUIESCENT CURRENT IQ \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load  700 950 \u03bcA \nDROPOUT VOL TAGE VDO \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load   100 mV \n  \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, IL = 2 mA   300 mV \nRIPPLE REJECTION RATIO RRR fIN = 1 kHz  90  dB \nOUTPUT CURRENT CAPACITY IL      \nSinking     \u221210 mA \nSourcing     10 mA \nOUTPUT VOLTAGE NOISE eNp-p 0.1 Hz to 10.0 Hz  2.7  \u03bcV p-p \nOUTPUT VOLTAGE NOISE DENSITY eN 1 kHz  83.5  nV/\u221aHz \nOUTPUT VOLTAGE HYSTERESIS \u0394VOUT_HYS TA = temperature cycled from +25\u00b0C to \u221240\u00b0C to \n+125\u00b0C and back to +25\u00b0C \n 50  ppm \nLONG-TERM DRIFT \u0394VOUT_LTD 1000 hours at 60\u00b0C  25  ppm \nTURN-ON SETTLING TIME tR IL = 0 mA, CL = 0.1 \u00b5F, CIN = 0.1 \u00b5F, RL = 1 k\u2126  155  \u00b5s \nLOAD CAPACITANCE   0.1  100 \u00b5F \n "
+  },
+  {
+   "page": 7,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 8 of 32 \nADR4550 ELECTRICAL CHARACTERISTICS \nUnless otherwise noted, VIN = 5.1 V to 15 V,  IL = 0 mA, TA = 25\u00b0C. \nTable 8.  \nParameter Symbol Test Conditions/Comments Min Typ Max Unit \nOUTPUT VOLTAGE VOUT   5.000  V \nINITIAL OUTPUT VOLTAGE ERROR VOUT_ERR B grade   \u00b10.02 % \n     1 mV \n  A grade   \u00b10.04 % \n     2 mV \nSOLDER HEAT SHIFT    \u00b10.02  % \nTEMPERATURE COEFFICIENT TCVOUT B grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   2 ppm/\u00b0C \n  A grade, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C   4 ppm/\u00b0C \nLINE REGULATION \u0394VOUT/\u0394VIN \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  1 10 ppm/V \nLOAD REGULATION \u0394VOUT/\u0394IL IL = 0 mA to +10 mA source, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  25 80 ppm/mA \n  IL = 0 mA to \u221210 mA sink, \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C  35 120 ppm/mA \nQUIESCENT CURRENT IQ \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load  700 950 \u03bcA \nDROPOUT VOL TAGE VDO \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, no load   100 mV \n  \u221240\u00b0C \u2264 TA \u2264 +125\u00b0C, IL = 2 mA   300 mV \nRIPPLE REJECTION RATIO RRR fIN = 1 kHz  90  dB \nOUTPUT CURRENT CAPACITY IL      \nSinking     \u221210 mA \nSourcing     10 mA \nOUTPUT VOLTAGE NOISE eNp-p 0.1 Hz to 10.0 Hz  2.8  \u03bcV p-p \nOUTPUT VOLTAGE NOISE DENSITY eN 1 kHz  95.3  nV/\u221aHz \nOUTPUT VOLTAGE HYSTERESIS \u0394VOUT_HYS TA = temperature cycled from +25\u00b0C to \u221240\u00b0C to \n+125\u00b0C and back to +25\u00b0C \n 50  ppm \nLONG-TERM DRIFT \u0394VOUT_LTD 1000 hours at 60\u00b0C  25  ppm \nTURN-ON SETTLING TIME tR IL = 0 mA, CL = 0.1 \u00b5F, CIN = 0.1 \u00b5F, RL = 1 k\u2126  160  \u00b5s \nLOAD CAPACITANCE   0.1  100 \u00b5F \n "
+  },
+  {
+   "page": 8,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 9 of 32 \nABSOLUTE MAXIMUM RATINGS \nTA = 25\u00b0C, unless otherwise noted. \nTable 9. \nParameter Rating \nSupply Voltage 16 V  \nOperating Temperature Range \u221240\u00b0C to +125\u00b0C \nStorage Temperature Range \u221265\u00b0C to +150\u00b0C \nJunction Temperature Range \u221265\u00b0C to +150\u00b0C \n \nStresses above those listed under Absolute Maximum Ratings \nmay cause permanent damage to the device. This is a stress \nrating only; functional operation of the device at these or any \nother conditions above those indicated in the operational \nsection of this specification is not implied. Exposure to absolute \nmaximum rating conditions for extended periods may affect \ndevice reliability. \n \nTHERMAL RESISTANCE \n\u03b8JA is specified for the worst-case conditions; that is, a device \nsoldered in a circuit board for surface-mount packages. \nTable 10. Thermal Resistance \nPackage Type \u03b8JA \u03b8JC Unit \n8-Lead SOIC 120 42 \u00b0C/W \n \nESD CAUTION \n \n \n \n "
+  },
+  {
+   "page": 9,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 10 of 32 \nPIN CONFIGURATION AND FUNCTION DESCRIPTIONS \n \n \nFigure 2. Pin Configuration \n \nTable 11. Pin Function Descriptions \nPin No. Mnemonic Description \n1 NC No Connect. This pin is not connected internally.  \n2 VIN Input Voltage Connection.  \n3 NC No Connect. This pin is not connected internally. \n4 GND Ground. \n5 NC No Connect. This pin is not connected internally. \n6 VOUT Output Voltage. \n7 NC No Connect. This pin is not connected internally. \n8 TP Test Pin. Do not connect. \n \nNC 1\nVIN 2\nNC 3\nGND 4\nTP8\nNC7\nVOUT6\nNC5\nNOTES\n1. NC = NO CONNECT.\n2. TP = TEST PIN. DO NOT CONNECT.\nADR4520/ADR4525/\nADR4530/ADR4533/\nADR4540/ADR4550\nTOP VIEW\n(Not to Scale)\n10203-002"
+  },
+  {
+   "page": 10,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 11 of 32 \nTYPICAL PERFORMANCE CHARACTERISTICS \nTA = 25\u00b0C, unless otherwise noted. \nADR4520 \n \nFigure 3. ADR4520 Output Voltage vs. Temperature \n \nFigure 4. ADR4520 Thermally Induced Output Voltage Hysteresis Distribution  \n \nFigure 5. ADR4520 Output Voltage Start-Up Response \n \nFigure 6. ADR4520 Dropout Voltage vs. Load Current \n \nFigure 7. ADR4520 Load Regulation vs. Temperature (Sourcing) \n \nFigure 8. ADR4520 Load Regulation vs. Temperature (Sinking) \nVOUT (V)\nTEMPERATURE (\u00b0C)\n2.0475\n2.0476\n2.0477\n2.0478\n2.0479\n2.0480\n2.0481\n2.0482\n2.0483\n2.0484\n2.0485\nADR4520\n\u201350 \u201330 \u201310 10 30 50 70 90 110 130\n10203-101\nNUMBER OF UNITS\n\u0394VOUT_HYS (ppm)\n0\n3.5\n3.0\n2.5\n2.0\n1.5\n1.0\n0.5\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\n\u2013120\n\u2013130\n\u2013140\n\u2013150\n\u2013160\n\u2013170\n\u2013180\n\u2013190\n\u2013200\n0\n10203-103\nCH1  5.00V CH2  1.00V M40.0\u00b5s A  CH1      9.10V\n1\n2\nADR4520\nVIN (5V/DIV)\nVOUT (1V/DIV)\nCIN = 0.1\u00b5F\nCOUT = 0.1\u00b5F\nRL = 1k\u03a9\n10203-104\nDROPOUT VOLTAGE (V)\nILOAD (mA)\n0\n0.2\n0.4\n0.6\n0.8\n1.0\n1.2\n1.4\n1.6\n\u201310 \u20138 \u20136 \u20134 \u20132 0 2 4 6 8 10\n\u201340\u00b0C\n+25\u00b0C\n+125\u00b0C\nADR4520\n10203-106\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n35\n30\n25\n20\n15\n10\n5\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4520\n10203-107\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n100\n90\n80\n70\n60\n50\n40\n30\n20\n10\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4520\n10203-108"
+  },
+  {
+   "page": 11,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 12 of 32 \n \nFigure 9. ADR4520 Line Regulation vs. Temperature \n \nFigure 10. ADR4520 Supply Current vs. Supply Voltage \n \nFigure 11. ADR4520 Output Voltage Noise  \n(Maximum Amplitude from 0.1 Hz to 10 Hz) \n \nFigure 12. ADR4520 Output Noise Spectral Density \n \nFigure 13. ADR4520 Ripple Rejection Ratio vs. Frequency \n \nFigure 14. ADR4520 Line Transient Response \nLINE REGULATION (ppm/V)\nTEMPERATURE (\u00b0C)\nADR4520\n10203-109\n0.4\n0.5\n0.6\n0.7\n0.8\n0.9\n1.0\n1.1\n1.2\n1.3\n1.4\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nISY (\u00b5A)\nVIN (V)\n0\n1000\n800\n600\n400\n200\n0 2 4 6 8 10 12 14 161 3 5 7 9 11 13 15\n\u201340\u00b0C+25\u00b0C\n+125\u00b0C\nADR4520\n10203-110\nOCCURRENCE\nOUTPUT VOLTAGE NOISE DISTRIBUTION (\u00b5V p-p)\n0\n120\n100\n80\n60\n40\n20\n2.82.52.21.91.61.31.00.70.4\nADR4520\n10203-111\nNOISE DENSITY (nV rms/  Hz)\nFREQUENCY (Hz)\n1\n1k\n100\n10\n100k0.01 0.1 1 10 100 1k 10k\nADR4520\n10203-112\nRIPPLE REJECTION RATIO (dB)\nFREQUENCY (Hz)\n\u2013120\n0\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\nADR4520\nCLOAD = 1\u00b5F\n100M10 100 1k 10k 100k 1M 10M\n10203-113\nCH1  1.00V CH2  1.00mV BW M40.0\u00b5s A  CH1      7.02V\n2\n1\nADR4520\nINPUT\nOUTPUT AC\nCIN = 0.1\u00b5F\nCOUT = 1\u00b5F\nT\nT  12.0%\n10203-114"
+  },
+  {
+   "page": 12,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 13 of 32 \n \nFigure 15. ADR4520 Output Impedance vs. Frequency \n \nFigure 16. ADR4520 Output Voltage Drift Distribution After Reflow (SHR Drift) \n \nFigure 17. ADR4520 Typical Long-Term Output Voltage Drift  \n(1000 Hours) \n \nOUTPUT IMPEDANCE (\u03a9)\nFREQUENCY (Hz)\n0\n60\n50\n40\n30\n20\n10\n1M10 100 1k 10k 100k\nADR4520\nRL = 100k\u03a9\nCL = 10\u00b5F\nRL = 1k\u03a9\nCL = 10\u00b5F\nRL = 1k\u03a9\nCL = 1\u00b5F\nRL = 100k\u03a9\nCL = 1\u00b5F\n10203-115\nOCCURRENCE\nOUTPUT VOLTAGE (%)\n0\n12\n10\n8\n6\n4\n2\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\n10203-116\n\u20130.060\n\u20130.055\n\u20130.050\n\u20130.045\n\u20130.040\n\u20130.035\n\u20130.030\n\u20130.025\n\u20130.020\n\u20130.015\n\u20130.010\n\u20130.005\n0\n0.005\n0.010\n0.015\n0.020\n0.025\n0.030\n0.035\n0.040\n0.045\n0.050\n0.055\n0.060\nVOUT DRIFT (ppm)\nDURATION (Hours)\n\u201380\n80\n60\n40\n20\n0\n\u201320\n\u201340\n\u201360\n10000 200 400 600 800100 300 500 700 900\n10203-117\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550"
+  },
+  {
+   "page": 13,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 14 of 32 \nADR4525 \n \nFigure 18. ADR4525 Output Voltage vs. Temperature \n \nFigure 19. ADR4525 Thermally Induced Output Voltage Hysteresis Distribution \n \nFigure 20. ADR4525 Output Voltage Start-Up Response  \n \nFigure 21. ADR4525 Dropout Voltage vs. Load Current \n \nFigure 22. ADR4525 Load Regulation vs. Temperature (Sourcing) \n \nFigure 23. ADR4525 Load Regulation vs. Temperature (Sinking) \nVOUT (V)\nTEMPERATURE (\u00b0C)\n2.4995\n2.4996\n2.4997\n2.4998\n2.4999\n2.5000\n2.5001\n2.5002\n2.5003\n2.5004\n2.5005\n\u201350 \u201330 \u201310 10 30 50 70 90 110 130\nADR4525\n10203-201\nNUMBER OF UNITS\n\u0394VOUT_HYS (ppm)\n0\n3.5\n3.0\n2.5\n2.0\n1.5\n1.0\n0.5\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\n\u2013120\n\u2013130\n\u2013140\n\u2013150\n\u2013160\n\u2013170\n\u2013180\n\u2013190\n\u2013200\n0\n10203-203\nCH1  5.00V CH2  1.00V M40.0\u00b5s A  CH1      9.10V\n1\n2\nADR4525\nVIN (5V/DIV)\nVOUT (1V/DIV)\n10203-204\nDROPOUT VOLTAGE (V)\nILOAD (mA)\n0\n0.2\n0.4\n0.6\n0.8\n1.0\n1.2\n1.4\n\u201315 151050\u20135\u201310\n\u201340\u00b0C\n+25\u00b0C+125\u00b0C\nADR4525\n10203-206\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n35\n30\n25\n20\n15\n10\n5\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4525\n10203-207\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n100\n90\n80\n70\n60\n50\n40\n30\n20\n10\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4525\n10203-208"
+  },
+  {
+   "page": 14,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 15 of 32 \n \nFigure 24. ADR4525 Line Regulation vs. Temperature \n \nFigure 25. ADR4525 Supply Current vs. Supply Voltage \n \nFigure 26. ADR4525 Output Voltage Noise  \n(Maximum Amplitude from 0.1 Hz to 10 Hz) \n \nFigure 27. ADR4525 Output Noise Spectral Density \n \nFigure 28. ADR4525 Ripple Rejection Ratio vs. Frequency \n \nFigure 29. ADR4525 Line Transient Response \n10203-209\nLINE REGULATION (ppm/V)\nTEMPERATURE (\u00b0C)\nADR4525\n0.4\n0.5\n0.6\n0.7\n0.8\n0.9\n1.0\n1.1\n1.2\n1.3\n1.4\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nISY (\u00b5A)\nVIN (V)\n0\n900\n800\n700\n600\n500\n400\n300\n200\n100\n0 2 4 6 8 10 12 14 161 3 5 7 9 11 13 15\n\u201340\u00b0C+25\u00b0C\n+125\u00b0C ADR4525\n10203-210\nOCCURRENCE\nOUTPUT VOLTAGE NOISE DISTRIBUTION (\u00b5V p-p)\n0\n160\n140\n120\n100\n80\n60\n40\n20\n3.02.72.42.11.81.51.20.90.6\nADR4525\n10203-211\nNOISE DENSITY (nV rms/  Hz)\nFREQUENCY (Hz)\n1\n1k\n100\n10\n100k0.01 0.1 1 10 100 1k 10k\nADR4525\n10203-212\nRIPPLE REJECTION RATIO (dB)\nFREQUENCY (Hz)\n\u2013120\n0\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\nADR4525\n100M10 100 1k 10k 100k 1M 10M\n10203-213\nCH1  1.00V CH2  1.00mV BW M200\u00b5s A  CH1      4.08V\n2\n1\nADR4525\nINPUT\nOUTPUT AC\nCIN = 0.1\u00b5F\nCOUT = 1\u00b5F\nT\nT  10.0%\n10203-214"
+  },
+  {
+   "page": 15,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 16 of 32 \n \nFigure 30. ADR4525 Output Impedance vs. Frequency \n \nFigure 31. ADR4525 Output Voltage Drift Distribution After Reflow (SHR Drift) \n \nFigure 32. ADR4525 Typical Long-Term Output Voltage Drift  \n(1000 Hours) \n \nOUTPUT IMPEDANCE (\u03a9)\nFREQUENCY (Hz)\n0\n80\n70\n60\n50\n40\n30\n20\n10\n1M10 100 1k 10k 100k\nADR4525\nRL = 100k\u03a9\nCL = 10\u00b5F\nRL = 1k\u03a9\nCL = 10\u00b5F\nRL = 1k\u03a9\nCL = 1\u00b5F\nRL = 100k\u03a9\nCL = 1\u00b5F\n10203-215\nOCCURRENCE\nOUTPUT VOLTAGE (%)\n0\n12\n10\n8\n6\n4\n2\n10203-216\n\u20130.060\n\u20130.055\n\u20130.050\n\u20130.045\n\u20130.040\n\u20130.035\n\u20130.030\n\u20130.025\n\u20130.020\n\u20130.015\n\u20130.010\n\u20130.005\n0\n0.005\n0.010\n0.015\n0.020\n0.025\n0.030\n0.035\n0.040\n0.045\n0.050\n0.055\n0.060\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\nVOUT DRIFT (ppm)\nDURATION (Hours)\n\u201380\n80\n60\n40\n20\n0\n\u201320\n\u201340\n\u201360\n10000 200 400 600 800100 300 500 700 900\n10203-217\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550"
+  },
+  {
+   "page": 16,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 17 of 32 \nADR4530 \n \nFigure 33. ADR4530 Output Voltage vs. Temperature \n \nFigure 34. ADR4530 Thermally Induced Output Voltage Hysteresis Distribution \n \nFigure 35. ADR4530 Output Voltage Start-Up Response \n \nFigure 36. ADR4530 Supply Current vs. Supply Voltage \n \nFigure 37. ADR4530 Dropout Voltage vs. Load Current \n \nFigure 38. ADR4530 Load Regulation vs. Temperature (Sourcing) \nVOUT (V)\nTEMPERATURE (\u00b0C)\n\u201350 \u201330 \u201310 10 30 50 70 90 110 130\nADR4530\n10203-301\n2.9995\n2.9996\n2.9997\n2.9998\n2.9999\n3.0000\n3.0001\n3.0002\n3.0003\n3.0004\n3.0005NUMBER OF UNITS\n\u0394VOUT_HYS (ppm)\n0\n3.5\n3.0\n2.5\n2.0\n1.5\n1.0\n0.5\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\n\u2013120\n\u2013130\n\u2013140\n\u2013150\n\u2013160\n\u2013170\n\u2013180\n\u2013190\n\u2013200\n0\n10203-303\nCH1  5.00V CH2  1.00V M40.0\u00b5s A  CH1      3.10V\n1\n2\nADR4530VIN (5V/DIV)\nVOUT (1V/DIV)\n10203-304\nCIN = 0.1\u00b5F\nCOUT = 0.1\u00b5F\nRL = 1k\u03a9\nISY (\u00b5A)\nVIN (V)\n0 13121110987654321\nADR4530\n0\n0.0001\n0.0002\n0.0003\n0.0004\n0.0005\n0.0006\n0.0007\n0.0008\n0.0009\n\u201340\u00b0C\n+25\u00b0C+125\u00b0C\n10203-305\nDROPOUT VOLTAGE (V)\nILOAD (mA)\n0\n0.2\n0.4\n0.6\n0.8\n1.0\n1.2\n1.4\n\u201315 151050\u20135\u201310\n\u201340\u00b0C\n+25\u00b0C\n+125\u00b0C\nADR4530\n10203-306\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n35\n30\n25\n20\n15\n10\n5\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4530\n10203-307"
+  },
+  {
+   "page": 17,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 18 of 32 \n \nFigure 39. ADR4530 Load Regulation vs. Temperature (Sinking) \n \nFigure 40. ADR4530 Line Regulation vs. Temperature \n \nFigure 41. ADR4530 Supply Current vs. Supply Voltage \n \nFigure 42. ADR4530 Output Voltage Noise  \n(Maximum Amplitude from 0.1 Hz to 10 Hz) \n \nFigure 43. ADR4530 Output Noise Spectral Density \n \nFigure 44. ADR4530 Ripple Rejection Ratio vs. Frequency \nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n100\n90\n80\n70\n60\n50\n40\n30\n20\n10\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4530\n10203-30810203-309\nLINE REGULATION (ppm/V)\nTEMPERATURE (\u00b0C)\nADR4530\n0.4\n0.5\n0.6\n0.7\n0.8\n0.9\n1.0\n1.1\n1.2\n1.3\n1.4\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nISY (\u00b5A)\nVIN (V)\n0\n900\n800\n700\n600\n500\n400\n300\n200\n100\n0 2 4 6 8 10 12 131 3 5 7 9 11\n\u201340\u00b0C\n+25\u00b0C\n+125\u00b0C\nADR4530\n10203-310\nOCCURRENCE\nOUTPUT VOLTAGE NOISE DISTRIBUTION (\u00b5V p-p)\n0\n100\n90\n80\n70\n60\n50\n40\n30\n20\n10\nADR4530\n1.1\n1.3\n1.5\n1.7\n1.9\n2.1\n2.3\n2.5\n2.7\n2.9\n10203-311\nNOISE DENSITY (nV rms/  Hz)\nFREQUENCY (Hz)\n1\n1k\n100\n10\n100k0.01 0.1 1 10 100 1k 10k\nADR4530\n10203-312\nRIPPLE REJECTION RATIO (dB)\nFREQUENCY (Hz)\n\u2013120\n0\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\n100M10 100 1k 10k 100k 1M 10M\nADR4530\n10203-313"
+  },
+  {
+   "page": 18,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 19 of 32 \n \nFigure 45. ADR4530 Line Transient Response \n \nFigure 46. ADR4530 Output Impedance vs. Frequency \n \nFigure 47. ADR4530 Output Voltage Drift Distribution After Reflow (SHR Drift) \n \nFigure 48. ADR4530 Typical Long-Term Output Voltage Drift  \n(1000 Hours) \n \nCH1  1.00V CH2  1.00mV BW M200\u00b5s A  CH1      7.02V\n2\n1\nADR4530\nINPUT\nOUTPUT AC\nCIN = 0.1\u00b5F\nCOUT = 1\u00b5F\nT\nT  10.0%\n10203-314\nOUTPUT IMPEDANCE (\u03a9)\nFREQUENCY (Hz)\n0\n60\n50\n40\n30\n20\n10\nADR4530\nRL = 100k\u03a9\nCL = 10\u00b5F\nRL = 1k\u03a9\nCL = 10\u00b5F\nRL = 1k\u03a9\nCL = 1\u00b5F\nRL = 100k\u03a9\nCL = 1\u00b5F\n10M1M1 10 100 1k 10k 100k\n10203-315\nOCCURRENCE\nOUTPUT VOLTAGE (%)\n0\n12\n10\n8\n6\n4\n2\n10203-316\n\u20130.060\n\u20130.055\n\u20130.050\n\u20130.045\n\u20130.040\n\u20130.035\n\u20130.030\n\u20130.025\n\u20130.020\n\u20130.015\n\u20130.010\n\u20130.005\n0\n0.005\n0.010\n0.015\n0.020\n0.025\n0.030\n0.035\n0.040\n0.045\n0.050\n0.055\n0.060\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\nVOUT DRIFT (ppm)\nDURATION (Hours)\n\u201380\n80\n60\n40\n20\n0\n\u201320\n\u201340\n\u201360\n10000 200 400 600 800100 300 500 700 900\n10203-317\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550"
+  },
+  {
+   "page": 19,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 20 of 32 \nADR4533 \n \nFigure 49. ADR4533 Output Voltage vs. Temperature \n \nFigure 50. ADR4533 Thermally Induced Output Voltage Hysteresis Distribution \n \nFigure 51. ADR4533 Output Voltage Start-Up Response \n \nFigure 52. ADR4533 Dropout Voltage vs. Load Current \n \nFigure 53. ADR4533 Load Regulation vs. Temperature (Sourcing) \n \nFigure 54. ADR4533 Load Regulation vs. Temperature (Sinking) \nVOUT (V)\nTEMPERATURE (\u00b0C)\n\u201350 \u201330 \u201310 10 30 50 70 90 110 130\nADR4533\n10203-401\n3.2990\n3.2992\n3.2994\n3.2996\n3.2998\n3.3000\n3.3002\n3.3004\n3.3006\n3.3008\n3.3010NUMBER OF UNITS\n\u0394VOUT_HYS (ppm)\n0\n3.5\n3.0\n2.5\n2.0\n1.5\n1.0\n0.5\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\n\u2013120\n\u2013130\n\u2013140\n\u2013150\n\u2013160\n\u2013170\n\u2013180\n\u2013190\n\u2013200\n0\n10203-403\nCH1  5.00V CH2  1.00V M40.0\u00b5s A  CH1      3.10V\n1\n2\nADR4533VIN (5V/DIV)\nVOUT (1V/DIV)\nCIN = 0.1\u00b5F\nCOUT = 0.1\u00b5F\nRL = 1k\u03a9\n10203-404\nDROPOUT VOLTAGE (V)\nILOAD (mA)\n0\n0.2\n0.4\n0.6\n0.8\n1.0\n\u201315 151050\u20135\u201310\n\u201340\u00b0C\n+25\u00b0C\n+125\u00b0C\nADR4533\n10203-406\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n35\n30\n25\n20\n15\n10\n5\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4533\n10203-407\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n100\n90\n80\n70\n60\n50\n40\n30\n20\n10\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4533\n10203-408"
+  },
+  {
+   "page": 20,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 21 of 32 \n \nFigure 55. ADR4533 Line Regulation vs. Temperature \n \nFigure 56. ADR4533 Supply Current vs. Supply Voltage \n \nFigure 57. ADR4533 Output Voltage Noise  \n(Maximum Amplitude from 0.1 Hz to 10 Hz) \n \nFigure 58. ADR4533 Output Noise Spectral Density \n \nFigure 59. ADR4533 Ripple Rejection Ratio vs. Frequency \n \nFigure 60. ADR4533 Line Transient Response \n10203-409\nLINE REGULATION (ppm/V)\nTEMPERATURE (\u00b0C)\nADR4533\n0.2\n0.3\n0.4\n0.5\n0.6\n0.7\n0.8\n0.9\n1.0\n1.1\n1.2\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nISY (\u00b5A)\nVIN (V)\n0\n900\n800\n700\n600\n500\n400\n300\n200\n100\n0 2 4 6 8 10 12 161514131 3 5 7 9 11\n\u201340\u00b0C\n+25\u00b0C\n+125\u00b0CADR4533\n10203-410\nOCCURRENCE\nOUTPUT VOLTAGE NOISE DISTRIBUTION (\u00b5V p-p)\n0\n60\n50\n40\n30\n20\n10\nADR4533\nBIN\n1.6\n1.8\n2.0\n2.2\n2.4\n2.6\n2.8\n3.0\n3.2\n3.4\n10203-411\nNOISE DENSITY (nV rms/  Hz)\nFREQUENCY (Hz)\n1\n1k\n100\n10\n100k0.01 0.1 1 10 100 1k 10k\nADR4533\n10203-412\nRIPPLE REJECTION RATIO (dB)\nFREQUENCY (kHz)\n\u2013130\n\u2013120\n0\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\n100k0.01 0.1 1 10 100 1k 10k\nADR4533\n10203-413\nCH1  1.00V CH2  1.00mV BW M200\u00b5s A  CH1      7.02V\n2\n1\nADR4533\nINPUT\nOUTPUT AC\nCIN = 0.1\u00b5F\nCOUT = 1\u00b5F\nT\nT  12.0%\n10203-414"
+  },
+  {
+   "page": 21,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 22 of 32 \n \nFigure 61. ADR4533 Output Impedance vs. Frequency \n \nFigure 62. ADR4533 Output Voltage Drift Distribution After Reflow (SHR Drift) \n \nFigure 63. ADR4533 Typical Long-Term Output Voltage Drift  \n(1000 Hours) \n \nOUTPUT IMPEDANCE (\u03a9)\nFREQUENCY (Hz)\n0\n60\n50\n40\n30\n20\n10\nADR4533\nRL = 100k\u03a9\nCL = 10\u00b5F\nRL = 1k\u03a9\nCL = 10\u00b5F\nRL = 1k\u03a9\nCL = 1\u00b5F\nRL = 100k\u03a9\nCL = 1\u00b5F\n10M1M1 10 100 1k 10k 100k\n10203-415\nOCCURRENCE\nOUTPUT VOLTAGE (%)\n0\n12\n10\n8\n6\n4\n2\n10203-416\n\u20130.060\n\u20130.055\n\u20130.050\n\u20130.045\n\u20130.040\n\u20130.035\n\u20130.030\n\u20130.025\n\u20130.020\n\u20130.015\n\u20130.010\n\u20130.005\n0\n0.005\n0.010\n0.015\n0.020\n0.025\n0.030\n0.035\n0.040\n0.045\n0.050\n0.055\n0.060\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\nVOUT DRIFT (ppm)\nDURATION (Hours)\n\u201380\n80\n60\n40\n20\n0\n\u201320\n\u201340\n\u201360\n10000 200 400 600 800100 300 500 700 900\n10203-417\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550"
+  },
+  {
+   "page": 22,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 23 of 32 \nADR4540 \n \nFigure 64. ADR4540 Output Voltage vs. Temperature \n \nFigure 65. ADR4540 Thermally Induced Output Voltage Hysteresis Distribution \n \nFigure 66. ADR4540 Output Voltage Start-Up Response \n \nFigure 67. ADR4540 Dropout Voltage vs. Load Current \n \nFigure 68. ADR4540 Load Regulation vs. Temperature (Sourcing) \n \nFigure 69. ADR4540 Load Regulation vs. Temperature (Sinking) \nVOUT (V)\nTEMPERATURE (\u00b0C)\n\u201350 \u201330 \u201310 10 30 50 70 90 110 130\nADR4540\n10203-501\n4.0950\n4.0955\n4.0960\n4.0965\n4.0970NUMBER OF UNITS\n\u0394VOUT_HYS (ppm)\n0\n3.5\n3.0\n2.5\n2.0\n1.5\n1.0\n0.5\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\n\u2013120\n\u2013130\n\u2013140\n\u2013150\n\u2013160\n\u2013170\n\u2013180\n\u2013190\n\u2013200\n0\n10203-503\nCH1  5.00V CH2  1.00V M40.0\u00b5s A  CH1      3.10V\n1\n2\nADR4540VIN (5V/DIV)\nVOUT (1V/DIV)\nCIN = 0.1\u00b5F\nCOUT = 0.1\u00b5F\nRL = 1k\u03a9\n10203-504\nDROPOUT VOLTAGE (V)\nILOAD (mA)\n0\n0.8\n0.7\n0.6\n0.5\n0.4\n0.3\n0.2\n0.1\n\u201315 151050\u20135\u201310\n\u201340\u00b0C\n+25\u00b0C\n+125\u00b0C\nADR4540\n10203-506\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n35\n30\n25\n20\n15\n10\n5\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4540\n10203-507\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n100\n90\n80\n70\n60\n50\n40\n30\n20\n10\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4540\n10203-508"
+  },
+  {
+   "page": 23,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 24 of 32 \n \nFigure 70. ADR4540 Line Regulation vs. Temperature \n \nFigure 71. ADR4540 Supply Current vs. Supply Voltage \n \nFigure 72. ADR4540 Output Voltage Noise  \n(Maximum Amplitude from 0.1 Hz to 10 Hz) \n \nFigure 73. ADR4540 Output Noise Spectral Density \n \nFigure 74. ADR4540 Ripple Rejection Ratio vs. Frequency \n \nFigure 75. ADR4540 Line Transient Response \n10203-509\nLINE REGULATION (ppm/V)\nTEMPERATURE (\u00b0C)\nADR4540\n0\n0.1\n0.2\n0.3\n0.4\n0.5\n0.6\n0.7\n0.8\n0.9\n1.0\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nISY (\u00b5A)\nVIN (V)\n0\n900\n800\n700\n600\n500\n400\n300\n200\n100\n0 2 4 6 8 10 12 161514131 3 5 7 9 11\n\u201340\u00b0C\n+25\u00b0C\n+125\u00b0CADR4540\n10203-510\nOCCURRENCE\nOUTPUT VOLTAGE NOISE DISTRIBUTION (\u00b5V p-p)\n0\n70\n60\n50\n40\n30\n20\n10\nADR4540\nBIN\n2.1\n2.3\n2.5\n2.7\n2.9\n3.1\n3.3\n3.5\n3.7\n3.9\n10203-511\nNOISE DENSITY (nV rms/  Hz)\nFREQUENCY (Hz)\n1\n1k\n100\n10\n100k0.01 0.1 1 10 100 1k 10k\nADR4540\n10203-512\nRIPPLE REJECTION RATIO (dB)\nFREQUENCY (Hz)\n\u2013120\n0\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\n100M10 100 1k 10k 100k 1M 10M\nADR4540\n10203-513\nCH1  1.00V CH2  1.00mV BW M200\u00b5s A  CH1      7.02V\n2\n1\nADR4540\nINPUT\nOUTPUT AC\nCIN = 0.1\u00b5F\nCOUT = 1\u00b5F\nT\nT  12.0%\n10203-514"
+  },
+  {
+   "page": 24,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 25 of 32 \n \nFigure 76. ADR4540 Output Impedance vs. Frequency \n \nFigure 77. ADR4540 Output Voltage Drift Distribution After Reflow (SHR Drift) \n \nFigure 78. ADR4540 Typical Long-Term Output Voltage Drift  \n(1000 Hours) \n \nOUTPUT IMPEDANCE (\u03a9)\nFREQUENCY (Hz)\n0\n60\n50\n40\n30\n20\n10\n10M1M1 10 100 1k 10k 100k\nADR4540\nRL = 100k\u03a9\nCL = 10\u00b5F\nRL = 1k\u03a9\nCL = 10\u00b5F RL = 1k\u03a9\nCL = 1\u00b5F\nRL = 100k\u03a9\nCL = 1\u00b5F\n10203-515\nOCCURRENCE\nOUTPUT VOLTAGE (%)\n0\n12\n10\n8\n6\n4\n2\n10203-516\n\u20130.060\n\u20130.055\n\u20130.050\n\u20130.045\n\u20130.040\n\u20130.035\n\u20130.030\n\u20130.025\n\u20130.020\n\u20130.015\n\u20130.010\n\u20130.005\n0\n0.005\n0.010\n0.015\n0.020\n0.025\n0.030\n0.035\n0.040\n0.045\n0.050\n0.055\n0.060\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\nVOUT DRIFT (ppm)\nDURATION (Hours)\n\u201380\n80\n60\n40\n20\n0\n\u201320\n\u201340\n\u201360\n10000 200 400 600 800100 300 500 700 900\n10203-517\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550"
+  },
+  {
+   "page": 25,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 26 of 32 \nADR4550 \n \nFigure 79. ADR4550 Output Voltage vs. Temperature \n \nFigure 80. ADR4550 Thermally Induced Output Voltage Hysteresis Distribution \n \nFigure 81. ADR4550 Output Voltage Start-Up Response  \n \nFigure 82. ADR4550 Dropout Voltage vs. Load Current \n \nFigure 83. ADR4550 Load Regulation vs. Temperature (Sourcing) \n \nFigure 84. ADR4550 Load Regulation vs. Temperature (Sinking) \nVOUT (V)\nTEMPERATURE (\u00b0C)\n\u201350 \u201330 \u201310 10 30 50 70 90 110 130\nADR4550\n10203-601\n4.9990\n4.9995\n5.0000\n5.0005\n5.0010NUMBER OF UNITS\n\u0394VOUT_HYS (ppm)\n0\n3.5\n3.0\n2.5\n2.0\n1.5\n1.0\n0.5\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\n\u201310\n\u201320\n\u201330\n\u201340\n\u201350\n\u201360\n\u201370\n\u201380\n\u201390\n\u2013100\n\u2013110\n\u2013120\n\u2013130\n\u2013140\n\u2013150\n\u2013160\n\u2013170\n\u2013180\n\u2013190\n\u2013200\n0\n10203-603\nCH1  5.00V CH2  1.00V M40.0\u00b5s A  CH1      9.10V\n1\n2\nADR4550\nVIN (5V/DIV)\nVOUT (1V/DIV)\n10203-604\nDROPOUT VOLTAGE (V)\nILOAD (mA)\n0\n0.7\n0.6\n0.5\n0.4\n0.3\n0.2\n0.1\n\u201315 151050\u20135\u201310\n\u201340\u00b0C\n+25\u00b0C\n+125\u00b0C\nADR4550\n10203-606\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n35\n30\n25\n20\n15\n10\n5\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4550\n10203-607\nLOAD REGULATION (ppm/mA)\nTEMPERATURE (\u00b0C)\n0\n100\n90\n80\n70\n60\n50\n40\n30\n20\n10\n\u201360 \u201340 \u201320 0 20 40 60 80 100 120 140\nADR4550\n10203-608"
+  },
+  {
+   "page": 26,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 27 of 32 \n \nFigure 85. ADR4550 Line Regulation vs. Temperature  \n \nFigure 86. ADR4550 Supply Current vs. Supply Voltage \n \nFigure 87. ADR4550 Output Voltage Noise  \n(Maximum Amplitude from 0.1 Hz to 10 Hz) \n \nFigure 88. ADR4550 Output Noise Spectral Density \n \nFigure 89. ADR4550 Ripple Rejection Ratio vs. Frequency \n \nFigure 90. ADR4550 Line Transient Response \n10203-609\nLINE REGULATION (ppm/V)\nTEMPERATURE (\u00b0C)\nADR4550\n0\n0.1\n0.2\n0.3\n0.4\n0.5\n0.6\n0.7\n0.8\n0.9\n1.0\n\u201350 0 50 100 150\nISY (\u00b5A)\nVIN (V)\n0\n900\n800\n700\n600\n500\n400\n300\n200\n100\n0 2 4 6 8 10 12 161514131 3 5 7 9 11\n\u201340\u00b0C\n+25\u00b0C\n+125\u00b0CADR4550\n10203-610\nOCCURRENCE\nOUTPUT VOLTAGE NOISE DISTRIBUTION (\u00b5V p-p)\n0\n9\n8\n7\n6\n5\n4\n3\n2\n1\n3.73.53.33.12.92.72.52.32.11.9\n10203-611\nADR4550\nNOISE DENSITY (nV rms/  Hz)\nFREQUENCY (Hz)\n1\n1k\n100\n10\n100k0.01 0.1 1 10 100 1k 10k\n10203-612\nADR4550\nRIPPLE REJECTION RATIO (dB)\nFREQUENCY (Hz)\n\u2013120\n0\n\u201320\n\u201340\n\u201360\n\u201380\n\u2013100\n100k0.01 0.1 1 10 100 1k 10k\n10203-613\nADR4550\nCH1  1.00V CH2  1.00mV BW M200\u00b5s A  CH1      7.02V\n2\n1\nADR4550\nINPUT\nOUTPUT AC\nCIN = 0.1\u00b5F\nCOUT = 1\u00b5F\nT\nT  12.0%\n10203-614"
+  },
+  {
+   "page": 27,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 28 of 32 \n \nFigure 91. ADR4550 Output Impedance vs. Frequency \n \nFigure 92. ADR4550 Output Voltage Drift Distribution After Reflow (SHR Drift) \n \nFigure 93. ADR4550 Typical Long-Term Output Voltage Drift  \n(1000 Hours) \n \nOUTPUT IMPEDANCE (\u03a9)\nFREQUENCY (Hz)\n0\n140\n100\n120\n80\n60\n40\n20\n1M10 100 1k 10k 100k\nADR4550\nRL = 100k\u03a9\nCL = 1\u00b5F\nRL = 1k\u03a9\nCL = 1\u00b5F\nRL = 1k\u03a9\nCL = 0.1\u00b5F\nRL = 100k\u03a9\nCL = 0.1\u00b5F\n10203-615\nOCCURRENCE\nOUTPUT VOLTAGE (%)\n0\n12\n10\n8\n6\n4\n2\n10203-616\n\u20130.060\n\u20130.055\n\u20130.050\n\u20130.045\n\u20130.040\n\u20130.035\n\u20130.030\n\u20130.025\n\u20130.020\n\u20130.015\n\u20130.010\n\u20130.005\n0\n0.005\n0.010\n0.015\n0.020\n0.025\n0.030\n0.035\n0.040\n0.045\n0.050\n0.055\n0.060\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550\nVOUT DRIFT (ppm)\nDURATION (Hours)\n\u201380\n80\n60\n40\n20\n0\n\u201320\n\u201340\n\u201360\n10000 200 400 600 800100 300 500 700 900\n10203-617\nADR4520\nADR4525\nADR4530\nADR4533\nADR4540\nADR4550"
+  },
+  {
+   "page": 28,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 29 of 32 \nTERMINOLOGY \nDropout Voltage (VDO) \nDropout voltage, sometimes referred to as supply voltage \nheadroom or supply output voltage differential, is defined as the \nminimum voltage differential between the input and output such \nthat the output voltage is maintained to within 0.1% accuracy. \nVDO = (VIN \u2212 VOUT)min|IL = constant \nBecause the dropout voltage depends on the current passing \nthrough the device, it is always specified for a given load current.  \nIn series mode devices, the dropout voltage typically increases \nproportionally to the load current (see Figure 6, Figure 21, \nFigure 37, Figure 52, Figure 67, and Figure 82). \nTemperature Coefficient (TCVOUT) \nThe temperature coefficient relates the change in the output \nvoltage to the change in the ambient temperature of the device, as \nnormalized by the output voltage at 25\u00b0C. This parameter is \ndetermined by the box method, which is represented by the \nfollowing equation: \n610)()(\n)},,({)},,({ \u00d7\u2212\u00d7\n\u2212=\n132OUT\n321OUT321OUT\nOUT TTTV\nTTTVminTTTVmaxTCV\n \nwhere: \nTCVOUT is expressed in ppm/\u00b0C. \nVOUT(Tx) is the output voltage at Temperature Tx. \nT1 = \u221240\u00b0C. \nT2 = +25\u00b0C. \nT3 = +125\u00b0C. \nThis three-point method ensures that TCVOUT accurately portrays \nthe maximum difference between any of the three temperatures \nat which the output voltage of the part is measured. \nThe TCVOUT for the ADR4520/ADR4525/ADR4530/ADR4533/ \nADR4540/ADR4550 is fully tested over three temperatures: \n\u221240\u00b0C, +25\u00b0C, and +125\u00b0C. \nThermally Induced Output Voltage Hysteresis (\u0394VOUT_HYS) \nThermally induced output voltage hysteresis represents the \nchange in the output voltage after the device is exposed to a \nspecified temperature cycle. This is expressed as either a shift in \nvoltage or a difference in ppm from the nominal output.  \n6\n25_\n_25_\n_ 10\u00d7\u2212=\u2206\n\u00b0\n\u00b0\nCOUT\nTCOUTCOUT\nHYSOUT\nV\nVVV  [ppm] \nwhere: \nVOUT_25\u00b0C is the output voltage at 25\u00b0C. \nVOUT_TC is the output voltage after temperature cycling. \nLong-Term Stability (\u0394VOUT_LTD) \nLong-term stability refers to the shift in the output voltage at 60\u00b0C \nafter 1000 hours of operation in a 60\u00b0C environment. The ambient \ntemperature is kept at 60\u00b0C to ensure that the temperature chamber \ndoes not switch randomly between heating and cooling, which \ncan cause instability over the 1000 hour measurement. This is \nalso expressed as either a shift in voltage or a difference in ppm \nfrom the nominal output. \n6\n_ 10)(\n)()( \u00d7\u2212=\u2206\n0OUT\n0OUT1OUT\nLTDOUT tV\ntVtVV  [ppm] \nwhere: \nVOUT(t0) is the VOUT at 60\u00b0C at Time 0. \nVOUT(t1) is the VOUT at 60\u00b0C after 1000 hours of operation at 60\u00b0C. \nLine Regulation \nLine regulation refers to the change in output voltage in response  \nto a given change in input voltage and is expressed in percent \nper volt, ppm per volt, or \u03bcV per volt change in input voltage. \nThis parameter accounts for the effects of self-heating. \nLoad Regulation \nLoad regulation refers to the change in output voltage in response \nto a given change in load current and is expressed in \u03bcV per mA, \nppm per mA, or ohms of dc output resistance. This parameter \naccounts for the effects of self-heating. \nSolder Heat Resistance (SHR) Shift \nSHR shift refers to the permanent shift in output voltage that is \ninduced by exposure to reflow soldering and is expressed in units \nof ppm. This shift is caused by changes in the stress exhibited \non the die by the package materials when these materials are \nexposed to high temperatures. This effect is more pronounced \nin lead-free soldering processes due to higher reflow temperatures. \n \n \n \n \n \n \n \n \n \n \n "
+  },
+  {
+   "page": 29,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 30 of 32 \nTHEORY OF OPERATION \nThe ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ \nADR4550 series of references uses a unique core topology for \nextremely high accuracy, stability, and noise performance. \nThree parameters contribute to the accuracy of the dc output of \na voltage reference: initial accuracy, temperature coefficient, and \nlong-term drift. With an outstanding guaranteed initial error of \n0.02% and a low temperature coefficient of 2 ppm/\u00b0C maximum, \nthis series of voltage references is perfect for high precision \napplications. The industry-leading long-term stability of the \ndevices means that systems need less frequent field calibration \nand that there is a reduction in the costly preshipment system \nburn-in time. \nLONG-TERM DRIFT \nOne of the key parameters of the ADR4520/ADR4525/ADR4530/ \nADR4533/ADR4540/ADR4550 references is long-term \nstability\u2014the output drift over time that the device is powered \nup. Regardless of output voltage, internal testing during \ndevelopment showed a typical drift of approximately 25 ppm \nafter 1000 hours of continuous, nonloaded operation in a 60\u00b0C \nextremely stable temperature controlled environment.  \nNote that the majority of the long-term drift typically occurs in \nthe first 200 hours to 300 hours of operation. For systems that \nrequire highly stable output voltages over long periods of time, \nthe designer should consider burning in the devices prior to use \nto minimize the amount of output drift exhibited by the \nreference over time. See the AN-713 Application Note, The \nEffect of Long-Term Drift on Voltage References, at www.analog.com \nfor more information regarding the effects of long-term drift \nand how it can be minimized. \nPOWER DISSIPATION \nThe ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ \nADR4550 voltage references are capable of sourcing and sinking \nup to 10 mA of load current at room temperature across the rated \ninput voltage range. However, when used in applications subject \nto high ambient temperatures, the input voltage and load current \nshould be carefully monitored to ensure that the device does not \nexceeded its maximum power dissipation rating. The maximum \npower dissipation of the device can be calculated via the \nfollowing equation: \nJA\nAJ\nD\nTTP \u03b8\n\u2212=  \nwhere: \nPD is the device power dissipation. \nTJ is the device junction temperature. \nTA is the ambient temperature. \n\u03b8JA is the package (junction-to-air) thermal resistance. \nDue to this relationship, acceptable load current in high \ntemperature conditions may be less than the maximum current \nsourcing capability of the device. In no case should the part be \noperated outside of its maximum power rating because doing so \nmay result in premature failure or permanent damage to the device. \n "
+  },
+  {
+   "page": 30,
+   "text": "Data Sheet ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \n \nRev. 0 | Page 31 of 32 \nAPPLICATIONS INFORMATION \nBASIC VOLTAGE REFERENCE CONNECTION \nThe circuit shown in Figure 94 illustrates the basic configuration \nfor the ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ \nADR4550 family of voltage references.  \n \nFigure 94. ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 \nSimplified Schematic \nINPUT AND OUTPUT CAPACITORS \nInput Capacitors \nA 1 \u03bcF to 10 \u03bcF electrolytic or ceramic capacitor can be connected \nto the input to improve transient response in applications where \nthe supply voltage may fluctuate. An additional 0.1 \u03bcF ceramic \ncapacitor should be connected in parallel to reduce supply noise. \nOutput Capacitors \nAn output capacitor is required for stability and to filter out low \nlevel voltage noise. The minimum value of the output capacitor \nis shown in Table 12.  \nTable 12. Minimum COUT Value \nPart Number Minimum COUT Value \nADR4520, ADR4525 1.0 \u00b5F \nADR4530, ADR4533, \nADR4540, ADR4550 \n0.1 \u00b5F \n \nAn additional 1 \u03bcF to 10 \u03bcF electrolytic or ceramic capacitor can be \nadded in parallel to improve transient performance in response to \nsudden changes in load current; however, the designer should keep \nin mind that doing so will increase the turn-on time of the device.  \nLOCATION OF REFERENCE IN SYSTEM \nThe ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ \nADR4550 reference should be placed as close to the load as possible \nto minimize the length of the output traces and, therefore, the error \nintroduced by the voltage drop. Current flowing through a PCB \ntrace produces an IR voltage drop; with longer traces, this drop \ncan reach several millivolts or more, introducing considerable \nerror into the output voltage of the reference. A 1 inch long, 5 mm \nwide trace of 1 ounce copper has a resistance of approximately \n100 m\u03a9 at room temperature; at a load current of 10 mA, this \ncan introduce a full millivolt of error.  \nSAMPLE APPLICATIONS \nBipolar Output Reference \nFigure 95 shows a bipolar reference configuration. By connecting \nthe output of the ADR4550 to the inverting terminal of an \noperational amplifier, it is possible to obtain both positive and \nnegative reference voltages. R1 and R2 must be matched as closely \nas possible to ensure minimal difference between the negative \nand positive outputs. Resistors with low temperature coefficients \nmust also be used if the circuit is used in environments with large \ntemperature swings; otherwise, a voltage difference develops \nbetween the two outputs as the ambient temperature changes. \n \nFigure 95. ADR4550 Bipolar Output Reference \nBoosted Output Current Reference \nFigure 96 shows a configuration for obtaining higher current \ndrive capability from the ADR4520/ADR4525/ADR4530/ \nADR4533/ADR4540/ADR4550 references without sacrificing \naccuracy. The op amp regulates the current flow through the \nMOSFET until V\nOUT equals the output voltage of the reference; \ncurrent is then drawn directly from VIN instead of from the \nreference itself, allowing increased current drive capability. \n \nFigure 96. Boosted Output Current Reference \nBecause the current-sourcing capability of this circuit depends only \non the ID rating of the MOSFET, the output drive capability can \nbe adjusted to the application simply by choosing an appropriate \nMOSFET . In all cases, the VOUT pin should be tied directly to the \nload device to maintain maximum output voltage accuracy.  \n \n10203-054\nVIN\nGND\nVREF\nBAND GAP\nVIN\n+15V\n\u201315V\n\u20135V\n+5V\nADA4000-1\n0.1\u00b5F1\u00b5F 0.1\u00b5F\nR1\n10k\u2126\nR2\n10k\u2126\nR3\n5k\u2126\nADR4550\nVIN VOUT\nGND\n2 6\n4\n10203-05510203-056\nCL\nCL\n0.1\u00b5F\n2N7002\nAD8663\nVIN\nU6\nVOUT\n+16V\n0.1\u00b5F1\u00b5F\nR1\n100\u2126\nRL\n200\u2126\nADR4520/ADR4525/\nADR4530/ADR4533/\nADR4540/ADR4550\nVIN VOUT\nGND\n2 6\n4\nPART\nNUMBER\nMINIMUM\nCL\nADR4520,\nADR4525\n1.0\u00b5F\nADR4530,\nADR4533,\nADR4540,\nADR4550\n0.1\u00b5F"
+  },
+  {
+   "page": 31,
+   "text": "ADR4520/ADR4525/ADR4530/ADR4533/ADR4540/ADR4550 Data Sheet \n \nRev. 0 | Page 32 of 32 \nOUTLINE DIMENSIONS \n \nFigure 97. 8-Lead Standard Small Outline Package [SOIC_N] \nNarrow Body \n(R-8) \nDimensions shown in millimeters and (inches) \nORDERING GUIDE \nModel1 Temperature Range Package Description Package Option Ordering Quantity \nADR4520ARZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4520ARZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4520BRZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4520BRZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4525ARZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4525ARZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4525BRZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4525BRZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4530ARZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4530ARZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4530BRZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4530BRZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4533ARZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4533ARZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4533BRZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4533BRZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4540ARZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4540ARZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4540BRZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4540BRZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4550ARZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4550ARZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \nADR4550BRZ \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 98 \nADR4550BRZ-R7 \u221240\u00b0C to +125\u00b0C 8-Lead SOIC_N R-8 1,000 \n \n1 Z = RoHS Compliant Part. \n \n \nCONTROLLING DIMENSIONS ARE IN MILLIMETERS; INCH DIMENSIONS\n(IN PARENTHESES) ARE ROUNDED-OFF MILLIMETER EQUIVALENTS FOR\nREFERENCE ONLY AND ARE NOT APPROPRIATE FOR USE IN DESIGN.\nCOMPLIANT TO JEDEC STANDARDS MS-012-AA\n012407-A\n0.25 (0.0098)\n0.17 (0.0067)\n1.27 (0.0500)\n0.40 (0.0157)\n0.50 (0.0196)\n0.25 (0.0099) 45\u00b0\n8\u00b0\n0\u00b0\n1.75 (0.0688)\n1.35 (0.0532)\nSEATING\nPLANE\n0.25 (0.0098)\n0.10 (0.0040)\n41\n8 5\n5.00 (0.1968)\n4.80 (0.1890)\n4.00 (0.1574)\n3.80 (0.1497)\n1.27 (0.0500)\nBSC\n6.20 (0.2441)\n5.80 (0.2284)\n0.51 (0.0201)\n0.31 (0.0122)\nCOPLANARITY\n0.10\n\u00a92012 Analog Devices, Inc. All rights reserved. Trademarks and   \n registered trademarks are the property of their respective owners.  \n  D10203-0-4/12(0)  \n "
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "drill_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "annulus_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. Pages without schema-relevant keywords are stubs {page, first_line, chars} - read those PDF pages directly if needed, or re-run with --full-text. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}

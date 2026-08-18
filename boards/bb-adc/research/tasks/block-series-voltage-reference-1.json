@@ -1,0 +1,213 @@
+{
+ "id": "block-series-voltage-reference-1",
+ "slot": "block:B4",
+ "kind": "block",
+ "token": "series-voltage-reference",
+ "phase": "P2",
+ "status": "closed",
+ "outcome": "verified",
+ "opened": "2026-08-16T19:06:25",
+ "closed": "2026-08-16T20:40:28",
+ "coverage_report": "boards/bb-adc/log/coverage-P2.json",
+ "gap": {
+  "slot": "block:B4",
+  "kind": "block",
+  "topology": "series-voltage-reference",
+  "operating_point": {
+   "vin_min_v": 3.135,
+   "vin_nom_v": 3.3,
+   "vout_v": 2.048,
+   "iout_max_ua": 50,
+   "initial_accuracy_max_pct": 0.02,
+   "tempco_max_ppm_per_c": 2,
+   "headroom_mv": 1087,
+   "pdiss_w": 0.001,
+   "error_budget_mv": 5.0,
+   "ambient_max_c": 50,
+   "board_layers": 2,
+   "topology_kind": "series",
+   "load_kind": "switched-cap",
+   "output_cap_kind": "datasheet-defined",
+   "ratiometric_kind": "non-ratiometric",
+   "source_kind": "dc-input"
+  },
+  "missing": [
+   {
+    "class": "coverage-checklist",
+    "min_level": null
+   }
+  ],
+  "reasons": [
+   "no coverage checklist for block 'series-voltage-reference' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+  ],
+  "related_records": [],
+  "principle_parents": [],
+  "task": "research block 'series-voltage-reference': produce its coverage checklist, then populate it"
+ },
+ "checklist_needed": true,
+ "caps": {
+  "depth_per_gap": 4,
+  "attempt_factor": 3
+ },
+ "sources": [
+  {
+   "n": 1,
+   "url": "https://www.farnell.com/datasheets/1599556.pdf",
+   "final_url": "https://www.farnell.com/datasheets/1599556.pdf",
+   "host": "www.farnell.com",
+   "domain": "farnell.com",
+   "domain_kind": "distributor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "ADR4520",
+   "file": "research/sources/1599556.pdf",
+   "sha256": "86a26b56d5add332ff4ddff4570871eccb037bd9b764b8b7c1c493a94aed8b0a",
+   "bytes": 1017451,
+   "content_type": "application/pdf",
+   "pages": 32,
+   "fetched": "2026-08-16T19:15:47",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 2,
+   "url": "https://www.ti.com/lit/ds/symlink/ref70.pdf",
+   "final_url": "https://www.ti.com/lit/ds/symlink/ref70.pdf",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "REF70",
+   "file": "research/sources/ref70.pdf",
+   "sha256": "f32fd3b59b43cd2dff1543300f745293eb717cab6ce024e8f13c649bad809751",
+   "bytes": 3181102,
+   "content_type": "application/pdf",
+   "pages": 45,
+   "fetched": "2026-08-16T19:16:06",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 3,
+   "url": "https://www.ti.com/lit/ds/symlink/ref35.pdf",
+   "final_url": "https://www.ti.com/lit/ds/symlink/ref35.pdf",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "REF35",
+   "file": "research/sources/ref35.pdf",
+   "sha256": "a3ba3224bd4fb37a551b3f15aa492713af0734511488d930926c6727a2e31dd4",
+   "bytes": 2234078,
+   "content_type": "application/pdf",
+   "pages": 44,
+   "fetched": "2026-08-16T19:16:08",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 4,
+   "url": "https://www.ti.com/lit/pdf/snaa320",
+   "final_url": "https://www.ti.com/lit/an/snaa320b/snaa320b.pdf?ts=1786855628125",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "SAR reference drive",
+   "file": "research/sources/snaa320b.pdf",
+   "sha256": "3142297a839cd64cd07be6214e7f6c9206d7ee775ff354386621fbdae4b4b970",
+   "bytes": 705455,
+   "content_type": "application/pdf",
+   "pages": 14,
+   "fetched": "2026-08-16T19:19:15",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  }
+ ],
+ "attempts": [
+  {
+   "ts": "2026-08-16T19:13:23",
+   "url": "https://www.analog.com/media/en/technical-documentation/data-sheets/ADR4520_4525_4530_4533_4540_4550.pdf",
+   "kind": "transport",
+   "detail": "ReadTimeout: The read operation timed out"
+  },
+  {
+   "ts": "2026-08-16T19:15:22",
+   "url": "https://www.mouser.com/datasheet/2/609/adr4520_4525_4530_4533_4540_4550-3121559.pdf",
+   "kind": "transport",
+   "detail": "ReadTimeout: The read operation timed out"
+  },
+  {
+   "ts": "2026-08-16T19:15:33",
+   "url": "https://www.lcsc.com/datasheet/C579305.pdf",
+   "kind": "not-pdf",
+   "detail": "starts b'<!doctype html>\\n'"
+  }
+ ],
+ "verdicts": {
+  "series-voltage-reference-error-stack": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read after the provenance edit (the ADI p3 note is now tagged Rev 0, 2012, farnell.com mirror, which the source confirms: PDF title 'ADR4520/.../ADR4550 (Rev. 0)', p1 masthead 'Rev. 0' and copyright 2012 Analog Devices). SNAA320B p5 is verbatim: Figure 4-2 ADC Gain Error with the error fanning to NFS and PFS between Gain Error Max and Gain Error Min, Eq 1 worst case = Accuracy + TempCo + TempHyst + LongTerm Drift + 1/f Noise, Eq 2 the RSS of the same terms, and 'In the real world, the error is between the worst-case and RSS method of results but closer to the RSS result'. p6 Table 4-1 REF3425 is exact in every cell: initial accuracy 0.05 pct = 500 ppm, TempCo 6 ppm per C = 990 ppm, thermal hysteresis 40 ppm (cycle 1 30 ppm, cycle 2 10 ppm), 1/f noise 15 uV p-p = 15 ppm, worst-case total 1545 ppm, RSS total 1110 ppm, RSS with 25 C calibration 991 ppm and with 25 C plus TempCo calibration 202 ppm; Eq 3 gives LSB from gain error ppm times 2^N; Table 5-1 marks initial accuracy, solder shift and thermal hysteresis under BOTH calibration columns and temperature drift under multipoint only, so 'uncalibrated removes nothing' is right. The example's silence on solder shift, long-term drift and line/load regulation is genuine - those rows are simply absent from Table 4-1 - so the record's warning that a real budget is worse than the table is supported. ADI p3 carries all five terms as separate rows (initial output voltage error 0.02 pct B grade, TC 2 ppm per C, solder heat shift 0.02 pct, hysteresis 50 ppm, long-term drift 25 ppm, output voltage noise 1.0 uV p-p), which is what the record claims of it. Nothing to refute.",
+   "ts": "2026-08-16T20:39:02"
+  },
+  "series-voltage-reference-input-headroom-gate": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Fig 6 (ADI p11) re-read at 9x AND re-measured from the PDF vector paths against tick-calibrated axes: all three plotted curves carry 0.905 V data points from -10 mA through +6 mA, and past the break the -40 C trace stays at 0.905 V, the +25 C trace ends at 1.025 V and the +125 C trace ends at 1.360 V at +10 mA - below the 1.4 gridline. Both halves of the correction are exact and the earlier refutation is cured. The per-member dropout table was checked cell by cell on its own page, with the Min/Typ/Max header x-positions read per page because the columns shift: p3 ADR4520 (VOUT 2.048) = 1 V in Max for BOTH 'no load' and 'IL = 2 mA'; p4 ADR4525 (2.500) = 500 mV Max for both; p5 ADR4530 (3.000), p6 ADR4533 (3.300), p7 ADR4540 (4.096) and p8 ADR4550 (5.000) = 100 mV Max no load / 300 mV Max at 2 mA. The floor list is better supported than the record claims: 3.1 / 3.4 / 4.2 / 5.1 V are ADI's own per-page 'Unless otherwise noted, VIN = ...' table conditions rather than derived numbers, while p3 and p4 both state VIN = 3 V to 15 V - so 3.048 (2.048+1.0) and 3.0 (2.5+0.5) stand and where_the_flat_condition_binds holds. p1 carries 'Input voltage range: 3 V to 15 V' and 'Low dropout voltage: 300 mV at 2 mA (VOUT >= 3 V)' verbatim under a Rev. 0 / 2012 ADI masthead, and p29's VDO definition is verbatim. REF70 p6 footnote (1) and the p3 B-to-C revision lines are verbatim, and the new p9 citation lands: VDO 250 mV at IL = 5 mA and 400 mV at IL = 10 mA both sit in the MAX column (values at x=494, MAX header at x=490) over -40 to +125 C, with Fig 10-6 typicals measuring ~33-65 mV at 0 mA and ~137-208 mV at 10 mA. Board arithmetic re-derived from the pages: 3.135 - 3.048 = 87 mV. One wording flaw, not refuting: on p1 '(VOUT >= 3 V)' is an inline parenthetical inside the Features bullet, not a footnote, yet rule.family_attribute, the prose and the p1 note all call it footnoted while quoting it correctly.",
+   "ts": "2026-08-16T20:35:58"
+  },
+  "series-voltage-reference-kelvin-and-ir-drop": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read for the two edits. REF70 p25 rendered whole: Section 9.2 'Functional Block Diagram' carries a block diagram with NO figure caption or number - the overview text even refers to it as 'The Section 9.2 is a simplified block diagram' - and it shows the Reference Buffer taking the bandgap on its + input, driving OUTF, with the feedback to its - input taken from OUTS; Figure 9-1 below it ties OUTF and OUTS together at CL. Section 9.4.2 confirms that Figure 9-2 is instead the OPA211 negative-reference circuit, so the 'unnumbered functional block diagram under Sec 9.2' correction is exactly right. The 100 mohm framing is now honest: the rule key is literally named reference_trace_example_as_published_by_adi, its value says 'quoted, not endorsed' and carries the ~2.5 mohm rho*L/(W*t) estimate, and the prose repeats the correction - a layout agent reading either field cannot mistake it for a design constant, and the actionable budget lives in a separate key (Rtrace * Imax much less than LSB/2). I re-derived the physics independently: 1 oz copper is ~34.8 um thick, giving ~0.49 mohm per square, and 25.4 mm / 5 mm is ~5.1 squares, so ~2.5 mohm - ADI's published figure is ~40x high. ADI p31 'Location of Reference in System' is verbatim (place the reference as close to the load as possible, 'with longer traces, this drop can reach several millivolts or more', 'A 1 inch long, 5 mm wide trace of 1 ounce copper has a resistance of approximately 100 mohm at room temperature; at a load current of 10 mA, this can introduce a full millivolt of error', and the Figure 96 sentence that the VOUT pin should be tied directly to the load device). SNAA320B p11 is verbatim on the LSB/2 budget, Rtrace x Imax, 'This directly gets added to the load regulation error', minimising length for inductance, and eliminating trace resistance via the output sense pin at the ADC reference pin. REF70 p32 Sec 10.4.1 layout bullets are verbatim. The 10 mA envelope is the parts' own rating (ADI p3 sourcing 10 mA / sinking -8 mA; REF70 p6 IL -10 to +10 mA).",
+   "ts": "2026-08-16T20:38:20"
+  },
+  "series-voltage-reference-output-cap-window": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read for the cin_uf correction and the added p5 citation. ADI p3 LOAD CAPACITANCE is a two-ended window read off the word coordinates: 1 at x=436 under the Min header (x=436) and 100 at x=498 under Max (x=498), unit uF - so a 47 uF converter REF bypass sits inside the ADR4520's own stable range and this record forces no reference buffer. p31 is verbatim and the corrected cin_uf now matches it exactly: 'A 1 uF to 10 uF electrolytic or ceramic capacitor can be connected to the input... An additional 0.1 uF ceramic capacitor should be connected in parallel to reduce supply noise', alongside 'An output capacitor is required for stability and to filter out low level voltage noise', Table 12 Minimum COUT = 1.0 uF for ADR4520/ADR4525 versus 0.1 uF for ADR4530 through ADR4550, and the extra parallel 1-10 uF that improves transient response but increases turn-on time. The new p5 citation lands: the ADR4530 table gives LOAD CAPACITANCE 0.1 (Min, x=437) to 100 (Max, x=499) uF and its TURN-ON SETTLING TIME row is specified at CL = 0.1 uF, CIN = 0.1 uF, RL = 1 kohm (130 us), against p3's CL = 1 uF, CIN = 0.1 uF (90 us) - so the per-member split of Table 12 is confirmed from the electrical tables themselves, not only from the applications page. REF70 p25 Sec 9.4.1 is verbatim ('A 1-uF to 100-uF output capacitor (CL) must be connected from OUTF to GND. The equivalent series resistance (ESR) value of CL must be 1 mohm to 400 mohm to ensure output stability') and the 1-400 mohm ESR band is repeated as footnote (1) on p9. REF35 p22 is verbatim (CIN 0.1-10 uF, CL 0.1-10 uF from REF to GND, ESR lower than 400 mohm, higher capacitance meaning longer start-up). REF70 p32 start-up inrush to ISC is verbatim. Nothing left to refute here.",
+   "ts": "2026-08-16T20:37:59"
+  },
+  "series-voltage-reference-solder-shift-and-grade": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read for the added REF70 p9 citation. It lands: the p9 electrical-characteristics table carries 'Output voltage accuracy TA = 25 C' with -0.025 in the MIN column (value x=393, MIN header x=403) and 0.025 in the MAX column (value x=488, MAX header x=490), unit percent - so the +/-0.025 pct accuracy the record compares against is now on a cited page instead of the uncited front page. Worth noting for a later pass: that particular row belongs to the REF7030 table on p9 (the REF7025 table's accuracy row is on p8), while the p19 solder-shift measurements are package-level (LCCC and VSSOP) - the comparison is still sound because +/-0.025 pct is the REF70 family grade, and +0.03 and -0.04 pct both exceed it. ADI p3 confirmed visually: SOLDER HEAT SHIFT is its own parameter row and its +/-0.02 pct value sits in the Typ column (x=465) with the Max column empty, matching the record's 'ADI 0.02 pct typ'; grades confirmed as B +/-0.02 pct / 410 uV / 2 ppm per C versus A +/-0.04 pct / 820 uV / 4 ppm per C, and p1 confirms the single 8-lead SOIC package. ADI p29 SHR Shift is verbatim (permanent shift induced by reflow, caused by changes in the stress the package materials exert on the die at high temperature, more pronounced in lead-free processes). REF70 p19 is verbatim: differing CTEs, 32 devices on two FR4 boards of 1.65 mm thickness and 114 mm x 152 mm area, 16 per board, lead-free paste with the paste manufacturer's suggested profile, Figure 8-1; and the assembly directive is TI's own words - 'If the PCB is exposed to multiple reflows, the device must be soldered in the last pass to minimize its exposure to thermal stress'. SNAA320B p6 Table 5-1 confirms solder shift is removed by calibration and by nothing on the board. Unchanged minor point: the quoted spreads (0.01-0.05 and -0.08 to 0) are the histogram axis extents rather than the populated bins.",
+   "ts": "2026-08-16T20:38:42"
+  },
+  "series-voltage-reference-switched-cap-load": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "SNAA320B p11 re-read: the page states verbatim 'Time period for each conversion is 0.5us. The data conversion takes place from 3rd clock to 14th clock from MSB to LSB (which is first half of one cycle)'. Clocks 3 through 14 is 12 clocks; at 64 MHz that is 187.5 ns, so the new charge_window of ~0.19 us is arithmetically exact and 'the first half of one cycle' is the source's own wording, correctly attributed. Figure 7-2 rendered at 5.5x with the x-axis calibrated off its own 1u / 1.5u / 2u ticks (0.1 us minor divisions): the plot frame runs from 1.0 us to 2.5 us, i.e. exactly three 0.5 us cycles - so the span really is the plot window and not one conversion, and the earlier '~1.3 us conversion window' error is cured. The trace wanders on a ~330-450 uA baseline with bursts to ~600-620 uA, matching the page text 'Max current taken by reference pin SAR ADC during conversion is 600uA for 1V input. This current varies with input magnitude.' p10 Fig 7-1 confirmed: capacitor DAC C, C/2, C/4, C/8, C/16, C/16' with switches S1 to S5' plus SA and SB and both VIN and VREF present, under Sec 7 text on charge redistribution at every bit conversion, peak current proportional to the converter clock frequency, MSB requiring maximum charge and 'This variation gets translated into non-linear error'. The p11 design rules are verbatim (a capacitor very near the ADC reference pin, reference stability considered when selecting it, a low-noise buffer if one reference drives more than one ADC, and Rtrace x Imax much less than LSB/2 because it adds directly to load-regulation error). REF70 p27 Fig 10-1 shows REF7025 with CIN and CL driving the ADS124S08 REFP0 pin directly, with the OPA2320s on the analog inputs only. No bulk-cap sizing formula is invented anywhere in the record. Minor, non-refuting: the plot's right frame is 2.5 us, not the '~2.4 us' the prose and the p11 note give; the accompanying 'about three cycles' is exactly right.",
+   "ts": "2026-08-16T20:36:50"
+  },
+  "series-voltage-reference-tempco-box-and-hysteresis": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-16",
+   "note": "ADI Fig 3 (p11) re-read at 9x and independently re-measured from the PDF vector path against tick-calibrated axes. Every shape claim now holds: the trace starts at -40 C at 2.04800 V with nothing plotted at -50 C, its maximum is 2.04831 V at about +5 C - below room temperature - a secondary peak of about 2.04822 V sits near +106 to +110 C, and it ends at 2.04806 V at +125 C. The peak-location error the earlier pass refuted is cured, and the non-monotonic, not-centred-on-25-C shape the record exists to govern is exactly what the page shows. Two graphical over-readings remain, neither of which changes a categorical claim: (a) the sag bottoms at 2.04798 to 2.04799 V in the +76 to +93 C region (the drawn path's own bounding box bottoms at 2.047985 V), not the 2.04795 V the prose and the p11 note give, so the true peak-to-peak is 0.00032 to 0.00033 V = 157 to 161 ppm rather than 'roughly 170 ppm' - 'about half of the 330 ppm box' is right either way; (b) Fig 4's populated bins are -160, -130, -100, -80, -40, -30 and -10 ppm, so the one-sided hysteresis distribution reaches -160 ppm, not the '-180 ppm' of the same note; the -200 to -170 stretch of that axis is empty. ADI p29 is verbatim: the box equation with T1 = -40 C, T2 = +25 C, T3 = +125 C, 'fully tested over three temperatures', the hysteresis equation, long-term stability defined at 60 C over 1000 hours, and line and load regulation that 'accounts for the effects of self-heating'. REF70 p24 Sec 8.5 is verbatim including 'The box method specifies limits for the temperature error but does not specify the exact shape and slope of the device under test' and the curvature-correction non-linearity sentence, plus Eq 2 and Fig 8-14. REF35 p5 does carry all four hysteresis rows on that page (70 and 20 ppm for 25/-40/105/25 cycles 1 and 2, 50 and 13 ppm for 25/-40/85/25) and TC 12 ppm/C max over -40 to 105 C. SNAA320B p6 shows 6 ppm/C entered as 990 ppm '(40 C to 125 C)' with the source's own typo, and 1.2 ppm/C as 198 ppm.",
+   "ts": "2026-08-16T20:37:27"
+  }
+ },
+ "queue_entry": "2026-08-16-research-task-block-series-voltage-reference-1",
+ "updated": "2026-08-16T20:40:28",
+ "summary": {
+  "verified": 7,
+  "refuted": 0,
+  "checklists": 1,
+  "sources": 4
+ }
+}

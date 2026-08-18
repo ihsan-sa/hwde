@@ -1,0 +1,216 @@
+version: 1
+board: bb-adc
+source: LEARNINGS.md
+compiled: '2026-08-16'
+entries:
+- entry: 2026-08-16-a-blockquoted-brief-silently-disables-the-entire
+  line: 8
+  date: '2026-08-16'
+  title: A blockquoted brief silently disables the ENTIRE U18 mode leg of check_requirements.py
+  tags:
+  - P0
+  - modes
+  - check_requirements
+  - pipeline
+  stage: P0
+  proposed_level: null
+  targets:
+  - scripts/check_requirements.py
+  - scripts/state.py
+  status: pending
+- entry: 2026-08-16-jlc-s-external-reference-attribute-lies-for
+  line: 33
+  date: '2026-08-16'
+  title: 'JLC''s "External" reference attribute lies for 8-pin MCP3202: VDD and VREF are ONE physical
+    pin'
+  tags:
+  - P1
+  - parts
+  - adc
+  - jlc
+  stage: P1
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-a-12-bit-part-s-5-lsb
+  line: 58
+  date: '2026-08-16'
+  title: A 12-bit part's "+/-5 LSB gain error" is a BIGGER voltage than a 16-bit part's, and ranking SARs
+    on INL hides it
+  tags:
+  - P2
+  - parts
+  - adc
+  - accuracy
+  stage: P2
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-one-lcsc-search-term-returns-six-clone
+  line: 81
+  date: '2026-08-16'
+  title: One LCSC search term returns six clone brands under a precision part's MPN pattern, and a clone's
+    offset spec can be 300x looser
+  tags:
+  - P1
+  - parts
+  - jlc
+  - sourcing
+  stage: P1
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-source-impedance-and-divider-total-resistance-are
+  line: 100
+  date: '2026-08-16'
+  title: Source impedance and divider total resistance are ONE decision, and 'high input impedance' can
+    be the thing that breaks the budget
+  tags:
+  - P1
+  - analog
+  - accuracy
+  - divider
+  stage: P1
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-a-reference-family-s-dropout-is-per
+  line: 127
+  date: '2026-08-16'
+  title: A reference family's dropout is PER MEMBER and not monotonic in output voltage - the 2.048 V
+    part has the worst dropout in its family
+  tags:
+  - P2
+  - parts
+  - reference
+  - analog
+  stage: P2
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-analog-com-and-mouser-com-time-out
+  line: 175
+  date: '2026-08-16'
+  title: analog.com and mouser.com time out from this sandbox; farnell.com is the working ADI-datasheet
+    mirror and is already allowlisted
+  tags:
+  - P1
+  - P2
+  - research
+  - env
+  stage: P1
+  proposed_level: null
+  targets:
+  - scripts/research.py
+  status: pending
+- entry: 2026-08-16-research-task-block-resistive-attenuator-1-6
+  line: 200
+  date: '2026-08-16'
+  title: 'research task block-resistive-attenuator-1: 6 verified record(s) for block:B1'
+  tags:
+  - P2
+  - research
+  - knowledge
+  - block:B1
+  stage: P2
+  proposed_level: null
+  targets:
+  - boards/bb-adc/research/checklists/resistive-attenuator.yaml
+  - boards/bb-adc/research/records/resistive-attenuator-bottom-node-is-a-reference.yaml
+  - boards/bb-adc/research/records/resistive-attenuator-high-z-tap-guard-and-leakage.yaml
+  - boards/bb-adc/research/records/resistive-attenuator-loading-source-and-load.yaml
+  - boards/bb-adc/research/records/resistive-attenuator-ratio-from-relative-specs.yaml
+  - boards/bb-adc/research/records/resistive-attenuator-self-heating-and-gradient.yaml
+  - boards/bb-adc/research/records/resistive-attenuator-tcr-tracking-not-absolute-tcr.yaml
+  status: pending
+- entry: 2026-08-16-the-session-scratchpad-is-shared-across-concurrently
+  line: 221
+  date: '2026-08-16'
+  title: The session scratchpad is shared across concurrently running agents and its filenames are not
+    collision-safe
+  tags:
+  - P2
+  - agents
+  - parallel
+  - pipeline
+  stage: P2
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-a-second-reader-s-non-binding-blemish
+  line: 244
+  date: '2026-08-16'
+  title: A second reader's non-binding "blemish" note made a CORRECT record wrong - flag-without-refute
+    has a cost
+  tags:
+  - P2
+  - research
+  - agents
+  - pipeline
+  stage: P2
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-research-task-block-series-voltage-reference-1
+  line: 275
+  date: '2026-08-16'
+  title: 'research task block-series-voltage-reference-1: 7 verified record(s) for block:B4'
+  tags:
+  - P2
+  - research
+  - knowledge
+  - block:B4
+  stage: P2
+  proposed_level: null
+  targets:
+  - boards/bb-adc/research/checklists/series-voltage-reference.yaml
+  - boards/bb-adc/research/records/series-voltage-reference-error-stack.yaml
+  - boards/bb-adc/research/records/series-voltage-reference-input-headroom-gate.yaml
+  - boards/bb-adc/research/records/series-voltage-reference-kelvin-and-ir-drop.yaml
+  - boards/bb-adc/research/records/series-voltage-reference-output-cap-window.yaml
+  - boards/bb-adc/research/records/series-voltage-reference-solder-shift-and-grade.yaml
+  - boards/bb-adc/research/records/series-voltage-reference-switched-cap-load.yaml
+  - boards/bb-adc/research/records/series-voltage-reference-tempco-box-and-hysteresis.yaml
+  status: pending
+- entry: 2026-08-16-research-task-block-sar-adc-1-10
+  line: 297
+  date: '2026-08-16'
+  title: 'research task block-sar-adc-1: 10 verified record(s) for block:B3'
+  tags:
+  - P2
+  - research
+  - knowledge
+  - block:B3
+  stage: P2
+  proposed_level: null
+  targets:
+  - boards/bb-adc/research/checklists/sar-adc.yaml
+  - boards/bb-adc/research/records/sar-adc-acquisition-charge-transfer.yaml
+  - boards/bb-adc/research/records/sar-adc-analog-ground-and-remote-sense.yaml
+  - boards/bb-adc/research/records/sar-adc-constraints-emission.yaml
+  - boards/bb-adc/research/records/sar-adc-conversion-window-noise-timing.yaml
+  - boards/bb-adc/research/records/sar-adc-high-z-node-vs-digital-aggressors.yaml
+  - boards/bb-adc/research/records/sar-adc-input-settling-and-source-impedance.yaml
+  - boards/bb-adc/research/records/sar-adc-reference-bypass-and-recharge.yaml
+  status: pending
+- entry: 2026-08-16-research-task-block-precision-buffer-1-9
+  line: 322
+  date: '2026-08-16'
+  title: 'research task block-precision-buffer-1: 9 verified record(s) for block:B2'
+  tags:
+  - P2
+  - research
+  - knowledge
+  - block:B2
+  stage: P2
+  proposed_level: null
+  targets:
+  - boards/bb-adc/research/checklists/precision-buffer.yaml
+  - boards/bb-adc/research/records/precision-buffer-capacitive-load-isolation.yaml
+  - boards/bb-adc/research/records/precision-buffer-chopper-artifacts-into-sampler.yaml
+  - boards/bb-adc/research/records/precision-buffer-pin-decoupling-and-input-routing.yaml
+  - boards/bb-adc/research/records/precision-buffer-rail-to-rail-output-floor.yaml
+  - boards/bb-adc/research/records/precision-buffer-riso-settling-stability-collision.yaml
+  - boards/bb-adc/research/records/precision-buffer-sar-charge-bucket-interface.yaml
+  - boards/bb-adc/research/records/precision-buffer-settles-not-bandwidth.yaml
+  status: pending

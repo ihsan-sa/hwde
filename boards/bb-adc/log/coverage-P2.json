@@ -1,0 +1,1896 @@
+{
+ "script": "knowledge",
+ "status": "gaps",
+ "schema_version": 2,
+ "workspace": "boards/bb-adc",
+ "board": "bb-adc",
+ "phase": "P2",
+ "maturity_floor": "approved",
+ "keys": {
+  "topologies": [
+   "precision-buffer",
+   "resistive-attenuator",
+   "sar-adc",
+   "series-voltage-reference"
+  ],
+  "packages": [],
+  "interfaces": [],
+  "parts": [],
+  "sources": {
+   "constraints": "boards/bb-adc/architecture/constraints.json"
+  }
+ },
+ "sources": {
+  "constraints": "boards/bb-adc/architecture/constraints.json",
+  "parts": null
+ },
+ "summary": {
+  "slots": 4,
+  "covered": 0,
+  "provisional": 3,
+  "gap": 1
+ },
+ "slots": [
+  {
+   "id": "block:B1",
+   "kind": "block",
+   "topology": "resistive-attenuator",
+   "label": "B1",
+   "operating_point": {
+    "vin_max_v": 5.0,
+    "vout_max_v": 2.048,
+    "ratio": 0.4,
+    "rtot_ohm": 1000000,
+    "rthev_ohm": 240000,
+    "source_z_max_ohm": 200,
+    "element_count": 5,
+    "tol_pct": 0.02,
+    "tcr_ppm_per_c": 10,
+    "pdiss_w": 2.5e-05,
+    "error_budget_mv": 5.0,
+    "ambient_max_c": 50,
+    "board_layers": 2,
+    "element_kind": "discrete-equal-string",
+    "guard_kind": "driven-guard",
+    "coupling_kind": "dc",
+    "source_kind": "dc-input"
+   },
+   "classes": [
+    {
+     "class": "selection",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "resistive-attenuator-ratio-from-relative-specs",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "resistive-attenuator-tcr-tracking-not-absolute-tcr",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "thermal",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "resistive-attenuator-self-heating-and-gradient",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "resistive-attenuator-tcr-tracking-not-absolute-tcr",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "creepage",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "resistive-attenuator-high-z-tap-guard-and-leakage",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "feedback",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "resistive-attenuator-loading-source-and-load",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "return-path",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "resistive-attenuator-bottom-node-is-a-reference",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "constraints-emission",
+     "min_level": "principle",
+     "verdict": "gap",
+     "records": []
+    }
+   ],
+   "gap_reasons": [],
+   "checklist": {
+    "id": "resistive-attenuator",
+    "maturity": "draft",
+    "floor_met": false
+   },
+   "verdict": "gap"
+  },
+  {
+   "id": "block:B2",
+   "kind": "block",
+   "topology": "precision-buffer",
+   "label": "B2",
+   "operating_point": {
+    "vdd_v": 3.3,
+    "vin_max_v": 2.048,
+    "vout_max_v": 2.048,
+    "vout_min_v": 0.0,
+    "rsource_ohm": 240000,
+    "cload_pf": 1000,
+    "gbw_khz": 350,
+    "vos_max_uv": 10,
+    "vos_drift_max_uv_per_c": 0.05,
+    "ib_max_pa": 400,
+    "settle_ppm": 8,
+    "settle_window_us": 9,
+    "pdiss_w": 0.0001,
+    "error_budget_mv": 5.0,
+    "ambient_max_c": 50,
+    "board_layers": 2,
+    "topology_kind": "unity-follower",
+    "input_kind": "cmos",
+    "swing_kind": "rrio",
+    "load_kind": "switched-cap",
+    "source_kind": "dc-input"
+   },
+   "classes": [
+    {
+     "class": "selection",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "precision-buffer-chopper-artifacts-into-sampler",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "precision-buffer-rail-to-rail-output-floor",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "precision-buffer-riso-settling-stability-collision",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "precision-buffer-sar-charge-bucket-interface",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "precision-buffer-settles-not-bandwidth",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "precision-buffer-zero-drift-source-impedance-ceiling",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "precision-buffer-zero-drift-speed-vs-impedance-trade",
+       "level": "family",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "feedback",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "precision-buffer-capacitive-load-isolation",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "precision-buffer-riso-settling-stability-collision",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "precision-buffer-sar-charge-bucket-interface",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "emi",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "precision-buffer-chopper-artifacts-into-sampler",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "precision-buffer-pin-decoupling-and-input-routing",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "decoupling",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "precision-buffer-pin-decoupling-and-input-routing",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "return-path",
+     "min_level": "principle",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "precision-buffer-pin-decoupling-and-input-routing",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    }
+   ],
+   "gap_reasons": [],
+   "checklist": {
+    "id": "precision-buffer",
+    "maturity": "draft",
+    "floor_met": false
+   },
+   "verdict": "provisional"
+  },
+  {
+   "id": "block:B3",
+   "kind": "block",
+   "topology": "sar-adc",
+   "label": "B3",
+   "operating_point": {
+    "vdd_v": 3.3,
+    "vref_v": 2.048,
+    "resolution_bits": 16,
+    "fsample_max_ksps": 10,
+    "fclk_khz": 500,
+    "csample_pf": 48,
+    "tacq_us": 9,
+    "iref_max_ua": 7,
+    "rsource_ohm": 240000,
+    "offset_max_uv": 1000,
+    "gain_err_max_pct": 0.0244,
+    "inl_max_lsb": 2.5,
+    "pdiss_w": 0.001,
+    "error_budget_mv": 5.0,
+    "ambient_max_c": 50,
+    "board_layers": 2,
+    "interface_kind": "spi",
+    "reference_kind": "external",
+    "input_kind": "pseudo-differential-unipolar",
+    "calibration_kind": "uncalibrated",
+    "source_kind": "dc-input"
+   },
+   "classes": [
+    {
+     "class": "selection",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "sar-adc-acquisition-charge-transfer",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "sar-adc-input-settling-and-source-impedance",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "sar-adc-reference-sets-the-gain",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "decoupling",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "sar-adc-reference-bypass-and-recharge",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "sar-adc-supply-bypass-and-rail-isolation",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "power-loop",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "sar-adc-reference-charge-loop",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "return-path",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "sar-adc-analog-ground-and-remote-sense",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "emi",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "sar-adc-high-z-node-vs-digital-aggressors",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "sequencing",
+     "min_level": "principle",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "sar-adc-conversion-window-noise-timing",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "constraints-emission",
+     "min_level": "principle",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "sar-adc-constraints-emission",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    }
+   ],
+   "gap_reasons": [],
+   "checklist": {
+    "id": "sar-adc",
+    "maturity": "draft",
+    "floor_met": false
+   },
+   "verdict": "provisional"
+  },
+  {
+   "id": "block:B4",
+   "kind": "block",
+   "topology": "series-voltage-reference",
+   "label": "B4",
+   "operating_point": {
+    "vin_min_v": 3.135,
+    "vin_nom_v": 3.3,
+    "vout_v": 2.048,
+    "iout_max_ua": 50,
+    "initial_accuracy_max_pct": 0.02,
+    "tempco_max_ppm_per_c": 2,
+    "headroom_mv": 1087,
+    "pdiss_w": 0.001,
+    "error_budget_mv": 5.0,
+    "ambient_max_c": 50,
+    "board_layers": 2,
+    "topology_kind": "series",
+    "load_kind": "switched-cap",
+    "output_cap_kind": "datasheet-defined",
+    "ratiometric_kind": "non-ratiometric",
+    "source_kind": "dc-input"
+   },
+   "classes": [
+    {
+     "class": "selection",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "series-voltage-reference-error-stack",
+       "level": "principle",
+       "maturity": "verified",
+       "envelope": "n/a",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "level-below-min"
+      },
+      {
+       "id": "series-voltage-reference-input-headroom-gate",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "decoupling",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "series-voltage-reference-output-cap-window",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      },
+      {
+       "id": "series-voltage-reference-switched-cap-load",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "thermal",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "series-voltage-reference-tempco-box-and-hysteresis",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "return-path",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "series-voltage-reference-kelvin-and-ir-drop",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    },
+    {
+     "class": "sourcing",
+     "min_level": "topology",
+     "verdict": "provisional",
+     "records": [
+      {
+       "id": "series-voltage-reference-solder-shift-and-grade",
+       "level": "topology",
+       "maturity": "verified",
+       "envelope": "inside",
+       "unknown_dims": [],
+       "outside_dims": [],
+       "via": "keys",
+       "satisfies": false,
+       "blocker": "maturity-below-floor"
+      }
+     ]
+    }
+   ],
+   "gap_reasons": [],
+   "checklist": {
+    "id": "series-voltage-reference",
+    "maturity": "draft",
+    "floor_met": false
+   },
+   "verdict": "provisional"
+  }
+ ],
+ "gaps": [
+  {
+   "slot": "block:B1",
+   "kind": "block",
+   "topology": "resistive-attenuator",
+   "operating_point": {
+    "vin_max_v": 5.0,
+    "vout_max_v": 2.048,
+    "ratio": 0.4,
+    "rtot_ohm": 1000000,
+    "rthev_ohm": 240000,
+    "source_z_max_ohm": 200,
+    "element_count": 5,
+    "tol_pct": 0.02,
+    "tcr_ppm_per_c": 10,
+    "pdiss_w": 2.5e-05,
+    "error_budget_mv": 5.0,
+    "ambient_max_c": 50,
+    "board_layers": 2,
+    "element_kind": "discrete-equal-string",
+    "guard_kind": "driven-guard",
+    "coupling_kind": "dc",
+    "source_kind": "dc-input"
+   },
+   "missing": [
+    {
+     "class": "constraints-emission",
+     "min_level": "principle"
+    }
+   ],
+   "reasons": [
+    "no record satisfies the class at this operating point and maturity floor"
+   ],
+   "related_records": [
+    "resistive-attenuator-bottom-node-is-a-reference",
+    "resistive-attenuator-high-z-tap-guard-and-leakage",
+    "resistive-attenuator-loading-source-and-load",
+    "resistive-attenuator-ratio-from-relative-specs",
+    "resistive-attenuator-self-heating-and-gradient",
+    "resistive-attenuator-tcr-tracking-not-absolute-tcr"
+   ],
+   "principle_parents": [
+    "buck-constraints-emission",
+    "sar-adc-constraints-emission"
+   ],
+   "task": "research block 'resistive-attenuator': populate constraints-emission (application delta only - principle parents exist)"
+  }
+ ],
+ "warnings": [
+  "blocks[0].operating_point.ratio: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[0].operating_point.element_count: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[1].operating_point.vos_max_uv: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[1].operating_point.ib_max_pa: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[1].operating_point.settle_ppm: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[2].operating_point.resolution_bits: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[2].operating_point.fsample_max_ksps: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[2].operating_point.offset_max_uv: not a unit-suffixed or *_kind dim - no envelope can ever test it",
+  "blocks[2].operating_point.inl_max_lsb: not a unit-suffixed or *_kind dim - no envelope can ever test it"
+ ],
+ "workspace_records": [
+  "precision-buffer-capacitive-load-isolation",
+  "precision-buffer-chopper-artifacts-into-sampler",
+  "precision-buffer-pin-decoupling-and-input-routing",
+  "precision-buffer-rail-to-rail-output-floor",
+  "precision-buffer-riso-settling-stability-collision",
+  "precision-buffer-sar-charge-bucket-interface",
+  "precision-buffer-settles-not-bandwidth",
+  "precision-buffer-zero-drift-source-impedance-ceiling",
+  "precision-buffer-zero-drift-speed-vs-impedance-trade",
+  "resistive-attenuator-bottom-node-is-a-reference",
+  "resistive-attenuator-high-z-tap-guard-and-leakage",
+  "resistive-attenuator-loading-source-and-load",
+  "resistive-attenuator-ratio-from-relative-specs",
+  "resistive-attenuator-self-heating-and-gradient",
+  "resistive-attenuator-tcr-tracking-not-absolute-tcr",
+  "sar-adc-acquisition-charge-transfer",
+  "sar-adc-analog-ground-and-remote-sense",
+  "sar-adc-constraints-emission",
+  "sar-adc-conversion-window-noise-timing",
+  "sar-adc-high-z-node-vs-digital-aggressors",
+  "sar-adc-input-settling-and-source-impedance",
+  "sar-adc-reference-bypass-and-recharge",
+  "sar-adc-reference-charge-loop",
+  "sar-adc-reference-sets-the-gain",
+  "sar-adc-supply-bypass-and-rail-isolation",
+  "series-voltage-reference-error-stack",
+  "series-voltage-reference-input-headroom-gate",
+  "series-voltage-reference-kelvin-and-ir-drop",
+  "series-voltage-reference-output-cap-window",
+  "series-voltage-reference-solder-shift-and-grade",
+  "series-voltage-reference-switched-cap-load",
+  "series-voltage-reference-tempco-box-and-hysteresis"
+ ],
+ "workspace_checklists": [
+  "precision-buffer",
+  "resistive-attenuator",
+  "sar-adc",
+  "series-voltage-reference"
+ ],
+ "mapping_applied": null,
+ "mapping_request": {
+  "schema": {
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "title": "ai-ee coverage mapping (agent output)",
+   "type": "object",
+   "required": [
+    "mappings"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "mappings": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "record",
+       "slot",
+       "class",
+       "why"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "record": {
+        "type": "string",
+        "minLength": 1
+       },
+       "slot": {
+        "type": "string",
+        "minLength": 1
+       },
+       "class": {
+        "type": "string",
+        "minLength": 1
+       },
+       "why": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 300
+       }
+      }
+     }
+    },
+    "note": {
+     "type": "string",
+     "maxLength": 600
+    }
+   }
+  },
+  "instructions": "Map records to slots for ONE class each - only edges you can justify from the record's prose. You classify; you do NOT decide sufficiency, coverage or maturity. Output the JSON shape in `schema`; the coverage run validates it and refuses unknown records/slots or classes the record does not carry.",
+  "slots": [
+   {
+    "id": "block:B1",
+    "kind": "block",
+    "topology": "resistive-attenuator",
+    "operating_point": {
+     "vin_max_v": 5.0,
+     "vout_max_v": 2.048,
+     "ratio": 0.4,
+     "rtot_ohm": 1000000,
+     "rthev_ohm": 240000,
+     "source_z_max_ohm": 200,
+     "element_count": 5,
+     "tol_pct": 0.02,
+     "tcr_ppm_per_c": 10,
+     "pdiss_w": 2.5e-05,
+     "error_budget_mv": 5.0,
+     "ambient_max_c": 50,
+     "board_layers": 2,
+     "element_kind": "discrete-equal-string",
+     "guard_kind": "driven-guard",
+     "coupling_kind": "dc",
+     "source_kind": "dc-input"
+    },
+    "required_classes": [
+     "selection",
+     "thermal",
+     "creepage",
+     "feedback",
+     "return-path",
+     "constraints-emission"
+    ],
+    "unmet_classes": [
+     "selection",
+     "thermal",
+     "creepage",
+     "feedback",
+     "return-path",
+     "constraints-emission"
+    ]
+   },
+   {
+    "id": "block:B2",
+    "kind": "block",
+    "topology": "precision-buffer",
+    "operating_point": {
+     "vdd_v": 3.3,
+     "vin_max_v": 2.048,
+     "vout_max_v": 2.048,
+     "vout_min_v": 0.0,
+     "rsource_ohm": 240000,
+     "cload_pf": 1000,
+     "gbw_khz": 350,
+     "vos_max_uv": 10,
+     "vos_drift_max_uv_per_c": 0.05,
+     "ib_max_pa": 400,
+     "settle_ppm": 8,
+     "settle_window_us": 9,
+     "pdiss_w": 0.0001,
+     "error_budget_mv": 5.0,
+     "ambient_max_c": 50,
+     "board_layers": 2,
+     "topology_kind": "unity-follower",
+     "input_kind": "cmos",
+     "swing_kind": "rrio",
+     "load_kind": "switched-cap",
+     "source_kind": "dc-input"
+    },
+    "required_classes": [
+     "selection",
+     "feedback",
+     "emi",
+     "decoupling",
+     "return-path"
+    ],
+    "unmet_classes": [
+     "selection",
+     "feedback",
+     "emi",
+     "decoupling",
+     "return-path"
+    ]
+   },
+   {
+    "id": "block:B3",
+    "kind": "block",
+    "topology": "sar-adc",
+    "operating_point": {
+     "vdd_v": 3.3,
+     "vref_v": 2.048,
+     "resolution_bits": 16,
+     "fsample_max_ksps": 10,
+     "fclk_khz": 500,
+     "csample_pf": 48,
+     "tacq_us": 9,
+     "iref_max_ua": 7,
+     "rsource_ohm": 240000,
+     "offset_max_uv": 1000,
+     "gain_err_max_pct": 0.0244,
+     "inl_max_lsb": 2.5,
+     "pdiss_w": 0.001,
+     "error_budget_mv": 5.0,
+     "ambient_max_c": 50,
+     "board_layers": 2,
+     "interface_kind": "spi",
+     "reference_kind": "external",
+     "input_kind": "pseudo-differential-unipolar",
+     "calibration_kind": "uncalibrated",
+     "source_kind": "dc-input"
+    },
+    "required_classes": [
+     "selection",
+     "decoupling",
+     "power-loop",
+     "return-path",
+     "emi",
+     "sequencing",
+     "constraints-emission"
+    ],
+    "unmet_classes": [
+     "selection",
+     "decoupling",
+     "power-loop",
+     "return-path",
+     "emi",
+     "sequencing",
+     "constraints-emission"
+    ]
+   },
+   {
+    "id": "block:B4",
+    "kind": "block",
+    "topology": "series-voltage-reference",
+    "operating_point": {
+     "vin_min_v": 3.135,
+     "vin_nom_v": 3.3,
+     "vout_v": 2.048,
+     "iout_max_ua": 50,
+     "initial_accuracy_max_pct": 0.02,
+     "tempco_max_ppm_per_c": 2,
+     "headroom_mv": 1087,
+     "pdiss_w": 0.001,
+     "error_budget_mv": 5.0,
+     "ambient_max_c": 50,
+     "board_layers": 2,
+     "topology_kind": "series",
+     "load_kind": "switched-cap",
+     "output_cap_kind": "datasheet-defined",
+     "ratiometric_kind": "non-ratiometric",
+     "source_kind": "dc-input"
+    },
+    "required_classes": [
+     "selection",
+     "decoupling",
+     "thermal",
+     "return-path",
+     "sourcing"
+    ],
+    "unmet_classes": [
+     "selection",
+     "decoupling",
+     "thermal",
+     "return-path",
+     "sourcing"
+    ]
+   }
+  ],
+  "candidates": [
+   {
+    "id": "buck-bst-fb-output-caps",
+    "level": "family",
+    "maturity": "approved",
+    "classes": [
+     "feedback",
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "BST: integrated-FET parts need the 100 nF BST-SW cap - it is required, not optional (DS41326 s13); confirm value/rating in the family datasheet. FB TRAP (cost a near-miss once): FIXED-output family members tie FB straight to the output sens"
+   },
+   {
+    "id": "buck-cin-co-ground-separation",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Two ROHM measurements the generic hot-loop rule does not carry: (1) shortening the CBYPASS wiring EVEN BY 1 mm is worth it - the HF bypass supplies the steepest edge of the switch current, and its loop inductance sets the VIN-pin voltage no"
+   },
+   {
+    "id": "buck-constraints-emission",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "constraints-emission"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "What a buck block must emit into constraints.json for the pipeline: (1) power entries with current_a from the RAIL BUDGET (consumer sum + ~30% headroom, rounded to a design ceiling) and dt_c from ambient; (2) a thermal entry when regulator "
+   },
+   {
+    "id": "buck-en-softstart-sequencing",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "sequencing"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Check the EN pin's OWN behavior before adding parts: many parts auto-start (AP63203: internal 1.5 uA pull-up - tie to VIN or float; adding a divider is wasted parts). When EN is used as a UVLO divider, mind the two traps the sbuck run hit: "
+   },
+   {
+    "id": "buck-fb-route-rules",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "The feedback route needs the most attention of any signal wire - noise here becomes output-voltage error and instability. ROHM's four rules (fig 7-a): (a) the FB pin is high impedance - connect the divider network with a SHORT wire at the p"
+   },
+   {
+    "id": "buck-freewheel-diode-snubber-placement",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Async buck (free-wheel diode) placement rules: the diode must sit CLOSE and on the SAME surface as the IC terminals, wired short and wide, connected directly to the IC's GND and SW terminals - distance adds wiring inductance whose spike noi"
+   },
+   {
+    "id": "buck-inductor-copper-and-gnd-void",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Inductor region rules (ROHM s5): place L close to the IC but NOT as close as the input cap; do NOT expand the SW/inductor copper beyond what current needs - enlarged copper works as an antenna (EMI), even though instinct says more copper = "
+   },
+   {
+    "id": "buck-inductor-selection",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "The three inductor rules every run re-derived from scratch. L VALUE: start from the vendor's recommended-components table row for your Vout; the next STANDARD value up is usually right - light-load efficiency improves with larger L (DS41326"
+   },
+   {
+    "id": "buck-input-hot-loop",
+    "level": "principle",
+    "maturity": "approved",
+    "classes": [
+     "power-loop",
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Layout rule #1 for every buck: the input cap carries the DISCONTINUOUS switch current. C_IN plus a 100 nF HF bypass AT the VIN pin, on the SAME layer as the IC; the C_IN -> VIN -> GND -> C_IN loop must be the shortest loop on the board; SW-"
+   },
+   {
+    "id": "buck-power-ground-isolation",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "return-path",
+     "power-loop"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Ground strategy (ROHM s8): analog small-signal ground and power ground must be ISOLATED, and power ground laid on the TOP layer without splitting is the ideal - dropping an isolated power ground to the bottom layer through vias adds via R a"
+   },
+   {
+    "id": "buck-selection-ladder",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Regulator-type ladder, one line of tradeoff each; if the brief names a part the named part stands (record the alternative as an override option). (1) Integrated synchronous buck is the DEFAULT at <= ~60 V input and <= ~3 A: no catch diode, "
+   },
+   {
+    "id": "buck-switch-node-containment",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "Keep SW copper as small as electrically possible and treat SW + L as an AGGRESSOR: lumina-par's 2.4 GHz antenna 11 mm from a switch node drove a 4-layer stackup + containment plan; usb-buck keeps the USB pair away from SW/L per ST AN4879 3."
+   },
+   {
+    "id": "buck-thermal-via-and-via-current",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "thermal-via"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [
+      "HTSOP-J8",
+      "SO-8-EP",
+      "SO-8EP"
+     ],
+     "interfaces": []
+    },
+    "prose_head": "Thermal vias under an exposed-pad regulator (ROHM s4, HTSOP-J8 numbers generalize to EP packages): small drill - 0.3 mm inner diameter - so the via can FILL with solder; larger drills suck solder away from the joint at reflow (solder-wickin"
+   },
+   {
+    "id": "buck-upstream-inrush-limit",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "inrush",
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "interfaces": [
+      "usb",
+      "usb-pd",
+      "poe"
+     ],
+     "packages": []
+    },
+    "prose_head": "Upstream bulk limit trap: a buck's input capacitance is bounded by the SOURCE, not by the buck. USB 2.0 allows 10 uF || 44 ohm at attach (spec s7.2.4.1); a USB-PD sink is allowed 100 uF under contract (cSnkBulkPd); PoE has its own inrush en"
+   },
+   {
+    "id": "cot-ripple-injection-raises-vout",
+    "level": "family",
+    "maturity": "approved",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "buck"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "A constant-on-time regulator ends its off-time when FB falls back through VREF, so it regulates the VALLEY of FB, not its average. With Type 3 injection the ramp is AC-coupled into FB and its mean is genuinely zero, so FB_dc = VREF + Vramp/"
+   },
+   {
+    "id": "precision-buffer-capacitive-load-isolation",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "precision-buffer"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A unity-gain follower driving a capacitor is not automatically stable. The load capacitance works against the amplifier's OPEN-loop output impedance R_O - a datasheet spec, flat at 120 ohm for OPA392 (sboa418 p2 fig 1-1), 2 kohm at 350 kHz "
+   },
+   {
+    "id": "precision-buffer-chopper-artifacts-into-sampler",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "emi",
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "precision-buffer"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A sampled load does not average. A chopper puts periodic artifacts on its own terminals: measured on OPA188, 2 uA input current spikes at the 650 kHz chopping clock plus a smaller synchronous-notch transient between them (sboa586a p11 fig 3"
+   },
+   {
+    "id": "precision-buffer-pin-decoupling-and-input-routing",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "decoupling",
+     "emi",
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [
+      "precision-buffer"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A precision follower's layout errors show up as DC offset, not as visible noise: the datasheet states RFI can generally be identified as a variation in offset voltage or DC signal levels with changes in the interfering RF field (p23). Four "
+   },
+   {
+    "id": "precision-buffer-rail-to-rail-output-floor",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "precision-buffer"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Rail-to-rail output is a swing specified FROM the rail at a stated load, not a guarantee of the rail. OPA333's table (p7) gives voltage output swing from rail 30 mV typ / 50 mV max at R_L = 10 kohm and 25 C, and 70 mV max over -40 to 125 C;"
+   },
+   {
+    "id": "precision-buffer-riso-settling-stability-collision",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "selection",
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "precision-buffer"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Two vendor rules size the SAME series resistor between a buffer and an unbuffered SAR, and they can conflict. Settling sets a CEILING: the charge bucket must settle in ~12 time constants inside the window, R_FLT <= t_ACQ/(12*C_FLT) (sprpeo2"
+   },
+   {
+    "id": "precision-buffer-sar-charge-bucket-interface",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "selection",
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "precision-buffer"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "An unbuffered SAR wires its capacitor array straight to the pin: input impedance is time-varying and every switch closure kicks a charge transient back at the driver (p22 comparison table; p23 lists the consequences - low output impedance r"
+   },
+   {
+    "id": "precision-buffer-settles-not-bandwidth",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "precision-buffer"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A buffer feeding a sampling ADC is specified by SETTLING, not by bandwidth alone. During acquisition the converter closes its sampling switch and the sample-and-hold capacitor C_SH charges through the internal R_SH as one exponential, V_CSH"
+   },
+   {
+    "id": "precision-buffer-zero-drift-source-impedance-ceiling",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "precision-buffer"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "The 10 uV offset on a zero-drift datasheet is a promise about the amplifier, not about the circuit. A chopper's input MOS switches inject charge and feed the clock through on every transition: measured on OPA188 (p11 fig 3-5), 2 uA current "
+   },
+   {
+    "id": "precision-buffer-zero-drift-speed-vs-impedance-trade",
+    "level": "family",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "precision-buffer"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Zero-drift amplifiers buy DC accuracy with speed, and the vendor table that ranks them by source-impedance ceiling ranks them the opposite way by bandwidth. In TI's zero-drift selection table (sboa586a p26) the part with the widest source-i"
+   },
+   {
+    "id": "resistive-attenuator-bottom-node-is-a-reference",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [
+      "resistive-attenuator"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "The divider's output is the voltage between its tap and its OWN bottom node, so wherever that bottom node sits electrically becomes part of the measurement. p4: \"The ground of the resistor ladder is best shorted to the clean analog ground ("
+   },
+   {
+    "id": "resistive-attenuator-high-z-tap-guard-and-leakage",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "creepage"
+    ],
+    "applies": {
+     "topologies": [
+      "resistive-attenuator"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "The tap of a high-value divider is a high-impedance node: any stray current I reaching it develops I x Rthev of error, so board leakage is a DC offset. GUARDING (p4): surround the sensitive node with a conductive trace driven from a LOW-IMP"
+   },
+   {
+    "id": "resistive-attenuator-loading-source-and-load",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "feedback"
+    ],
+    "applies": {
+     "topologies": [
+      "resistive-attenuator"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A divider is loaded at both ends and both loads are gain errors. SOURCE (p4, fig 3-1): \"If the source has any output impedance, that can be simply budgeted as part of the R1\" - source resistance adds directly to the TOP leg, so a source Z t"
+   },
+   {
+    "id": "resistive-attenuator-ratio-from-relative-specs",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "resistive-attenuator"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A divider's ratio error is set by the RELATIVE specs of its elements - tolerance matching and TCR tracking - not by their absolute tolerance or absolute TCR. Vishay builds the same V = 10 network twice. Discretes (p1, fig 1): TCR +/-25 ppm/"
+   },
+   {
+    "id": "resistive-attenuator-self-heating-and-gradient",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [
+      "resistive-attenuator"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Two things set an element's film temperature (p3): ambient - INCLUDING the influence of neighbouring heat-producing components - and self-heating dT_SH = P x Rth (eq 1). For SMD parts Rth depends on the PCB material and on the SIZE OF THE M"
+   },
+   {
+    "id": "resistive-attenuator-tcr-tracking-not-absolute-tcr",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "selection",
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [
+      "resistive-attenuator"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Ratio drift is set by the DIFFERENCE between the legs' LOCAL TCRs at the working temperature, not by the catalogue TCR number. A published TCR is a CHORD slope between measured points while dR/R = f(T) is a parabola: fig 3 (p3) puts three a"
+   },
+   {
+    "id": "sar-adc-acquisition-charge-transfer",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "sar-adc"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A SAR samples by CHARGE TRANSFER: closing a switch connects the source to an internal capacitor array through the switch on-resistance, and the SOURCE, not the converter, has to move that charge. ADS8326 p.7's Equivalent Analog Input Circui"
+   },
+   {
+    "id": "sar-adc-analog-ground-and-remote-sense",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [
+      "sar-adc"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Ground geometry decides what a 16-bit converter actually resolves. AN688 p.2: for a SAR \"the entire device should be connected to the analog power and ground planes\" - straddling the analog and digital planes is the common error (delta-sigm"
+   },
+   {
+    "id": "sar-adc-constraints-emission",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "constraints-emission"
+    ],
+    "applies": {
+     "topologies": [
+      "sar-adc"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "What a sar-adc block must hand the pipeline, and where each item comes from. (1) A blocks entry {topology: sar-adc} so knowledge retrieval keys on the slot. (2) A power entry for the analog rail carrying BOTH the average supply current and "
+   },
+   {
+    "id": "sar-adc-conversion-window-noise-timing",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "sequencing"
+    ],
+    "applies": {
+     "topologies": [
+      "sar-adc"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "For a SAR, WHEN a disturbance arrives decides whether it becomes a wrong code. ADS8326 p.26: \"during any single conversion for an n-bit SAR converter, there are n windows in which large external transient voltages can easily affect the conv"
+   },
+   {
+    "id": "sar-adc-high-z-node-vs-digital-aggressors",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "emi"
+    ],
+    "applies": {
+     "topologies": [
+      "sar-adc"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "The converter's most sensitive nodes are its highest-impedance ones, and they are most sensitive exactly while it converts. AN688 p.4: \"the voltage reference input pin to the analog to digital converter is most sensitive while a conversion "
+   },
+   {
+    "id": "sar-adc-input-settling-and-source-impedance",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "sar-adc"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "The driver demand, quantified. SBAA256B p.2: tACQ >= k * tau, tau = Rsource * Cflt, k the single-pole time-constant multiplier for an N-bit converter. TI states k = 11 at 14 bits; settling to 1/2 LSB gives k = (N+1)*ln2 = 10.4 at 14 bits, s"
+   },
+   {
+    "id": "sar-adc-reference-bypass-and-recharge",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "sar-adc"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "An external-reference SAR draws its conversion charge from YOUR capacitor. ADS8326 p.22 fig 42 draws the reference input as a 50 ohm switch onto a 24 pF capacitor that is \"switched on\" during the conversion process, and the text requires \"a"
+   },
+   {
+    "id": "sar-adc-reference-charge-loop",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "power-loop"
+    ],
+    "applies": {
+     "topologies": [
+      "sar-adc"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "The reference bypass is a LOOP, not a component. Every bit decision pulls a fast current pulse out of the bypass capacitor and returns it to the converter's ground / VREFLO pin; that loop's inductance, not the capacitor's value, decides how"
+   },
+   {
+    "id": "sar-adc-reference-sets-the-gain",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "sar-adc"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "The reference is the scale factor, so its DC error IS gain error, one for one. SPRABY5 p.2 eq 2 for a 16-bit single-ended converter: RESULT = 65535 * (ADCIN - VREFLO) / (VREFHI - VREFLO). p.3 works the consequence: with VREFHI at 2.5 V each"
+   },
+   {
+    "id": "sar-adc-supply-bypass-and-rail-isolation",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "sar-adc"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A SAR has no supply rejection at the instant that matters, so its supply pin must be locally stiff AND isolated from the digital rail it usually shares. ADS8326 p.26: \"a 0.1uF ceramic bypass capacitor should be placed as close as possible t"
+   },
+   {
+    "id": "series-voltage-reference-error-stack",
+    "level": "principle",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "series-voltage-reference"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A series reference contributes NO offset and all gain: its error multiplies every reading, so it must be budgeted at the measurement, not at the reference. TI SNAA320B p5 Fig 4-2 draws it - the error bowtie opens linearly from mid-scale to "
+   },
+   {
+    "id": "series-voltage-reference-input-headroom-gate",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "selection"
+    ],
+    "applies": {
+     "topologies": [
+      "series-voltage-reference"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Minimum input voltage is the first gate a series reference must pass, it is a per-MEMBER number, and in this family it runs INVERSE to output voltage. ADI ADR4520 (2.048 V): Table 3 (p3) conditions the spec on VIN = 3 V to 15 V and gives DR"
+   },
+   {
+    "id": "series-voltage-reference-kelvin-and-ir-drop",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "return-path"
+    ],
+    "applies": {
+     "topologies": [
+      "series-voltage-reference"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Everything between the reference output pin and the load's reference pin is uncalibratable gain error. ADI p31 \"Location of Reference in System\": place the reference as close to the load as possible, because current through a PCB trace prod"
+   },
+   {
+    "id": "series-voltage-reference-output-cap-window",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "series-voltage-reference"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "The output capacitor of a series reference is not decoupling, it is part of the compensation, and the datasheets state a WINDOW rather than a minimum. ADI ADR4520 Table 3 (p3) has a LOAD CAPACITANCE row reading min 1 uF, max 100 uF; p31 rep"
+   },
+   {
+    "id": "series-voltage-reference-solder-shift-and-grade",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "sourcing"
+    ],
+    "applies": {
+     "topologies": [
+      "series-voltage-reference"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "Two of this block's error terms are bought, not designed. GRADE: the ADR4520 B grade is +/-0.02 pct and 2 ppm/C, the A grade +/-0.04 pct and 4 ppm/C, in the same 8-lead SOIC (p3) - the suffix, not the base part number, is what the budget de"
+   },
+   {
+    "id": "series-voltage-reference-switched-cap-load",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "decoupling"
+    ],
+    "applies": {
+     "topologies": [
+      "series-voltage-reference"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A SAR converter is a switched-capacitor load on the reference. TI SNAA320B p10 Fig 7-1 shows the mechanism: a binary-weighted array (C, C/2, C/4, C/8, C/16, C/16') whose switches connect each element to VIN or VREF, so every bit decision re"
+   },
+   {
+    "id": "series-voltage-reference-tempco-box-and-hysteresis",
+    "level": "topology",
+    "maturity": "verified",
+    "classes": [
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [
+      "series-voltage-reference"
+     ],
+     "packages": [],
+     "interfaces": [],
+     "parts": []
+    },
+    "prose_head": "A reference's ppm/C is a BOX, not a slope. ADI p29 gives the equation (see rule.box_equation) for T1 = -40, T2 = +25, T3 = +125 C and says the part is fully tested at exactly those three temperatures. TI REF70 p24 states the same method and"
+   },
+   {
+    "id": "spiral-inductor-plane-and-heatsink-keepout",
+    "level": "topology",
+    "maturity": "approved",
+    "classes": [
+     "emi",
+     "thermal"
+    ],
+    "applies": {
+     "topologies": [
+      "class-e"
+     ],
+     "packages": [],
+     "interfaces": []
+    },
+    "prose_head": "An etched PCB spiral (air-core inductor, coupled pair, antenna) is destroyed by solid metal parallel to it: a ground plane under the winding is a shorted turn and collapses Q, and so is a bottom-side metal heatsink. Two independently-correc"
+   }
+  ]
+ }
+}

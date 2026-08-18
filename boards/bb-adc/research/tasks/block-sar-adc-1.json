@@ -1,0 +1,220 @@
+{
+ "id": "block-sar-adc-1",
+ "slot": "block:B3",
+ "kind": "block",
+ "token": "sar-adc",
+ "phase": "P2",
+ "status": "closed",
+ "outcome": "verified",
+ "opened": "2026-08-16T19:06:25",
+ "closed": "2026-08-16T20:56:18",
+ "coverage_report": "boards/bb-adc/log/coverage-P2.json",
+ "gap": {
+  "slot": "block:B3",
+  "kind": "block",
+  "topology": "sar-adc",
+  "operating_point": {
+   "vdd_v": 3.3,
+   "vref_v": 2.048,
+   "resolution_bits": 16,
+   "fsample_max_ksps": 10,
+   "fclk_khz": 500,
+   "csample_pf": 48,
+   "tacq_us": 9,
+   "iref_max_ua": 7,
+   "rsource_ohm": 240000,
+   "offset_max_uv": 1000,
+   "gain_err_max_pct": 0.0244,
+   "inl_max_lsb": 2.5,
+   "pdiss_w": 0.001,
+   "error_budget_mv": 5.0,
+   "ambient_max_c": 50,
+   "board_layers": 2,
+   "interface_kind": "spi",
+   "reference_kind": "external",
+   "input_kind": "pseudo-differential-unipolar",
+   "calibration_kind": "uncalibrated",
+   "source_kind": "dc-input"
+  },
+  "missing": [
+   {
+    "class": "coverage-checklist",
+    "min_level": null
+   }
+  ],
+  "reasons": [
+   "no coverage checklist for block 'sar-adc' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+  ],
+  "related_records": [],
+  "principle_parents": [],
+  "task": "research block 'sar-adc': produce its coverage checklist, then populate it"
+ },
+ "checklist_needed": true,
+ "caps": {
+  "depth_per_gap": 4,
+  "attempt_factor": 3
+ },
+ "sources": [
+  {
+   "n": 1,
+   "url": "https://www.ti.com/lit/ds/symlink/ads8326.pdf",
+   "final_url": "https://www.ti.com/lit/ds/symlink/ads8326.pdf",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "ADS8326",
+   "file": "research/sources/ads8326.pdf",
+   "sha256": "eb82600a4c45b93a8a89c4819f4037c7bd2faa7653084bde9600395a792ac57a",
+   "bytes": 1216161,
+   "content_type": "application/pdf",
+   "pages": 40,
+   "fetched": "2026-08-16T19:11:19",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 2,
+   "url": "https://www.ti.com/lit/an/sbaa256/sbaa256.pdf",
+   "final_url": "https://www.ti.com/lit/an/sbaa256b/sbaa256b.pdf?ts=1786932857362",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-appnote",
+   "declared_tier": "vendor-appnote",
+   "about": null,
+   "file": "research/sources/sbaa256b.pdf",
+   "sha256": "1a227467c5bdd07c8b30d2e56f28137d24c31ed6d920b8601e7d72a7c9c2b57a",
+   "bytes": 299065,
+   "content_type": "application/pdf",
+   "pages": 5,
+   "fetched": "2026-08-16T19:14:17",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 3,
+   "url": "https://www.ti.com/lit/an/spraby5/spraby5.pdf",
+   "final_url": "https://www.ti.com/lit/an/spraby5/spraby5.pdf",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-appnote",
+   "declared_tier": "vendor-appnote",
+   "about": null,
+   "file": "research/sources/spraby5.pdf",
+   "sha256": "40639c4ad6306c79ff6a629cd730904b8edc5dd455d2035d4e9998f1fa457f7d",
+   "bytes": 364427,
+   "content_type": "application/pdf",
+   "pages": 8,
+   "fetched": "2026-08-16T19:14:56",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 4,
+   "url": "https://ww1.microchip.com/downloads/en/Appnotes/00688b.pdf",
+   "final_url": "https://ww1.microchip.com/downloads/en/Appnotes/00688b.pdf",
+   "host": "ww1.microchip.com",
+   "domain": "microchip.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": null,
+   "file": "research/sources/00688b.pdf",
+   "sha256": "781a43aca4e682563d0601979e40669473f507b145b10483c92cd5bb1bbd9908",
+   "bytes": 422672,
+   "content_type": "application/pdf",
+   "pages": 7,
+   "fetched": "2026-08-16T19:15:23",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  }
+ ],
+ "attempts": [],
+ "verdicts": {
+  "sar-adc-acquisition-charge-transfer": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read ads8326 p.7 (Equivalent Input Circuit: ANALOG IN -> RON 50 ohm -> switch -> C(SAMPLE) 48pF, clamp diodes to VDD/GND, 0.35V turn-on; reference input drawn with 24pF) and p.21 ('the source of the analog input voltage must be able to charge the input capacitance (48pF) to a 16-bit settling level within 4.5 clock cycles (0.750us)', >1Gohm in hold/power-down) - both verbatim. sbaa256b p.1 figure matches exactly: sensor Thevenin VTH/RTH plus CFLT at the pin into SW/RSW/CSH with the inset VCSH(t) climbing from V0 into the 1/2 LSB band by tACQ, and p.1 states the note's own scope (slow-moving sensor outputs, 10ksps or so). The 48pF and 24pF are attributed to the ADS8326 in the prose while the rule fields stay part-agnostic, so no single-part number is promoted into a topology constant. Cannot refute.",
+   "ts": "2026-08-16T19:46:36"
+  },
+  "sar-adc-analog-ground-and-remote-sense": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Re-ruled because the record was edited; the edits are right and the board decision holds. THE LOAD-BEARING CLAIM, re-confirmed independently from the datasheet text: ads8326 p.20 says verbatim 'The range of the -IN input is limited to -0.3V to +0.5V' and 'the -IN input is best used to sense a remote signal ground that may move slightly with respect to the local ground potential'; p.21 repeats the window in the absolute-input paragraph ('the -IN input should not drop below GND - 0.3V or exceed GND + 0.5V'). So -IN as a remote-ground sense terminal, bounded at -0.3/+0.5 in rule.minus_in_range_v, is the datasheet's own specification on two pages. The corrected numbers were measured off the rendered histograms, not eyeballed: fig 6 (p.3, plane + bypass caps) gives 2501 = 1296 and 2502 = 1375 counts with a skirt occupying 2496 through 2506 and zero at 2495 and 2507 - the record's '~1300/~1380 on codes 2501/2502' and 'skirt 2496 to 2506' are exact; fig 4 (p.3, no plane) occupies 2503 through 2517 with the tallest bar 814 at 2512 - '2503-2517, tallest bar ~810' is exact. AN688 p.3 body text verbatim: 'The same active devices were used for both tests. The passive devices were different causing a slight offset difference' - the prose's 'same ACTIVE devices, different passives' now matches the source, which is the fix that was needed. p.2 verbatim on the whole SAR sitting on the analog power and ground planes, straddling as the common error, delta-sigma as the exception and a digital buffer for a high-resolution SAR; fig 2b rendered and matching. ads8326 p.26 GND-pin paragraph and p.7 note 1 verbatim. Fig 3 (no plane) vs fig 5 (bottom-layer pour) are the same 2-layer board, which is what the envelope's board_layers 2-4 rests on. Standing nuance, not a defect: p.20 opens 'The analog input of ADS8326 is differential', so 'pseudo-differential' is the record's framing of the usage the datasheet describes, not the datasheet's word.",
+   "ts": "2026-08-16T20:21:54"
+  },
+  "sar-adc-constraints-emission": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Checked hardest, as the record that turns into copper. SPRABY5 is gone from sources[] - the reference placement group is now cited to ads8326 p.22, and p.22 genuinely carries BOTH halves verbatim: 'a 47uF tantalum capacitor with low ESR should be connected as close as possible to the input pin' AND 'if a high output impedance reference source is used, an additional operational amplifier with a current-limiting resistor must be placed in front of the capacitors'. p.27 fig 44 rendered and read: REF3225 on AVDD -> 10 ohm -> 2.2uF -> OPA350 -> 47uF straight into REF with NOTHING between cap and pin, OPA365 -> 10 ohm -> 1000pF -> +IN, and ADS8326 VDD taken off DVDD (2.7-3.6V) through a 5 ohm with 0.1uF + 10uF at the pin - so the emitted placement group and its resistor ORDER are shown in TI's own application circuit, independent of the disputed figure. p.26 verbatim on instantaneous reference current, the 0.1uF/1-10uF/5-10 ohm set and the GND point away from the MCU. p.20 verbatim on -IN as a remote-ground sense (-0.3V to +0.5V). AN688 p.2 fig 2b rendered: connector at top, Digital zone nearest it, a 'Digital Buffer' strip on the split, Analog with the A/D furthest away - the zoning note is exact. AN688 p.4 fig 7 carries C = w L eo er / d and I = C dV/dt as cited. No orphaned source entry: all six still support something the prose or rule says. Two hygiene items, neither a refutation: (1) the prose cites '(p.19, under 10 mW from VDD)' for rule.thermal_entry but there is no p.19 sources[] entry - the page is in the ledger and the quote is verbatim ('consuming less than 10mW from VDD'), so the claim is supported, but the citation should be listed; (2) 'adjacent to the REF and GND pins' goes one step past p.22, which says only 'as close as possible to the input pin' - the GND half is loop closure, consistent with fig 42/44 and with the power-loop record, so it is a sound derivation rather than a quote.",
+   "ts": "2026-08-16T20:21:21"
+  },
+  "sar-adc-conversion-window-noise-timing": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "ads8326 p.26 verbatim: 'during any single conversion for an n-bit SAR converter, there are n windows in which large external transient voltages can easily affect the conversion result', spikes just prior to latching the comparator output from switching supplies / digital logic / high-power devices, and the glitch almost synchronous to DCLOCK being very hard to track down because the phase difference changes with time and temperature, causing sporadic misoperation. sbaa256b p.3 table is exact: 10ksps, tcycle 100us, SCLK 0.24MHz -> 74.988us conversion / 25.01us acquisition, SCLK 60MHz -> 0.3us / 99.70us, and the column header is literally 'Acquisition Time (tcycle - tconv)', which is rule.acquisition_is_the_remainder word for word. ads8326 p.19 confirms both inputs are disconnected from any internal function while a conversion is in progress and the 24kHz-6MHz external clock range. One phrasing stretch, not a refutation: p.19 says DCLOCK clocks the RESULT out; 'clocks the successive-approximation bit decisions' rests on the p.7 pin table ('determines conversion speed') and p.26's bit-decision-every-167ns rather than on p.19's own sentence.",
+   "ts": "2026-08-16T19:46:37"
+  },
+  "sar-adc-high-z-node-vs-digital-aggressors": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "The w redefinition is correct at the source. Rendered 00688b p.4 fig 7 at 6.7x: the legend reads, verbatim, 'w = thickness of PCB trace / L = length of PCB trace / d = distance between the two PCB traces / eo = dielectric constant of air = 8.85 X 10-12 F/m / er = dielectric constant of substrate coating relative to air', and the drawing is a 3D view of TWO traces side by side on a substrate with a double-headed arrow labelled 'w (typ 0.003mm)' measuring the trace's VERTICAL height from substrate surface to trace top, L an arrow along the run and d a horizontal arrow across the gap. Formula C = w x L x eo x er / d pF as cited. The re-derivation follows from the source's own body text on the same page: 'the value of the capacitance between two traces is primarily dependent on the distance (d) between the traces and the distance that the two traces are in parallel (L)' - so L and d are the levers and w is a stackup constant, exactly as rule.design_variables now says. Full-text search of all 7 pages of AN688: 'width' occurs twice, both inside 'bandwidth', never as a trace dimension - the note's claim is right. Same search returns ZERO hits for 'right angle', 'right-angle', 'perpendicular' and '90 degree', so dropping 'cross at right angles' was the correct fix and nothing on ads8326 p.22 or p.26 restores it. Remaining citations verbatim: AN688 p.4 'the voltage reference input pin to the analog to digital converter is most sensitive while a conversion is occurring' with IN+/IN- also sensitive, and I = C dV/dt with dV/dt defined as the aggressor's transition; p.2 fig 2b rendered and matching (connector, Digital, Digital Buffer strip, Analog furthest); ads8326 p.22 38.15uV LSB at 2.5V, 'more sensitive to external sources of error, such as nearby digital signals and electromagnetic interference', <50uV pk-pk on input AND reference; p.26 on spikes just prior to latching the comparator. No orphaned source entry. Cannot refute.",
+   "ts": "2026-08-16T20:21:38"
+  },
+  "sar-adc-input-settling-and-source-impedance": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read SBAA256B p.2 and p.4 (plot D039) and ADS8326 p.21 fig 41. Method for D039: NOT eyeballed - I pulled the plot's own stroked polylines with PyMuPDF and calibrated on the axes FRAME rect (220.11,53.19)-(411.26,188.59), then proved the calibration against the four interior vertical gridlines and five interior horizontal gridlines, which come back 22.00/41.99/62.00/82.00 kSPS and 12.0001/11.5001/11.0000/10.5003/10.0005 ENOB. Legend swatches (drawn inside the axes) excluded by their own box; colour-to-impedance mapping fixed by matching each swatch to its legend text baseline (red 33, blue 330, green 3.3k, purple 10k, grey 20k) and confirmed on a 9x render. At 100 kSPS I read 3.3k 11.94, 330 11.91, 33 11.86, 10k 10.99, 20k 9.59 - a uniform 0.01 below the record's 11.95/11.92/11.87/11.00/9.60, i.e. inside the 1.02 pt stroke width. Independent corroboration from the source itself: SBAA256B p.3's table gives the ADS7056 at RTH 10k / CFLT 680 pF as 10.99 ENOB at 100 ksps, exactly the 10k curve endpoint, and 12.05 at 10 ksps. CLAIM 1 (3.3k is the HIGHEST of the three flat curves, not degraded) HOLDS at 100 kSPS by measurement and is plainly visible on a 26x zoom of the right-hand end: green above blue above red. CLAIM 2 (the trio spans only 11.87-11.99 over the whole 2-100 kSPS sweep) HOLDS - my vertex envelope over all three is 11.860-11.979, which is the record's band under its 0.01 offset. CLAIM 3, the scoping of rule.measured_knee, is the one I pushed hardest and it survives: at 10 kSPS I read 33 11.86, 330 11.96, 3.3k 11.98, 10k 11.97, 20k 12.02 - impedance does not separate at all, so the knee is a function of sample rate and not of impedance alone, exactly as the record says; sweeping the curves at 0.1 kSPS steps, 10k and 20k first fall 0.05 ENOB below 3.3k at 14.5 and 14.1 kSPS, which is the note's 'roughly 10-15 kSPS'. The rule string cannot be mined for a universal constant: the conditions open the sentence ('on TI's D039 sweep (14-bit converter, CFLT 680 pF, 2 to 100 kSPS)'), 'at the 100 kSPS end' is welded to the knee clause itself, and the same sentence carries the counterexample ('moves out as sampling slows - at 10 kSPS all five curves are still 11.9-12.0'). And since D039 has no data point between 3.3k and 10k, 'the knee falls between' is the strongest honest statement available - it brackets, it does not locate. Two minor imprecisions, neither load-bearing: (a) the p.4 note's unqualified ordering '3.3 kohm ABOVE 330 ohm ABOVE 33 ohm' inverts for 3.3k vs 330 at the extreme low end (at 2 kSPS 330 = 11.951 vs 3.3k = 11.932, a 0.019 ENOB / 0.86 pt gap under a 1.02 pt stroke, i.e. the two strokes overlap) - the same note already says the plot 'does not resolve source impedance below a few kilohms', and the record's own load-bearing statement is scoped to 100 kSPS where the order is real; (b) '11.9-12.0' is a rounded band, 33 ohm actually sitting at 11.86. p.2 verified against a render of the Specifications table: Calculated cell holds both '< 0.5LSB' and '< 100.5uV', Simulated 36.24 uV, RTH 10k, CFLT 680 pF, 10 ksps, 3.15 V step FSR; the tACQ >= k*tau_FLT relation, tau_FLT = RTH*CFLT, K = 11 for a 14-bit ADC, 11*10k*680pF = 74.80 us and the Pocket Reference pp.96-97 pointer are all on the page as quoted, as are design notes 3-4 (COG caps, 0.1 pct 20 ppm/C film resistors). ADS8326 p.21 rendered and read: fig 41 is titled 'Single-Ended and Differential Methods of Interfacing the ADS8326', shows OPA365 into 10 ohm + 1000 pF at +IN with 1 nF across the pair in the differential half, and the body text demands matched +IN/-IN source output impedance, offers the 20 pF cap between the inputs to match them, and asks for low-bandwidth low-pass filtered inputs. Nothing refuted.",
+   "ts": "2026-08-16T20:54:39"
+  },
+  "sar-adc-reference-bypass-and-recharge": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "ads8326 p.22 verbatim: 'During the conversion process, an equivalent capacitor of 24pF is switched on' and 'To ensure a stable reference voltage, a 47uF tantalum capacitor with low ESR should be connected as close as possible to the input pin. If a high output impedance reference source is used, an additional operational amplifier with a current-limiting resistor must be placed in front of the capacitors.' p.26 verbatim on the point the board's open risk rides on: 'If the reference voltage originates from an op amp, make sure that the op amp can drive the bypass capacitor without oscillation (the series resistor can help in this case)', plus low average versus real instantaneous reference current. spraby5 p.2 (VREFHI sampled several times per conversion, high-current transients as the array is switched and charged at each bit decision, good decoupling with a high-quality CREF) and p.3 section 1.4 (the reference draws from Cbypass during each bit and must recharge it between bit decisions, else a buffer; key specs max output current, offset voltage, offset drift, bandwidth, output impedance across bandwidth) are verbatim. The ADS8326-specific 47uF and 24pF are explicitly part-scoped in rule.cref_example_value and rule.ref_pin_is, so the illustration/constant line is kept. One overstatement worth noting, not enough to refute: fig 42 draws OPA350 -> 47uF -> VREF with NO current-limiting resistor, so 'fig 42 shows an OPA350 doing precisely that' covers the buffer only - TI's own figure drives the 47uF bare, which is itself useful evidence for the stability risk.",
+   "ts": "2026-08-16T19:46:37"
+  },
+  "sar-adc-reference-charge-loop": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "SETTLED FROM THE PIXELS. Rendered spraby5 p.3 fig 1-1 at 3x, 8x and 14x and traced every pour pad to pad. (a) REF50xx Vout leaves on a wide pour that runs unbroken past RREF's LOWER pad, takes one diagonal step down and lands on VREFHI - there is NO series element in the feed. (b) RREF's UPPER pad runs up a vertical band, then a diagonal up-left onto CREF's RIGHT pad; CREF's LEFT pad drops onto a vertical band that joins the wide pour forking out of the REF50xx GND pad (confirmed at 8x: the GND pour enters from the left, forks inside the body, one arm up-right to CREF's left pad, the other down-right to the bottom band that feeds VREFLO). So RREF + CREF ARE a series-RC damped shunt to ground, RREF at the node end, CREF at the reference-IC end. (c) The disputed point goes to the researcher, NOT the previous reader: at the VREFHI row the band from TRIM/NR runs right and DEAD-ENDS on the LEFT unlabeled C's top pad; a clear white gap follows; the RIGHT unlabeled C's top pad sits on the separate band that drops from the Vout pour and continues into VREFHI. Both C's bottom pads are on the VREFLO/ground band. So only the RIGHT C bridges VREFHI-VREFLO (= section 1.4's Cbypass, 'a capacitor Cbypass is used between VREFHI and VREFLO', verbatim p.3); the LEFT C is TRIM/NR to ground, the REF50xx's noise-reduction cap. Calling both of them Cbypass was wrong. (d) p.2 verbatim, including a prefix the record does not quote and which STRENGTHENS its self-inconsistency finding: 'In the below figure, the inductance between the reference capacitor and the REF pin is minimized by placing the capacitor close to the pin and connecting it with wide traces', after naming CREF as the decoupling cap; the below figure does not place CREF there. 0.1-ohm RREF verbatim. (e) ads8326 p.22 carries the isolation case verbatim - 'a 47uF tantalum capacitor with low ESR should be connected as close as possible to the input pin. If a high output impedance reference source is used, an additional operational amplifier with a current-limiting resistor must be placed in front of the capacitors' - and p.27 fig 44 draws exactly that order (REF3225 -> 10 ohm -> 2.2uF -> OPA350 -> 47uF -> REF, nothing between the 47uF and the pin). p.26 quote verbatim. Cannot refute. One nuance for the record, not a defect: the figure DOES place a cap at the pin (the unlabeled Cbypass), so what disagrees with p.2 is which capacitor carries the CREF label, not the design intent - the record's prose already says this.",
+   "ts": "2026-08-16T20:21:03"
+  },
+  "sar-adc-reference-sets-the-gain": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "spraby5 p.2 verbatim: 1.1 'high gain error can be caused by an ADC reference voltage with DC error', eq 1 ADCRESULTx = 4095 x (ADCINy - VREFLO)/(VREFHI - VREFLO) and eq 2 the same with 65535 for a single-ended 16-bit ADC - which is rule.transfer_function. p.3 section 1.5 exact: at VREFHI 2.5V each 12-bit code is about .61mV, at 2.4V about .59mV, code 4090 appears to be almost 2.5V while the real input is almost 100mV lower (the record's 4 pct is that arithmetic, correctly not attributed to TI). ads8326 p.22 verbatim: LSB = reference divided by 65,536, 38.15uV at 2.5V and 76.3uV at 5V, offset and gain error appear to increase in LSB terms as VREF falls, internal noise 1.5LSB pk-pk at 5V and two times larger at 2.5V, and the quoted transition noise requires input AND reference pk-pk noise below 50uV. p.26 verbatim: 'the ADS8326 offers no inherent rejection of noise or voltage variation in regards to the reference input. This is of particular concern when the reference input is tied to the power supply', with line-frequency variation hard to remove. Envelope calibration_kind=uncalibrated is the researcher's inference and the envelope_note argues it in its own voice rather than claiming the source's authority. Cannot refute.",
+   "ts": "2026-08-16T19:46:37"
+  },
+  "sar-adc-supply-bypass-and-rail-isolation": {
+   "verdict": "verified",
+   "by": "research-second-reader",
+   "date": "2026-08-16",
+   "note": "Re-read AN688 (00688b.pdf) p.4 fig 8 + p.3 fig 6/fig 4, and ADS8326 p.26/p.27. Method: NOT eyeballed and NOT a naive path envelope - I read the chart's own vector rects with PyMuPDF and applied the white overpaint analytically (visible bar top = max(black rect top, overlapping white rect bottom)), calibrated by least squares on the figure's own 0/200/../1400 gridlines (resid < 3.3 counts). Validated on two figures with independent prior reads: fig 6 codes 2501/2502 = 1297/1377 (researcher 1296/1378, prior verdict 1296/1375) and fig 4 code 2512 = 815 (researcher 815, prior 814). Fig 8 then reads 2505 no bar, 2506 30.0, 2507 40.1, 2508 NO BAR DRAWN AT ALL, 2509 31.7, 2510 31.7, 2511 739.0, 2512 759.1, 2513 940.1, 2514 542.9, 2515 157.4, 2516 764.1, 2517 162.4, 2518 55.2, 2519 no bar - every value within 1.1 counts of the record. Also rendered fig 8 at 6x and looked at it: the 2508 cell between the tick marks is visibly empty, and the bimodal shape (peak 2513, dip 2515, second peak 2516 above 2514) is plain. So the occupied span 2506-2518, the interior zero at 2508, the tall set 2511-2514 plus 2516 and the bimodal description all hold. Bar-to-code mapping cross-checked three ways (fig 4 and fig 6 map correctly under the same nearest-label rule; bar pitch 12.7 pt vs a consistent +0.4 to +0.6 pt label offset, so a one-category shift is impossible). ADS8326 p.26 carries the quoted sentence verbatim ('a 0.1uF ceramic bypass capacitor should be placed as close as possible to the ADS8326 package. In addition, a 1uF to 10uF capacitor and a 5 or 10 ohm series resistor may be used to low-pass filter a noisy supply') plus the SAR-spike-sensitivity paragraph behind the prose's opening claim. p.27 fig 44 rendered and read: DVDD 2.7-3.6V rail (0.1uF+10uF at the DSP) feeds ADS8326 VDD through the 5 ohm series R with 0.1uF+10uF at the converter pin, while REF3225/OPA350/OPA365 hang on AVDD - and the body text says so ('Operational amplifiers and voltage reference are connected to analog power supply, AVDD'). AN688 p.4 text confirms the two-location bypass rule, the 1uF/0.1uF bandwidth split, smaller-cap-closest and shortest-lead; p.3 text confirms the 2x-3x power-trace width and the fig 6 caption. The record's own note about the fig 8 caption naming Figure 3 while the body text says Figure 5 minus the caps is accurate and honestly flagged. Envelope: ADS8326 p.19 does say 'consuming less than 10mW from VDD' verbatim, and the 50 mW / 15 mA / 75-150 mV threshold arithmetic is internally correct; p.19 is simply missing from sources[] (citation hygiene, not an unsupported claim). Nothing refuted.",
+   "ts": "2026-08-16T20:54:08"
+  }
+ },
+ "queue_entry": "2026-08-16-research-task-block-sar-adc-1-10",
+ "updated": "2026-08-16T20:56:18",
+ "summary": {
+  "verified": 10,
+  "refuted": 0,
+  "checklists": 1,
+  "sources": 4
+ }
+}

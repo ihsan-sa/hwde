@@ -1,0 +1,71 @@
+{
+  "block": "adc",
+  "candidates": [
+    {
+      "mpn": "MCP3201-BI/SN",
+      "lcsc": "C49274",
+      "package": "SOIC-8",
+      "basic": false,
+      "stock": 1199,
+      "price": 2.33,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1806071013_Microchip-Tech-MCP3201-BI-SN_C49274.pdf",
+      "rank": 1,
+      "fit": "True 1-channel 12-bit SAR, separate VREF pin (0.25V-VDD, independent of VDD), best INL grade (B) AND best stock AND lowest price in the whole MCP320x family - no tradeoff needed."
+    },
+    {
+      "mpn": "MCP3204-CI/SL",
+      "lcsc": "C32816",
+      "package": "SOIC-14",
+      "basic": false,
+      "stock": 693,
+      "price": 2.4724,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Microchip-Tech-MCP3204-CI-SL_C32816.pdf",
+      "rank": 2,
+      "fit": "Same SAR core and separate-VREF architecture as MCP3201, 4 channels (use 1). Second-source/spare-channel hedge, not a reason to prefer over #1 for a single-channel need."
+    },
+    {
+      "mpn": "ADS7042IDCUR",
+      "lcsc": "C701641",
+      "package": "VSSOP-8",
+      "basic": false,
+      "stock": 2167,
+      "price": 2.9465,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2303021100_Texas-Instruments-ADS7042IDCUR_C701641.pdf",
+      "rank": 3,
+      "fit": "Best stock/speed/native-3.3V-supply of any candidate (1 MSPS, AVDD 1.65-3.6V), on-chip offset self-cal - but has NO external reference pin at all; full-scale = AVDD directly, so hitting 0.1% needs AVDD itself to be a precision rail."
+    },
+    {
+      "mpn": "MCP3202-CI/SN",
+      "lcsc": "C56997",
+      "package": "SOP-8",
+      "basic": false,
+      "stock": 1347,
+      "price": 2.0566,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Microchip-Tech-MCP3202-CI-SN_C56997.pdf",
+      "rank": 4,
+      "fit": "CAUTION: cheapest/best-stocked family member, but its 8-pin package ties VDD and VREF to the SAME physical pin (datasheet-confirmed) - cannot accept a true external sub-VDD reference despite the catalog listing Voltage Reference = External."
+    },
+    {
+      "mpn": "ADS8681IPWR",
+      "lcsc": "C2670098",
+      "package": "TSSOP-16",
+      "basic": false,
+      "stock": 292,
+      "price": 9.8588,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2302221030_Texas-Instruments-ADS8681IPWR_C2670098.pdf",
+      "rank": 5,
+      "fit": "Answers the exceeds-own-supply question: 16-bit SAR with an on-chip attenuator, software input range 0-5.12V (near-exact fit, no board attenuator needed) - but AVDD is fixed ~5V (4.75-5.25V), incompatible with this board's 3.3V-only rail as stated. Flagged, not recommended, per instructions."
+    },
+    {
+      "mpn": "AD7091RBCPZ-RL7",
+      "lcsc": "C650575",
+      "package": "LFCSP-10(2x3)",
+      "basic": false,
+      "stock": 36,
+      "price": 12.6095,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2204121030_Analog-Devices-AD7091RBCPZ-RL7_C650575.pdf",
+      "rank": 6,
+      "fit": "1-ch 12-bit 1MSPS SAR, good typ INL/DNL (0.8/0.3 LSB) - but thin stock, ~5x MCP3201 price, and catalog shows internal-reference-only (no confirmed external-ref override). Low-priority backup only."
+    }
+  ]
+}

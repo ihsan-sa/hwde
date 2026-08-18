@@ -1,0 +1,447 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "boards\\bb-adc\\parts\\C92494.pdf",
+ "lcsc": "",
+ "n_pages": 48,
+ "text_chars": 79232,
+ "pages_trimmed": 22,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": "Bias Circuitry\nInput Stage Load\nLow Noise Charge \nPump\nBias Circuitry\n+IN\n-IN\nOUT\nV+\nV-\nCopyright \u00a9 2016, Texas Instruments Incorporated\nProduct\nFolder\nSample &\nBuy\nT echnical\nDocuments\nTools &\nSoftware\nSupport &\nCommunity\nReference\nDesign\nAn IMPORTANT NOTICE at the end of this data sheet addresses availability, warranty, changes, use in safety-critical applications,\nintellectual property matters and other important disclaimers. PRODUCTION DATA.\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016\nOPAx320xPrecision,20-MHz,0.9-pA,Low-Noise,RRIO,\nCMOSOperationalAmplifierWithShutdown\n1\n1 Features\n1\u2022 Precision with Zero-Crossover Distortion:\n\u2013 Low Offset Voltage: 150 \u00b5V (Maximum)\n\u2013 High CMRR: 114 dB\n\u2013 Rail-to-Rail I/O\n\u2022 Low Input Bias Current: 0.9 pA (Maximum)\n\u2022 Low Noise: 7 nV/\u221aHz at 10 kHz\n\u2022 Wide Bandwidth: 20 MHz\n\u2022 Slew Rate: 10 V/\u00b5s\n\u2022 Quiescent Current: 1.45 mA/Ch\n\u2022 Single-Supply Voltage Range: 1.8 V to 5.5 V\n\u2022 OPA320S and OPA2320S:\n\u2013 IQ in Shutdown Mode: 0.1 \u00b5A\n\u2022 Unity-Gain Stable\n\u2022 Small Packages:\n\u2013 SOT-23, VSSOP, SON, and SOIC\n2 Applications\n\u2022 High-Z Sensor Signal Conditioning\n\u2022 Transimpedance Amplifiers\n\u2022 Test and Measurement Equipment\n\u2022 Programmable Logic Controllers (PLCs)\n\u2022 Motor Control Loops\n\u2022 Communications\n\u2022 Input/Output ADC/DAC Buffers\n\u2022 Active Filters\nBlock Diagram\n3 Description\nThe OPA320 (single) and OPA2320 (dual) are a new\ngeneration of precision, low-voltage CMOS\noperational amplifiers optimized for very low noise\nand wide bandwidth while operating on a low\nquiescent current of only 1.45 mA.\nThe OPA320 series is ideal for low-power, single-\nsupply applications. Low-noise (7 nV/\u221aHz) and high-\nspeed operation also make them well-suited for\ndriving sampling analog-to-digital converters (ADCs).\nOther applications include signal conditioning and\nsensor amplification.\nThe OPA320 features a linear input stage with zero-\ncrossover distortion that delivers excellent common-\nmode rejection ratio (CMRR) of typically 114 dB over\nthe full input range. The input common mode range\nextends 100 mV beyond the negative and positive\nsupply rails. The output voltage typically swings within\n10 mV of the rails.\nIn addition, the OPAx320 has a wide supply voltage\nrange from 1.8 V to 5.5 V with excellent PSRR\n(106 dB) over the entire supply range, making them\nsuitable for precision, low-power applications that run\ndirectly from batteries without regulation.\nThe OPA320 (single version) is available in a 5-pin\nSOT23 package; the OPA320S shutdown single\nversion is available in an 6-pin SOT23 package. The\ndual OPA2320 is offered in 8-pin SOIC, VSSOP, and\nSON packages, and the OPA2320S (dual with\nshutdown) in a 10-pin VSSOP package.\nDevice Information(1)\nPART NUMBER PACKAGE BODY SIZE (NOM)\nOPA320 SOT-23 (5) 2.90 mm \u00d7 1.60 mm\nOPA320S SOT-23 (6) 2.90 mm \u00d7 1.60 mm\nOPA2320\nVSSOP (8) 3.00 mm \u00d7 3.00 mm\nSOIC (8) 4.90 mm \u00d7 3.91 mm\nSON (10) 3.00 mm \u00d7 3.00 mm\nOPA2320S VSSOP (10) 3.00 mm \u00d7 3.00 mm\n(1) For all available packages, see the orderable addendum at\nthe end of the data sheet."
+  },
+  {
+   "page": 1,
+   "text": "2\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nTable of Contents\n1 Features .................................................................. 1\n2 Applications ........................................................... 1\n3 Description ............................................................. 1\n4 Revision History..................................................... 2\n5 Pin Configuration and Functions ......................... 4\n6 Specifications......................................................... 6\n6.1 Absolute Maximum Ratings ...................................... 6\n6.2 ESD Ratings.............................................................. 6\n6.3 Recommended Operating Conditions....................... 6\n6.4 Thermal Information: OPA320 and OPA320S .......... 6\n6.5 Thermal Information: OPA2320 ................................ 7\n6.6 Thermal Information: OPA2320S.............................. 7\n6.7 Electrical Characteristics........................................... 7\n6.8 Typical Characteristics ............................................ 10\n7 Detailed Description ............................................ 16\n7.1 Overview ................................................................. 16\n7.2 Functional Block Diagram ....................................... 16\n7.3 Feature Description................................................. 16\n7.4 Device Functional Modes........................................ 21\n8 Application and Implementation ........................ 22\n8.1 Application Information............................................ 22\n8.2 Typical Application .................................................. 26\n9 Power Supply Recommendations ...................... 28\n10 Layout................................................................... 28\n10.1 Layout Guidelines ................................................. 28\n10.2 Layout Example .................................................... 28\n11 Device and Documentation Support ................. 29\n11.1 Device Support .................................................... 29\n11.2 Documentation Support ........................................ 30\n11.3 Related Links ........................................................ 30\n11.4 Receiving Notification of Documentation Updates 30\n11.5 Community Resource............................................ 30\n11.6 Trademarks ........................................................... 30\n11.7 Electrostatic Discharge Caution ............................ 30\n11.8 Glossary ................................................................ 31\n12 Mechanical, Packaging, and Orderable\nInformation ........................................................... 31\n4 Revision History\nNOTE: Page numbers for previous revisions may differ from page numbers in the current version.\nChanges from Revision E (June 2013) to Revision F Page\n\u2022 Added ESD Ratings table, Feature Description section, Device Functional Modes, Application and Implementation\nsection, Power Supply Recommendations section, Layout section, Device and Documentation Support section, and\nMechanical, Packaging, and Orderable Information section ................................................................................................. 1\n\u2022 Changed package families throughout data sheet: DFN to SON, MSOP to VSSOP, and SO to SOIC ................................ 1\nChanges from Revision D (November 2011) to Revision E Page\n\u2022 Deleted Ordering Information table ........................................................................................................................................ 1\n\u2022 Changed Shutdown, VIH and VIL parameters in Electrical Characteristics table .................................................................... 8\n\u2022 Added Figure 29 and Figure 30............................................................................................................................................ 13\n\u2022 Added Figure 31 and Figure 32............................................................................................................................................ 14\nChanges from Revision C (August 2011) to Revision D Page\n\u2022 Changed status of OPA2320 SO-8 (D) to production data from product preview. ................................................................ 1\nChanges from Revision B (March 2010) to Revision C Page\n\u2022 Deleted D (SO-8) package pinout drawing from Pin Configurations and Functions .............................................................. 4\n\u2022 Changed names of pins 2 and 6 for DGS (MSOP-10) package ........................................................................................... 5\n\u2022 Added values to Thermal Information tables, moved to new page, and updated format....................................................... 6\n\u2022 Added SHDN value to Electrical Characteristics condition line.............................................................................................. 7\n\u2022 Added new test condition row for Input Bias Current Over Temperature parameter ............................................................. 7\n\u2022 Changed test condition for Phase Margin parameter in Electrical Characteristics ................................................................ 8\n\u2022 Added test condition to Short-Circuit Current parameter in Electrical Characteristics ........................................................... 8"
+  },
+  {
+   "page": 2,
+   "first_line": "3",
+   "chars": 1567
+  },
+  {
+   "page": 3,
+   "text": "OUT\u25a1A\n/c45IN\u25a1A\n+IN\u25a1A\nV/c45\n1\n2\n3\n4\nV+\nOUT\u25a1B\n/c45IN\u25a1B\n+IN\u25a1B\n8\n7\n6\n5\nExposed\nThermal\nDie\u25a1Pad\non\nUnderside(2)\n1\n2\n3\n4\n8\n7\n6\n5\nV+\nOUT\u25a1B\n/c45IN\u25a1B\n+IN\u25a1B\nOUT\u25a1A\n/c45IN\u25a1A\n+IN\u25a1A\nV/c45\n1\n2\n3\n6\n5\n4\nV+\nSHDN\n/c45IN\nVOUT\nV/c45\n+IN\n1\n2\n3\n5\n4\nV+\n/c45IN\nOUT\nV/c45\n+IN\n4\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\n5 Pin Configuration and Functions\nOPA320 DBV Package\n5-Pin SOT-23\nTop View\nOPA320S DBV Package\n6-Pin SOT-23\nTop View\nPin Functions: OPA320 and OPA320S\nPIN\nI/O DESCRIPTION\nNAME OPA320 OPA320S\n\u2013IN 4 4 I Negative (inverting) input\n+IN 3 3 I Positive (noninverting) input\nOUT, VOUT 1 1 O Output\nSHDN \u2014 5 I Shutdown, active low\nV\u2013 2 2 \u2014 Negative (lowest) power supply\nV+ 5 6 \u2014 Positive (highest) power supply\nOPA2320 D and DGK Packages\n8-Pin SOIC and VSSOP\nTop View\nOPA2320 DRG Package\n8-Pin SON With Exposed Thermal Pad\nTop View\n(1) No internal connection.\n(2) Connect thermal pad to V\u2013.\nPin Functions: OPA2320\nPIN\nI/O DESCRIPTION\nNAME SOIC,\nVSSOP SON\n\u2013IN A 2 2 I Inverting input, channel A\n+IN A 3 3 I Noninverting input, channel A\n\u2013IN B 6 6 I Inverting input, channel B\n+IN B 5 5 I Noninverting input, channel B\nOUT A,\nVOUT A 1 1 O Output, channel A\nOUT B,\nVOUT B 7 7 O Output, channel B\nSHDN A \u2014 \u2014 I Shutdown, active low, channel A\nSHDN B \u2014 \u2014 I Shutdown, active low, channel B\nV\u2013 4 4 \u2014 Negative (lowest) power supply\nV+ 8 8 \u2014 Positive (highest) power supply"
+  },
+  {
+   "page": 4,
+   "text": "1\n2\n3\n4\n5\n10\n9\n8\n7\n6\nV+\nVOUT\u25a1B\n/c45IN\u25a1B\n+IN\u25a1B\nSHDN\u25a1B\nVOUT\u25a1A\n/c45IN\u25a1A\n+IN\u25a1A\nV/c45\nSHDN\u25a1A\nA\nB\n5\nOPA320, OPA2320, OPA320S, OPA2320S\nwww.ti.com SBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation FeedbackCopyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nOPA2320S DGS Package\n10-Pin VSSOP\nTop View\nPin Functions: OPA2320S\nPIN\nI/O DESCRIPTION\nNAME NO.\n\u2013IN A 2 I Inverting input, channel A\n+IN A 3 I Noninverting input, channel A\n\u2013IN B 8 I Inverting input, channel B\n+IN B 7 I Noninverting input, channel B\nOUT A,\nVOUT A 1 O Output, channel A\nOUT B,\nVOUT B 9 O Output, channel B\nSHDN A 5 I Shutdown, active low, channel A\nSHDN B 6 I Shutdown, active low, channel B\nV\u2013 4 \u2014 Negative (lowest) power supply\nV+ 10 \u2014 Positive (highest) power supply"
+  },
+  {
+   "page": 5,
+   "text": "6\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\n(1) Stresses beyond those listed under Absolute Maximum Ratings may cause permanent damage to the device. These are stress ratings\nonly, which do not imply functional operation of the device at these or any other conditions beyond those indicated under Recommended\nOperating Conditions. Exposure to absolute-maximum-rated conditions for extended periods may affect device reliability.\n(2) Input terminals are diode-clamped to the power-supply rails. Input signals that can swing more than 0.5 V beyond the supply rails should\nbe current limited to 10 mA or less.\n(3) Short-circuit to ground, one amplifier per package.\n6 Specifications\n6.1 Absolute Maximum Ratings\nover operating free-air temperature range (unless otherwise noted) (1)\nMIN MAX UNIT\nVoltage\nSupply, VS = (V+) \u2013 (V\u2013) 6\nV\nSignal input pin (2) (V\u2013) \u2013 0.5 (V+) + 0.5\nCurrent\nSignal input pin (2) \u201310 10\nmA\nOutput short-circuit current (3) Continuous\nTemperature\nOperating range, TA \u201340 150\n\u00b0CJunction, TJ 150\nStorage, Tstg \u201365 150\n(1) JEDEC document JEP155 states that 500-V HBM allows safe manufacturing with a standard ESD control process.\n(2) JEDEC document JEP157 states that 250-V CDM allows safe manufacturing with a standard ESD control process.\n6.2 ESD Ratings\nVALUE UNIT\nV(ESD) Electrostatic discharge\nHuman-body model (HBM), per ANSI/ESDA/JEDEC JS-001 (1) \u00b14000\nVCharged-device model (CDM), per JEDEC specification JESD22-C101 (2) \u00b11000\nMachine model (MM) \u00b1200\n6.3 Recommended Operating Conditions\nover operating free-air temperature range (unless otherwise noted)\nMIN MAX UNIT\nVS Specified voltage 1.8 5.5 V\nTA Specified temperature \u201340 125 \u00b0C\n(1) For more information about traditional and new thermal metrics, see the application report, Semiconductor and IC Package Thermal\nMetrics.\n6.4 Thermal Information: OPA320 and OPA320S\nTHERMAL METRIC\nOPA320 OPA320S\nUNITDBV (SOT-23) DBV (SOT-23)\n5 PINS 6 PINS\nR\u03b8JA Junction-to-ambient thermal resistance (1) 219.3 177.5 \u00b0C/W\nR\u03b8JC(top) Junction-to-case(top) thermal resistance 107.5 108.9 \u00b0C/W\nR\u03b8JB Junction-to-board thermal resistance 57.5 27.4 \u00b0C/W\n\u03c8JT Junction-to-top characterization parameter 7.4 13.3 \u00b0C/W\n\u03c8JB Junction-to-board characterization parameter 56.9 26.9 \u00b0C/W\nR\u03b8JC(bot) Junction-to-case(bottom) thermal resistance \u2014 \u2014 \u00b0C/W"
+  },
+  {
+   "page": 6,
+   "text": "7\nOPA320, OPA2320, OPA320S, OPA2320S\nwww.ti.com SBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation FeedbackCopyright \u00a9 2010\u20132016, Texas Instruments Incorporated\n(1) For more information about traditional and new thermal metrics, see the application report, Semiconductor and IC Package Thermal\nMetrics.\n6.5 Thermal Information: OPA2320\nTHERMAL METRIC (1)\nOPA2320\nUNITD (SOIC) DGK (VSSOP) DRG (SON)\n8 PINS 8 PINS 8 PINS\nR\u03b8JA Junction-to-ambient thermal resistance 122.6 174.8 50.6 \u00b0C/W\nR\u03b8JC(top) Junction-to-case(top) thermal resistance 67.1 43.9 54.9 \u00b0C/W\nR\u03b8JB Junction-to-board thermal resistance 64 95 25.2 \u00b0C/W\n\u03c8JT Junction-to-top characterization parameter 13.2 2 0.6 \u00b0C/W\n\u03c8JB Junction-to-board characterization parameter 63.4 93.5 25.3 \u00b0C/W\nR\u03b8JC(bot) Junction-to-case(bottom) thermal resistance \u2014 \u2014 5.7 \u00b0C/W\n(1) For more information about traditional and new thermal metrics, see the Semiconductor and IC Package Thermal Metrics application\nreport.\n6.6 Thermal Information: OPA2320S\nTHERMAL METRIC (1)\nOPA2320S\nUNITDGS (VSSOP)\n10 PINS\nR\u03b8JA Junction-to-ambient thermal resistance 171.5 \u00b0C/W\nR\u03b8JC(top) Junction-to-case (top) thermal resistance 43 \u00b0C/W\nR\u03b8JB Junction-to-board thermal resistance 91.4 \u00b0C/W\n\u03c8JT Junction-to-top characterization parameter 1.9 \u00b0C/W\n\u03c8JB Junction-to-board characterization parameter 89.9 \u00b0C/W\nR\u03b8JC(bot) Junction-to-case (bottom) thermal resistance \u2014 \u00b0C/W\n6.7 Electrical Characteristics\nAt VS = 1.8 V to 5.5 V or \u00b10.9 V to \u00b12.75 V, TA = 25\u00b0C, RL = 10 k\u03a9 connected to VS/2, VCM = VS/2, VOUT = VS/2, and\nSHDN x = VS+ (unless otherwise noted).\nPARAMETER TEST CONDITIONS MIN TYP MAX UNIT\nOFFSET VOLTAGE\nVOS Input offset voltage 40 150 \u00b5V\ndVOS/dT Input offset voltage\nvs temperature VS = 5.5 V, TA = \u201340\u00b0C to 125\u00b0C 1.5 5 \u00b5V/\u00b0C\nPSR Input offset voltage\nvs power supply\nVS = 1.8 V to 5.5 V, TA = 25\u00b0C 5 20\n\u00b5V/V\nVS = 1.8 V to 5.5 V, TA = \u201340\u00b0C to 125\u00b0C 15\nChannel separation 1 kHz 130 dB\nINPUT VOLTAGE\nVCM Common-mode voltage (V\u2013) \u2013 0.1 (V+) + 0.1 V\nCMRR Common-mode rejection ratio\nVS = 5.5 V, (V\u2013) \u2013 0.1 V < VCM < (V+) + 0.1 V, TA = 25\u00b0C 100 114\ndBVS = 5.5 V, (V\u2013) \u2013 0.1 V < VCM < (V+) + 0.1 V, TA = \u201340\u00b0C to\n125\u00b0C 96\nINPUT BIAS CURRENT\nIB Input bias current\nTA = 25\u00b0C \u00b10.2 \u00b10.9\npA\nTA = \u201340\u00b0C to 85\u00b0C \u00b150\nTA = \u201340\u00b0C to 125\u00b0C\nOPA2320 and OPA2320S \u00b1400\nOPA320 and OPA320S \u00b1600\nIOS Input offset current\nTA = 25\u00b0C \u00b10.2 \u00b10.9\npATA = \u201340\u00b0C to 85\u00b0C \u00b150\nTA = \u201340\u00b0C to 125\u00b0C \u00b1400"
+  },
+  {
+   "page": 7,
+   "text": "8\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nElectrical Characteristics (continued)\nAt VS = 1.8 V to 5.5 V or \u00b10.9 V to \u00b12.75 V, TA = 25\u00b0C, RL = 10 k\u03a9 connected to VS/2, VCM = VS/2, VOUT = VS/2, and\nSHDN x = VS+ (unless otherwise noted).\nPARAMETER TEST CONDITIONS MIN TYP MAX UNIT\n(1) Based on simulation.\n(2) Third-order filter; bandwidth = 80 kHz at \u20133 dB.\n(3) Specified by design and characterization; not production tested.\n(4) Disable time (tOFF) and enable time (tON) are defined as the time between the 50% point of the signal applied to the SHDN pin and the\npoint at which the output voltage reaches the 10% (disable) or 90% (enable) level.\n(5) Full shutdown refers to the dual OPA2320S having both A and B channels disabled (SHDN A = SHDN B = VS\u2013). For partial shutdown,\nonly one SHDN pin is exercised; in this mode, the internal biasing and oscillator remain operational and the enable time is shorter.\nNOISE\nInput voltage noise f = 0.1 Hz to 10 Hz 2.8 \u00b5VPP\nen Input voltage noise density\nf = 1 kHz 8.5\nnV/\u221aHz\nf = 10 kHz 7\nin Input current noise density f = 1 kHz 0.6 fA/\u221aHz\nINPUT CAPACITANCE\nDifferential 5 pF\nCommon mode 4 pF\nOPEN-LOOP GAIN\nAOL Open-loop voltage gain\n0.1 V < VO < (V+) \u2013 0.1 V, RL = 10 k\u03a9, TA = 25\u00b0C 114 132\ndB\n0.1 V < VO < (V+) \u2013 0.1 V, RL = 10 k\u03a9, TA = \u201340\u00b0C to 125\u00b0C 100 130\n0.2 V < VO < (V+) \u2013 0.2 V, RL = 2 k\u03a9, TA = 25\u00b0C 108 123\n0.2 V < VO < (V+) \u2013 0.2 V, RL = 2 k\u03a9, TA = \u201340\u00b0C to 125\u00b0C 96 130\nPM Phase margin VS = 5 V, CL = 50 pF 47 \u00b0\nFREQUENCY RESPONSE, VS = 5 V, CL = 50 pF\nGBP Gain bandwidth product Unity gain 20 MHz\nSR Slew rate G = +1 10 V/\u00b5s\ntS Settling time\nto 0.1%, 2-V step, G = +1 0.25\n\u00b5sto 0.01%, 2-V step, G = +1 0.32\nto 0.0015%, 2-V step, G = +1 (1) 0.5\nOverload recovery time VIN \u00d7 G > VS 100 ns\nTHD+N Total harmonic distortion +\nnoise (2)\nVO = 4 VPP, G = 1, f = 10 kHz, RL = 10 k\u03a9 0.0005%\nVO = 2 VPP, G = 1, f = 10 kHz, RL = 600 \u03a9 0.0011%\nOUTPUT\nVO\nVoltage output swing from\nboth rails\nRL = 10 k\u03a9, TA = 25\u00b0C 10 20\nmV\nRL = 2 k\u03a9, TA = 25\u00b0C 25 35\nRL = 10 k\u03a9, TA = \u201340\u00b0C to 125\u00b0C 30\nRL = 2 k\u03a9, TA = \u201340\u00b0C to 125\u00b0C 45\nISC Short-circuit current VS = 5.5 V \u00b165 mA\nCL Capacitive load drive See Typical Characteristics\nRO Open-loop output resistance IO = 0 mA, f = 1 MHz 90 \u03a9\nSHUTDOWN (3)\nIQSD\nQuiescent current per\namplifier\nAll amplifiers disabled, SHDN = V\u2013 0.1 0.5 \u00b5A\nOPA2320S only, SHDN A = VS\u2013, SHDN B = VS+ 1.6\nmA\nOPA2320S only, SHDN A = VS+, SHDN B = VS\u2013 1.6\nVIH High-level input voltage Amplifier enabled, VS\u2013 + 0.7 [(VS+) + |VS\u2013|] 0.7 \u00d7 VS+ 5.5 V\nVIL Low-level input voltage Amplifier disabled, VS\u2013 + 0.3 [(VS+) + |VS\u2013|] 0.3 \u00d7 VS+ V\ntON Amplifier enable time (4) G = 1, VOUT = 0.1 \u00d7 VS/2, full shutdown (5) 20 \u00b5s\nOPA2320S only, partial shutdown (5) 6\ntOFF Amplifier disable time (4) G = 1, VOUT = 0.1 \u00d7 VS/2 3 \u00b5s\nSHDN pin input bias current\n(per pin)\nVIH = 5 V 0.13\n\u00b5A\nVIL = 0 V 0.04"
+  },
+  {
+   "page": 8,
+   "first_line": "9",
+   "chars": 858
+  },
+  {
+   "page": 9,
+   "first_line": "140",
+   "chars": 1641
+  },
+  {
+   "page": 10,
+   "first_line": "140",
+   "chars": 1617
+  },
+  {
+   "page": 11,
+   "text": "6\n5\n4\n3\n2\n1\n0\n10k 10M\nFrequency\u25a1(Hz)\nOutput\u25a1Voltage\u25a1(V )\nPP\n100k 1M\n5.5VS\n3.3VS\n1.8VS\nR =\u25a110k\nC =\u25a150pF\n/c87L\nL\n3\n2\n1\n0\n1\n2\n3\n/c45\n/c45\n/c45\n0 80\nOutput\u25a1Current\u25a1(mA)\nOutput\u25a1Voltage\u25a1(V)\n10 20 30 60 5040\nV = 2.75\u25a1V/c177S\n70\n/c45 /c176 40 C\n+25 C/c176\n+125 C/c176\n60\n40\n20\n0\n20/c45\n10k 100M\nFrequency\u25a1(Hz)\nGain\u25a1(dB)\n100k 1M 10M\nG\u25a1=\u25a1+1V/V\nG\u25a1=\u25a1+10V/V\nG\u25a1=\u25a1+100V/V\nV =\u25a1+1.8V\nR =\u25a110k\nC =\u25a150pF\n/c87\nS\nL\nL\n60\n40\n20\n0\n20/c45\n10k 100M\nFrequency\u25a1(Hz)\nGain\u25a1(dB)\n100k 1M 10M\nG\u25a1=\u25a1+1V/V\nG\u25a1=\u25a1+10V/V\nG\u25a1=\u25a1+100V/V\nV =\u25a1+5.5V\nR =\u25a110k\nC =\u25a150pF\nS\nL\nL /c87\n1000\n100\n10\n1\n10 1M\nFrequency\u25a1(Hz)\nVoltage\u25a1Noise\u25a1(nV/ )\n/c214Hz\n100 1k 10k 100k\nV =\u25a11.8V\u25a1to\u25a15.5VS\n6\n5\n4\n3\n2\n1\n0\n1\n2\n3\n4\n/c45\n/c45\n/c45\n/c45\n0 10\nTime\u25a1(1s/div)\nVoltage\u25a1( V)\n/c109\n1 2 3 8 97654\n12\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nTypical Characteristics (continued)\nAt TA = 25\u00b0C, VCM = VOUT = mid-supply, and RL = 10 k\u03a9 (unless otherwise noted).\nFigure 13. Input Voltage Noise Spectral Density\nvs Frequency\nFigure 14. 0.1-Hz to 10-Hz Input Voltage Noise\nFigure 15. Closed-Loop Gain vs Frequency Figure 16. Closed-Loop Gain vs Frequency\nFigure 17. Maximum Output Voltage vs Frequency Figure 18. Output Voltage Swing vs Output Current\n(8-Pin VSSOP)"
+  },
+  {
+   "page": 12,
+   "first_line": "0.1",
+   "chars": 1528
+  },
+  {
+   "page": 13,
+   "text": "Voltage (500 mV/div) \nTime (5 \u001ds/div) \nOutput Pin \nEnable Pin \nC001 \nG   = 1 V/V \nVS  = 1.8V \nVIN = 1.5V \nVoltage (1 V/div) \nTime (2.5 \u001ds/div) \nOutput Pin \nEnable Pin \nC001 \nG   = 1 V/V \nVS  = 5.5V \nVIN = 4V \n0.1\n0.075\n0.05\n0.025\n0\n0.025\n0.05\n0.075\n0.1\n/c45\n/c45\n/c45\n/c45\n/c45 1.6 0.8\nTime\u25a1( s)/c109\nVoltage\u25a1(V)\n/c45 1.2 /c45 0.8 /c45 0.4 0 0.4\nVOUT\nVIN\nGain\u25a1= 1\nV = 2.75V\nV =\u25a1100mV\n/c45\n/c177S\nIN PP\n1.5\n1\n0.5\n0\n0.5\n1\n1.5\n/c45\n/c45\n/c45\n/c45 0.4 1.6\nTime\u25a1( s)/c109\nVoltage\u25a1(V)\n0 0.4 0.8 1.2\nVOUT\nVIN\nGain\u25a1=\u25a1+1\nV = 2.75V\nV =\u25a12V\nS\nIN PP\n/c177\n12\n11.5\n11\n10.5\n10\n9.5\n9\n1.6 5.6\nSupply\u25a1Voltage\u25a1(V)\nSlew\u25a1Rate\u25a1(V/ s)\n/c109\n2 2.8 3.22.4 3.6 4 4.4 4.8 5.2\nRise\nFall\nC =\u25a150pFL\n0.1\n0.075\n0.05\n0.025\n0\n0.025\n0.05\n0.075\n0.1\n/c45\n/c45\n/c45\n/c45\n/c45 0.8 1.6\nTime\u25a1( s)/c109\nVoltage\u25a1(V)\n/c45 0.4 0 0.4 0.8\nGain\u25a1=\u25a1+1\nV = 2.75V\nV =\u25a1100mV\nS\nIN PP\n/c177\n1.2\nVOUT\nVIN\n14\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nTypical Characteristics (continued)\nAt TA = 25\u00b0C, VCM = VOUT = mid-supply, and RL = 10 k\u03a9 (unless otherwise noted).\nFigure 25. Slew Rate vs Supply Voltage Figure 26. Small-Signal Step Response\nFigure 27. Small-Signal Step Response Figure 28. Large-Signal Step Response vs Time\nFigure 29. Enable Start-Up Figure 30. Enable Start-Up"
+  },
+  {
+   "page": 14,
+   "text": "Voltage (500 mV/div) \nTime (5 \u001ds/div) \nOutput Pin \nEnable Pin \nC001 \nG   = 1 V/V \nVS  = 1.8V \nVIN = 1.5V \nVoltage (1 V/div) \nTime (2.5 \u001ds/div) \nOutput Pin \nEnable Pin \nC001 \nG   = 1 V/V \nVS  = 5.5V \nVIN = 4V \n15\nOPA320, OPA2320, OPA320S, OPA2320S\nwww.ti.com SBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation FeedbackCopyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nTypical Characteristics (continued)\nAt TA = 25\u00b0C, VCM = VOUT = mid-supply, and RL = 10 k\u03a9 (unless otherwise noted).\nFigure 31. Enable Shutdown Figure 32. Enable Shutdown"
+  },
+  {
+   "page": 15,
+   "text": "Bias Circuitry\nInput Stage Load\nLow Noise Charge \nPump\nBias Circuitry\n+IN\n-IN\nOUT\nV+\nV-\nCopyright \u00a9 2016, Texas Instruments Incorporated\n16\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\n7 Detailed Description\n7.1 Overview\nThe OPA320 family of operational amplifiers (op amps) are high-speed, precision amplifiers, perfectly suited to\ndrive 12-, 14-, and 16-bit analog-to-digital converters. Low output impedance with flat frequency characteristics\nand zero-crossover distortion circuitry enable high linearity over the full input common mode range, achieving\ntrue rail-to-rail input from a 1.8-V to 5.5-V single supply.\n7.2 Functional Block Diagram\n7.3 Feature Description\n7.3.1 Operating Voltage\nThe OPA320 series op amps are unity-gain stable and can operate on a single-supply voltage (1.8 V to 5.5 V), or\na split-supply voltage (\u00b10.9 V to \u00b12.75 V), making them highly versatile and easy to use. The power-supply pins\nshould have local bypass ceramic capacitors (typically 0.001 \u00b5F to 0.1 \u00b5F). The OPA320 amplifiers are fully\nspecified from 1.8 V to 5.5 V and over the extended temperature range of \u201340\u00b0C to 125\u00b0C. Parameters that can\nexhibit variance with regard to operating voltage or temperature are presented in the Typical Characteristics."
+  },
+  {
+   "page": 16,
+   "text": "4\n3\n2\n1\n0\n1\n2\n3\n4\n/c45\n/c45\n/c45\n/c45\n/c45 500 1000\nTime\u25a1( s)/c109\nVoltage\u25a1(V)\n/c45 250 0 750 250 500\nVOUT\nVINV = 2.5V/c177S\nRS\nOPA320\nV+\nVIN\nVOUT\nI\n10mA, Max\nOVERLOAD\nCopyright \u00a9 2016, Texas Instruments Incorporated\n17\nOPA320, OPA2320, OPA320S, OPA2320S\nwww.ti.com SBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation FeedbackCopyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nFeature Description (continued)\n7.3.2 Input and ESD Protection\nThe OPA320 incorporates internal electrostatic discharge (ESD) protection circuits on all pins. In the case of\ninput and output pins, this protection primarily consists of current-steering diodes connected between the input\nand power-supply pins. These ESD protection diodes also provide in-circuit input overdrive protection, provided\nthat the current is limited to 10 mA as stated in the Absolute Maximum Ratings. Many input signals are inherently\ncurrent-limited to less than 10 mA; therefore, a limiting resistor is not required. Figure 33 shows how a series\ninput resistor (RS) may be added to the driven input to limit the input current. The added resistor contributes\nthermal noise at the amplifier input and the value should be kept to the minimum in noise-sensitive applications.\nFigure 33. Input Current Protection\n7.3.3 Rail-to-Rail Input\nThe OPA320 product family features true rail-to-rail input operation, with supply voltages as low as \u00b10.9 V\n(1.8 V). The design of the OPA320 amplifiers include an internal charge-pump that powers the amplifier input\nstage with an internal supply rail at approximately 1.6 V above the external supply (VS+). This internal supply rail\nallows the single differential input pair to operate and remain very linear over a very wide input common mode\nrange. A unique zero-crossover input topology eliminates the input offset transition region typical of many rail-to-\nrail, complementary input stage operational amplifiers. This topology allows the OPA320 to provide superior\ncommon-mode performance (CMRR > 110 dB, typical) over the entire common-mode input range, which extends\n100 mV beyond both power-supply rails. When driving analog-to-digital converters (ADCs), the highly linear VCM\nrange of the OPA320 assures maximum linearity and lowest distortion.\n7.3.4 Phase Reversal\nThe OPA320 op amps are designed to be immune to phase reversal when the input pins exceed the supply\nvoltages, therefore providing further in-system stability and predictability. Figure 34 shows the input voltage\nexceeding the supply voltage without any phase reversal.\nFigure 34. No Phase Reversal"
+  },
+  {
+   "page": 17,
+   "text": "OPA320\nV+\nVOUT\nVIN\nRIN\nR C = R/c180 C/c180IN IN F F\nRF\nCL\nCIN\nCIN\nCF\nCopyright \u00a9 2016, Texas Instruments Incorporated\n18\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nFeature Description (continued)\n7.3.5 Feedback Capacitor Improves Response\nFor optimum settling time and stability with high-impedance feedback networks, it may be necessary to add a\nfeedback capacitor across the feedback resistor, RF, as shown in Figure 35. This capacitor compensates for the\nzero created by the feedback network impedance and the OPA320 input capacitance (and any parasitic layout\ncapacitance). The effect becomes more significant with higher impedance networks.\nWhere CIN is equal to the OPA320 input capacitance (approximately 9 pF) plus any parasitic layout capacitance.\nFigure 35. Feedback Capacitor Improves Dynamic Performance\nFor the circuit shown in Figure 35, the value of the variable feedback capacitor should be chosen so that the\ninput resistance times the input capacitance of the OPA320 (typically 9 pF) plus the estimated parasitic layout\ncapacitance equals the feedback capacitor times the feedback resistor calculated with Equation 1.\nRIN \u00d7 CIN = RF \u00d7 CF\nwhere\n\u2022 CIN is equal to the OPA320 input capacitance (sum of differential and common mode) plus the layout\ncapacitance. (1)\nThe capacitor value can be adjusted until optimum performance is obtained.\n7.3.6 EMI Susceptibility and Input Filtering\nOperational amplifiers vary in susceptibility to electromagnetic interference (EMI). If conducted EMI enters the\noperational amplifier, the dc offset observed at the amplifier output may shift from the nominal value while EMI is\npresent. This shift is a result of signal rectification associated with the internal semiconductor junctions. While all\noperational amplifier pin functions can be affected by EMI, the input pins are likely to be the most susceptible.\nThe OPA320 operational amplifier family incorporates an internal input low-pass filter that reduces the amplifiers\nresponse to EMI. Both common mode and differential mode filtering are provided by the input filter. The filter is\ndesigned for a cutoff frequency of approximately 580 MHz (\u20133 dB), with a roll-off of 20 dB per decade.\n7.3.7 Output Impedance\nThe open-loop output impedance of the OPA320 common-source output stage is approximately 90 \u03a9. When the\nop amp is connected with feedback, this value is reduced significantly by the loop gain. For example, with 130 dB\n(typical) of open-loop gain, the output impedance is reduced in unity-gain to less than 0.03 \u03a9. For each decade\nrise in the closed-loop gain, the loop gain is reduced by the same amount, which results in a ten-fold increase in\neffective output impedance. While the OPA320 output impedance remains very flat over a wide frequency range,\nat higher frequencies the output impedance rises as the open-loop gain of the op amp drops. However, at these\nfrequencies the output also becomes capacitive as a result of parasitic capacitance. This architecture in turn\nprevents the output impedance from becoming too high, which can cause stability problems when driving large\ncapacitive loads. As mentioned previously, the OPA320 has excellent capacitive load drive capability for an op\namp with its bandwidth."
+  },
+  {
+   "page": 18,
+   "text": "70\n60\n50\n40\n30\n20\n10\n0\n0 3000\nCapacitive\u25a1Load\u25a1(pF)\nOvershoot\u25a1(%)\n2500500 1000 1500 2000\nG\u25a1=\u25a11,\u25a1V =\u25a11.8VS\nG\u25a1=\u25a11,\u25a1V =\u25a15.5VS\nG\u25a1=\u25a110,\u25a1V =\u25a11.8VS\nG\u25a1=\u25a110,\u25a1V =\u25a15.5VS\n10 to/c87\n20/c87\nV+\nVIN\nVOUT\nRS\nRL CL\nOPA320\nCopyright \u00a9 2016, Texas Instruments Incorporated\n19\nOPA320, OPA2320, OPA320S, OPA2320S\nwww.ti.com SBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation FeedbackCopyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nFeature Description (continued)\n7.3.8 Capacitive Load and Stability\nThe OPA320 is designed to be used in applications where driving a capacitive load is required. As with all op\namps, there may be specific instances where the OPA320 can become unstable. The particular op amp circuit\nconfiguration, layout, gain, and output loading are some of the factors to consider when establishing whether an\namplifier is stable in operation. An op amp in the unity-gain (1-V/V) buffer configuration and driving a capacitive\nload exhibits a greater tendency to become unstable than an amplifier operated at a higher noise gain. The\ncapacitive load, in conjunction with the op amp output resistance, creates a pole within the feedback loop that\ndegrades the phase margin. The degradation of the phase margin increases as the capacitive loading increases.\nWhen operating in the unity-gain configuration, the OPA320 remains stable with a pure capacitive load up to\napproximately 1 nF.\nThe equivalent series resistance (ESR) of some very large capacitors (CL > 1 \u00b5F) is sufficient to alter the phase\ncharacteristics in the feedback loop such that the amplifier remains stable. Increasing the amplifier closed-loop\ngain allows the amplifier to drive increasingly larger capacitance. This increased capability is evident when\nobserving the overshoot response of the amplifier at higher voltage gains, as shown in Figure 37. One technique\nfor increasing the capacitive load drive capability of the amplifier operating in unity gain is to insert a small\nresistor (RS), typically 10 \u03a9 to 20 \u03a9, in series with the output, as shown in Figure 36.\nThis resistor significantly reduces the overshoot and ringing associated with large capacitive loads. A possible\nproblem with this technique is that a voltage divider is created with the added series resistor and any resistor\nconnected in parallel with the capacitive load. The voltage divider introduces a gain error at the output that\nreduces the output swing. The error contributed by the voltage divider may be insignificant. For instance, with a\nload resistance, RL = 10 k\u03a9 and RS = 20 \u03a9, the gain error is only about 0.2%. However, when RL is decreased to\n600 \u03a9, which the OPA320 is able to drive, the error increases to 7.5%.\nFigure 36. Improving Capacitive Load Drive\nFigure 37. Small-Signal Overshoot vs Capacitive Load (100-mVPP Output Step)"
+  },
+  {
+   "page": 19,
+   "text": "3\n2.5\n2\n1.5\n1\n0.5\n0\n0.5\n1\n/c45\n/c45\n9.75 11\nTime\u25a1(250ns/div)\nVoltage\u25a1(V)\n10 10.25 10.5 10.75\nInput\nOutput\nV = 2.75V\nG\u25a1= 10\n/c177\n/c45\nS\n1\n0.5\n0\n0.5\n1\n1.5\n2\n2.5\n3\n/c45\n/c45\n/c45\n/c45\n/c45\n/c45\n9.75 11\nTime\u25a1(250ns/div)\nVoltage\u25a1(V)\n10 10.25 10.5 10.75\nOutput\nInput\nV = 2.75V\nG\u25a1= 10\n/c177\n/c45\nS\n20\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nFeature Description (continued)\n7.3.9 Overload Recovery Time\nOverload recovery time is the time it takes the output of the amplifier to come out of saturation and recover to the\nlinear region. Overload recovery is particularly important in applications where small signals must be amplified in\nthe presence of large transients. Figure 38 and Figure 39 show the positive and negative overload recovery\ntimes of the OPA320, respectively. In both cases, the time elapsed before the OPA320 comes out of saturation is\nless than 100 ns. In addition, the symmetry between the positive and negative recovery times allows excellent\nsignal rectification without distortion of the output signal.\nFigure 38. Positive Recovery Time Figure 39. Negative Recovery Time\n7.3.10 Shutdown Function\nThe SHDN (enable) pin function of the OPAx320S is referenced to the negative supply voltage of the operational\namplifier. A logic level high enables the op amp. A valid logic high is defined as voltage [(V+) \u2013 0.1 V], up to (V+),\napplied to the SHDN pin. A valid logic low is defined as [(V\u2013) + 0.1 V], down to (V\u2013), applied to the enable pin.\nThe maximum allowed voltage applied to SHDN is 5.5 V with respect to the negative supply, independent of the\npositive supply voltage. This pin must either be connected to a valid high or a low voltage or driven, and not left\nas an open circuit.\nThe logic input is a high-impedance CMOS input. Dual op amp versions are independently controlled and quad\nop amp versions are controlled in pairs with logic inputs. For battery-operated applications, this feature may be\nused to greatly reduce the average current and extend battery life. The enable time is 10 \u00b5s for full shutdown of\nall channels; disable time is 3 \u03bcs. When disabled, the output assumes a high-impedance state. This architecture\nallows the OPAx320S to be operated as a gated amplifier (or to have the device output multiplexed onto a\ncommon analog output bus). Shutdown time (tOFF) depends on loading conditions and increases with increased\nload resistance. To ensure shutdown (disable) within a specific shutdown time, the specified 10-k\u03a9 load to mid-\nsupply (VS / 2) is required. If using the OPAx320S without a load, the resulting turn-off time is significantly\nincreased.\n7.3.11 Leadless SON Package\nThe OPA320 series uses the SON style package (also known as SON), which is a QFN with contacts on only\ntwo sides of the package bottom. This leadless package maximizes printed circuit board (PCB) space and offers\nenhanced thermal and electrical characteristics through an exposed pad. One of the primary advantages of the\nSON package is its low height (0.8 mm).\nSON packages are physically small, have a smaller routing area, improved thermal performance, reduced\nelectrical parasitics, and a pinout scheme that is consistent with other commonly-used packages (such as SOIC\nand VSSOP). Additionally, the absence of external leads eliminates bent-lead issues.\nThe SON package can easily be mounted using standard PCB assembly techniques. See Application Report,\nQFN/SON PCB Attachment (SLUA271) and Application Report, Quad Flatpack No-Lead Logic Packages\n(SCBA017), both available for download at www.ti.com."
+  },
+  {
+   "page": 20,
+   "text": "21\nOPA320, OPA2320, OPA320S, OPA2320S\nwww.ti.com SBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation FeedbackCopyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nFeature Description (continued)\nNOTE\nThe exposed leadframe die pad on the bottom of the SON package should be connected\nto the most negative potential (V\u2013).\n7.4 Device Functional Modes\nThe OPA320 family of operational amplifiers are operational when power-supply voltages between 1.8 V to 5.5 V\nare applied. Devices with an S suffix have a shutdown capability. For a detailed description of the shutdown\nfunction, see Shutdown Function."
+  },
+  {
+   "page": 21,
+   "text": "f/c45 3dB =\n2 R C/c112 F D\nGBW (Hz)\n2 R C/c112F F\n1\n4 R C/c112F D\nGBW=\nOPA320 VOUT\nV+\nV/c45\nCD\nR\n10M/c87\nF\nC\n< 1pF\nF\n(1)\n/c108\nCopyright \u00a9 2016, Texas Instruments Incorporated\n22\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\n8 Application and Implementation\nNOTE\nInformation in the following applications sections is not part of the TI component\nspecification, and TI does not warrant its accuracy or completeness. TI\u2019s customers are\nresponsible for determining suitability of components for their purposes. Customers should\nvalidate and test their design implementation to confirm system functionality.\n8.1 Application Information\nThe OPA320 family offers outstanding DC and AC performance. These devices operate up to a 5.5-V power\nsupply and offer ultra-low input bias current and 20-MHz bandwidth. These features make the OPA320 family a\nrobust operational amplifier for both battery-powered and industrial applications.\n8.1.1 Transimpedance Amplifier\nWide gain bandwidth, low-input bias current, low input voltage, and current noise make the OPA320 an ideal\nwideband photodiode transimpedance amplifier. Low-voltage noise is important because photodiode capacitance\ncauses the effective noise gain of the circuit to increase at high frequency.\nThe key elements to a transimpedance design, as shown in Figure 40, are the expected diode capacitance (CD),\nwhich should include the parasitic input common mode and differential-mode input capacitance (4 pF + 5 pF for\nthe OPA320); the desired transimpedance gain (RF); and the gain-bandwidth (GBW) for the OPA320 (20 MHz).\nWith these three variables set, the feedback capacitor value (CF) can be set to control the frequency response.\nCF includes the stray capacitance of RF, which is 0.2 pF for a typical surface-mount resistor.\n(1) CF is optional to prevent gain peaking. It includes the stray capacitance of RF.\nFigure 40. Dual-Supply Transimpedance Amplifier\nTo achieve a maximally-flat, second-order Butterworth frequency response, the feedback pole should be set as\nshown in Equation 2.\n(2)\nBandwidth is calculated by Equation 3.\n(3)\nFor even higher transimpedance bandwidth, consider the high-speed CMOS OPA380 (90-MHz GBW), OPA354\n(100-MHz GBW), OPA300 (180-MHz GBW), OPA355 (200-MHz GBW), or OPA656/57 (400-MHz GBW)."
+  },
+  {
+   "page": 22,
+   "first_line": "OPA320 VOUT",
+   "chars": 2680
+  },
+  {
+   "page": 23,
+   "first_line": "1/2",
+   "chars": 2066
+  },
+  {
+   "page": 24,
+   "first_line": "/c45 5V",
+   "chars": 2019
+  },
+  {
+   "page": 25,
+   "first_line": "4 nF",
+   "chars": 971
+  },
+  {
+   "page": 26,
+   "text": "Frequency (Hz)\nGain (db)\n-60\n-40\n-20\n0\n20\n100 1k 10k 100k 1M\n\u000b \f\n4\n1\nC 3 4 2 5\nRGain R\n1f 1 R R C C2S\n \n \n\u000b \f \u000b \f \u000b \f\n1 3 2 5\n2\n2 1 3 4 3 4 2 5\n1 R R C COutput sInput s s C 1 R 1 R 1 R 1 R R C C\n\u0010 \n\u000e \u000e \u000e \u000e\n27\nOPA320, OPA2320, OPA320S, OPA2320S\nwww.ti.com SBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation FeedbackCopyright \u00a9 2010\u20132016, Texas Instruments Incorporated\nTypical Application (continued)\n8.2.2 Detailed Design Procedure\nThe infinite-gain multiple-feedback circuit for a low-pass network function is shown in. Use Equation 4 to\ncalculate the voltage transfer function.\n(4)\nThis circuit produces a signal inversion. For this circuit, the gain at DC and the lowpass cutoff frequency are\ncalculated by Equation 5.\n(5)\nSoftware tools are readily available to simplify filter design. WEBENCH\u00ae Filter Designer is a simple, powerful,\nand easy-to-use active filter design program. The WEBENCH\u00ae Filter Designer lets you create optimized filter\ndesigns using a selection of TI operational amplifiers and passive components from TI's vendor partners.\nAvailable as a web-based tool from the WEBENCH Design Center, WEBENCH Filter Designer allows you to\ndesign, optimize, and simulate complete multistage active filter solutions within minutes.\n8.2.3 Application Curve\nFigure 48. OPA320 Second-Order, 50-kHz, Low-Pass Filter"
+  },
+  {
+   "page": 27,
+   "text": "\u00b1IN+IN\nV\u00b1\nVS\u00b1\nGND\nVOUT\nVIN\nRun the input traces\nas far away from\nthe supply lines\nas possible.\nUse a low-ESR, \nceramic bypass \ncapacitor.\nPlace components \nclose to the device \nand to each other to \nreduce parasitic \nerrors.\nUse a low-ESR, \nceramic bypass \ncapacitor.\nOUT V+\nCopyright \u00a9 2016, Texas Instruments Incorporated\nRG\nRF\nVS+\nGND\nGND\n28\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\n9 Power Supply Recommendations\nThe OPA320 family is specified for operation from 1.8 V to 5.5 V (\u00b10.9 V to \u00b12.75 V); many specifications apply\nfrom \u201340\u00b0C to 125\u00b0C. Parameters that can exhibit significant variance with regard to operating voltage or\ntemperature are presented in the Typical Characteristics.\nCAUTION\nSupply voltages larger than 6 V can permanently damage the device; see the Absolute\nMaximum Ratings.\nPlace 0.1-\u00b5F bypass capacitors close to the power-supply pins to reduce errors coupling in from noisy or high-\nimpedance power supplies. For more detailed information on bypass capacitor placement, see Layout.\n10 Layout\n10.1 Layout Guidelines\nThe OPA320 is a wideband amplifier. To realize the full operational performance of the device, good high-\nfrequency PCB layout practices are required. The bypass capacitors must be connected between each supply\npin and ground as close to the device as possible. The bypass capacitor traces should be designed for minimum\ninductance.\n10.2 Layout Example\nFigure 49. Layout Example"
+  },
+  {
+   "page": 28,
+   "text": "29\nOPA320, OPA2320, OPA320S, OPA2320S\nwww.ti.com SBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation FeedbackCopyright \u00a9 2010\u20132016, Texas Instruments Incorporated\n11 Device and Documentation Support\n11.1 Device Support\n11.1.1 Development Support\n11.1.1.1 TINA-TI\u2122 (Free Software Download)\nTINA\u2122 is a simple, powerful, and easy-to-use circuit simulation program based on a SPICE engine. TINA-TI\u2122 is\na free, fully-functional version of the TINA software, preloaded with a library of macro models in addition to a\nrange of both passive and active models. TINA-TI provides all the conventional dc, transient, and frequency\ndomain analysis of SPICE, as well as additional design capabilities.\nAvailable as a free download from the Analog eLab Design Center, TINA-TI offers extensive post-processing\ncapability that allows users to format results in a variety of ways. Virtual instruments offer the ability to select\ninput waveforms and probe circuit nodes, voltages, and waveforms, creating a dynamic quick-start tool.\nNOTE\nThese files require that either the TINA software (from DesignSoft\u2122 ) or TINA-TI software\nbe installed. Download the free TINA-TI software from the TINA-TI folder.\n11.1.1.2 DIP Adapter EVM\nThe DIP Adapter EVM tool provides an easy, low-cost way to prototype small surface mount ICs. The evaluation\ntool these TI packages: D or U (8-pin SOIC), PW (8-pin TSSOP), DGK (8-pin VSSOP), DBV (6-pin SOT-23, 5-\npin SOT23, and 3-pin SOT-23), DCK (6-pin SC-70 and 5-pin SC-70), and DRL (6-pin SOT-563). The DIP\nAdapter EVM may also be used with terminal strips or may be wired directly to existing circuits.\n11.1.1.3 Universal Op Amp EVM\nThe Universal Op Amp EVM is a series of general-purpose, blank circuit boards that simplify prototyping circuits\nfor a variety of IC package types. The evaluation module board design allows many different circuits to be\nconstructed easily and quickly. Five models are offered, with each model intended for a specific package type.\nPDIP, SOIC, VSSOP, TSSOP and SOT-23 packages are all supported.\nNOTE\nThese boards are unpopulated, so users must provide their own ICs. TI recommends\nrequesting several op amp device samples when ordering the Universal Op Amp EVM.\n11.1.1.4 TI Precision Designs\nTI Precision Designs are analog solutions created by TI\u2019s precision analog applications experts and offer the\ntheory of operation, component selection, simulation, complete PCB schematic and layout, bill of materials, and\nmeasured performance of many useful circuits. TI Precision Designs are available online at\nhttp://www.ti.com/ww/en/analog/precision-designs/.\n11.1.1.5 WEBENCH\u00ae Filter Designer\nWEBENCH\u00ae Filter Designer is a simple, powerful, and easy-to-use active filter design program. The WEBENCH\nFilter Designer lets you create optimized filter designs using a selection of TI operational amplifiers and passive\ncomponents from TI's vendor partners.\nAvailable as a web-based tool from the WEBENCH\u00ae Design Center, WEBENCH\u00ae Filter Designer allows you to\ndesign, optimize, and simulate complete multistage active filter solutions within minutes."
+  },
+  {
+   "page": 29,
+   "text": "30\nOPA320, OPA2320, OPA320S, OPA2320S\nSBOS513F \u2013 AUGUST 2010 \u2013 REVISED DECEMBER 2016 www.ti.com\nProduct Folder Links: OPA320 OPA2320 OPA320S OPA2320S\nSubmit Documentation Feedback Copyright \u00a9 2010\u20132016, Texas Instruments Incorporated\n11.2 Documentation Support\n11.2.1 Related Documentation\nThe following documents are relevant to using the OPAx320 and OPAx320S, and recommended for reference.\nAll are available for download at www.ti.com (unless otherwise noted):\n\u2022 OPA320, OPA320S, OPA2320, OPA2320S EMI Immunity Performance (SBOZ017)\n\u2022 Software Pacemaker Detection Design Guide (TIDUB75)\n\u2022 TIDA-00378 Schematic and Block Diagram (TIDRJ21)\n\u2022 PM2.5/PM10 Particle Sensor Analog Front-End for Air Quality Monitoring Design (TIDUB65)\n\u2022 QFN/SON PCB Attachment (SLUA271)\n\u2022 Quad Flatpack No-Lead Logic Packages (SCBA017)\n\u2022 Compensate Transimpedance Amplifiers Intuitively (SBOA055)\n\u2022 Noise Analysis of FET Transimpedance Amplifiers (SBOA060)\n\u2022 Noise Analysis for High-Speed Op Amps (SBOA066)\n11.3 Related Links\nTable 1 lists quick access links. Categories include technical documents, support and community resources,\ntools and software, and quick access to sample or buy.\nTable 1. Related Links\nPARTS PRODUCT FOLDER SAMPLE & BUY TECHNICAL\nDOCUMENTS\nTOOLS &\nSOFTWARE\nSUPPORT &\nCOMMUNITY\nOPA320 Click here Click here Click here Click here Click here\nOPA2320 Click here Click here Click here Click here Click here\nOPA320S Click here Click here Click here Click here Click here\nOPA2320S Click here Click here Click here Click here Click here\n11.4 Receiving Notification of Documentation Updates\nTo receive notification of documentation updates, navigate to the device product folder on ti.com. In the upper\nright corner, click on Alert me to register and receive a weekly digest of any product information that has\nchanged. For change details, review the revision history included in any revised document.\n11.5 Community Resource\nThe following links connect to TI community resources. Linked contents are provided \"AS IS\" by the respective\ncontributors. They do not constitute TI specifications and do not necessarily reflect TI's views; see TI's Terms of\nUse.\nTI E2E\u2122 Online Community TI's Engineer-to-Engineer (E2E) Community. Created to foster collaboration\namong engineers. At e2e.ti.com, you can ask questions, share knowledge, explore ideas and help\nsolve problems with fellow engineers.\nDesign Support TI's Design Support Quickly find helpful E2E forums along with design support tools and\ncontact information for technical support.\n11.6 Trademarks\nFilterPro, TINA-TI, E2E are trademarks of Texas Instruments.\nWEBENCH is a registered trademark of Texas Instruments.\nTINA, DesignSoft are trademarks of DesignSoft, Inc.\nAll other trademarks are the property of their respective owners.\n11.7 Electrostatic Discharge Caution\nThese devices have limited built-in ESD protection. The leads should be shorted together or the device placed in conductive foam\nduring storage or handling to prevent electrostatic damage to the MOS gates."
+  },
+  {
+   "page": 30,
+   "first_line": "31",
+   "chars": 705
+  },
+  {
+   "page": 31,
+   "text": "PACKAGE OPTION ADDENDUM\nwww.ti.com 31-Oct-2016\nAddendum-Page 1\nPACKAGING INFORMATION\nOrderable Device Status\n(1)\nPackage Type Package\nDrawing\nPins Package\nQty\nEco Plan\n(2)\nLead/Ball Finish\n(6)\nMSL Peak Temp\n(3)\nOp Temp (\u00b0C) Device Marking\n(4/5)\nSamples\nOPA2320AID ACTIVE SOIC D 8 75 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 O2320A\nOPA2320AIDGKR ACTIVE VSSOP DGK 8 2500 Green (RoHS\n& no Sb/Br)\nCU NIPDAU |\nCU NIPDAUAG\nLevel-2-260C-1 YEAR -40 to 125 OCLQ\nOPA2320AIDGKT ACTIVE VSSOP DGK 8 250 Green (RoHS\n& no Sb/Br)\nCU NIPDAU |\nCU NIPDAUAG\nLevel-2-260C-1 YEAR -40 to 125 OCLQ\nOPA2320AIDR ACTIVE SOIC D 8 2500 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 O2320A\nOPA2320AIDRGR ACTIVE SON DRG 8 3000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 OCMQ\nOPA2320AIDRGT ACTIVE SON DRG 8 250 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 OCMQ\nOPA2320SAIDGSR ACTIVE VSSOP DGS 10 2500 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 OPAI\nOPA2320SAIDGST ACTIVE VSSOP DGS 10 250 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 OPAI\nOPA320AIDBVR ACTIVE SOT-23 DBV 5 3000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 RAC\nOPA320AIDBVT ACTIVE SOT-23 DBV 5 250 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 RAC\nOPA320SAIDBVR ACTIVE SOT-23 DBV 6 3000 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 RAE\nOPA320SAIDBVT ACTIVE SOT-23 DBV 6 250 Green (RoHS\n& no Sb/Br)\nCU NIPDAU Level-2-260C-1 YEAR -40 to 125 RAE\n \n(1) The marketing status values are defined as follows:\nACTIVE: Product device recommended for new designs.\nLIFEBUY: TI has announced that the device will be discontinued, and a lifetime-buy period is in effect.\nNRND: Not recommended for new designs. Device is in production to support existing customers, but TI does not recommend using this part in a new design.\nPREVIEW: Device has been announced but is not in production. Samples may or may not be available.\nOBSOLETE: TI has discontinued the production of the device.\n \n(2) Eco Plan - The planned eco-friendly classification: Pb-Free (RoHS), Pb-Free (RoHS Exempt), or Green (RoHS & no Sb/Br) - please check http://www.ti.com/productcontent for the latest availability\ninformation and additional product content details.\nTBD:  The Pb-Free/Green conversion plan has not been defined."
+  },
+  {
+   "page": 32,
+   "text": "PACKAGE OPTION ADDENDUM\nwww.ti.com 31-Oct-2016\nAddendum-Page 2\nPb-Free (RoHS): TI's terms \"Lead-Free\" or \"Pb-Free\" mean semiconductor products that are compatible with the current RoHS requirements for all 6 substances,  including the requirement that\nlead not exceed 0.1% by weight in homogeneous materials. Where designed to be soldered at high temperatures, TI Pb-Free products are suitable for use in specified lead-free processes.\nPb-Free (RoHS Exempt): This component has a RoHS exemption for either 1) lead-based flip-chip solder bumps used between the die and package, or 2) lead-based  die adhesive used between\nthe die and leadframe. The component is otherwise considered Pb-Free (RoHS compatible) as defined above.\nGreen (RoHS & no Sb/Br): TI defines \"Green\" to mean Pb-Free (RoHS compatible), and free of Bromine (Br)  and Antimony (Sb) based flame retardants (Br or Sb do not exceed 0.1% by weight\nin homogeneous material)\n \n(3) MSL, Peak Temp. - The Moisture Sensitivity Level rating according to the JEDEC industry standard classifications, and peak solder temperature.\n \n(4) There may be additional marking, which relates to the logo, the lot trace code information, or the environmental category on the device.\n \n(5) Multiple Device Markings will be inside parentheses. Only one Device Marking contained in parentheses and separated by a \"~\" will appear on a device. If a line is indented then it is a continuation\nof the previous line and the two combined represent the entire Device Marking for that device.\n \n(6) Lead/Ball Finish - Orderable Devices may have multiple material finish options. Finish options are separated by a vertical ruled line. Lead/Ball Finish values may wrap to two lines if the finish\nvalue exceeds the maximum column width.\n \nImportant Information and Disclaimer:The information provided on this page represents TI's knowledge and belief as of the date that it is provided. TI bases its knowledge and belief on information\nprovided by third parties, and makes no representation or warranty as to the accuracy of such information. Efforts are underway to better integrate information from third parties. TI has taken and\ncontinues to take reasonable steps to provide representative and accurate information but may not have conducted destructive testing or chemical analysis on incoming materials and chemicals.\nTI and TI suppliers consider certain information to be proprietary, and thus CAS numbers and other limited information may not be available for release.\n \nIn no event shall TI's liability arising out of such information exceed the total purchase price of the TI part(s) at issue in this document sold by TI to Customer on an annual basis.\n \n OTHER QUALIFIED VERSIONS OF OPA2320 :\n\u2022Automotive: OPA2320-Q1\n NOTE: Qualified Version Definitions:\n\u2022Automotive - Q100 devices qualified for high-reliability automotive applications targeting zero defects"
+  },
+  {
+   "page": 33,
+   "text": "TAPE AND REEL INFORMATION\n*All dimensions are nominal\nDevice Package\nType\nPackage\nDrawing\nPins SPQ Reel\nDiameter\n(mm)\nReel\nWidth\nW1 (mm)\nA0\n(mm)\nB0\n(mm)\nK0\n(mm)\nP1\n(mm)\nW\n(mm)\nPin1\nQuadrant\nOPA2320AIDGKR VSSOP DGK 8 2500 330.0 12.4 5.3 3.4 1.4 8.0 12.0 Q1\nOPA2320AIDGKR VSSOP DGK 8 2500 330.0 12.4 5.3 3.4 1.4 8.0 12.0 Q1\nOPA2320AIDGKT VSSOP DGK 8 250 330.0 12.4 5.3 3.4 1.4 8.0 12.0 Q1\nOPA2320AIDGKT VSSOP DGK 8 250 177.8 12.4 5.3 3.4 1.4 8.0 12.0 Q1\nOPA2320AIDR SOIC D 8 2500 330.0 12.4 6.4 5.2 2.1 8.0 12.0 Q1\nOPA2320AIDRGR SON DRG 8 3000 330.0 12.4 3.3 3.3 1.1 8.0 12.0 Q2\nOPA2320AIDRGT SON DRG 8 250 180.0 12.4 3.3 3.3 1.1 8.0 12.0 Q2\nOPA2320SAIDGSR VSSOP DGS 10 2500 330.0 12.4 5.3 3.4 1.4 8.0 12.0 Q1\nOPA2320SAIDGST VSSOP DGS 10 250 180.0 12.4 5.3 3.4 1.4 8.0 12.0 Q1\nOPA320AIDBVR SOT-23 DBV 5 3000 179.0 8.4 3.2 3.2 1.4 4.0 8.0 Q3\nOPA320AIDBVR SOT-23 DBV 5 3000 180.0 8.4 3.2 3.1 1.39 4.0 8.0 Q3\nOPA320AIDBVT SOT-23 DBV 5 250 179.0 8.4 3.2 3.2 1.4 4.0 8.0 Q3\nOPA320SAIDBVR SOT-23 DBV 6 3000 180.0 8.4 3.2 3.1 1.39 4.0 8.0 Q3\nPACKAGE MATERIALS INFORMATION\nwww.ti.com 3-Aug-2017\nPack Materials-Page 1"
+  },
+  {
+   "page": 34,
+   "text": "*All dimensions are nominal\nDevice Package Type Package Drawing Pins SPQ Length (mm) Width (mm) Height (mm)\nOPA2320AIDGKR VSSOP DGK 8 2500 366.0 364.0 50.0\nOPA2320AIDGKR VSSOP DGK 8 2500 346.0 346.0 29.0\nOPA2320AIDGKT VSSOP DGK 8 250 366.0 364.0 50.0\nOPA2320AIDGKT VSSOP DGK 8 250 202.0 201.0 28.0\nOPA2320AIDR SOIC D 8 2500 367.0 367.0 35.0\nOPA2320AIDRGR SON DRG 8 3000 367.0 367.0 35.0\nOPA2320AIDRGT SON DRG 8 250 210.0 185.0 35.0\nOPA2320SAIDGSR VSSOP DGS 10 2500 367.0 367.0 35.0\nOPA2320SAIDGST VSSOP DGS 10 250 210.0 185.0 35.0\nOPA320AIDBVR SOT-23 DBV 5 3000 195.0 200.0 45.0\nOPA320AIDBVR SOT-23 DBV 5 3000 210.0 185.0 35.0\nOPA320AIDBVT SOT-23 DBV 5 250 195.0 200.0 45.0\nOPA320SAIDBVR SOT-23 DBV 6 3000 210.0 185.0 35.0\nPACKAGE MATERIALS INFORMATION\nwww.ti.com 3-Aug-2017\nPack Materials-Page 2"
+  },
+  {
+   "page": 35,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 36,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 37,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 38,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 39,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 40,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 41,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 42,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 43,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 44,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 45,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 46,
+   "first_line": "",
+   "chars": 0
+  },
+  {
+   "page": 47,
+   "text": "IMPORTANT NOTICE\nTexas Instruments Incorporated (TI) reserves the right to make corrections, enhancements, improvements and other changes to its\nsemiconductor products and services per JESD46, latest issue, and to discontinue any product or service per JESD48, latest issue. Buyers\nshould obtain the latest relevant information before placing orders and should verify that such information is current and complete.\nTI\u2019s published terms of sale for semiconductor products (http://www.ti.com/sc/docs/stdterms.htm) apply to the sale of packaged integrated\ncircuit products that TI has qualified and released to market. Additional terms may apply to the use or sale of other types of TI products and\nservices.\nReproduction of significant portions of TI information in TI data sheets is permissible only if reproduction is without alteration and is\naccompanied by all associated warranties, conditions, limitations, and notices. TI is not responsible or liable for such reproduced\ndocumentation. Information of third parties may be subject to additional restrictions. Resale of TI products or services with statements\ndifferent from or beyond the parameters stated by TI for that product or service voids all express and any implied warranties for the\nassociated TI product or service and is an unfair and deceptive business practice. TI is not responsible or liable for any such statements.\nBuyers and others who are developing systems that incorporate TI products (collectively, \u201cDesigners\u201d) understand and agree that Designers\nremain responsible for using their independent analysis, evaluation and judgment in designing their applications and that Designers have\nfull and exclusive responsibility to assure the safety of Designers' applications and compliance of their applications (and of all TI products\nused in or for Designers\u2019applications) with all applicable regulations, laws and other applicable requirements. Designer represents that, with\nrespect to their applications, Designer has all the necessary expertise to create and implement safeguards that (1) anticipate dangerous\nconsequences of failures, (2) monitor failures and their consequences, and (3) lessen the likelihood of failures that might cause harm and\ntake appropriate actions. Designer agrees that prior to using or distributing any applications that include TI products, Designer will\nthoroughly test such applications and the functionality of such TI products as used in such applications.\nTI\u2019s provision of technical, application or other design advice, quality characterization, reliability data or other services or information,\nincluding, but not limited to, reference designs and materials relating to evaluation modules, (collectively, \u201cTI Resources\u201d) are intended to\nassist designers who are developing applications that incorporate TI products; by downloading, accessing or using TI Resources in any\nway, Designer (individually or, if Designer is acting on behalf of a company, Designer\u2019s company) agrees to use any particular TI Resource\nsolely for this purpose and subject to the terms of this Notice.\nTI\u2019s provision of TI Resources does not expand or otherwise alter TI\u2019s applicable published warranties or warranty disclaimers for TI\nproducts, and no additional obligations or liabilities arise from TI providing such TI Resources. TI reserves the right to make corrections,\nenhancements, improvements and other changes to its TI Resources. TI has not conducted any testing other than that specifically\ndescribed in the published documentation for a particular TI Resource.\nDesigner is authorized to use, copy and modify any individual TI Resource only in connection with the development of applications that\ninclude the TI product(s) identified in such TI Resource. NO OTHER LICENSE, EXPRESS OR IMPLIED, BY ESTOPPEL OR OTHERWISE\nTO ANY OTHER TI INTELLECTUAL PROPERTY RIGHT, AND NO LICENSE TO ANY TECHNOLOGY OR INTELLECTUAL PROPERTY\nRIGHT OF TI OR ANY THIRD PARTY IS GRANTED HEREIN, including but not limited to any patent right, copyright, mask work right, or\nother intellectual property right relating to any combination, machine, or process in which TI products or services are used. Information\nregarding or referencing third-party products or services does not constitute a license to use such products or services, or a warranty or\nendorsement thereof. Use of TI Resources may require a license from a third party under the patents or other intellectual property of the\nthird party, or a license from TI under the patents or other intellectual property of TI.\nTI RESOURCES ARE PROVIDED \u201cAS IS\u201dAND WITH ALL FAULTS. TI DISCLAIMS ALL OTHER WARRANTIES OR\nREPRESENTATIONS, EXPRESS OR IMPLIED, REGARDING RESOURCES OR USE THEREOF, INCLUDING BUT NOT LIMITED TO\nACCURACY OR COMPLETENESS, TITLE, ANY EPIDEMIC FAILURE WARRANTY AND ANY IMPLIED WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT OF ANY THIRD PARTY INTELLECTUAL\nPROPERTY RIGHTS. TI SHALL NOT BE LIABLE FOR AND SHALL NOT DEFEND OR INDEMNIFY DESIGNER AGAINST ANY CLAIM,\nINCLUDING BUT NOT LIMITED TO ANY INFRINGEMENT CLAIM THAT RELATES TO OR IS BASED ON ANY COMBINATION OF\nPRODUCTS EVEN IF DESCRIBED IN TI RESOURCES OR OTHERWISE. IN NO EVENT SHALL TI BE LIABLE FOR ANY ACTUAL,\nDIRECT, SPECIAL, COLLATERAL, INDIRECT, PUNITIVE, INCIDENTAL, CONSEQUENTIAL OR EXEMPLARY DAMAGES IN\nCONNECTION WITH OR ARISING OUT OF TI RESOURCES OR USE THEREOF, AND REGARDLESS OF WHETHER TI HAS BEEN\nADVISED OF THE POSSIBILITY OF SUCH DAMAGES.\nUnless TI has explicitly designated an individual product as meeting the requirements of a particular industry standard (e.g., ISO/TS 16949\nand ISO 26262), TI is not responsible for any failure to meet such industry standard requirements.\nWhere TI specifically promotes products as facilitating functional safety or as compliant with industry functional safety standards, such\nproducts are intended to help enable customers to design and create their own applications that meet applicable functional safety standards\nand requirements. Using products in an application does not by itself establish any safety features in the application. Designers must\nensure compliance with safety-related requirements and standards applicable to their applications. Designer may not use any TI products in\nlife-critical medical equipment unless authorized officers of the parties have executed a special contract specifically governing such use.\nLife-critical medical equipment is medical equipment where failure of such equipment would cause serious bodily injury or death (e.g., life\nsupport, pacemakers, defibrillators, heart pumps, neurostimulators, and implantables). Such equipment includes, without limitation, all\nmedical devices identified by the U.S. Food and Drug Administration as Class III devices and equivalent classifications outside the U.S.\nTI may expressly designate certain products as completing a particular qualification (e.g., Q100, Military Grade, or Enhanced Product).\nDesigners agree that it has the necessary expertise to select the product with the appropriate qualification designation for their applications\nand that proper product selection is at Designers\u2019own risk. Designers are solely responsible for compliance with all legal and regulatory\nrequirements in connection with such selection.\nDesigner will fully indemnify TI and its representatives against any damages, costs, losses, and/or liabilities arising out of Designer\u2019s non-\ncompliance with the terms and provisions of this Notice.\nMailing Address: Texas Instruments, Post Office Box 655303, Dallas, Texas 75265\nCopyright \u00a9 2017, Texas Instruments Incorporated"
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "drill_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "annulus_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. Pages without schema-relevant keywords are stubs {page, first_line, chars} - read those PDF pages directly if needed, or re-run with --full-text. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}

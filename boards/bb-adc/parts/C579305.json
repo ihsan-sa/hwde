@@ -1,0 +1,129 @@
+{
+  "mpn": "ADR4520BRZ-R7",
+  "lcsc": "C579305",
+  "package": "SOIC-8",
+  "description": "Analog Devices ADR4520 - 2.048V ultralow noise, high accuracy voltage reference; B grade (0.02% initial accuracy, 2ppm/C max tempco). One member of the ADR45xx family datasheet (Rev 0, 4/12) covering ADR4520/4525/4530/4533/4540/4550 (2.048/2.5/3.0/3.3/4.096/5.0V) - every field below is the ADR4520 (2.048V) row/column, cross-checked against the other five members' rows to confirm which values are per-member vs shared. 8-Lead SOIC, R-8 package option, -R7 = tape and reel (1000/reel). [p.1 Features/General Description; p.32 Ordering Guide]",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "NC",
+      "type": "nc",
+      "notes": "No Connect - not connected internally. [Table 11 Pin Function Descriptions, p.10]"
+    },
+    {
+      "pin": "2",
+      "name": "VIN",
+      "type": "power_in",
+      "notes": "Input Voltage Connection [Table 11, p.10]. This member (ADR4520, VOUT=2.048V) is conditioned on VIN = 3V to 15V [Table 3 conditions line, p.3]. VIN minimum is PER-MEMBER and rises with VOUT - do not reuse another member's value: ADR4525=3V, ADR4530=3.1V, ADR4533=3.4V, ADR4540=4.2V, ADR4550=5.1V [Tables 4-8 conditions lines, p.4-8]. See layout_notes for the VIN/dropout margin analysis (the tightest spec on this board)."
+    },
+    {
+      "pin": "3",
+      "name": "NC",
+      "type": "nc",
+      "notes": "No Connect - not connected internally. [Table 11 Pin Function Descriptions, p.10]"
+    },
+    {
+      "pin": "4",
+      "name": "GND",
+      "type": "ground",
+      "notes": "Ground. [Table 11 Pin Function Descriptions, p.10]"
+    },
+    {
+      "pin": "5",
+      "name": "NC",
+      "type": "nc",
+      "notes": "No Connect - not connected internally. [Table 11 Pin Function Descriptions, p.10]"
+    },
+    {
+      "pin": "6",
+      "name": "VOUT",
+      "type": "power_out",
+      "notes": "Output Voltage, 2.048V nominal [Table 3 OUTPUT VOLTAGE row, p.3]. Output current capacity: source +10mA / sink -8mA [Table 3 OUTPUT CURRENT CAPACITY, p.3] - ADR4520 is the ONLY family member rated -8mA sink, all five others are -10mA [Tables 4-8, p.4-8]. Output capacitor is REQUIRED, not optional - see decoupling. Dropout voltage 1V MAX at BOTH no-load and IL=2mA, -40C to +125C [Table 3 DROPOUT VOLTAGE row, p.3] - see layout_notes for the full margin analysis (the tightest spec on this board)."
+    },
+    {
+      "pin": "7",
+      "name": "NC",
+      "type": "nc",
+      "notes": "No Connect - not connected internally. [Table 11 Pin Function Descriptions, p.10]"
+    },
+    {
+      "pin": "8",
+      "name": "TP",
+      "type": "nc",
+      "notes": "Test Pin - factory ATE test node, 'Do not connect.' [Table 11 Pin Function Descriptions, p.10]. Distinct from the true NC pins electrically (internal test node vs. no internal connection at all) but identical PCB treatment: leave unconnected/floating."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": ["2"],
+      "value": "0.1uF ceramic (recommended bypass) + optional 1uF-10uF electrolytic/ceramic bulk cap in parallel (optional, transient response only)",
+      "placement": "close to VIN pin",
+      "notes": "Applications Information, 'Input Capacitors' [p.31]: '0.1uF ceramic capacitor should be connected in parallel to reduce supply noise'; the 1uF-10uF bulk cap 'can be connected to the input to improve transient response ... where the supply voltage may fluctuate' (optional). No Min/Max LOAD CAPACITANCE window is specified for VIN in the Electrical Characteristics tables - that window applies only to VOUT (see the VOUT entry below)."
+    },
+    {
+      "pins": ["6"],
+      "value": "1uF MIN, 100uF MAX (this member, ADR4520/ADR4525); ADR4530/4533/4540/4550 allow 0.1uF MIN, same 100uF MAX",
+      "placement": "as close to VOUT as possible - Applications Information 'Location of Reference in System' [p.31] also says to place the whole part as close to the LOAD as possible to minimize output-trace IR-drop (see layout_notes)",
+      "notes": "MANDATORY, not optional: Applications Information, 'Output Capacitors' [p.31]: 'An output capacitor is required for stability and to filter out low level voltage noise.' Table 3 LOAD CAPACITANCE row (ADR4520) [p.3]: Min 1uF / Max 100uF - a TWO-ENDED stability window (exceeding 100uF is as out-of-spec as going under 1uF). Table 12 'Minimum COUT Value' [p.31] cross-confirms by part number: ADR4520/ADR4525 = 1.0uF min, ADR4530/4533/4540/4550 = 0.1uF min. Optional additional 1uF-10uF electrolytic/ceramic in parallel improves load-transient response but 'will increase the turn-on time of the device' [p.31] (Table 3 TURN-ON SETTLING TIME tR = 90us typ at CL=1uF/IL=0mA/CIN=0.1uF/RL=1kohm for ADR4520, p.3)."
+    }
+  ],
+  "land_pattern": {
+    "package": "R-8 (8-Lead SOIC_N, Narrow Body, JEDEC MS-012-AA)",
+    "pad_count": 8,
+    "pitch_mm": 1.27,
+    "pin1": "1",
+    "notes": "Datasheet Figure 97 'Outline Dimensions' [p.32] gives PACKAGE BODY dimensions only (body 4.80-5.00mm x 3.80-4.00mm, lead pitch 1.27mm BSC, lead width 0.31-0.51mm, standoff/seating-plane 0.10-0.25mm, lead angle 0-8deg, coplanarity 0.10mm) - there is NO separate 'recommended PCB land pattern' / solder-pad drawing anywhere in this datasheet. pad_size_mm and row_spacing_mm are deliberately left UNSET here rather than derived from the package body outline (extraction rule: land pattern must come from a recommended-land-pattern drawing, not the package outline). pitch_mm=1.27 is safe to state directly since lead pitch is definitionally identical between the package outline and any land pattern. Footprint should use a standard JEDEC/IPC SOIC-8 narrow-body 1.27mm-pitch land pattern, sized against Figure 97's body envelope for courtyard clearance."
+  },
+  "exposed_pad": {
+    "present": false
+  },
+  "layout_notes": [
+    "VIN / dropout margin is the TIGHTEST spec on this board. Table 3 [p.3] conditions ADR4520 on VIN = 3V to 15V. DROPOUT VOLTAGE (VDO) row: 1V MAX at BOTH no-load AND IL=2mA, -40C to +125C - same figure for both load conditions (NOT true of the other family members, see below). Guaranteed input floor = max(VIN_min, VOUT+VDO) = max(3.0, 2.048+1.0) = 3.048V.",
+    "Dropout is a REGULATION spec, not a cutoff spec. Terminology [p.29]: VDO is 'the minimum voltage differential between the input and output such that the output voltage is maintained to within 0.1% accuracy ... VDO = (VIN - VOUT)min | IL=constant.' Below VIN=VOUT+VDO the output has already drifted outside the 0.1% band before dropping further.",
+    "CAUTION, per-member and NOT monotonic in VOUT: the family FEATURES headline 'Low dropout voltage: 300mV at 2mA' [p.1] is explicitly footnoted '(VOUT >= 3V)' and does NOT apply to ADR4520. Dropout by member, IL=2mA row (all MAX, -40C to 125C) [Tables 3-8, p.3-8]: ADR4520 (2.048V) = 1V; ADR4525 (2.5V) = 500mV; ADR4530/4533/4540/4550 (>=3V) = 100mV no-load / 300mV at IL=2mA. Column identity (the single value present per row = MAX) cross-confirmed: the FEATURES headline number matches the >=3V members' IL=2mA MAX entry exactly.",
+    "VIN minimum is ALSO per-member and rises with VOUT (each member's own 'Unless otherwise noted' conditions line): ADR4520=3V, ADR4525=3V, ADR4530=3.1V, ADR4533=3.4V, ADR4540=4.2V, ADR4550=5.1V [Tables 3-8, p.3-8]. Do not reuse another member's VIN minimum.",
+    "LOAD CAPACITANCE (VOUT) is a two-ended MANDATORY window for this member: 1uF MIN, 100uF MAX [Table 3, p.3] - see decoupling entry for VOUT. Output cap is 'required for stability', not optional [Applications Information, p.31].",
+    "SOLDER HEAT SHIFT: +/-0.02% Typ [Table 3 row, p.3 - identical across all six family members]. Terminology 'Solder Heat Resistance (SHR) Shift' [p.29]: 'permanent shift in output voltage ... induced by exposure to reflow soldering ... caused by changes in the stress exhibited on the die by the package materials when these materials are exposed to high temperatures. This effect is more pronounced in lead-free soldering processes due to higher reflow temperatures.' NOTE: this PDF ties SHR magnitude to PACKAGE MATERIAL and SOLDER PROCESS (leaded vs. lead-free) - it does NOT state a board-size/thickness/board-material dependency anywhere in this Rev 0 (4/12) document (checked Terminology, Specifications and Applications Information sections). Flagged in OPEN.",
+    "Initial accuracy (VOUT_ERR), 25C [Table 3, p.3]: B grade = +/-0.02% MAX (410uV); A grade = +/-0.04% MAX (820uV). Board sources BRZ-R7 (B grade) with ARZ-R7 (A grade) as fallback - both ordering codes confirmed present in the Ordering Guide [p.32].",
+    "Temperature coefficient (TCVOUT), -40C to 125C [Table 3, p.3]: B grade = 2ppm/C MAX; A grade = 4ppm/C MAX. Matches FEATURES headline 'Maximum temperature coefficient (TCVOUT): 2ppm/C' [p.1].",
+    "Output voltage noise [Table 3, p.3, ADR4520 only - scales up with VOUT for the other members]: 1.0uV p-p Typ (0.1Hz-10Hz); 35.8nV/rtHz Typ density @ 1kHz.",
+    "Thermally induced output voltage hysteresis: 50ppm Typ after a 25C -> -40C -> 125C -> 25C temperature cycle [Table 3, p.3]. Long-term drift: 25ppm Typ after 1000 hours at 60C [Table 3, p.3]. Theory of Operation [p.30]: this 25ppm figure is 'regardless of output voltage' and 'the majority of the long-term drift typically occurs in the first 200 hours to 300 hours of operation' - vendor suggests burn-in for systems needing maximum long-term stability (references AN-713).",
+    "Kelvin / force-sense: NOT APPLICABLE to this part. VOUT and GND are the only signal-carrying pins (plus VIN, TP, and 4x NC) - no SENSE/FORCE pins exist on this 8-lead package [Table 11, p.10]. The only IR-drop mitigation the vendor gives is placement proximity, not remote sensing: 'Location of Reference in System' [p.31] - place the reference as close to the load as possible to minimize output-trace length / IR-drop error.",
+    "VENDOR-PUBLISHED trace-resistance figure - FLAG, carried forward per a prior extraction pass's caution, NOT independently verified and NOT an endorsed design constant: Applications Information, 'Location of Reference in System' [p.31]: 'A 1 inch long, 5mm wide trace of 1 ounce copper has a resistance of approximately 100 milliohm at room temperature; at a load current of 10mA, this can introduce a full millivolt of error.' This is roughly 40x a simple rho*L/(W*t) physical estimate for the same trace (~2.5 milliohm). Treat 100 milliohm as ADI's own published number supporting a qualitative recommendation ('place close to load'), not as a value to use in quantitative IR-drop budgeting.",
+    "Thermal: 8-Lead SOIC, Theta-JA = 120C/W, Theta-JC = 42C/W [Table 10, p.9] - Theta-JA is 'specified for the worst-case conditions; that is, a device soldered in a circuit board for surface-mount packages.' Power Dissipation [p.30]: PD_max = (TJmax - TA) / Theta-JA; part sources/sinks up to 10mA across the rated VIN range at room temperature - monitor VIN x IL and ambient temperature together in high-temperature applications.",
+    "Basic connection [Figure 94 Simplified Schematic, p.31]: VIN->pin2, GND->pin4, VOUT->pin6. All 4x NC pins (1,3,5,7) and TP (pin8) left unconnected/floating [Table 11 + Figure 2, p.10]."
+  ],
+  "abs_max": [
+    {
+      "param": "Supply Voltage",
+      "value": 16,
+      "unit": "V"
+    },
+    {
+      "param": "Operating Temperature Range",
+      "value": "-40 to +125",
+      "unit": "C"
+    },
+    {
+      "param": "Storage Temperature Range",
+      "value": "-65 to +150",
+      "unit": "C"
+    },
+    {
+      "param": "Junction Temperature Range",
+      "value": "-65 to +150",
+      "unit": "C"
+    },
+    {
+      "param": "Thermal Resistance Theta-JA, 8-Lead SOIC [Table 10, p.9]",
+      "value": 120,
+      "unit": "C/W"
+    },
+    {
+      "param": "Thermal Resistance Theta-JC, 8-Lead SOIC [Table 10, p.9]",
+      "value": 42,
+      "unit": "C/W"
+    }
+  ],
+  "source_pdf": "boards/bb-adc/parts/C579305.pdf"
+}

@@ -1,0 +1,1405 @@
+{
+ "version": 2,
+ "board": "bb-adc",
+ "workspace": "boards/bb-adc",
+ "created": "2026-08-16T17:25:12",
+ "updated": "2026-08-17T21:30:22",
+ "phase": "P4",
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-17T21:30:22",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sch": "sexpr_no_uuid:65137a1e5d3a3b6aa1db0b25b00a804facede1f23d341a7a184835957a868d41",
+     "pro": "json_canonical:b4f7cf3a2ad720849ac4f33bb8dff4178f7298fb984e3e747d36eb7b44eff80d"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-17T21:30:22",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:65137a1e5d3a3b6aa1db0b25b00a804facede1f23d341a7a184835957a868d41",
+      "pro": "json_canonical:b4f7cf3a2ad720849ac4f33bb8dff4178f7298fb984e3e747d36eb7b44eff80d"
+     }
+    }
+   ]
+  }
+ },
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-08-16T21:31:27",
+   "note": "H1 presented as report-and-proceed per the owner's mid-run delegation ('make decisions yourself based on what will give the best learning for the basic system'). Nothing here is blocking except the Q1 safety envelope re-confirmation and the Q9 source-impedance narrowing, both surfaced explicitly. Design doc: reports/design_doc/bb-adc-design-doc.pdf"
+  }
+ },
+ "artifacts": {
+  "sch": {
+   "path": "kicad/bb-adc.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:65137a1e5d3a3b6aa1db0b25b00a804facede1f23d341a7a184835957a868d41",
+   "hashed": "2026-08-17T21:30:22"
+  },
+  "pro": {
+   "path": "kicad/bb-adc.kicad_pro",
+   "kind": "pro",
+   "sha256": "json_canonical:b4f7cf3a2ad720849ac4f33bb8dff4178f7298fb984e3e747d36eb7b44eff80d",
+   "hashed": "2026-08-17T21:30:22"
+  }
+ },
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8,
+  "research": {
+   "per_run": 2,
+   "depth_per_gap": 4
+  }
+ },
+ "decisions": [
+  {
+   "what": "Build mode: mode block-basics; scope block-only; binding canonical",
+   "why": "token 'learning block-basics:' in the brief; contract in reference/build-modes.md",
+   "phase": "P0",
+   "ts": "2026-08-16T17:25:16"
+  },
+  {
+   "what": "Accuracy class = 0.1 percent at the terminal, uncalibrated: +/-5 mV of a 5 V reading at 25 C, +/-12 mV across 0-50 C",
+   "why": "owner answer to P0 Q2; bits are resolution not accuracy, so this and not the 12-bit floor is the BOM driver",
+   "phase": "P0",
+   "ts": "2026-08-16T17:42:45"
+  },
+  {
+   "what": "Host interface = SPI, 3.3 V CMOS, board is the peripheral; 10 kSa/s is a maximum, not gap-free streaming",
+   "why": "owner answer to P0 Q3",
+   "phase": "P0",
+   "ts": "2026-08-16T17:42:45"
+  },
+  {
+   "what": "J2 supplies 3.3 V ONLY - no 5 V rail available; the 0-5 V span must be scaled into the 3.3 V domain on-board",
+   "why": "owner answer to P0 Q8, brief taken at face value; makes the attenuator ratio error and tempco first-class terms in the 0.1 pct error budget",
+   "phase": "P0",
+   "ts": "2026-08-16T17:42:45"
+  },
+  {
+   "what": "Safety envelope: source is a low-voltage bench source - nothing anywhere in it above 30 V, no mains, no motor drive, no >30 V pack, already sharing host ground, lead <=1 m. Design is valid ONLY inside this envelope",
+   "why": "owner ruled 'simplest option' on P0 Q1, which resolves to the stated default; the board has no isolation and no protection and its input ground is the host ground, so the envelope is the safety argument. Re-confirmed at H1 before copper or money",
+   "phase": "P0",
+   "ts": "2026-08-16T17:42:45"
+  },
+  {
+   "what": "Defaults taken for P0 Q4/Q5/Q6/Q7/Q9: single-ended to ground; no-protection accepted with no negative excursion; single-row 0.1in header 3V3-GND-SPI(+DRDY/CONVST if required); host rail >=50 mA 3.3 V +/-5 pct; source <=1 kohm and board presents >=100 kohm",
+   "why": "owner reviewed the defaults in the P0 batch and did not override them",
+   "phase": "P0",
+   "ts": "2026-08-16T17:42:45"
+  },
+  {
+   "what": "Owner delegated design decisions to the pipeline: 'make decisions yourself based on what will give the best learning for the basic system'. H1-H4 run as report-and-proceed (digest presented, verdict recorded as owner-delegated), not as blocking holds",
+   "why": "explicit owner instruction 2026-08-16 mid-run. Scope of the delegation: engineering/design choices only. It does NOT relax any gate, the coverage checks, research, DFM, or the section-8 safety envelope - a change to the Q1 safety envelope re-blocks on the owner, and nothing spends money",
+   "phase": "P0",
+   "ts": "2026-08-16T17:43:55"
+  },
+  {
+   "what": "P1 roster: 2x research-component-scout (adc; afe-support = vref/divider/buffer), research-reference-design (afe topology families T1-T4), research-power-architect (analog supply + reference architecture). research-interface-spec NOT spawned",
+   "why": "SPI at 3.3 V CMOS into an unspecified host is a design decision, not a standards-bound interface, and the screw terminal and 0.1 in header bind no standard - there is no spec to research. The accuracy-critical unknowns are the attenuator, the reference and the SAR input drive, so the roster is weighted there",
+   "phase": "P1",
+   "ts": "2026-08-16T17:47:52"
+  },
+  {
+   "what": "CLOSED: no 5 V second rail. The ADS8681 path (on-chip attenuator, native 0-5.12 V input, but needs >=4.5 V AVDD, so a boost converter) is rejected; the board stays 3.3 V-only with an external-reference SAR behind an attenuator",
+   "why": "Three independent reasons. (1) MODE: scope tier block-only excludes a second rail the block does not need IN ORDER TO WORK - and the block demonstrably works at 3.3 V (MCP3201-class SAR, separate VREF pin), so a boost is a feature, not support. (2) OWNER: P0 Q8 answered 3.3 V only, explicitly. (3) LEARNING VALUE: the attenuator-plus-reference error budget IS the lesson of this board; a boost would delete that lesson and park a switching regulator beside a high-impedance precision node. Scout finding recorded: every >=16-bit-accuracy SAR in JLC stock needs >=4.5 V AVDD - nothing that accurate runs natively at 3.3 V",
+   "phase": "P1",
+   "ts": "2026-08-16T18:03:47"
+  },
+  {
+   "what": "Converter lead candidate: MCP3201 class (1-channel 12-bit SAR, SOIC-8, SEPARATE VREF pin 0.25 V..VDD, SPI). MCP3202 is DISQUALIFIED despite better stock/price",
+   "why": "MCP3202's 8-pin package ties VDD and VREF to one physical pin, so it cannot take a true sub-VDD external reference - the JLC catalog attribute claims 'External' and is misleading. Caught by reading DS21290F, not by parts_search. MCP3204 is the second-source hedge on the same SAR core",
+   "phase": "P1",
+   "ts": "2026-08-16T18:03:47"
+  },
+  {
+   "what": "AFE topology = T1/T3: precision attenuator -> low-Ibias RRIO buffer -> SAR with external precision reference. T2 (bare divider, no buffer) and T4 (ratiometric to the +3V3 host rail) are both DISQUALIFIED",
+   "why": "T4 by arithmetic: the host rail is +/-5 pct (owner-answered Q7) = +/-165..250 mV of reference error, 20-50x the +/-5 mV budget, and it is NOT true ratiometric cancellation because the 0-5 V input is independent of the 3.3 V rail. T2 by the SAR acquisition equation t = (N+1)*ln2*(Rs+Rss)*Cs: Q9 demands the board present >=100 kohm at the terminal, which puts the divider Thevenin impedance in the tens of kohm, and at 12 bits that is marginal-to-failing against MCP3201's 1.5-clock sample window - before input leakage across that same impedance is counted. The buffer is what reconciles 'high-Z to the source' with 'low-Z and fast to the SAR'; it is support the operating point requires, not filtering the mode excludes",
+   "phase": "P1",
+   "ts": "2026-08-16T18:05:37"
+  },
+  {
+   "what": "Extended-tier JLC parts are allowed for the ATTENUATOR (matched network) as well as for the converter and the reference; requirements.md section 6 is widened accordingly",
+   "why": "P1 evidence makes the attenuator load-bearing for accuracy: two uncorrelated discrete resistors give ratio error ~sqrt(2)x tolerance and ratio TCR error ~sqrt(2)x TCR, and at 0.1 pct / 25 ppm per C that alone is ~7 mV at 25 C and ~4.4 mV more over 0-50 C - the whole budget, spent on two resistors. Under mode block-only COST is relaxable and ACCURACY is not, so the ruling is forced",
+   "phase": "P1",
+   "ts": "2026-08-16T18:05:37"
+  },
+  {
+   "what": "Accuracy is claimed on an RSS basis: RSS ~4.8 mV at 25 C meets the +/-5 mV target; the worst-case SUM is ~10.6 mV (0.21 pct) and WILL be stated as such in the design doc and on the board's own claim. The board is not advertised as worst-case 0.1 pct",
+   "why": "Owner delegated the ruling. RSS is the defensible convention for uncorrelated error terms (TI SNAA320B sec 4: real error sits closer to the RSS result) and every dominant term here - reference initial accuracy, divider ratio, converter INL, buffer offset - is genuinely independent. Worst-case closure would need 0.02 pct-class reference AND 0.02 pct-class divider, which is a different board. Honesty rule: both numbers get published; a claim of uncalibrated worst-case 0.1 pct would be false",
+   "phase": "P1",
+   "ts": "2026-08-16T18:14:33"
+  },
+  {
+   "what": "HARD SELECTION CONSTRAINT for P3: the converter's specified analog input range must include 0 V (AVSS) in the configuration used, and the buffer's output must swing to it under the SAR's near-zero DC load",
+   "why": "A PGA-input or headroom-limited converter needing 100-200 mV above AVSS cannot measure a 0 V input on a single 3.3 V rail; the only fixes are a negative rail or a level shift, both of which are second-rail mode boundaries. Selection avoids the boundary entirely. MCP3201's 0..VREF range satisfies it",
+   "phase": "P1",
+   "ts": "2026-08-16T18:14:33"
+  },
+  {
+   "what": "Extended-tier allowance covers ALL FOUR accuracy-critical parts: converter, voltage reference, attenuator, buffer op-amp. requirements.md section 6 is widened to match",
+   "why": "Scout evidence: no JLC Basic part in ANY of the four sub-functions meets the 0.1 pct class. The cheap defaults were quantified, not hand-waved - REF3320/REF3325/MCP1501/LM4040 each consume or exceed the whole 5 mV 25 C budget on initial tolerance alone, MCP6001 spends 90 pct of it on offset (4.5 mV) and TLV9001 1.6 mV. Under block-only, cost is relaxable and accuracy is not",
+   "phase": "P1",
+   "ts": "2026-08-16T18:23:11"
+  },
+  {
+   "what": "Architecture is NON-ratiometric and confirmed as such: the reference serves the converter's VREF pin only, and the attenuator taps the raw 0-5 V input independently. Reference error and divider ratio error are INDEPENDENT terms and both stay in the budget",
+   "why": "Scout OPEN 2 asked for confirmation because a ratiometric arrangement would cancel reference error out of the divider math and re-weight the rankings. It cannot apply here: the 0-5 V source is not excited by this board's reference or rail, so there is nothing to cancel against - the same reason T4 (ratiometric to +3V3) was rejected",
+   "phase": "P1",
+   "ts": "2026-08-16T18:23:11"
+  },
+  {
+   "what": "P3 sourcing rule: for AD8605-pattern parts, ONLY the Analog-Devices-branded LCSC row is acceptable; clone-brand rows under an identical MPN pattern are refused",
+   "why": "Scout pulled a clone datasheet (TECH PUBLIC) for an AD8605-pattern part specifying 5 mV MAX input offset - 30-300x looser than the genuine part, on the same pinout and part-number pattern. On this board 5 mV of offset IS the entire 25 C budget. JLC lists six clone brands alongside genuine ADI stock under one search term, so brand is a selection criterion here, not a preference",
+   "phase": "P1",
+   "ts": "2026-08-16T18:23:11"
+  },
+  {
+   "what": "CONVERTER OVERRULED: MCP3201 is out, ADS8326IB class (16-bit) is in. MCP3201-B's own DS21290F specifies gain error +/-5 LSB MAX = 6.10 mV at the terminal - 1.22x the ENTIRE +/-5 mV budget - plus +/-3 LSB offset",
+   "why": "P1's scout ranked on INL and never read the gain/offset rows. The mechanism is general and worth keeping: LSB-denominated DC error specs shrink 16x going from 12-bit to 16-bit, so a 12-bit part's '+/-5 LSB' is a far bigger voltage than a 16-bit part's. ADS8326IB specifies offset (+/-1 mV), gain (+/-16 LSB) and INL (+/-2.5 LSB) as MAXIMA - the only candidate found that does - and runs from 2.7-5.5 V, so it works on the 3.3 V rail",
+   "phase": "P2",
+   "ts": "2026-08-16T19:05:24"
+  },
+  {
+   "what": "ATTENUATOR: five equal 200k 0.02 pct / 10 ppm resistors in ONE series string, tapped 3:2 -> K = 0.400, Rtot = 1.00 Mohm, VREF 2.048 V (ADR4520 class), full scale 5.120 V (2.4 pct headroom). Matched network REFUSED",
+   "why": "Three independent reasons the network loses. (1) A quad's realisable ratios are {0.2, 0.25, 1/3, 0.5, ...}; K=0.5 with a 2.5 V reference puts full scale at EXACTLY 5.000 V, so the stated maximum input clips on a real unit - a functional refusal, not an error term. (2) Deep-stock LT5400 rows carry 1k/5k elements, capping Rtot at ~12 kohm = 417 mV of loading error. (3) The 100 kohm quad is 11 pcs at 61 USD. The equal-string wins on arithmetic too: n equal elements AVERAGE their tolerances, sigma_K/K = (1-K)*sqrt(1/n_t+1/n_b)*t = 0.548t here versus 0.849t for an unequal pair - the sqrt(2)*tol convention P1 used overstates the pair by 2.6x because it drops the (1-K) factor. Live parts_search evidence: 0.02 pct grade stops at 200 kohm and 0.01 pct/2 ppm stops at 10 kohm in stock, so a megohm divider is NECESSARILY a lower-grade divider unless it is a series string",
+   "phase": "P2",
+   "ts": "2026-08-16T19:05:24"
+  },
+  {
+   "what": "ACCEPTED (orchestrator ruling on the architect's H1 question): the board contracts to Rs <= 200 ohm at the terminal, narrowing owner-answered Q9 from <= 1 kohm, and presents 1.00 Mohm, strengthening it from >= 100 kohm. Both numbers go on the SILKSCREEN",
+   "why": "Config C (keep Rs <= 1 kohm, 5 Mohm divider, 0.1 pct resistors) also closes RSS at 4.27 mV, but it publishes an 18.7 mV worst case against a 12 mV target and, worse, moves the board's dominant uncertainty from datasheet MAXIMA to an estimated surface-leakage term on a megohm node. The chosen config keeps every dominant term a number a vendor guarantees. This NARROWS the owner's stated envelope, so it is a visible H1 item, not an implementation detail - and the contract belongs on the silk because input impedance is a specification of the instrument",
+   "phase": "P2",
+   "ts": "2026-08-16T19:05:24"
+  },
+  {
+   "what": "Stackup JLC2313_1.6, 2 layers, 1 oz, HASL, no impedance control. Flat root schematic sheet, NOT hierarchical",
+   "why": "Single-sided assembly hands the entire B.Cu to one unbroken GND pour, which is exactly what the analog-return constraint D1 demands; a 4th layer would add nothing this board can use. Flat sheet per LEARNINGS 2026-07-22: a child-sheet label exports as /<sheet>/<LABEL> and silently unhooks every constraints.json entry - the P4 defect that cost lumina-par, and why bb-buck and sbuck-5v3a are flat. 18 parts, 12 nets, one A4 page",
+   "phase": "P2",
+   "ts": "2026-08-16T19:05:24"
+  },
+  {
+   "what": "Research budget: KEEP all four declared blocks (resistive-attenuator, precision-buffer, sar-adc, series-voltage-reference) as separate coverage slots - the architect offered to fold precision-buffer into sar-adc to save a task; declined",
+   "why": "Topology records seed the library more durably than part records, and 'op-amp driving a SAR input' is a reusable unit standing alone. 4 of 6 tasks at P2 leaves 2 for P3's three ICs. If P3 opens a third gap, the per_run cap is RAISED by a recorded decision rather than a slot being silently truncated - the cap exists to make spend visible, not to cap knowledge on the one board built to produce it",
+   "phase": "P2",
+   "ts": "2026-08-16T19:05:24"
+  },
+  {
+   "what": "The 5-element equal string's PRIMARY justification is restated: 0.02 pct-grade resistance stops at 200 kohm in stock and the design needs Rtot = 1.00 Mohm, so five elements is the only way to reach the value at that grade. The tolerance-AVERAGING advantage is a secondary, statistical bonus and is NOT claimed as sourced knowledge",
+   "why": "The attenuator researcher looked for and could not find any vendor publishing the series-combining statistics sigma_K/K = (1-K)*sqrt(1/n_t+1/n_b)*t - Vishay states only the qualitative principle - and correctly refused to put it in a record. The design does not depend on it: WORST-CASE ratio error is (1-K)*2t = 0.024 pct for the 5-string and 0.024 pct for an unequal pair alike, so the string never loses on worst case, and the P2 budget's worst-case column already assumes no averaging. Averaging improves only the RSS column. Recording this so the design doc does not cite as vendor knowledge something that is our own arithmetic",
+   "phase": "P2",
+   "ts": "2026-08-16T19:26:54"
+  },
+  {
+   "what": "NEW LAYOUT CONSTRAINT (P6/P7, first order): ground offset between the attenuator string's bottom node and the converter's negative reference is NOT attenuated. Signal is divided by K=0.4; a ground offset passes at unity, so 1 mV of offset = 2.5 mV input-referred = half the terminal error budget. To be folded into constraints.json before P5",
+   "why": "Found by the resistive-attenuator research (pending second-reader verification). It converts an ordinary-looking copper decision into the single largest layout-controlled error term on the board, and it is invisible in a schematic - exactly the class of defect this board exists to teach. Consolidated constraints.json update happens once, after all four research tasks close, so P5 board setup reads the final set",
+   "phase": "P2",
+   "ts": "2026-08-16T19:26:54"
+  },
+  {
+   "what": "ARCHITECTURE: the converter's pseudo-differential -IN is wired as a dedicated REMOTE-SENSE line to the attenuator string's BOTTOM NODE - not to a convenient ground point. This is a schematic requirement at P4 and a routing constraint at P7",
+   "why": "It cancels the unattenuated ground-offset error exactly, which is otherwise the largest layout-controlled term on the board. Algebra: with the tap at V_tap referred to the string bottom GND_A, +IN referred to the converter ground GND_C carries V_tap + (GND_A - GND_C) + Vos, and -IN tied to GND_A carries (GND_A - GND_C); the difference is V_tap + Vos and every ground offset drops out. Two independent research tasks produced the halves of this - the attenuator task found that a divider passes ground offset at UNITY while dividing signal by K (so 1 mV = 2.5 mV input-referred at K=0.4), and the sar-adc task found that the ADS8326 specifies -IN as a remote-ground sense. Neither task saw the other's output",
+   "phase": "P2",
+   "ts": "2026-08-16T19:30:44"
+  },
+  {
+   "what": "OPEN RISK for P3/P4, recorded not resolved: the ADS8326 datasheet calls for a 47 uF bypass at REF and warns 'make sure the op amp can drive the bypass capacitor without oscillation', while precision series references typically specify a PERMITTED CAPACITANCE RANGE, not a minimum. 47 uF may sit outside the ADR4520-class stability window",
+   "why": "This is a direct conflict between two parts' datasheets and it decides whether the board needs a reference BUFFER or a series isolation resistor - a part count change, so it must be settled before P4 schematic, not discovered at bring-up. The series-voltage-reference research task was already briefed to get the permitted range and the 'buffer needed' criterion; if it comes back unresolved this becomes a P3 datasheet-extraction requirement",
+   "phase": "P2",
+   "ts": "2026-08-16T19:30:44"
+  },
+  {
+   "what": "REFERENCE RISK CLOSED from the datasheet spec table: ADR4520 conditions its whole spec on VIN 3-15 V with DROPOUT 1 V MAX over -40..125 C at no load AND at 2 mA, so the guaranteed floor is 2.048 + 1.0 = 3.048 V. At the 3.135 V worst-case rail the part is IN SPEC with 87 mV of margin. The family headline 'low dropout 300 mV at 2 mA' is footnoted (VOUT >= 3 V) and does NOT apply to the 2.048 V member",
+   "why": "This also retroactively kills P1's pick: ADR4525A is 2.5 V, VOUT < 3 V, so it carries the same 1 V dropout and needs 3.50 V - ABOVE the 3.135 V worst-case rail. It could not have worked, and the P1 scout's '300 mV dropout leaves 335 mV headroom' came from the footnoted headline. 2.048 V is therefore not a preference but the HIGHEST usable reference voltage from this family on a 3.3 V rail, which independently confirms the architect's choice. Note also that dropout is DEFINED (p29) as the differential at which VOUT has already degraded 0.1 pct = 2.05 mV = 41 pct of the terminal budget, so the 87 mV is margin to a degraded point, not to a cliff",
+   "phase": "P2",
+   "ts": "2026-08-16T19:34:22"
+  },
+  {
+   "what": "OPEN RISK CLOSED - no reference buffer and no series isolation resistor needed: ADR4520 specifies a stable output capacitance WINDOW of 1-100 uF, and the ADS8326's required 47 uF REF bypass sits inside it. The reference drives the SAR's reference bypass directly",
+   "why": "The conflict recorded earlier was that the ADS8326 datasheet warns 'make sure the op amp can drive the bypass capacitor without oscillation' while precision references specify a permitted RANGE rather than a minimum. Both halves are now sourced: the range is 1-100 uF and 47 uF is inside it. Part count unchanged, and the P4 schematic can proceed",
+   "phase": "P2",
+   "ts": "2026-08-16T19:34:22"
+  },
+  {
+   "what": "ASSEMBLY CONSTRAINT: the voltage reference must be soldered in the LAST reflow pass. Solder-heat shift is +/-0.02 pct (ADI spec row; TI measured +0.03 pct LCCC / -0.04 pct VSSOP) - as large as the entire initial-accuracy spec - and is only removed by calibration, which this board does not do",
+   "why": "Recorded now so P9/P10 cannot lose it. This board is single-sided SMT assembly, so there is exactly ONE reflow pass and the constraint is satisfied by construction - but it becomes live the moment anyone adds a second side or a rework step, and it is invisible in the schematic",
+   "phase": "P2",
+   "ts": "2026-08-16T19:34:23"
+  },
+  {
+   "what": "BUFFER: OPA333 FAILS the settling requirement at the declared t_acq of 9 us, on three independent numbers. Baseline moves to an OPA320-class fast RRIO CMOS part so P3 sourcing is unblocked; OPA333 stays a live alternate CONTINGENT on the t_acq question below",
+   "why": "TI's own chain gives a driver GBW floor of 4/(2*pi*R_FLT*C_FLT) with R_FLT <= t_acq/(12*C_FLT), so the floor collapses to GBW >= 48/(2*pi*t_acq) - INDEPENDENT of R and C, you cannot buy your way out with a bigger reservoir cap. At t_acq = 9 us that is 849 kHz against OPA333's 350 kHz. Corroborated by OPA333's own settling curve (~40-50 us for a 4 V step) and by slew alone (0.16 V/us spends 12.8 us on a 2 V step). Cost of the swap: OPA320's Vos 150 uV max and 5 uV/C drift versus OPA333's 10 uV and 0.05 uV/C, i.e. ~0.4 mV at 25 C and ~0.7 mV over temperature at the terminal - affordable against a 3.23 mV RSS, and it moves RSS only to ~3.30 mV",
+   "phase": "P2",
+   "ts": "2026-08-16T19:36:11"
+  },
+  {
+   "what": "P3 VERIFICATION ITEM, decides the buffer: is the ADS8326's acquisition time HOST-CONTROLLED (the CS-high interval, so it stretches at low sample rates) or fixed by a clock-cycle count? At 10 kSa/s the sample period is 100 us, so if acquisition is host-controlled it can be 20 us+, the GBW floor drops below 350 kHz and OPA333 becomes viable and PREFERRED (30x lower drift). If it is clock-fixed at ~9 us, OPA320 stands",
+   "why": "The GBW floor is 48/(2*pi*t_acq), so this single datasheet fact moves the requirement by a factor of ~2.4 and changes which amplifier the board carries. It is a reading of the timing section, not a simulation result, so it belongs to datasheet extraction. The sim bench acquisition-settling then confirms whichever part the answer selects",
+   "phase": "P3",
+   "ts": "2026-08-16T19:36:12"
+  },
+  {
+   "what": "OPA333's 240 kohm source impedance is NOT a problem if it is chosen: TI's zero-drift selection table gives OPA333 a 1000 kohm max recommended source impedance, and the divider's Thevenin is 240 kohm - inside it. The zero-drift family trades that ceiling against GBW in opposite directions (OPA189: 14 MHz but only 1 kohm)",
+   "why": "Recorded so the OPA333-vs-OPA320 decision is made on SPEED alone, which is where the real conflict is, rather than being confused with a source-impedance objection that does not apply. Also flagged for the sim/firmware note: a chopper's clock tone can alias into a sampled system - OPA333 chops at ~125 kHz which at 10 kSa/s folds to 5 kHz rather than to DC, but a sample rate that makes f_chop an exact multiple would fold it to DC as a systematic offset",
+   "phase": "P2",
+   "ts": "2026-08-16T19:36:12"
+  },
+  {
+   "what": "The remote-sense architecture is CONFIRMED against the source, not just inferred: TI SPRAD89 s4.2 states verbatim 'The common ground noise will not be attenuated by the resistor divider circuit', and s4.1 eq 8 independently multiplies a downstream offset by (R1+R2)/R1 = 1/K. Second reader re-read both pages and confirmed the arithmetic direction",
+   "why": "This is the claim the board bet its -IN wiring and a P7 routing constraint on, so it was the primary refutation target handed to the fresh-context reader. It survived, twice over, from the source's own conclusions rather than from a plausible mechanism",
+   "phase": "P2",
+   "ts": "2026-08-16T19:42:21"
+  },
+  {
+   "what": "The -IN remote-sense line is BOUNDED: ADS8326 specifies the -IN common-mode window as -0.3 V to +0.5 V relative to the device ground (datasheet p20, repeated p21, verified by second reader). The sense line to the attenuator's bottom node must stay inside it",
+   "why": "This is the constraint that makes the remote-sense architecture safe rather than open-ended. Expected ground offsets on this board are millivolts, three orders inside the window, so the architecture is comfortable - but the bound must be recorded because it is what stops a future revision from running the sense line to a distant or noisy ground and calling it Kelvin sensing. P3 caveat: ADS8326 fig 39 (common-mode range vs VREF) is plotted at VDD 5 V with the VREF axis starting at 2.5 V, so this board's 3.3 V / 2.048 V point is off the plotted range - confirm the window at the real operating point during datasheet extraction",
+   "phase": "P2",
+   "ts": "2026-08-16T19:48:54"
+  },
+  {
+   "what": "THIRD independent reason the OPA333 is rejected, and the cleanest one: the two constraints on the series resistor R_FLT have an EMPTY intersection at 350 kHz. TI's settling ceiling (R <= t_acq/12C, sprpeo2 p27) gives R <= 750 ohm at 1 nF (<= 1.6 kohm at 470 pF), while TI's stability optimum (sboa418 eq 2, with OPA333's R_O = 2 kohm and f_gbw = 350 kHz) asks for ~1.2 kohm (~2.0 kohm at 470 pF). The stability optimum EXCEEDS the settling ceiling at both capacitor values - no legal R exists",
+   "why": "Found by the fresh-context second reader while verifying both formulas on their own pages. It is stronger than the GBW-floor argument because it needs no extrapolation: two vendor formulas, both verbatim on cited pages, evaluated at this board's operating point, and they do not overlap. An amplifier can be REJECTED because the settling-derived ceiling and the stability-derived optimum on the same resistor have no common value - a general selection test worth carrying, and neither existing record names it. Requested as a new record",
+   "phase": "P2",
+   "ts": "2026-08-16T19:53:53"
+  },
+  {
+   "what": "Flagged for the promotion ruling, not a defect: the attenuator ratio PRINCIPLE record says ratio error is set by relative specs 'not by their absolute tolerance or absolute TCR', while its TCR specialization says absolute TCR magnitude still moves the ratio. Both are Vishay's own words in DIFFERENT documents (AN 28194 vs TN 60108). At approval the parent's headline should be softened to match the specialization, which carries the nuance the parent elides",
+   "why": "Surfaced by the second reader after the corrected record restored the qualifier 'but even in this case the ratio of resistance values is influenced by the magnitude of their TCR'. It is a genuine tension between two vendor documents, not a misreading, and it matters practically: a designer who takes the parent's headline alone concludes that buying a tracking spec ends the analysis, when the absolute TCR of the chosen network still has to be checked",
+   "phase": "P2",
+   "ts": "2026-08-16T19:55:33"
+  },
+  {
+   "what": "PROMOTION IS DEFERRED to a separate owner pass AFTER the parallel board runs finish. This run will close with verified records reading  at coverage, which is the contract's expected state, and will NOT copy records into reference/knowledge/ during the run",
+   "why": "research.py promote copies records and their quarantined sources INTO the shared library outside this workspace, and sibling board sessions (bb-ldo, bb-amp, bb-mcu) are running concurrently against the same git index and the same library directory. Concurrent promotion is how two runs clobber each other's library writes. Designing under  is explicitly allowed - the recipe says research narrows a gap to provisional and the owner closes it - so nothing in this board is blocked by deferring",
+   "phase": "P2",
+   "ts": "2026-08-16T19:55:34"
+  },
+  {
+   "what": "CORRECTION to the preceding decision, whose text lost one word to shell quoting: the deferred-promotion decision should read \"will close with verified records reading PROVISIONAL at coverage\". No other word was affected and the ruling is unchanged",
+   "why": "Backticks in the message were interpreted by the shell before state.py saw them. Recording the correction rather than leaving a sentence that reads as if the coverage state were blank, since the whole point of that decision is which state the run closes in",
+   "phase": "P2",
+   "ts": "2026-08-16T19:55:54"
+  },
+  {
+   "what": "CORRECTION to the earlier reference decision. ADR4525 (2.5 V) is NOT disqualified on headroom: its dropout row is 500 mV MAX at both no load and 2 mA, so its floor is 3.0 V (set by the tables VIN condition) and it has 135 mV of margin on a 3.135 V rail - MORE than the ADR4520s 87 mV. The claim that it \"would need 3.50 V\" was wrong: it applied the 2.048 V members 1 V dropout to the 2.5 V member",
+   "why": "Caught by the fresh-context second reader, which read the sibling members rows and listed the per-member floors. Dropout in this family is per-member and NOT monotonic in output voltage - 1 V at 2.048 V, 500 mV at 2.5 V, 100/300 mV at 3.0 V - so the 2.048 V part has the WORST dropout of the family, which is the opposite of the usual intuition. The footnoted-headline finding stands (300 mV at 2 mA is qualified to VOUT >= 3 V and applies to neither member); only the per-member number was misapplied",
+   "phase": "P2",
+   "ts": "2026-08-16T19:58:30"
+  },
+  {
+   "what": "ADR4520 at 2.048 V is CONFIRMED as the choice, on the corrected rationale: RANGE UTILISATION with a realisable equal-element ratio, not headroom. With K = 0.4 from a 5-element 3:2 string, VREF 2.048 V puts full scale at 5.12 V and a 5 V input at 97.7 pct of range. Reaching comparable headroom with a 2.5 V reference needs K ~ 0.4545 = 5/11 or 4/9, i.e. NINE TO ELEVEN equal elements, or K = 0.5 with two, which returns full scale to exactly 5.000 V and clips the stated maximum input",
+   "why": "Equal-element strings can only realise ratios n_b/(n_t+n_b), so the reference voltage and the element count are one choice. 2.048 V is the value that lands a usable ratio at a sensible part count. Second-order confirmation: at FIXED full scale a higher VREF refers the converters OFFSET to the terminal by a smaller 1/K (2.05 vs 2.5 for a 1 mV offset), which is a ~0.45 mV improvement - real but not worth six more resistors, and INL at the terminal is unchanged because VREF/K = FS",
+   "phase": "P2",
+   "ts": "2026-08-16T19:58:30"
+  },
+  {
+   "what": "OPA333 rejection is now CLOSED, not merely argued: the obvious escape route is shut by a third vendor rule. Shrinking C_FLT does not rescue it, because the settling ceiling falls as 1/C while the stability optimum falls only as 1/sqrt(C) - they cross at ~243 pF, which is BELOW the C_FLT >= 20*C_SH = 960 pF floor the same TI slide imposes for a 48 pF sampling cap. Quantified remedy: at 1 nF with R_O = 2 kohm, f_gbw must exceed ~0.78 MHz before ANY legal series resistor exists",
+   "why": "Three TI rules interlock - the settling ceiling, the stability optimum, and the 20x charge-bucket floor - so there is no capacitor value at which a 350 kHz amplifier works here. Independently corroborated by OPA333 p11 fig 15 showing ~40 pct overshoot at 1 nF, i.e. the part really is under-damped at this load. Caveat carried in the record and not hidden: sboa418 eq 2 assumes a FLAT resistive open-loop output impedance across the band, while OPA333 publishes only a single-frequency R_O of 2 kohm at 350 kHz and no Z_O-vs-frequency curve. The quoted frequency is f_gbw, which is the one that matters, but flatness is unverified",
+   "phase": "P2",
+   "ts": "2026-08-16T20:11:38"
+  },
+  {
+   "what": "BUFFER SELECTION TEST to apply at P3, generalised from the above: for any candidate amplifier, compute BOTH the settling ceiling R <= t_acq/(12*C_FLT) AND the stability optimum from R_O and f_gbw, and reject the part if the interval is empty at every C_FLT above the 20*C_SH floor. This is a cheaper and more decisive test than settling simulation and it runs on datasheet numbers alone",
+   "why": "It is the test that killed the OPA333 without a single simulation, and it will re-run identically against whatever P3 sources. Recording it as a rule rather than a result so the P3 part-sourcer applies it to every candidate instead of only re-checking the incumbent",
+   "phase": "P3",
+   "ts": "2026-08-16T20:11:38"
+  },
+  {
+   "what": "Source-impedance knee located from TI plot D039, measured off the plot frame rather than described: ENOB is flat and the curves are indistinguishable out to ~3.3 kohm (11.94 at 3.3 k, 11.91 at 330 ohm, 11.86 at 33 ohm - the 3.3 kohm curve is the HIGHEST), and the knee falls between 3.3 kohm and 10 kohm (11.00 at 10 k, 9.59 at 20 k). A record had claimed 3.3 kohm ~11.8, inventing a degradation in the low kohm and inverting the curve order",
+   "why": "It is the record whose whole job is pricing source impedance, so a wrong curve reading there is load-bearing. The corrected shape changes the engineering story: moderate source impedance costs nothing, and the penalty arrives abruptly rather than gradually. This board is unaffected either way - its divider Thevenin is 240 kohm, an order past the knee, so the buffer is required regardless - but the number would have been wrong in the library",
+   "phase": "P2",
+   "ts": "2026-08-16T20:24:33"
+  },
+  {
+   "what": "CORRECTION: the \"empty intersection\" argument OVERREACHES and is withdrawn as a rejection test. sboa418 p9 names 45 deg as generally stable and explicitly permits a SMALLER series resistor than eq 2 when voltage error dominates - eq 2 gives an OPTIMUM, not a MAXIMUM - so a ceiling below the optimum does NOT mean no legal R exists. At 470 pF the ceiling is 82 pct of the optimum, inside the 50-60 deg band eq 2 targets. The record carrying this test is refuted on that point",
+   "why": "Caught by a fresh reader that re-derived all four algebraic claims (ceilings 750 / 1595.7 ohm, optima 1207.8 / 1956.4 ohm, crossover 243.5 pF, minimum 778 kHz f_gbw) and found the ARITHMETIC correct but the INFERENCE unsupported by the source. The records own source note already conceded eq 2 is an optimum not a maximum, and the rule field then contradicted it. My earlier characterisation of the OPA333 rejection as \"closed, not merely argued\" rested on this leg and was wrong",
+   "phase": "P2",
+   "ts": "2026-08-16T20:39:11"
+  },
+  {
+   "what": "OPA333 REJECTION STANDS on two independent legs that survive, neither involving eq 2: (1) the settling ceiling R <= t_acq/(12*C) combined with the driver requirement GBW > 4/(2*pi*R*C) collapses to GBW >= 48/(2*pi*t_acq) = 849 kHz at t_acq = 9 us, against OPA333 350 kHz; (2) OPA333 fig 14 measured at unity gain settles in 40.4 us to 0.01 pct and 50.5 us to 0.001 pct, against a 9 us window. Baseline stays OPA320-class",
+   "why": "Both legs are sourced and verified independently of the withdrawn collision test - leg 1 is arithmetic on two separately verified TI rules, leg 2 is a direct datasheet measurement of the part itself. The conclusion is unchanged; only one of the three supporting arguments fell. Note this rejection is still CONDITIONAL on t_acq = 9 us, which remains the open P3 question - if acquisition proves host-controlled and stretches past ~22 us, leg 1 dissolves and leg 2 must be re-judged against the per-conversion event rather than a full-scale step",
+   "phase": "P2",
+   "ts": "2026-08-16T20:39:11"
+  },
+  {
+   "what": "PROCESS FINDING for the review loop: a non-binding \"blemish\" note from one second reader caused a CORRECT record to be edited into a WRONG one. The earlier reader flagged fig 15 as reading ~7 pct / ~15 pct without refuting; the researcher applied it; the fresh reader then measured the curve geometry and found the ORIGINAL ~10 pct / ~20 pct was accurate (true values 9.8 pct at 100 pF, 24.6 pct at 300 pF - and the curve does not extend to 1 nF at all, spanning only 10.4-604.5 pF)",
+   "why": "Flag-without-refute has a real cost: an advisory note carries the authority of the reviewer role without the evidentiary bar of a refutation, and a researcher will act on it. Either raise it to a refutation with the measurement behind it, or mark it explicitly as do-not-act-without-verifying. Worth carrying into the skill, not just this board",
+   "phase": "P2",
+   "ts": "2026-08-16T20:39:11"
+  },
+  {
+   "what": "STRONGEST and UNCONDITIONAL argument for the buffer, independent of t_acq and of any amplifier choice: a switched-capacitor SAR input presents an equivalent average resistance R_eq = 1/(f_sample * C_sample). At 10 kSa/s with C_SH = 48 pF that is ~2.08 Mohm. The attenuators 240 kohm Thevenin driving ~2.08 Mohm is a gain error of 240k/(240k+2080k) = ~10 pct - about 500 mV at the terminal, a hundred times the budget. A bufferless divider is dead on DC loading alone, before settling is discussed",
+   "why": "The two existing arguments are both conditional - the GBW floor depends on t_acq = 9 us (still an open P3 question) and the 40 us settling figure is specific to the OPA333. This one depends on neither: it holds at any acquisition time and for any converter with a capacitive sampling input, because slowing the sample rate raises R_eq rather than lowering it. Mechanism is TI SPRAD89 equivalent-average-resistance, surfaced by the resistive-attenuator research; the arithmetic here is ours. It means the buffer is a REQUIREMENT of the topology, and only WHICH buffer remains open",
+   "phase": "P2",
+   "ts": "2026-08-16T20:41:36"
+  },
+  {
+   "what": "ENOB-vs-source-impedance is a function of SAMPLE RATE, not source impedance alone: on TI plot D039 at 10 kSPS all five curves including 20 kohm sit at 11.9-12.0, while at 100 kSPS the knee falls between 3.3 kohm and 10 kohm. The knee is recorded scoped to the 100 kSPS end with the plots conditions (14-bit converter, CFLT 680 pF, 2-100 kSPS sweep), not as an impedance constant",
+   "why": "Recorded because it is the correct general statement and because it looks, at first glance, like it might rescue a bufferless design on THIS board - we run at 10 kSa/s, where the plot shows impedance barely matters. It does not rescue it: 240 kohm is 12x beyond the plots 20 kohm maximum, and the equivalent-average-resistance argument above kills it independently at any rate",
+   "phase": "P2",
+   "ts": "2026-08-16T20:41:36"
+  },
+  {
+   "what": "The OPA333-vs-OPA320 choice is formally handed to the SIM LEG, and that is the sources own instruction: TI sboa418 p11 states \"Spice simulation tools such as TINA-TI must be used to verify the resultant phase margin\" and publishes NO closed form for the 45-degree isolation resistor. The collision test therefore SCREENS a candidate and triggers a phase-margin simulation; it cannot reject one on paper",
+   "why": "This closes the loop honestly. The screening test still earns its place - it flags, from datasheet numbers alone, that this amplifier must run an under-damped isolation resistor - but the vendor is explicit that the resulting margin is only knowable by simulation. The architect already named buffer-stability (PM >= 45 deg, overshoot <= 5 pct) and acquisition-settling (15.6 uV inside 9 us) as sim benches, so the machinery exists and the P8 sim gate is where this gets settled. The OPA320-class baseline stands meanwhile on the two legs that do not need simulation: the 849 kHz GBW floor at t_acq = 9 us, and OPA333 fig 14s measured 40.4 us settling to 0.01 pct at unity gain",
+   "phase": "P2",
+   "ts": "2026-08-16T20:52:04"
+  },
+  {
+   "what": "CLOSED sar-adc at 10/10 verified WITHOUT spending a further round on the one improvement the reader recommended: adding SBAA256B p.3 to the settling records sources. That page carries a TABLE giving 10.99 ENOB at RTH 10k / CFLT 680 pF / 100 ksps - a non-graphical, independent corroboration of the exact curve endpoint the record reads off a plot - plus the plots unstated conditions (100 Hz analog input, no driver amplifier). Logged as a promotion-time improvement instead",
+   "why": "The record is already verified and its numbers were confirmed twice by two different measurement methods, so the citation adds robustness rather than correctness, and editing a verified record would void its signed attestation and cost a full re-open plus re-read. Proportionality: three correction rounds have already run on this task and the marginal finding no longer changes a rule. Whoever promotes these records into the library should add p.3 then, when the record is lawfully open anyway",
+   "phase": "P2",
+   "ts": "2026-08-16T20:56:18"
+  },
+  {
+   "what": "DESIGNING UNDER A COVERAGE GAP, recorded not silent: slot block:B1 resistive-attenuator remains `gap` on the single class `constraints-emission`; all five of its other classes and all classes of B2/B3/B4 read `provisional`. No further research task is spent on it. The boards own constraints.json will be populated for this block from the six VERIFIED attenuator records directly",
+   "why": "The attenuator researcher declared this class an honest gap rather than inventing a record for it, and the reader confirmed the checklist is honest about it. Proportionality: 4 tasks x 3 correction rounds have produced 32 verified records and 4 checklists, and 2 research tasks remain for P3s three ICs, where vendor layout sections are the higher-value target. The gap costs the LIBRARY a record that would tell future boards which machine-checkable constraints a precision attenuator implies; it costs THIS board nothing, because the underlying mechanisms - guard ring on the high-Z tap, thermal gradient across the string, the bottom-node sense - are all carried by verified records and go into constraints.json anyway. Flagged as the first candidate if the owner reopens research on this topology",
+   "phase": "P2",
+   "ts": "2026-08-16T21:12:55"
+  },
+  {
+   "what": "REVERSED, on the datasheets own evidence: the converter DOES get a 5-10 ohm series resistor at its rail entry, with 0.1 uF + 10 uF at the pin, exactly as the ADS8326s own recommended application circuit shows (figs 44/45, p27). My earlier no-ferrite-no-series-R ruling is superseded for this element",
+   "why": "The scope tier excludes \"filtering the datasheet does not require\" - it does NOT exclude what the datasheet DOES require. The P1 power architect wrote precisely this escape hatch (\"it goes in if the chosen converters own datasheet shows it\") and the condition is now met by a verified, page-cited record. This is the mode working as designed rather than being bent: a reflex ferrite gets refused, a vendor-specified element does not. Cost is one 0603 and, at this boards ~60 uA typical draw at a 10 kHz data rate, ~0.6 mV of drop. Separately, the AVDD/DVDD framing that motivated the original ruling is MOOT: the MSOP-8 ADS8326 has a single VDD pin, so there was never a split to bridge - the figs-44/45 element is rail-entry isolation, a different thing",
+   "phase": "P2",
+   "ts": "2026-08-16T21:25:47"
+  },
+  {
+   "what": "ACCEPTED as an explicitly-labelled inference, not a page-cited rule: the reference keepout from mounting holes and the board edge. What IS page-cited is reflow package die-stress (+/-0.02 pct, as large as the whole B-grade initial accuracy) plus the vendors warning that its magnitude depends on board size, thickness and material. The step from that to \"keep the part away from flex concentrators\" is ours and is marked as such in the constraints trace table",
+   "why": "The constraint costs nothing on a board this sparse and protects the single most accuracy-critical part, so it stays. But it must not masquerade as vendor knowledge in a library the whole run exists to seed - an inference labelled as an inference is honest; the same sentence unlabelled would be exactly the failure mode four correction rounds were spent removing",
+   "phase": "P2",
+   "ts": "2026-08-16T21:25:47"
+  },
+  {
+   "what": "P4 SCHEMATIC HARD REQUIREMENT, flagged because the sheet plan almost lost it: U1 -IN is a DEDICATED SENSE RUN to the attenuator strings bottom node (R5s pad), NOT a GND symbol placed at the converter. sheets.md said \"U1 -IN = GND\", which is electrically true and operationally fatal",
+   "why": "A P4 agent reading \"= GND\" wires it to the nearest ground and silently deletes the boards largest error-cancellation mechanism - the thing that turns a 2.5 mV input-referred ground offset into zero. The schematic looks identical either way and no gate would catch it: ERC sees one net either way, DRC sees copper either way, and the board would simply read wrong by half its error budget. This is the exact class of defect that only a stated requirement prevents",
+   "phase": "P4",
+   "ts": "2026-08-16T21:25:47"
+  },
+  {
+   "what": "VERIFICATION ITEM 2 CLOSED - the buffer question is settled and OPA320 is FINAL, with OPA333 demoted to documented alternate. ADS8326 acquisition is a CLOCK-CYCLE COUNT, not a CS-high dwell: tSMPL = 4.5 MIN / 5.0 MAX DCLOCKs (Table 1), sampling starts when CS falls, and CS-high is Power Down rather than extended tracking. At the architected 500 kHz DCLOCK, t_acq = 4.5/500k = 9.0 us EXACTLY, which is what constraints.json already carried",
+   "why": "The host can only stretch t_acq by slowing DCLOCK (24 kHz-6 MHz legal). Pushed to the limit: tCYC_min = 22 DCLOCKs, so 220 kHz gives tCYC = 100 us - exactly the 10 kSa/s period, zero margin - for t_acq ~20.5 us. That still does not rescue the OPA333, whose own MEASURED settling curve needs ~40-55 us to reach this boards ~7.6 ppm target, roughly 2-2.5x more than the timing budget can ever supply while sustaining 10 kSa/s. So the rejection holds independent of clock tuning, which is a stronger result than the conditional one recorded at P2",
+   "phase": "P3",
+   "ts": "2026-08-16T22:28:08"
+  },
+  {
+   "what": "VERIFICATION ITEM 3 CLOSED - the -IN window is an ABSOLUTE constant, not an operating-point function. -0.3 V to +0.5 V is stated in Recommended Operating Conditions (p3) with no VDD or VREF dependence. Figure 39, which P2 flagged as plotted off this boards range, describes a DIFFERENT and narrower mechanism: CM_max = VDD + 0.2 - VREF, which only bites as VREF approaches VDD. At 3.135 V / 2.048 V that gives ~1.29-1.45 V, nowhere near the +/-0.3/0.5 V ceiling, so the flat window applies in full",
+   "why": "The remote-sense architecture depends on this bound and the P2 note left it unconfirmed at our operating point. Expected -IN excursion is millivolts of ground IR drop - three orders inside the window. The figure that looked like a threat turned out to describe an unrelated limit",
+   "phase": "P3",
+   "ts": "2026-08-16T22:28:08"
+  },
+  {
+   "what": "VERIFICATION ITEM 1 CLOSED - ADR4520 is STILL Rev 0 (4/12), re-confirmed through an independent distribution channel (an RS Online mirror, 32 pages, cross-checked against a third listing) after LCSCs own datasheet URL for both grades resolved to a dead \"Datasheet temporarily unavailable\" stub. VDO MAX 1 V at both no load and 2 mA, LOAD CAPACITANCE 1-100 uF - identical to the knowledge record. The 87 mV margin stands on the current, in-distribution datasheet",
+   "why": "This was the runs single largest residual risk: 87 mV of headroom resting on a 2012 document reached through a mirror because analog.com is unreachable here. It is now confirmed that Rev 0 IS current rather than merely what we could reach. Note for the library: two AI web-search summaries encountered on the way confidently asserted \"Rev G, 05/15/2024\" and \"Revision B\" - both false on direct inspection of the PDF",
+   "phase": "P3",
+   "ts": "2026-08-16T22:28:08"
+  },
+  {
+   "what": "Attenuator package moves 0603 -> 0805: PTFR0805Q200KN9 (C23067436, RESI), 200 kohm 0.02 pct 10 ppm/C. The 0603 row at this exact grade returns an unfetchable datasheet on live search, and an unverifiable part is not a part. The 0805 row is datasheet-backed with deeper stock (6235 vs 4150). Mechanical change only - flagged for P4 symbol/footprint and P6 placement",
+   "why": "Same electrical spec, and the boards whole accuracy argument rests on these five parts, so a row we cannot read the datasheet for is disqualified by the roles own rule. Larger pads are also mildly helpful on a guarded high-impedance node",
+   "phase": "P3",
+   "ts": "2026-08-16T22:28:09"
+  },
+  {
+   "what": "U1 ADS8326IBDGKR (C544731, TI, 12.39 USD) is SINGLE SOURCE with NO pin-compatible alternate, recorded as an explicit empty alternates list rather than a fabricated one: the datasheets own pin-compatible family members are mostly 12-bit or typical-spec and do not close the error budget. BOM totals 155.16 USD at qty 5 (31.03/board), 84 pct of it U1 + U2. Tightest stock margin is ADR4520B at 314 pieces (12.6x the floor), hedged by the A grade at 908",
+   "why": "The alternate field exists to record real second sources; filling it with a part that cannot meet spec would convert a known risk into a hidden one. A Tokmas-branded ADR4520A clone row was found and REJECTED - its own attributes (2.8-40 V supply, 20 mA output, 8 ppm/C) do not match the genuine part, which is the brand-pinning rule doing exactly what it was written for",
+   "phase": "P3",
+   "ts": "2026-08-16T22:28:09"
+  },
+  {
+   "what": "CORRECTION - an unsourced claim of MINE was caught by the extractor and is withdrawn: the ADR4520 datasheet does NOT say solder-heat-shift magnitude depends on board size, thickness or material. Rev 0 (4/12) ties SHR only to package material and solder process (leaded vs lead-free); the extractor grepped all 32 pages for those terms near solder mentions and found nothing, then flagged rather than fabricated. The board-size dependency belongs to a DIFFERENT vendors document (the TI material in the same research task), and I relayed it into the spawn prompt as if it were ADIs",
+   "why": "This is exactly the laundering failure the whole research leg exists to prevent, committed at the relay step rather than in a record: two vendors documents were read in one research task, and when I compressed that task into a spawn prompt I attached one vendors caveat to the other vendors part. The records themselves are clean - the error appeared only in my prose. Consequence: the U2-vs-mounting-hole keepout was ALREADY labelled as our inference and stays, but its stated basis must shrink to what is real - a specified reflow shift of +/-0.02 pct typ, as large as the whole B-grade initial accuracy - with no vendor claim about board flex behind it",
+   "phase": "P3",
+   "ts": "2026-08-16T22:39:08"
+  },
+  {
+   "what": "U2 land pattern: the ADR4520 datasheet contains NO recommended land-pattern drawing - only package outline dimensions (p32) - so pad_size_mm and row_spacing_mm are deliberately unset in the extraction and the footprint must come from a standard JEDEC SOIC-8 narrow-body pattern. Pitch 1.27 mm is stated and identical either way. No exposed pad. Pin 8 is TP, DO NOT CONNECT; pins 1/3/5/7 are NC",
+   "why": "Recorded so the librarian does not go looking for a vendor land pattern that does not exist, and so a schematic agent does not wire the TP pin. The extractor correctly refused to derive pads from the package outline, which is the rule that stops a footprint being built from the wrong drawing",
+   "phase": "P3",
+   "ts": "2026-08-16T22:39:08"
+  },
+  {
+   "what": "NO series/current-limiting resistor between the reference output and the converters REF bypass, despite the ADS8326 datasheet offering one \"in front of the capacitors\". The condition it attaches does not bite here, and fitting it would COST accuracy rather than buy it",
+   "why": "Four reasons. (1) The guidance is conditional on the reference not being a dedicated low-impedance source; the ADR4520s stable load-capacitance window is 1-100 uF two-ended, so the 47 uF REF bypass is inside spec and the STABILITY motive for the resistor is absent. (2) It would actively hurt: the SARs reference current VARIES WITH INPUT CODE (TI SNAA320B), so any series R turns that varying current into a code-dependent voltage error - a NONLINEARITY, the worst class of error on a DC-accuracy board - where at 7 uA and 4.7 ohm it is ~33 uV = 16 ppm = 0.08 mV at the terminal. Without the resistor the reference own output impedance makes the same term nanovolts. (3) TIs own application circuit for this converter (fig 42) drives the 47 uF bare from an amplifier with no series element. (4) Power-up inrush is bounded by the references own +/-10 mA output rating - ~10 ms to charge 47 uF - which the host >=10 ms wait already covers. C5 stays as the references own local output cap at its pin and C3 as the SARs reservoir at the REF pin; in parallel they total ~48 uF, still inside the window",
+   "phase": "P3",
+   "ts": "2026-08-16T22:42:09"
+  },
+  {
+   "what": "CONFIRMED, not a new risk: the error budget already used the CORRECT converter specs. At a 3.135-3.465 V rail the board sits in the ADS8326s VDD = 2.7 V characteristics table, not the 5 V table, and the 2.7 V table is looser for the IB grade - INL +/-2.5 LSB (vs +/-1.5) and gain +/-16 LSB (vs +/-12). Those are exactly the numbers P2 budgeted",
+   "why": "The extractor flagged the two-table split as potentially relevant to the budget, which was the right thing to raise. Checking it: the architect quoted offset +/-1 mV, gain +/-16 LSB and INL +/-2.5 LSB, i.e. it had already taken the conservative table for our rail. Recording the confirmation so a later reviewer does not re-open it. Related: DCLOCK max is 4.8 MHz in the 2.7-3.6 V class rather than 6 MHz - irrelevant at our 500 kHz",
+   "phase": "P3",
+   "ts": "2026-08-16T22:42:09"
+  },
+  {
+   "what": "MAJOR RISK, named and bounded, not closed: TIs own \"Driving ADS8326\" reference circuit (OPA320 datasheet fig 44, p25) - our EXACT amplifier-plus-converter pairing - warns that single-supply operation \"loses a small number of ADC codes near ground\" and shows a -0.3 V V- generator as the fix. This board ties V- straight to GND and its input span STARTS at 0 V, so the bottom of the range is precisely where the warning bites",
+   "why": "The DC arithmetic says we are probably fine and the TRANSIENT question is open. OPA320s swing spec is 10 mV typ / 20 mV max from the rail at RL = 10 kohm, which is ~164 uA of load; this boards DC load is ~1 uA (the C_FLT recharge), so the static drop scales to ~61 uV at the ADC input = ~153 uV at the terminal, about 3 pct of budget. What does NOT scale is the transient: near ground the output stage has minimal headroom, its output impedance is highest, and it must still absorb the per-conversion charge kick inside t_acq. That is a settling question, not a DC one, and it is exactly what the architect already named the `zero-scale-swing` bench for (<= 1.0 mV above GND at 0 V input) together with `acquisition-settling` run AT THE BOTTOM OF THE RANGE",
+   "phase": "P3",
+   "ts": "2026-08-16T22:46:45"
+  },
+  {
+   "what": "CONTINGENCY, pre-authorised so it is not re-litigated under time pressure at P8: if the zero-scale bench shows lost codes near ground, the -0.3 V generator is DATASHEET-REQUIRED SUPPORT and not an excluded feature - it appears in the vendors own recommended circuit for this converter-amplifier pair. It would still be a second rail, so it becomes a mode-boundary item that goes to the OWNER as a decision, exactly as requirements.md section 1 anticipated",
+   "why": "The scope tier excludes a second rail the block does not need IN ORDER TO WORK. If the block cannot measure 0 V - a stated part of the input span - without it, then it needs it to work, and the exclusion does not apply. Recording the reasoning now, while it is a hypothetical, keeps the ruling honest",
+   "phase": "P3",
+   "ts": "2026-08-16T22:46:45"
+  },
+  {
+   "what": "OPA320 PASSES the isolation-resistor screening test decisively, and the flat-R_O assumption that was UNVERIFIABLE for the OPA333 is verified for this part: R_O is 90 ohm typ, and TIs text states it \"remains very flat over a wide frequency range\", confirmed visually on fig 19 as ~90-100 ohm from low frequency to roughly 1-10 MHz. Settling ceiling 750 ohm at C_FLT = 1 nF versus a stability optimum of only ~27 ohm at R_O = 90 ohm and GBW 20 MHz - a wide legal interval where the OPA333 had none. TI separately recommends 10-20 ohm isolation for this part; R6 is provisionally 49.9 ohm pending the bench",
+   "why": "This is the same screening test recorded at P2, now run against the part actually sourced, and it inverts cleanly: the OPA333 failed it on a single-frequency R_O we could not confirm was flat, while the OPA320 both passes it and publishes the flatness the method assumes. Worth noting the two parts differ by more than 20x in R_O (90 ohm vs 2 kohm), which is most of why one is a SAR driver and the other is not",
+   "phase": "P3",
+   "ts": "2026-08-16T22:46:45"
+  },
+  {
+   "what": "GAP carried into P8, not bridged: OPA320s settling is characterised only at VS = 5 V with CL = 50 pF, and its tightest PUBLISHED figure is 0.0015 pct = 15 ppm and simulation-derived - about 2x looser than this boards ~7.6 ppm target, at a different supply and a 20x smaller load capacitance. No datasheet number covers our operating point",
+   "why": "The extractor flagged it rather than extrapolating, which is right. It means the acquisition-settling bench is not a confirmation exercise - it is the only evidence that will exist for this parameter, and it must be run at 3.3 V with the real C_FLT and at the bottom of the input range where the zero-scale risk also lives. Two open questions, one bench",
+   "phase": "P3",
+   "ts": "2026-08-16T22:46:46"
+  },
+  {
+   "what": "J1 DRILL MUST BE ENLARGED 1.30 -> 1.50 mm per the vendors own recommended PCB hole. Orchestrator APPROVES this footprint hand-edit (the role correctly refused to make it unilaterally). The pad must grow with it to keep at least the JLC 0.15 mm annulus, so pad diameter >= 1.80 mm",
+   "why": "This is not a margin question, it is a fit question. WJ500V-5.08-class screw terminals carry ~1.0 mm SQUARE pins, whose DIAGONAL is 1.41 mm - larger than the pulled 1.30 mm round hole. A part that does not physically enter its holes is a scrapped board, and it would not be discovered until assembly. The librarian fetched the Kangnex mechanical drawing and read 1.50 mm directly, so we are following the vendors number rather than estimating. Note the failure mode the annulus check alone would have missed: 1.30 mm CLEARS the JLC annulus floor comfortably, so every automated check passes on a hole the pin cannot fit through",
+   "phase": "P3",
+   "ts": "2026-08-17T20:46:59"
+  },
+  {
+   "what": "U1 VSSOP-8 land pattern ACCEPTED as pulled; the reported 42 pct row-spacing mismatch is almost certainly a MISREAD of the vendor drawing, not a footprint defect. Arithmetic: DGK/MSOP-8 lead span is 4.90 mm, so lead centres sit ~2.17 mm from package centre. The pulled pads are at 2.13 mm - a 0.04 mm match. The \"implied 3.0 mm centre-to-centre\" would put pads 1.5 mm from centre, i.e. UNDER the package body where no lead reaches",
+   "why": "The 3.0 mm figure appears to come from subtracting a 1.4 mm pad length from a 4.4 mm OUTER-EDGE span, which mixes two different measurement conventions. fp_verify passed on count, pitch and pin 1 with only a pad_size warning, the footprint is LCSCs own for the exact LCSC part being ordered, and JLCs assembly process is matched to it. Accepting - but the discrepancy is recorded so P9 DFM looks at it rather than inheriting it silently",
+   "phase": "P3",
+   "ts": "2026-08-17T20:46:59"
+  },
+  {
+   "what": "ACCEPTED with follow-ups: (a) the ADR4520 symbol hand-edit setting pins 1/3/5/7/8 to no_connect STANDS and must be RE-APPLIED after any re-pull or re-run of lib_pin_types.py, which has no NC concept and was dry-run-confirmed to silently revert all five to passive; (b) U3s missing F.SilkS pin-1 dot goes to P6 silk, where the tooling for it lives - pad asymmetry conveys orientation meanwhile; (c) U3 row spacing 2.60 vs 2.70 mm and U1s courtyard not enclosing its own pads are both accepted (the latter is the known systemic easyeda2kicad pattern already compensated downstream); (d) J2 geometry accepted on internal consistency alone - no manufacturer datasheet exists",
+   "why": "Item (a) is the one with teeth: it is a silent-revert trap, so it is recorded as a standing re-apply obligation rather than a completed action, and flagged as a lib_pin_types.py enhancement candidate. The rest are cosmetic or already-known and none blocks P4",
+   "phase": "P3",
+   "ts": "2026-08-17T20:46:59"
+  },
+  {
+   "what": "coverage-mapper NOT spawned at P3 exit despite a mapping_request, and no further research opened. Both remaining research tasks stay unspent. P3 coverage: all THREE part slots COVERED, B2/B3/B4 provisional, B1 gap on constraints-emission alone - the gap already recorded at P2 as designed-under",
+   "why": "Checked rather than assumed. Every provisional class names `maturity-below-floor` as its blocker with the CORRECT records already matched to the right slot and class (e.g. B2 feedback -> precision-buffer-capacitive-load-isolation and -riso-settling-stability-collision). So these slots are limited by MATURITY, not by missing record-to-slot edges, and a mapping pass cannot lift them - only owner approval can, and promotion is deliberately deferred until the sibling runs finish. B1s one unmet class has no candidate record BY CONSTRUCTION: the attenuator researcher declared constraints-emission an honest gap and wrote nothing for it, so there is no edge for a mapper to find. Spawning one would produce a file that changes no verdict",
+   "phase": "P3",
+   "ts": "2026-08-17T20:55:08"
+  },
+  {
+   "what": "P3 part-level coverage needed NO research: all three IC extractions produced substantive layout_notes and each part slot reads COVERED. The seeding flags (--maturity-floor proven --research-provisional) were run first per the learning-target contract, and they re-escalated the four already-researched BLOCK slots back to gap; that is the flags working on maturity, not a new finding, so the authoritative P3 report is the re-run without them",
+   "why": "Worth recording because the flagged run LOOKS alarming - four blocks back at gap after a full research leg - and a less careful reading would have opened four redundant tasks against a budget of two. The contract itself says to re-run without the flags after research; the subtlety is that at P3 the FIRST call of the phase still carries them, so the same re-escalation happens a phase later on slots that were never in question",
+   "phase": "P3",
+   "ts": "2026-08-17T20:55:08"
+  },
+  {
+   "what": "GUARD RING NET, stated explicitly because getting it wrong is silent: the driven guard around the divider tap and U3 +IN belongs on the BUFFER OUTPUT net, NOT on /AIN_DIV. A ring on the same net as the node it surrounds is not a guard - it IS the node - and provides no guarding at all. U3 is a unity-gain follower, so its output sits at the tap potential with low impedance, which is exactly what a driven guard needs. No schematic element is required; it is a P7 copper instruction on the buffer output net",
+   "why": "constraints.json records the guard as an area reservation along the /AIN_DIV corridor, which correctly says WHERE the ring goes but is silent on WHICH NET it carries. A layout agent reading only that could reasonably pour the ring on /AIN_DIV and produce something that looks like a guard ring, passes every check, and does nothing. Magnitude for scale: at the 240 kohm Thevenin, 1 nA of surface leakage is 240 uV at the tap = 600 uV at the terminal, 12 pct of budget",
+   "phase": "P4",
+   "ts": "2026-08-17T20:56:00"
+  },
+  {
+   "what": "CLARIFICATION of the -IN sense requirement, correcting my own earlier framing: -IN and the attenuator string bottom are ONE NET (GND) and MUST be - the divider bottom IS ground, and -IN carries a -0.3/+0.5 V common-mode bound relative to DEVICE ground, so a separately-floated analog ground would risk violating it. The Kelvin intent is therefore a PLACEMENT AND GEOMETRY requirement, not a netlist one, and the schematic as built is correct",
+   "why": "I had said \"wire it as its own net\", which was wrong and would have produced a worse board. What actually has to hold at P6/P7: R5s bottom pad sits IMMEDIATELY ADJACENT to U1 pin 3, the copper between them is short and direct, and NO digital or supply return current flows through that copper. The error term is the IR drop between those two points, and with a solid pour plus adjacent placement it is microvolts; with careless placement, SPI return current crossing that segment puts millivolts there, and 1 mV becomes 2.5 mV input-referred. constraints.json already carries this correctly as an R5->U1 corridor on net GND with the \"reference tie, not a ground connection\" rider. Note what this means for routing: with a B.Cu GND pour the router will connect both pins to the pour rather than draw a dedicated trace, and that is FINE - the requirement is on the geometry, not on a trace",
+   "phase": "P4",
+   "ts": "2026-08-17T21:30:20"
+  }
+ ],
+ "edits": [],
+ "spawns": [
+  {
+   "ts": "2026-08-16T17:26:07",
+   "role": "requirements-analyst",
+   "model": "fable/high",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:26:40",
+   "role": "requirements-analyst",
+   "model": "opus/xhigh (SUBSTITUTED: fable unavailable - out of usage credits; playbook rule fable/high -> opus/xhigh)",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:47:52",
+   "role": "research-component-scout",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-16T17:47:52",
+   "role": "research-component-scout",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-16T17:47:52",
+   "role": "research-reference-design",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-16T17:47:52",
+   "role": "research-power-architect",
+   "model": "opus/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-16T18:25:17",
+   "role": "architect",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:09:41",
+   "role": "researcher:sar-adc",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:09:41",
+   "role": "researcher:resistive-attenuator",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:09:41",
+   "role": "researcher:precision-buffer",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:09:41",
+   "role": "researcher:series-voltage-reference",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:26:54",
+   "role": "research-second-reader:resistive-attenuator",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:30:44",
+   "role": "research-second-reader:sar-adc",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:34:23",
+   "role": "research-second-reader:series-voltage-reference",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:37:28",
+   "role": "research-second-reader:precision-buffer",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T22:02:36",
+   "role": "part-sourcer",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-16T22:30:06",
+   "role": "datasheet-extractor:ADS8326",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-16T22:30:06",
+   "role": "datasheet-extractor:ADR4520",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-16T22:30:06",
+   "role": "datasheet-extractor:OPA320",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-17T20:24:24",
+   "role": "librarian",
+   "model": "sonnet/medium",
+   "phase": "P3"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-08-16T17:25:12",
+   "event": "init",
+   "board": "bb-adc",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:25:16",
+   "event": "mode",
+   "target": "block-basics",
+   "scope": "block-only",
+   "binding": "canonical"
+  },
+  {
+   "ts": "2026-08-16T17:25:16",
+   "event": "decision",
+   "what": "Build mode: mode block-basics; scope block-only; binding canonical"
+  },
+  {
+   "ts": "2026-08-16T17:26:07",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-16T17:26:40",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "opus/xhigh (SUBSTITUTED: fable unavailable - out of usage credits; playbook rule fable/high -> opus/xhigh)"
+  },
+  {
+   "ts": "2026-08-16T17:26:50",
+   "event": "model_substitution",
+   "reason": "fable 5 unavailable this session (out of usage credits)",
+   "rule": "SKILL.md model availability: substitute nearest available model one effort step UP",
+   "map": "fable/max->opus/max, fable/high->opus/xhigh, fable/medium->opus/high",
+   "scope": "run-wide"
+  },
+  {
+   "ts": "2026-08-16T17:42:45",
+   "event": "decision",
+   "what": "Accuracy class = 0.1 percent at the terminal, uncalibrated: +/-5 mV of a 5 V reading at 25 C, +/-12 mV across 0-50 C"
+  },
+  {
+   "ts": "2026-08-16T17:42:45",
+   "event": "decision",
+   "what": "Host interface = SPI, 3.3 V CMOS, board is the peripheral; 10 kSa/s is a maximum, not gap-free streaming"
+  },
+  {
+   "ts": "2026-08-16T17:42:45",
+   "event": "decision",
+   "what": "J2 supplies 3.3 V ONLY - no 5 V rail available; the 0-5 V span must be scaled into the 3.3 V domain on-board"
+  },
+  {
+   "ts": "2026-08-16T17:42:45",
+   "event": "decision",
+   "what": "Safety envelope: source is a low-voltage bench source - nothing anywhere in it above 30 V, no mains, no motor drive, no >30 V pack, already sharing host ground, lead <=1 m. Design is valid ONLY inside this envelope"
+  },
+  {
+   "ts": "2026-08-16T17:42:45",
+   "event": "decision",
+   "what": "Defaults taken for P0 Q4/Q5/Q6/Q7/Q9: single-ended to ground; no-protection accepted with no negative excursion; single-row 0.1in header 3V3-GND-SPI(+DRDY/CONVST if required); host rail >=50 mA 3.3 V +/-5 pct; source <=1 kohm and board presents >=100 kohm"
+  },
+  {
+   "ts": "2026-08-16T17:42:54",
+   "event": "p0_questions_answered",
+   "batch": 9,
+   "answered": "Q1 low-voltage bench source (owner: simplest option), Q2 0.1 pct class, Q3 SPI, Q8 3.3 V only",
+   "defaults_taken": "Q4 single-ended, Q5 no-protection accepted, Q6 header layout, Q7 host rail, Q9 source impedance",
+   "reconfirm_at_H1": "Q1 safety envelope"
+  },
+  {
+   "ts": "2026-08-16T17:43:32",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-08-16T17:43:55",
+   "event": "decision",
+   "what": "Owner delegated design decisions to the pipeline: 'make decisions yourself based on what will give the best learning for the basic system'. H1-H4 run as report-and-proceed (digest presented, verdict recorded as owner-delegated), not as blocking holds"
+  },
+  {
+   "ts": "2026-08-16T17:43:56",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-08-16T17:47:52",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T17:47:52",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T17:47:52",
+   "event": "spawn",
+   "role": "research-reference-design",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T17:47:52",
+   "event": "spawn",
+   "role": "research-power-architect",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T17:47:52",
+   "event": "decision",
+   "what": "P1 roster: 2x research-component-scout (adc; afe-support = vref/divider/buffer), research-reference-design (afe topology families T1-T4), research-power-architect (analog supply + reference architecture). research-interface-spec NOT spawned"
+  },
+  {
+   "ts": "2026-08-16T18:03:47",
+   "event": "decision",
+   "what": "CLOSED: no 5 V second rail. The ADS8681 path (on-chip attenuator, native 0-5.12 V input, but needs >=4.5 V AVDD, so a boost converter) is rejected; the board stays 3.3 V-only with an external-reference SAR behind an attenuator"
+  },
+  {
+   "ts": "2026-08-16T18:03:47",
+   "event": "decision",
+   "what": "Converter lead candidate: MCP3201 class (1-channel 12-bit SAR, SOIC-8, SEPARATE VREF pin 0.25 V..VDD, SPI). MCP3202 is DISQUALIFIED despite better stock/price"
+  },
+  {
+   "ts": "2026-08-16T18:05:37",
+   "event": "decision",
+   "what": "AFE topology = T1/T3: precision attenuator -> low-Ibias RRIO buffer -> SAR with external precision reference. T2 (bare divider, no buffer) and T4 (ratiometric to the +3V3 host rail) are both DISQUALIFIED"
+  },
+  {
+   "ts": "2026-08-16T18:05:37",
+   "event": "decision",
+   "what": "Extended-tier JLC parts are allowed for the ATTENUATOR (matched network) as well as for the converter and the reference; requirements.md section 6 is widened accordingly"
+  },
+  {
+   "ts": "2026-08-16T18:14:33",
+   "event": "decision",
+   "what": "Accuracy is claimed on an RSS basis: RSS ~4.8 mV at 25 C meets the +/-5 mV target; the worst-case SUM is ~10.6 mV (0.21 pct) and WILL be stated as such in the design doc and on the board's own claim. The board is not advertised as worst-case 0.1 pct"
+  },
+  {
+   "ts": "2026-08-16T18:14:33",
+   "event": "decision",
+   "what": "HARD SELECTION CONSTRAINT for P3: the converter's specified analog input range must include 0 V (AVSS) in the configuration used, and the buffer's output must swing to it under the SAR's near-zero DC load"
+  },
+  {
+   "ts": "2026-08-16T18:14:33",
+   "event": "p1_open_tension",
+   "tension": "source impedance spec vs divider total resistance are ONE decision",
+   "detail": "Q9 as answered (source <=1 kohm, board >=100 kohm) is internally inconsistent at 0.1 pct: loading error = Rs/Rtot, so 1 kohm into 100 kohm is 1 pct = 50 mV, 10x the whole budget. Rtot must rise to ~2.5-5 Mohm to hold loading at ~1 mV - but matched resistor NETWORKS top out near 100 kohm per element, so a Mohm-class divider must be discrete pairs (ratio error ~sqrt2 x tol) while a network-class divider needs a tighter source spec. Architect must cost BOTH and the orchestrator rules",
+   "also": "divider ratio and VREF are coupled: quad matched network gives ratio 0.5 -> VREF 2.5 V -> full scale exactly 5.000 V with ZERO headroom; a discrete pair can take ratio 0.4 -> VREF 2.048 V -> FS 5.12 V with 2.4 pct headroom"
+  },
+  {
+   "ts": "2026-08-16T18:23:11",
+   "event": "decision",
+   "what": "Extended-tier allowance covers ALL FOUR accuracy-critical parts: converter, voltage reference, attenuator, buffer op-amp. requirements.md section 6 is widened to match"
+  },
+  {
+   "ts": "2026-08-16T18:23:11",
+   "event": "decision",
+   "what": "Architecture is NON-ratiometric and confirmed as such: the reference serves the converter's VREF pin only, and the attenuator taps the raw 0-5 V input independently. Reference error and divider ratio error are INDEPENDENT terms and both stay in the budget"
+  },
+  {
+   "ts": "2026-08-16T18:23:11",
+   "event": "decision",
+   "what": "P3 sourcing rule: for AD8605-pattern parts, ONLY the Analog-Devices-branded LCSC row is acceptable; clone-brand rows under an identical MPN pattern are refused"
+  },
+  {
+   "ts": "2026-08-16T18:25:17",
+   "event": "spawn",
+   "role": "architect",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)"
+  },
+  {
+   "ts": "2026-08-16T18:25:17",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-08-16T19:05:24",
+   "event": "decision",
+   "what": "CONVERTER OVERRULED: MCP3201 is out, ADS8326IB class (16-bit) is in. MCP3201-B's own DS21290F specifies gain error +/-5 LSB MAX = 6.10 mV at the terminal - 1.22x the ENTIRE +/-5 mV budget - plus +/-3 LSB offset"
+  },
+  {
+   "ts": "2026-08-16T19:05:24",
+   "event": "decision",
+   "what": "ATTENUATOR: five equal 200k 0.02 pct / 10 ppm resistors in ONE series string, tapped 3:2 -> K = 0.400, Rtot = 1.00 Mohm, VREF 2.048 V (ADR4520 class), full scale 5.120 V (2.4 pct headroom). Matched network REFUSED"
+  },
+  {
+   "ts": "2026-08-16T19:05:24",
+   "event": "decision",
+   "what": "ACCEPTED (orchestrator ruling on the architect's H1 question): the board contracts to Rs <= 200 ohm at the terminal, narrowing owner-answered Q9 from <= 1 kohm, and presents 1.00 Mohm, strengthening it from >= 100 kohm. Both numbers go on the SILKSCREEN"
+  },
+  {
+   "ts": "2026-08-16T19:05:24",
+   "event": "decision",
+   "what": "Stackup JLC2313_1.6, 2 layers, 1 oz, HASL, no impedance control. Flat root schematic sheet, NOT hierarchical"
+  },
+  {
+   "ts": "2026-08-16T19:05:24",
+   "event": "decision",
+   "what": "Research budget: KEEP all four declared blocks (resistive-attenuator, precision-buffer, sar-adc, series-voltage-reference) as separate coverage slots - the architect offered to fold precision-buffer into sar-adc to save a task; declined"
+  },
+  {
+   "ts": "2026-08-16T19:06:25",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 5
+  },
+  {
+   "ts": "2026-08-16T19:06:25",
+   "event": "research_opened",
+   "task": "block-resistive-attenuator-1",
+   "slot": "block:B1",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:06:25",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 4
+  },
+  {
+   "ts": "2026-08-16T19:06:25",
+   "event": "research_opened",
+   "task": "block-precision-buffer-1",
+   "slot": "block:B2",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:06:25",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 3
+  },
+  {
+   "ts": "2026-08-16T19:06:25",
+   "event": "research_opened",
+   "task": "block-sar-adc-1",
+   "slot": "block:B3",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:06:25",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-08-16T19:06:25",
+   "event": "research_opened",
+   "task": "block-series-voltage-reference-1",
+   "slot": "block:B4",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-16T19:09:41",
+   "event": "spawn",
+   "role": "researcher:sar-adc",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)"
+  },
+  {
+   "ts": "2026-08-16T19:09:41",
+   "event": "spawn",
+   "role": "researcher:resistive-attenuator",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)"
+  },
+  {
+   "ts": "2026-08-16T19:09:41",
+   "event": "spawn",
+   "role": "researcher:precision-buffer",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)"
+  },
+  {
+   "ts": "2026-08-16T19:09:41",
+   "event": "spawn",
+   "role": "researcher:series-voltage-reference",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high)"
+  },
+  {
+   "ts": "2026-08-16T19:09:41",
+   "event": "research_launched",
+   "phase": "P2",
+   "tasks": 4,
+   "budget_per_run": 6,
+   "remaining_for_P3": 2,
+   "all_need_checklist": true,
+   "note": "library held 16 records, all buck; zero analog checklists existed"
+  },
+  {
+   "ts": "2026-08-16T19:26:54",
+   "event": "spawn",
+   "role": "research-second-reader:resistive-attenuator",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T19:26:54",
+   "event": "decision",
+   "what": "The 5-element equal string's PRIMARY justification is restated: 0.02 pct-grade resistance stops at 200 kohm in stock and the design needs Rtot = 1.00 Mohm, so five elements is the only way to reach the value at that grade. The tolerance-AVERAGING advantage is a secondary, statistical bonus and is NOT claimed as sourced knowledge"
+  },
+  {
+   "ts": "2026-08-16T19:26:54",
+   "event": "decision",
+   "what": "NEW LAYOUT CONSTRAINT (P6/P7, first order): ground offset between the attenuator string's bottom node and the converter's negative reference is NOT attenuated. Signal is divided by K=0.4; a ground offset passes at unity, so 1 mV of offset = 2.5 mV input-referred = half the terminal error budget. To be folded into constraints.json before P5"
+  },
+  {
+   "ts": "2026-08-16T19:30:44",
+   "event": "decision",
+   "what": "ARCHITECTURE: the converter's pseudo-differential -IN is wired as a dedicated REMOTE-SENSE line to the attenuator string's BOTTOM NODE - not to a convenient ground point. This is a schematic requirement at P4 and a routing constraint at P7"
+  },
+  {
+   "ts": "2026-08-16T19:30:44",
+   "event": "decision",
+   "what": "OPEN RISK for P3/P4, recorded not resolved: the ADS8326 datasheet calls for a 47 uF bypass at REF and warns 'make sure the op amp can drive the bypass capacitor without oscillation', while precision series references typically specify a PERMITTED CAPACITANCE RANGE, not a minimum. 47 uF may sit outside the ADR4520-class stability window"
+  },
+  {
+   "ts": "2026-08-16T19:30:44",
+   "event": "spawn",
+   "role": "research-second-reader:sar-adc",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T19:34:22",
+   "event": "decision",
+   "what": "REFERENCE RISK CLOSED from the datasheet spec table: ADR4520 conditions its whole spec on VIN 3-15 V with DROPOUT 1 V MAX over -40..125 C at no load AND at 2 mA, so the guaranteed floor is 2.048 + 1.0 = 3.048 V. At the 3.135 V worst-case rail the part is IN SPEC with 87 mV of margin. The family headline 'low dropout 300 mV at 2 mA' is footnoted (VOUT >= 3 V) and does NOT apply to the 2.048 V member"
+  },
+  {
+   "ts": "2026-08-16T19:34:22",
+   "event": "decision",
+   "what": "OPEN RISK CLOSED - no reference buffer and no series isolation resistor needed: ADR4520 specifies a stable output capacitance WINDOW of 1-100 uF, and the ADS8326's required 47 uF REF bypass sits inside it. The reference drives the SAR's reference bypass directly"
+  },
+  {
+   "ts": "2026-08-16T19:34:23",
+   "event": "decision",
+   "what": "ASSEMBLY CONSTRAINT: the voltage reference must be soldered in the LAST reflow pass. Solder-heat shift is +/-0.02 pct (ADI spec row; TI measured +0.03 pct LCCC / -0.04 pct VSSOP) - as large as the entire initial-accuracy spec - and is only removed by calibration, which this board does not do"
+  },
+  {
+   "ts": "2026-08-16T19:34:23",
+   "event": "spawn",
+   "role": "research-second-reader:series-voltage-reference",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T19:36:11",
+   "event": "decision",
+   "what": "BUFFER: OPA333 FAILS the settling requirement at the declared t_acq of 9 us, on three independent numbers. Baseline moves to an OPA320-class fast RRIO CMOS part so P3 sourcing is unblocked; OPA333 stays a live alternate CONTINGENT on the t_acq question below"
+  },
+  {
+   "ts": "2026-08-16T19:36:12",
+   "event": "decision",
+   "what": "P3 VERIFICATION ITEM, decides the buffer: is the ADS8326's acquisition time HOST-CONTROLLED (the CS-high interval, so it stretches at low sample rates) or fixed by a clock-cycle count? At 10 kSa/s the sample period is 100 us, so if acquisition is host-controlled it can be 20 us+, the GBW floor drops below 350 kHz and OPA333 becomes viable and PREFERRED (30x lower drift). If it is clock-fixed at ~9 us, OPA320 stands"
+  },
+  {
+   "ts": "2026-08-16T19:36:12",
+   "event": "decision",
+   "what": "OPA333's 240 kohm source impedance is NOT a problem if it is chosen: TI's zero-drift selection table gives OPA333 a 1000 kohm max recommended source impedance, and the divider's Thevenin is 240 kohm - inside it. The zero-drift family trades that ceiling against GBW in opposite directions (OPA189: 14 MHz but only 1 kohm)"
+  },
+  {
+   "ts": "2026-08-16T19:37:28",
+   "event": "spawn",
+   "role": "research-second-reader:precision-buffer",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-16T19:42:20",
+   "event": "research_verified",
+   "task": "block-resistive-attenuator-1",
+   "verified": 5,
+   "refuted": 1,
+   "refuted_record": "resistive-attenuator-tcr-tracking-not-absolute-tcr",
+   "reason": "verbatim quote credited to p5 lives on p1 (uncited) and a qualifier was dropped; physics and every number exact",
+   "action": "researcher re-spawned to fix citation; same reader re-rules"
+  },
+  {
+   "ts": "2026-08-16T19:42:21",
+   "event": "decision",
+   "what": "The remote-sense architecture is CONFIRMED against the source, not just inferred: TI SPRAD89 s4.2 states verbatim 'The common ground noise will not be attenuated by the resistor divider circuit', and s4.1 eq 8 independently multiplies a downstream offset by (R1+R2)/R1 = 1/K. Second reader re-read both pages and confirmed the arithmetic direction"
+  },
+  {
+   "ts": "2026-08-16T19:48:54",
+   "event": "decision",
+   "what": "The -IN remote-sense line is BOUNDED: ADS8326 specifies the -IN common-mode window as -0.3 V to +0.5 V relative to the device ground (datasheet p20, repeated p21, verified by second reader). The sense line to the attenuator's bottom node must stay inside it"
+  },
+  {
+   "ts": "2026-08-16T19:48:54",
+   "event": "research_verified",
+   "task": "block-sar-adc-1",
+   "verified": 6,
+   "refuted": 4,
+   "substantive_refutations": "reference-charge-loop (SPRABY5 fig 1-1 topology read backwards - RREF is the series element of a damped shunt, not an upstream isolator); constraints-emission (emitted that misread as a placement group, would have driven copper); high-z-node-vs-digital-aggressors (AN688 fig 7 w = PCB THICKNESS, glossed as trace width, turning a stackup constant into a routing lever)",
+   "citation_only": "supply-bypass-and-rail-isolation (fig 8 is p4 not p3)",
+   "action": "researcher re-spawned; same reader re-rules"
+  },
+  {
+   "ts": "2026-08-16T19:53:53",
+   "event": "decision",
+   "what": "THIRD independent reason the OPA333 is rejected, and the cleanest one: the two constraints on the series resistor R_FLT have an EMPTY intersection at 350 kHz. TI's settling ceiling (R <= t_acq/12C, sprpeo2 p27) gives R <= 750 ohm at 1 nF (<= 1.6 kohm at 470 pF), while TI's stability optimum (sboa418 eq 2, with OPA333's R_O = 2 kohm and f_gbw = 350 kHz) asks for ~1.2 kohm (~2.0 kohm at 470 pF). The stability optimum EXCEEDS the settling ceiling at both capacitor values - no legal R exists"
+  },
+  {
+   "ts": "2026-08-16T19:53:53",
+   "event": "research_verified",
+   "task": "block-precision-buffer-1",
+   "verified": 6,
+   "refuted": 2,
+   "substantive": "settles-not-bandwidth - the two-phase slew-then-linear structure is on NO cited page; a full-text scan of all 4 ledger PDFs (144 pages) finds slew twice, and sprpeo2 (source of all 4 of that records citations) never mentions it. It also misreads p7: that dip-and-recover waveform is the ADC-INTERNAL node recovering on R_SH*C_SH, no amplifier in the figure, and it contradicts the sibling charge-bucket record",
+   "arithmetic": "zero-drift-speed-vs-impedance-trade - 2 V / 0.16 V per us = 12.5 us, not 12.8; 12.8 is the 2.048 V step. Table 9-1 verified column by column, conclusion unchanged",
+   "reader_note": "explicitly checked that neither refutation disturbs the OPA333 rejection"
+  },
+  {
+   "ts": "2026-08-16T19:55:10",
+   "event": "research_closed",
+   "task": "block-resistive-attenuator-1",
+   "slot": "block:B1",
+   "outcome": "verified",
+   "queue_entry": "2026-08-16-research-task-block-resistive-attenuator-1-6"
+  },
+  {
+   "ts": "2026-08-16T19:55:33",
+   "event": "decision",
+   "what": "Flagged for the promotion ruling, not a defect: the attenuator ratio PRINCIPLE record says ratio error is set by relative specs 'not by their absolute tolerance or absolute TCR', while its TCR specialization says absolute TCR magnitude still moves the ratio. Both are Vishay's own words in DIFFERENT documents (AN 28194 vs TN 60108). At approval the parent's headline should be softened to match the specialization, which carries the nuance the parent elides"
+  },
+  {
+   "ts": "2026-08-16T19:55:34",
+   "event": "decision",
+   "what": "PROMOTION IS DEFERRED to a separate owner pass AFTER the parallel board runs finish. This run will close with verified records reading  at coverage, which is the contract's expected state, and will NOT copy records into reference/knowledge/ during the run"
+  },
+  {
+   "ts": "2026-08-16T19:55:54",
+   "event": "decision",
+   "what": "CORRECTION to the preceding decision, whose text lost one word to shell quoting: the deferred-promotion decision should read \"will close with verified records reading PROVISIONAL at coverage\". No other word was affected and the ruling is unchanged"
+  },
+  {
+   "ts": "2026-08-16T19:58:30",
+   "event": "decision",
+   "what": "CORRECTION to the earlier reference decision. ADR4525 (2.5 V) is NOT disqualified on headroom: its dropout row is 500 mV MAX at both no load and 2 mA, so its floor is 3.0 V (set by the tables VIN condition) and it has 135 mV of margin on a 3.135 V rail - MORE than the ADR4520s 87 mV. The claim that it \"would need 3.50 V\" was wrong: it applied the 2.048 V members 1 V dropout to the 2.5 V member"
+  },
+  {
+   "ts": "2026-08-16T19:58:30",
+   "event": "decision",
+   "what": "ADR4520 at 2.048 V is CONFIRMED as the choice, on the corrected rationale: RANGE UTILISATION with a realisable equal-element ratio, not headroom. With K = 0.4 from a 5-element 3:2 string, VREF 2.048 V puts full scale at 5.12 V and a 5 V input at 97.7 pct of range. Reaching comparable headroom with a 2.5 V reference needs K ~ 0.4545 = 5/11 or 4/9, i.e. NINE TO ELEVEN equal elements, or K = 0.5 with two, which returns full scale to exactly 5.000 V and clips the stated maximum input"
+  },
+  {
+   "ts": "2026-08-16T20:11:38",
+   "event": "decision",
+   "what": "OPA333 rejection is now CLOSED, not merely argued: the obvious escape route is shut by a third vendor rule. Shrinking C_FLT does not rescue it, because the settling ceiling falls as 1/C while the stability optimum falls only as 1/sqrt(C) - they cross at ~243 pF, which is BELOW the C_FLT >= 20*C_SH = 960 pF floor the same TI slide imposes for a 48 pF sampling cap. Quantified remedy: at 1 nF with R_O = 2 kohm, f_gbw must exceed ~0.78 MHz before ANY legal series resistor exists"
+  },
+  {
+   "ts": "2026-08-16T20:11:38",
+   "event": "decision",
+   "what": "BUFFER SELECTION TEST to apply at P3, generalised from the above: for any candidate amplifier, compute BOTH the settling ceiling R <= t_acq/(12*C_FLT) AND the stability optimum from R_O and f_gbw, and reject the part if the interval is empty at every C_FLT above the 20*C_SH floor. This is a cheaper and more decisive test than settling simulation and it runs on datasheet numbers alone"
+  },
+  {
+   "ts": "2026-08-16T20:15:13",
+   "event": "scratchpad_collision",
+   "what": "sibling agent overwrote crop.py in the shared session scratchpad mid-run",
+   "impact": "none this time - the first agent had finished with it",
+   "fix": "namespace scratch files per agent/task, or give each agent its own subdirectory",
+   "note": "workspace-first research outputs and workspace-scoped gate commits already protect the real artifacts; only the scratchpad is unprotected"
+  },
+  {
+   "ts": "2026-08-16T20:24:33",
+   "event": "decision",
+   "what": "Source-impedance knee located from TI plot D039, measured off the plot frame rather than described: ENOB is flat and the curves are indistinguishable out to ~3.3 kohm (11.94 at 3.3 k, 11.91 at 330 ohm, 11.86 at 33 ohm - the 3.3 kohm curve is the HIGHEST), and the knee falls between 3.3 kohm and 10 kohm (11.00 at 10 k, 9.59 at 20 k). A record had claimed 3.3 kohm ~11.8, inventing a degradation in the low kohm and inverting the curve order"
+  },
+  {
+   "ts": "2026-08-16T20:39:11",
+   "event": "decision",
+   "what": "CORRECTION: the \"empty intersection\" argument OVERREACHES and is withdrawn as a rejection test. sboa418 p9 names 45 deg as generally stable and explicitly permits a SMALLER series resistor than eq 2 when voltage error dominates - eq 2 gives an OPTIMUM, not a MAXIMUM - so a ceiling below the optimum does NOT mean no legal R exists. At 470 pF the ceiling is 82 pct of the optimum, inside the 50-60 deg band eq 2 targets. The record carrying this test is refuted on that point"
+  },
+  {
+   "ts": "2026-08-16T20:39:11",
+   "event": "decision",
+   "what": "OPA333 REJECTION STANDS on two independent legs that survive, neither involving eq 2: (1) the settling ceiling R <= t_acq/(12*C) combined with the driver requirement GBW > 4/(2*pi*R*C) collapses to GBW >= 48/(2*pi*t_acq) = 849 kHz at t_acq = 9 us, against OPA333 350 kHz; (2) OPA333 fig 14 measured at unity gain settles in 40.4 us to 0.01 pct and 50.5 us to 0.001 pct, against a 9 us window. Baseline stays OPA320-class"
+  },
+  {
+   "ts": "2026-08-16T20:39:11",
+   "event": "decision",
+   "what": "PROCESS FINDING for the review loop: a non-binding \"blemish\" note from one second reader caused a CORRECT record to be edited into a WRONG one. The earlier reader flagged fig 15 as reading ~7 pct / ~15 pct without refuting; the researcher applied it; the fresh reader then measured the curve geometry and found the ORIGINAL ~10 pct / ~20 pct was accurate (true values 9.8 pct at 100 pF, 24.6 pct at 300 pF - and the curve does not extend to 1 nF at all, spanning only 10.4-604.5 pF)"
+  },
+  {
+   "ts": "2026-08-16T20:40:28",
+   "event": "research_closed",
+   "task": "block-series-voltage-reference-1",
+   "slot": "block:B4",
+   "outcome": "verified",
+   "queue_entry": "2026-08-16-research-task-block-series-voltage-reference-1"
+  },
+  {
+   "ts": "2026-08-16T20:41:36",
+   "event": "decision",
+   "what": "STRONGEST and UNCONDITIONAL argument for the buffer, independent of t_acq and of any amplifier choice: a switched-capacitor SAR input presents an equivalent average resistance R_eq = 1/(f_sample * C_sample). At 10 kSa/s with C_SH = 48 pF that is ~2.08 Mohm. The attenuators 240 kohm Thevenin driving ~2.08 Mohm is a gain error of 240k/(240k+2080k) = ~10 pct - about 500 mV at the terminal, a hundred times the budget. A bufferless divider is dead on DC loading alone, before settling is discussed"
+  },
+  {
+   "ts": "2026-08-16T20:41:36",
+   "event": "decision",
+   "what": "ENOB-vs-source-impedance is a function of SAMPLE RATE, not source impedance alone: on TI plot D039 at 10 kSPS all five curves including 20 kohm sit at 11.9-12.0, while at 100 kSPS the knee falls between 3.3 kohm and 10 kohm. The knee is recorded scoped to the 100 kSPS end with the plots conditions (14-bit converter, CFLT 680 pF, 2-100 kSPS sweep), not as an impedance constant"
+  },
+  {
+   "ts": "2026-08-16T20:41:36",
+   "event": "contract_gap",
+   "what": "a researcher correctly REFUSED to fix cited-but-hygiene nits in records that are status active / maturity verified, because they carry a signed verification block attesting the current text - editing prose or sources under a live attestation would make the signature false",
+   "consequence": "known-good improvements (a missing page citation, a derivation label) have no lawful path into a verified record short of re-opening and re-reading it",
+   "note": "four such improvements are logged as valid-but-unapplied on task block-sar-adc-1"
+  },
+  {
+   "ts": "2026-08-16T20:52:04",
+   "event": "decision",
+   "what": "The OPA333-vs-OPA320 choice is formally handed to the SIM LEG, and that is the sources own instruction: TI sboa418 p11 states \"Spice simulation tools such as TINA-TI must be used to verify the resultant phase margin\" and publishes NO closed form for the 45-degree isolation resistor. The collision test therefore SCREENS a candidate and triggers a phase-margin simulation; it cannot reject one on paper"
+  },
+  {
+   "ts": "2026-08-16T20:56:18",
+   "event": "research_closed",
+   "task": "block-sar-adc-1",
+   "slot": "block:B3",
+   "outcome": "verified",
+   "queue_entry": "2026-08-16-research-task-block-sar-adc-1-10"
+  },
+  {
+   "ts": "2026-08-16T20:56:18",
+   "event": "decision",
+   "what": "CLOSED sar-adc at 10/10 verified WITHOUT spending a further round on the one improvement the reader recommended: adding SBAA256B p.3 to the settling records sources. That page carries a TABLE giving 10.99 ENOB at RTH 10k / CFLT 680 pF / 100 ksps - a non-graphical, independent corroboration of the exact curve endpoint the record reads off a plot - plus the plots unstated conditions (100 Hz analog input, no driver amplifier). Logged as a promotion-time improvement instead"
+  },
+  {
+   "ts": "2026-08-16T21:12:09",
+   "event": "research_closed",
+   "task": "block-precision-buffer-1",
+   "slot": "block:B2",
+   "outcome": "verified",
+   "queue_entry": "2026-08-16-research-task-block-precision-buffer-1-9"
+  },
+  {
+   "ts": "2026-08-16T21:12:55",
+   "event": "decision",
+   "what": "DESIGNING UNDER A COVERAGE GAP, recorded not silent: slot block:B1 resistive-attenuator remains `gap` on the single class `constraints-emission`; all five of its other classes and all classes of B2/B3/B4 read `provisional`. No further research task is spent on it. The boards own constraints.json will be populated for this block from the six VERIFIED attenuator records directly"
+  },
+  {
+   "ts": "2026-08-16T21:12:55",
+   "event": "research_complete",
+   "tasks": 4,
+   "records_verified": 32,
+   "checklists": 4,
+   "sources": 16,
+   "correction_rounds": "3 per task",
+   "refutations_that_changed_engineering": "reference topology read backwards; stackup constant mistaken for routing lever; optimum treated as maximum; curve ordering inverted; conversion window 5x off",
+   "coverage_after": "B2/B3/B4 provisional, B1 provisional except constraints-emission gap"
+  },
+  {
+   "ts": "2026-08-16T21:25:47",
+   "event": "decision",
+   "what": "REVERSED, on the datasheets own evidence: the converter DOES get a 5-10 ohm series resistor at its rail entry, with 0.1 uF + 10 uF at the pin, exactly as the ADS8326s own recommended application circuit shows (figs 44/45, p27). My earlier no-ferrite-no-series-R ruling is superseded for this element"
+  },
+  {
+   "ts": "2026-08-16T21:25:47",
+   "event": "decision",
+   "what": "ACCEPTED as an explicitly-labelled inference, not a page-cited rule: the reference keepout from mounting holes and the board edge. What IS page-cited is reflow package die-stress (+/-0.02 pct, as large as the whole B-grade initial accuracy) plus the vendors warning that its magnitude depends on board size, thickness and material. The step from that to \"keep the part away from flex concentrators\" is ours and is marked as such in the constraints trace table"
+  },
+  {
+   "ts": "2026-08-16T21:25:47",
+   "event": "decision",
+   "what": "P4 SCHEMATIC HARD REQUIREMENT, flagged because the sheet plan almost lost it: U1 -IN is a DEDICATED SENSE RUN to the attenuator strings bottom node (R5s pad), NOT a GND symbol placed at the converter. sheets.md said \"U1 -IN = GND\", which is electrically true and operationally fatal"
+  },
+  {
+   "ts": "2026-08-16T21:31:27",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-16T22:01:14",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  },
+  {
+   "ts": "2026-08-16T22:02:36",
+   "event": "spawn",
+   "role": "part-sourcer",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T22:28:08",
+   "event": "decision",
+   "what": "VERIFICATION ITEM 2 CLOSED - the buffer question is settled and OPA320 is FINAL, with OPA333 demoted to documented alternate. ADS8326 acquisition is a CLOCK-CYCLE COUNT, not a CS-high dwell: tSMPL = 4.5 MIN / 5.0 MAX DCLOCKs (Table 1), sampling starts when CS falls, and CS-high is Power Down rather than extended tracking. At the architected 500 kHz DCLOCK, t_acq = 4.5/500k = 9.0 us EXACTLY, which is what constraints.json already carried"
+  },
+  {
+   "ts": "2026-08-16T22:28:08",
+   "event": "decision",
+   "what": "VERIFICATION ITEM 3 CLOSED - the -IN window is an ABSOLUTE constant, not an operating-point function. -0.3 V to +0.5 V is stated in Recommended Operating Conditions (p3) with no VDD or VREF dependence. Figure 39, which P2 flagged as plotted off this boards range, describes a DIFFERENT and narrower mechanism: CM_max = VDD + 0.2 - VREF, which only bites as VREF approaches VDD. At 3.135 V / 2.048 V that gives ~1.29-1.45 V, nowhere near the +/-0.3/0.5 V ceiling, so the flat window applies in full"
+  },
+  {
+   "ts": "2026-08-16T22:28:08",
+   "event": "decision",
+   "what": "VERIFICATION ITEM 1 CLOSED - ADR4520 is STILL Rev 0 (4/12), re-confirmed through an independent distribution channel (an RS Online mirror, 32 pages, cross-checked against a third listing) after LCSCs own datasheet URL for both grades resolved to a dead \"Datasheet temporarily unavailable\" stub. VDO MAX 1 V at both no load and 2 mA, LOAD CAPACITANCE 1-100 uF - identical to the knowledge record. The 87 mV margin stands on the current, in-distribution datasheet"
+  },
+  {
+   "ts": "2026-08-16T22:28:09",
+   "event": "decision",
+   "what": "Attenuator package moves 0603 -> 0805: PTFR0805Q200KN9 (C23067436, RESI), 200 kohm 0.02 pct 10 ppm/C. The 0603 row at this exact grade returns an unfetchable datasheet on live search, and an unverifiable part is not a part. The 0805 row is datasheet-backed with deeper stock (6235 vs 4150). Mechanical change only - flagged for P4 symbol/footprint and P6 placement"
+  },
+  {
+   "ts": "2026-08-16T22:28:09",
+   "event": "decision",
+   "what": "U1 ADS8326IBDGKR (C544731, TI, 12.39 USD) is SINGLE SOURCE with NO pin-compatible alternate, recorded as an explicit empty alternates list rather than a fabricated one: the datasheets own pin-compatible family members are mostly 12-bit or typical-spec and do not close the error budget. BOM totals 155.16 USD at qty 5 (31.03/board), 84 pct of it U1 + U2. Tightest stock margin is ADR4520B at 314 pieces (12.6x the floor), hedged by the A grade at 908"
+  },
+  {
+   "ts": "2026-08-16T22:30:06",
+   "event": "spawn",
+   "role": "datasheet-extractor:ADS8326",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T22:30:06",
+   "event": "spawn",
+   "role": "datasheet-extractor:ADR4520",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T22:30:06",
+   "event": "spawn",
+   "role": "datasheet-extractor:OPA320",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-16T22:39:08",
+   "event": "decision",
+   "what": "CORRECTION - an unsourced claim of MINE was caught by the extractor and is withdrawn: the ADR4520 datasheet does NOT say solder-heat-shift magnitude depends on board size, thickness or material. Rev 0 (4/12) ties SHR only to package material and solder process (leaded vs lead-free); the extractor grepped all 32 pages for those terms near solder mentions and found nothing, then flagged rather than fabricated. The board-size dependency belongs to a DIFFERENT vendors document (the TI material in the same research task), and I relayed it into the spawn prompt as if it were ADIs"
+  },
+  {
+   "ts": "2026-08-16T22:39:08",
+   "event": "decision",
+   "what": "U2 land pattern: the ADR4520 datasheet contains NO recommended land-pattern drawing - only package outline dimensions (p32) - so pad_size_mm and row_spacing_mm are deliberately unset in the extraction and the footprint must come from a standard JEDEC SOIC-8 narrow-body pattern. Pitch 1.27 mm is stated and identical either way. No exposed pad. Pin 8 is TP, DO NOT CONNECT; pins 1/3/5/7 are NC"
+  },
+  {
+   "ts": "2026-08-16T22:39:08",
+   "event": "tooling_note",
+   "script": "datasheet_extract.py",
+   "finding": "default stub mode fully extracted only 12 of 32 pages on this datasheet; the per-member Electrical Characteristics tables (pp 3-8) and Applications Information (p31) fell outside the keyword heuristic",
+   "fix": "--full-text was required",
+   "implication": "on a FAMILY datasheet the per-member tables are exactly what matters and are exactly what the stub heuristic misses"
+  },
+  {
+   "ts": "2026-08-16T22:42:09",
+   "event": "decision",
+   "what": "NO series/current-limiting resistor between the reference output and the converters REF bypass, despite the ADS8326 datasheet offering one \"in front of the capacitors\". The condition it attaches does not bite here, and fitting it would COST accuracy rather than buy it"
+  },
+  {
+   "ts": "2026-08-16T22:42:09",
+   "event": "decision",
+   "what": "CONFIRMED, not a new risk: the error budget already used the CORRECT converter specs. At a 3.135-3.465 V rail the board sits in the ADS8326s VDD = 2.7 V characteristics table, not the 5 V table, and the 2.7 V table is looser for the IB grade - INL +/-2.5 LSB (vs +/-1.5) and gain +/-16 LSB (vs +/-12). Those are exactly the numbers P2 budgeted"
+  },
+  {
+   "ts": "2026-08-16T22:42:09",
+   "event": "extraction_note",
+   "part": "ADS8326 C544731",
+   "no_esd_rating": "the datasheet states no numeric HBM/CDM/MM rating anywhere, only a generic handling-precautions paragraph",
+   "impact": "none for this board - scope tier block-only excludes protection and the input is a bench source inside the recorded safety envelope; recorded so a future product-tier board does not assume a rating exists",
+   "package": "MSOP-8 DGK visually confirmed to have NO exposed pad; only the alternate SON-8 DRB package in the same datasheet draws one"
+  },
+  {
+   "ts": "2026-08-16T22:46:45",
+   "event": "decision",
+   "what": "MAJOR RISK, named and bounded, not closed: TIs own \"Driving ADS8326\" reference circuit (OPA320 datasheet fig 44, p25) - our EXACT amplifier-plus-converter pairing - warns that single-supply operation \"loses a small number of ADC codes near ground\" and shows a -0.3 V V- generator as the fix. This board ties V- straight to GND and its input span STARTS at 0 V, so the bottom of the range is precisely where the warning bites"
+  },
+  {
+   "ts": "2026-08-16T22:46:45",
+   "event": "decision",
+   "what": "CONTINGENCY, pre-authorised so it is not re-litigated under time pressure at P8: if the zero-scale bench shows lost codes near ground, the -0.3 V generator is DATASHEET-REQUIRED SUPPORT and not an excluded feature - it appears in the vendors own recommended circuit for this converter-amplifier pair. It would still be a second rail, so it becomes a mode-boundary item that goes to the OWNER as a decision, exactly as requirements.md section 1 anticipated"
+  },
+  {
+   "ts": "2026-08-16T22:46:45",
+   "event": "decision",
+   "what": "OPA320 PASSES the isolation-resistor screening test decisively, and the flat-R_O assumption that was UNVERIFIABLE for the OPA333 is verified for this part: R_O is 90 ohm typ, and TIs text states it \"remains very flat over a wide frequency range\", confirmed visually on fig 19 as ~90-100 ohm from low frequency to roughly 1-10 MHz. Settling ceiling 750 ohm at C_FLT = 1 nF versus a stability optimum of only ~27 ohm at R_O = 90 ohm and GBW 20 MHz - a wide legal interval where the OPA333 had none. TI separately recommends 10-20 ohm isolation for this part; R6 is provisionally 49.9 ohm pending the bench"
+  },
+  {
+   "ts": "2026-08-16T22:46:46",
+   "event": "decision",
+   "what": "GAP carried into P8, not bridged: OPA320s settling is characterised only at VS = 5 V with CL = 50 pF, and its tightest PUBLISHED figure is 0.0015 pct = 15 ppm and simulation-derived - about 2x looser than this boards ~7.6 ppm target, at a different supply and a 20x smaller load capacitance. No datasheet number covers our operating point"
+  },
+  {
+   "ts": "2026-08-17T20:24:24",
+   "event": "spawn",
+   "role": "librarian",
+   "model": "sonnet/medium"
+  },
+  {
+   "ts": "2026-08-17T20:46:59",
+   "event": "decision",
+   "what": "J1 DRILL MUST BE ENLARGED 1.30 -> 1.50 mm per the vendors own recommended PCB hole. Orchestrator APPROVES this footprint hand-edit (the role correctly refused to make it unilaterally). The pad must grow with it to keep at least the JLC 0.15 mm annulus, so pad diameter >= 1.80 mm"
+  },
+  {
+   "ts": "2026-08-17T20:46:59",
+   "event": "decision",
+   "what": "U1 VSSOP-8 land pattern ACCEPTED as pulled; the reported 42 pct row-spacing mismatch is almost certainly a MISREAD of the vendor drawing, not a footprint defect. Arithmetic: DGK/MSOP-8 lead span is 4.90 mm, so lead centres sit ~2.17 mm from package centre. The pulled pads are at 2.13 mm - a 0.04 mm match. The \"implied 3.0 mm centre-to-centre\" would put pads 1.5 mm from centre, i.e. UNDER the package body where no lead reaches"
+  },
+  {
+   "ts": "2026-08-17T20:46:59",
+   "event": "decision",
+   "what": "ACCEPTED with follow-ups: (a) the ADR4520 symbol hand-edit setting pins 1/3/5/7/8 to no_connect STANDS and must be RE-APPLIED after any re-pull or re-run of lib_pin_types.py, which has no NC concept and was dry-run-confirmed to silently revert all five to passive; (b) U3s missing F.SilkS pin-1 dot goes to P6 silk, where the tooling for it lives - pad asymmetry conveys orientation meanwhile; (c) U3 row spacing 2.60 vs 2.70 mm and U1s courtyard not enclosing its own pads are both accepted (the latter is the known systemic easyeda2kicad pattern already compensated downstream); (d) J2 geometry accepted on internal consistency alone - no manufacturer datasheet exists"
+  },
+  {
+   "ts": "2026-08-17T20:55:08",
+   "event": "decision",
+   "what": "coverage-mapper NOT spawned at P3 exit despite a mapping_request, and no further research opened. Both remaining research tasks stay unspent. P3 coverage: all THREE part slots COVERED, B2/B3/B4 provisional, B1 gap on constraints-emission alone - the gap already recorded at P2 as designed-under"
+  },
+  {
+   "ts": "2026-08-17T20:55:08",
+   "event": "decision",
+   "what": "P3 part-level coverage needed NO research: all three IC extractions produced substantive layout_notes and each part slot reads COVERED. The seeding flags (--maturity-floor proven --research-provisional) were run first per the learning-target contract, and they re-escalated the four already-researched BLOCK slots back to gap; that is the flags working on maturity, not a new finding, so the authoritative P3 report is the re-run without them"
+  },
+  {
+   "ts": "2026-08-17T20:55:08",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  },
+  {
+   "ts": "2026-08-17T20:56:00",
+   "event": "decision",
+   "what": "GUARD RING NET, stated explicitly because getting it wrong is silent: the driven guard around the divider tap and U3 +IN belongs on the BUFFER OUTPUT net, NOT on /AIN_DIV. A ring on the same net as the node it surrounds is not a guard - it IS the node - and provides no guarding at all. U3 is a unity-gain follower, so its output sits at the tap potential with low impedance, which is exactly what a driven guard needs. No schematic element is required; it is a P7 copper instruction on the buffer output net"
+  },
+  {
+   "ts": "2026-08-17T21:30:20",
+   "event": "decision",
+   "what": "CLARIFICATION of the -IN sense requirement, correcting my own earlier framing: -IN and the attenuator string bottom are ONE NET (GND) and MUST be - the divider bottom IS ground, and -IN carries a -0.3/+0.5 V common-mode bound relative to DEVICE ground, so a separately-floated analog ground would risk violating it. The Kelvin intent is therefore a PLACEMENT AND GEOMETRY requirement, not a netlist one, and the schematic as built is correct"
+  },
+  {
+   "ts": "2026-08-17T21:30:22",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  }
+ ],
+ "mode": {
+  "token": "learning block-basics:",
+  "target": "block-basics",
+  "scope": "block-only",
+  "binding": "canonical",
+  "stage": null,
+  "geometry": "output",
+  "geometry_is_output": true,
+  "excludes": [
+   "protection",
+   "filtering",
+   "indicators",
+   "test-points",
+   "config",
+   "second-rail",
+   "mechanical",
+   "enclosure-fit"
+  ],
+  "requires": [],
+  "stated_size": null,
+  "board_init_outline": "auto",
+  "ts": "2026-08-16T17:25:16"
+ }
+}
