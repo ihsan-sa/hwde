@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries bb-mcu --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-17 20:50:41
+generated 2026-08-17 20:52:18
 \end{center}
 \tableofcontents
 
@@ -32,7 +32,7 @@ workspace & \texttt{boards/bb-mcu} \\
 phase & P9 \\
 gate status & all 5 recorded gates pass \\
 state created & 2026-08-16T17:25:37 \\
-state updated & 2026-08-17T20:49:20 \\
+state updated & 2026-08-17T20:52:06 \\
 \bottomrule
 \end{longtable}
 }
@@ -435,11 +435,11 @@ Orientation guidance for P6, not a constraint: put U1's {*}{*}pin-1 end toward J
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-16T21:57:21, failing 0 of 0.
+Gate \texttt{erc} (phase P4): \textbf{pass} after 3 attempt(s); last 2026-08-17T20:52:05, failing 0 of 0.
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-Gate \texttt{place} (phase P6): \textbf{pass} after 2 attempt(s); last 2026-08-16T22:57:35, failing 0 of 0.
+Gate \texttt{place} (phase P6): \textbf{pass} after 3 attempt(s); last 2026-08-17T20:52:06, failing 0 of 0.
 
 Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 3 attempt(s); last 2026-08-16T23:20:27, failing 0 of 0.
 \emph{No board renders found.}
@@ -738,7 +738,29 @@ STM32F030F4P6TR & U1 & SOP-20\_L6.5-W4.4-P0.65-LS6.4-BL & C89040 \\
   usage limit exhausted opus mid-pass. Recorded as a decision, not hidden.
 \end{quote}
 \paragraph*{P9}
-\emph{(no digest recorded)}
+\begin{quote}\small\ttfamily\raggedright
+\# P9 DFM - digest (2026-08-17)\\
+~\\
+- Gate {*}{*}dfm PASS 0/0{*}{*}, attempt 2, commit 4471864. All EIGHT legs RAN and\\
+  passed with no skips and no waivers: copper, copper\_to\_edge, drill,\\
+  hole\_to\_edge, silk, polarity, bom, release.\\
+- Acted on a prior run's recorded learning before gating: `gate.py --gate dfm`\\
+  resolves `parts.json` from the BOARD's directory, so the BOM-completeness\\
+  leg silently never runs when the file lives only at `parts/parts.json`.\\
+  Copied it beside the board and VERIFIED the fix took - the coverage block\\
+  shows `bom` in `ran` and `passed`, so the leg genuinely executed rather\\
+  than being quietly absent.\\
+- Fab package written: gerbers + zip, drill, `bb-mcu-pos.csv`, and the\\
+  assembly trio `BOM-full.csv` / `BOM.csv` / `CPL.csv` with the per-package\\
+  rotation corrections applied. Not hand-filtered.\\
+- {*}{*}P8 review F2 resolved by evidence{*}{*}: the 0.582 mm2 zero-anchor copper\\
+  island STAYS. DFM did not flag it with all 8 legs running, which is exactly\\
+  the fab-process answer the reviewer said a render could not give. Deferring\\
+  that call from P8 to P9 was the right order.\\
+- Run STOPS here by mode - `block-only` defaults stop at P9 (fab package +\\
+  DFM) and ordering is a separate owner decision. No attestation was built\\
+  and no money step was approached.
+\end{quote}
 \subsection*{Gate attempt history}
 {\small
 \begin{longtable}{llll}
@@ -757,6 +779,8 @@ STM32F030F4P6TR & U1 & SOP-20\_L6.5-W4.4-P0.65-LS6.4-BL & C89040 \\
 2026-08-16T23:20:27 & verify & pass & 0/0 \\
 2026-08-17T20:48:49 & dfm & pass & 0/0 \\
 2026-08-17T20:49:08 & dfm & pass & 0/0 \\
+2026-08-17T20:52:05 & erc & pass & 0/0 \\
+2026-08-17T20:52:06 & place & pass & 0/0 \\
 \bottomrule
 \end{longtable}
 }
@@ -784,7 +808,7 @@ STM32F030F4P6TR & U1 & SOP-20\_L6.5-W4.4-P0.65-LS6.4-BL & C89040 \\
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 76,436 B &  \\
+\texttt{state.json} & 77,516 B &  \\
 \texttt{kicad/bb-mcu.kicad\_pcb} & 134,059 B &  \\
 \texttt{kicad/bb-mcu.kicad\_sch} & 60,588 B &  \\
 \texttt{fab/bb-mcu\_gerbers.zip} & 20,201 B &  \\
@@ -806,8 +830,8 @@ STM32F030F4P6TR & U1 & SOP-20\_L6.5-W4.4-P0.65-LS6.4-BL & C89040 \\
 \texttt{reports/fab\_export.json} & 2,216 B &  \\
 \texttt{reports/gate-dfm.json} & 14,935 B &  \\
 \texttt{reports/gate-drc\_routed.json} & 1,072 B &  \\
-\texttt{reports/gate-erc.json} & 14,213 B &  \\
-\texttt{reports/gate-place.json} & 9,605 B &  \\
+\texttt{reports/gate-erc.json} & 871 B &  \\
+\texttt{reports/gate-place.json} & 15,131 B &  \\
 \texttt{reports/gate-verify.json} & 11,175 B &  \\
 \texttt{reports/render-fitted.json} & 447 B &  \\
 \texttt{reports/render-verify.json} & 451 B &  \\
