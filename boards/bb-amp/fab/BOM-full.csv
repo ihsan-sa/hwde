@@ -1,0 +1,14 @@
+Comment,Designator,Qty Per Board,Footprint,MPN,LCSC,Assembly Class,Instructions
+100nF 50V X7R,C1,1,C0603,CC0603KRX7R9BB104,C14663,smt_placed,"AD8226 pin-8 (+VS) HF decoupling, per inamp-supply-decoupling-and-local-ground."
+10uF 25V X5R,C2,1,C0805,CL21A106KAYNNNE,C15850,smt_placed,
+100nF 50V X7R,C3,1,C0603,CC0603KRX7R9BB104,C14663,smt_placed,"OPA2333 pin-8 (+VS) HF decoupling, same record."
+100nF 50V X7R,C4,1,C0603,CC0603KRX7R9BB104,C14663,smt_placed,"Pedestal divider filter cap (R2/R3 node), NOT a supply-pin cap - do not relocate to U2A's output."
+1.27k 0.1% 25ppm,R1,1,R0603,RT0603BRD071K27L,C861195,smt_placed,
+121k 0.1% 25ppm,R2,1,R0603,RT0603BRD07121KL,C861095,smt_placed,
+10.0k 0.1% 25ppm,"R3,R5",2,R0603,RT0603BRD0710KL,C95204,smt_placed,
+24.9k 0.1% 25ppm,R4,1,R0603,RT0603BRD0724K9L,C136967,smt_placed,
+AD8226ARZ-R7,U1,1,SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL,AD8226ARZ-R7,C34250,smt_placed,
+OPA2333AIDR,U2,1,SOP-8_L4.9-W3.9-P1.27-LS6.0-BL,OPA2333AIDR,C38732,smt_placed,
+KF128-5.08-3P,J1,1,CONN-TH_3P-P5.08_KF128-5.08-3P,KF128-5.08-3P-AA,C474953,hand_install,THT screw terminal - hand-solder (JLC standard SMT service will not place it; single-sided top assembly per requirements.md section 7). The bias-current return path for both inputs runs through the 350ohm sensor source itself (in-bias-return-path-required's 'source already returns to ground' case) - no bleeder resistors are added at this connector.
+KF128-5.08-2P,J2,1,CONN-TH_P5.08_KF128-5.08-2P,KF128-5.08-2P-AA,C474952,hand_install,THT screw terminal - hand-solder (JLC standard SMT service will not place it; single-sided top assembly per requirements.md section 7). Also the block's measurement point - no separate test point exists.
+KF128-5.08-2P,J3,1,CONN-TH_P5.08_KF128-5.08-2P,KF128-5.08-2P-AA,C474952,hand_install,"THT screw terminal - hand-solder, same as J2. GND pin ties into the same B.Cu pour as J1/J2."

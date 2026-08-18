@@ -1,8 +1,8 @@
 {
   "script": "gate",
-  "gate": "place",
-  "phase": "P6",
-  "tool": "place",
+  "gate": "dfm",
+  "phase": "P9",
+  "tool": "dfm",
   "input": "boards\\bb-amp\\kicad\\bb-amp.kicad_pcb",
   "input_digest": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
   "status": "pass",
@@ -22,25 +22,34 @@
   "coverage": {
     "strict": false,
     "required": [
-      "courtyard",
-      "outline",
-      "edges",
-      "keepouts",
-      "decoupler_distance"
+      "copper",
+      "copper_to_edge",
+      "drill",
+      "hole_to_edge",
+      "silk",
+      "polarity",
+      "bom",
+      "release"
     ],
     "ran": [
-      "courtyard",
-      "outline",
-      "edges",
-      "keepouts",
-      "decoupler_distance"
+      "copper",
+      "copper_to_edge",
+      "drill",
+      "hole_to_edge",
+      "silk",
+      "polarity",
+      "bom",
+      "release"
     ],
     "passed": [
-      "courtyard",
-      "outline",
-      "edges",
-      "keepouts",
-      "decoupler_distance"
+      "copper",
+      "copper_to_edge",
+      "drill",
+      "hole_to_edge",
+      "silk",
+      "polarity",
+      "bom",
+      "release"
     ],
     "failed": [],
     "waived": [],
@@ -51,13 +60,13 @@
     "ok": true,
     "recorded": true,
     "workspace": "boards/bb-amp",
-    "gate": "place",
+    "gate": "dfm",
     "status": "pass",
-    "attempts": 5,
+    "attempts": 1,
     "inputs": {
       "pcb": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
-      "constraints": "json_canonical:86952d3f7735f2f17d8ab8e78c69378fd8a4c2f7c99683d336d8ebcccada40cf",
-      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6"
+      "sch": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
+      "parts": "json_canonical:babf08f8968734b60ba0aa1c0263b601663d447e00e17bd1bffe838033ee7f7a"
     }
   }
 }

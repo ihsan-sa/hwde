@@ -3,8 +3,8 @@
  "board": "bb-amp",
  "workspace": "boards/bb-amp",
  "created": "2026-08-16T17:25:38",
- "updated": "2026-08-17T22:57:42",
- "phase": "P8",
+ "updated": "2026-08-17T23:02:25",
+ "phase": "P9",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -66,15 +66,15 @@
   "place": {
    "phase": "P6",
    "status": "pass",
-   "attempts": 4,
+   "attempts": 5,
    "last": {
-    "ts": "2026-08-17T21:32:00",
+    "ts": "2026-08-17T22:58:10",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "pcb": "sexpr_no_uuid:7ce845852337e054f3f015c5bb8dc08708eb97f20ce48a073a5dbb6885c81308",
-     "constraints": "json_canonical:906f58dd5e9a42c3ea9dcd60767a0281b6878d6c7ab0a7924f12a2b3cf025918",
+     "pcb": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
+     "constraints": "json_canonical:86952d3f7735f2f17d8ab8e78c69378fd8a4c2f7c99683d336d8ebcccada40cf",
      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6"
     }
    },
@@ -120,6 +120,17 @@
      "inputs": {
       "pcb": "sexpr_no_uuid:7ce845852337e054f3f015c5bb8dc08708eb97f20ce48a073a5dbb6885c81308",
       "constraints": "json_canonical:906f58dd5e9a42c3ea9dcd60767a0281b6878d6c7ab0a7924f12a2b3cf025918",
+      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6"
+     }
+    },
+    {
+     "ts": "2026-08-17T22:58:10",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
+      "constraints": "json_canonical:86952d3f7735f2f17d8ab8e78c69378fd8a4c2f7c99683d336d8ebcccada40cf",
       "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6"
      }
     }
@@ -271,6 +282,35 @@
      }
     }
    ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-17T23:00:32",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
+     "sch": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
+     "parts": "json_canonical:babf08f8968734b60ba0aa1c0263b601663d447e00e17bd1bffe838033ee7f7a"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-17T23:00:32",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
+      "sch": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
+      "parts": "json_canonical:babf08f8968734b60ba0aa1c0263b601663d447e00e17bd1bffe838033ee7f7a"
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -283,6 +323,11 @@
    "status": "skipped",
    "ts": "2026-08-16T23:42:10",
    "note": "H2 presented as a record rather than a blocking hold, per the owner standing instruction of 2026-08-16. Recorded as SKIPPED and deliberately not APPROVED: no human has ruled on this content. Artifacts: reports/schematic.pdf, reports/review-schematic.md (0 errors / 5 warnings), reports/erc-waivers.md (4 fixed, 1 waived), reports/sim.json (11 benches green). Gate erc PASS and committed."
+  },
+  "4": {
+   "status": "skipped",
+   "ts": "2026-08-17T22:59:29",
+   "note": "H4 presented as a record per the owner standing delegation of 2026-08-16; NOT an owner approval. All five gates green. Reviewer found 2 errors (no connector pole legend; every human-facing doc stated the opposite pole order) - both FIXED, not waived. 1 warning waived (C4 refdes reads as U2's, no collision-free position exists). Artifacts: reports/review-board.md, verify-waivers.json, renders/, design_doc/."
   }
  },
  "artifacts": {
@@ -290,7 +335,7 @@
    "path": "kicad/bb-amp.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
-   "hashed": "2026-08-17T22:57:42"
+   "hashed": "2026-08-17T23:00:32"
   },
   "pro": {
    "path": "kicad/bb-amp.kicad_pro",
@@ -302,19 +347,19 @@
    "path": "kicad/bb-amp.kicad_pcb",
    "kind": "pcb",
    "sha256": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
-   "hashed": "2026-08-17T22:57:42"
+   "hashed": "2026-08-17T23:00:32"
   },
   "constraints": {
    "path": "kicad/constraints.json",
    "kind": "constraints",
    "sha256": "json_canonical:86952d3f7735f2f17d8ab8e78c69378fd8a4c2f7c99683d336d8ebcccada40cf",
-   "hashed": "2026-08-17T22:57:39"
+   "hashed": "2026-08-17T22:58:10"
   },
   "decoupling": {
    "path": "kicad/decoupling.json",
    "kind": "decoupling",
    "sha256": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6",
-   "hashed": "2026-08-17T22:57:39"
+   "hashed": "2026-08-17T22:58:10"
   },
   "dru": {
    "path": "kicad/bb-amp.kicad_dru",
@@ -333,6 +378,12 @@
    "kind": "sims",
    "sha256": "dir_text:6323184c48ba991a18b6e1b9c046f686a61c71d20daf0a67c3c6f4cb25e3ef1c",
    "hashed": "2026-08-17T21:58:31"
+  },
+  "parts": {
+   "path": "kicad/parts.json",
+   "kind": "parts",
+   "sha256": "json_canonical:babf08f8968734b60ba0aa1c0263b601663d447e00e17bd1bffe838033ee7f7a",
+   "hashed": "2026-08-17T23:00:32"
   }
  },
  "open_issues": [],
@@ -802,6 +853,30 @@
    "why": "the P6 pin swap propagated into the netlist, the schematic and the P6 digest but not into the upstream documents that a human actually reads. A board with no legend AND a document that says the wrong thing is a miswiring waiting to happen. Recorded as a process lesson: a late pin change must sweep every artifact that states the pin order, not just the ones the gates read",
    "phase": "P8",
    "ts": "2026-08-17T22:28:29"
+  },
+  {
+   "what": "Silk legends FIXED: all 7 connector poles now labelled (J1 IN-/IN+/GND, J2 OUT/GND, J3 +3V3/GND), placed outside every connector housing so they survive assembly. Board NOT grown - all 7 fit inside 47.98 x 28.251 mm. Two refdes (R1, C3) nudged ~1.9 mm where they occupied the only viable legend position. DRC 0 violations, verify_all 8/8 checks ran and 8/8 passed",
+   "why": "the fixer drove its geometry search through the pipeline OWN parsers (placelib, geom, and check_silk own text-bbox formula) rather than an eyeballed estimate, so its clearance model matches what the gates actually enforce, and it re-derived all seven pole assignments from the netlist before placing a single label rather than trusting my brief",
+   "phase": "P8",
+   "ts": "2026-08-17T22:59:05"
+  },
+  {
+   "what": "Gates refreshed after the silk edit: place PASS, drc_routed PASS (committed), verify PASS. The place gate had gone stale the moment the board changed, which is what surfaced the report_gen layout-section problem",
+   "why": "a silk edit is still a board edit - every gate keyed to the board hash goes stale, and re-running them is the difference between evidence and a memory of evidence",
+   "phase": "P8",
+   "ts": "2026-08-17T22:59:06"
+  },
+  {
+   "what": "P9 DFM complete: gate dfm PASS, 0 violations at any severity, with the polarity oracle (schematic) and the BOM leg (parts.json) both supplied so it did not pass vacuously. Fab package written: gerbers zip, drill, BOM.csv, BOM-full.csv, CPL.csv",
+   "why": "assembly split is correct and checked: 11 SMT parts in CPL.csv, and J1/J2/J3 absent from both CPL and the assembler BOM because they are hand_install - they appear only in BOM-full.csv with their instructions. U1/U2 rotations came through as 180 deg against 270 in the raw position file, which is the jlc_rotations correction the recipe describes as the catcher for a part mounted backwards",
+   "phase": "P9",
+   "ts": "2026-08-17T23:01:34"
+  },
+  {
+   "what": "RUN STOPS AT P9. No ordering, no H5, no money spent",
+   "why": "block-only scope default: 'Stop at P9 (fab package + DFM). Ordering is a separate owner decision.' The order recipe is deliberately not entered - the creation latch and H5 payment step stay untouched, and the release attestation is not built. Everything needed to order exists in boards/bb-amp/fab/ whenever the owner decides to",
+   "phase": "P9",
+   "ts": "2026-08-17T23:01:34"
   }
  ],
  "edits": [],
@@ -1958,6 +2033,69 @@
    "status": "pass",
    "attempt": 2,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T22:58:10",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 5,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T22:59:05",
+   "event": "tooling_defect",
+   "scripts": "render.py vs report_gen.py",
+   "defect": "directory-name mismatch - render.py was invoked with --out-dir reports/render (singular), but report_gen.py find_renders() only looks in reports/render_final/, reports/renders/ (plural) or reports/ directly. The design doc silently rendered its LAYOUT section as MISSING while five valid renders sat on disk",
+   "symptom": "report_gen exit 1, section layout:missing, source \"state.json gates\" - which points at the gates rather than at the real cause, so it reads like a stale-gate problem",
+   "fix_here": "re-rendered into reports/renders/; doc then built with layout:included",
+   "suggested_fix": "have find_renders also accept reports/render/, or have render.py default to a directory report_gen actually reads"
+  },
+  {
+   "ts": "2026-08-17T22:59:05",
+   "event": "decision",
+   "what": "Silk legends FIXED: all 7 connector poles now labelled (J1 IN-/IN+/GND, J2 OUT/GND, J3 +3V3/GND), placed outside every connector housing so they survive assembly. Board NOT grown - all 7 fit inside 47.98 x 28.251 mm. Two refdes (R1, C3) nudged ~1.9 mm where they occupied the only viable legend position. DRC 0 violations, verify_all 8/8 checks ran and 8/8 passed"
+  },
+  {
+   "ts": "2026-08-17T22:59:06",
+   "event": "decision",
+   "what": "Gates refreshed after the silk edit: place PASS, drc_routed PASS (committed), verify PASS. The place gate had gone stale the moment the board changed, which is what surfaced the report_gen layout-section problem"
+  },
+  {
+   "ts": "2026-08-17T22:59:29",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "skipped"
+  },
+  {
+   "ts": "2026-08-17T22:59:30",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P8"
+  },
+  {
+   "ts": "2026-08-17T23:00:32",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T23:01:34",
+   "event": "decision",
+   "what": "P9 DFM complete: gate dfm PASS, 0 violations at any severity, with the polarity oracle (schematic) and the BOM leg (parts.json) both supplied so it did not pass vacuously. Fab package written: gerbers zip, drill, BOM.csv, BOM-full.csv, CPL.csv"
+  },
+  {
+   "ts": "2026-08-17T23:01:34",
+   "event": "decision",
+   "what": "RUN STOPS AT P9. No ordering, no H5, no money spent"
+  },
+  {
+   "ts": "2026-08-17T23:02:25",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P9"
   }
  ],
  "mode": {

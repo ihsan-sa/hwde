@@ -1,7 +1,7 @@
 version: 1
 board: bb-amp
 source: LEARNINGS.md
-compiled: '2026-08-16'
+compiled: '2026-08-17'
 entries:
 - entry: 2026-08-16-research-task-interface-in-1-1-verified
   line: 8
@@ -72,4 +72,185 @@ entries:
   - boards/bb-amp/research/records/in-constraints-emission.yaml
   - boards/bb-amp/research/records/in-input-path-equivalence.yaml
   - boards/bb-amp/research/records/in-terminal-selection.yaml
+  status: pending
+- entry: 2026-08-16-meas-ac-rms-is-frequency-weighted-which
+  line: 85
+  date: '2026-08-16'
+  title: '`.meas ac rms` is FREQUENCY-WEIGHTED, which is how you get integrated noise out of ngspice without
+    `.noise`'
+  tags:
+  - P4
+  - spice
+  - sim-analyst
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-pad-every-dc-ac-sweep-the-first
+  line: 101
+  date: '2026-08-16'
+  title: 'Pad every .dc/.ac sweep: the FIRST point can converge to junk and `at=` on the LAST point errors
+    out'
+  tags:
+  - P4
+  - spice
+  - sim-analyst
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-a-behavioural-op-amp-needs-its-anti
+  line: 116
+  date: '2026-08-16'
+  title: A behavioural op-amp needs its anti-windup on the INTEGRATOR node, and its swing clamp AFTER
+    ro - the datasheet swing number is already loaded
+  tags:
+  - P4
+  - spice
+  - sim-analyst
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-a-series-isolation-resistor-only-isolates-when
+  line: 131
+  date: '2026-08-16'
+  title: A series isolation resistor only isolates when it is comparable to the op-amp's open-loop ro
+    - and Figure-15-class overshoot curves are UNITY-GAIN numbers
+  tags:
+  - P4
+  - sim-analyst
+  - inamp
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-build-the-in-amp-from-its-own
+  line: 148
+  date: '2026-08-16'
+  title: Build the in-amp from its OWN published 3-op-amp structure and the REF-impedance defect becomes
+    a gate failure instead of a review opinion
+  tags:
+  - P4
+  - sim-analyst
+  - inamp
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-16-a-datasheet-stability-curve-is-taken-at
+  line: 161
+  date: '2026-08-16'
+  title: A datasheet stability curve is taken AT A STATED GAIN - a unity-gain overshoot figure does not
+    transfer to a stage running at higher noise gain
+  tags:
+  - P4
+  - sim-analyst
+  - datasheet
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-17-outline-bbox-is-a-bbox-not-a
+  line: 185
+  date: '2026-08-17'
+  title: '`outline_bbox` is a BBOX, not a size - and the "generous provisional room" auto picked was the
+    wrong ASPECT, not the wrong area'
+  tags:
+  - P6
+  - board_init
+  - board_edit
+  - build-modes
+  stage: P6
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-17-outline-fit-clips-to-the-current-outline
+  line: 197
+  date: '2026-08-17'
+  title: '`--outline fit` CLIPS to the CURRENT outline, so "place canonically, then fit" only works if
+    you GROW the room first'
+  tags:
+  - P6
+  - board_edit
+  - placement
+  stage: P6
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-17-the-kf128-top-view-teeth-are-the
+  line: 209
+  date: '2026-08-17'
+  title: The KF128 top-view "teeth" are the connector's REAR, not its wire entry - and the 3D model is
+    rotated 180 from the footprint
+  tags:
+  - P6
+  - placement
+  - kicad
+  - render
+  stage: P6
+  proposed_level: null
+  targets:
+  - scripts/render.py
+  status: pending
+- entry: 2026-08-17-a-connector-s-pole-order-against-the
+  line: 222
+  date: '2026-08-17'
+  title: A connector's pole ORDER against the IC's pin order forces exactly one crossing on the input
+    pair - and it is a free schematic fix, measured both ways
+  tags:
+  - P6
+  - P4
+  - placement
+  - diff-pair
+  - inamp
+  stage: P6
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-17-diff-pairs-conflates-route-these-symmetrically-with
+  line: 248
+  date: '2026-08-17'
+  title: '`diff_pairs` conflates "route these symmetrically" with "control these to an impedance", and
+    every consumer assumes the second'
+  tags:
+  - P2
+  - P5
+  - P7
+  - P8
+  - constraints
+  - diff-pair
+  - orchestrator
+  stage: P2
+  proposed_level: null
+  targets:
+  - scripts/lib/impedance.py
+  - scripts/rules_gen.py
+  status: pending
+- entry: 2026-08-17-a-late-pin-change-must-sweep-every
+  line: 281
+  date: '2026-08-17'
+  title: A late pin change must sweep every artifact that STATES the pin order, not just the ones a gate
+    reads
+  tags:
+  - P6
+  - P4
+  - process
+  - orchestrator
+  stage: P6
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-17-kicad-draws-text-box-overflow-instead-of
+  line: 300
+  date: '2026-08-17'
+  title: KiCad DRAWS text-box overflow instead of clipping it, and no gate sees it
+  tags:
+  - P4
+  - kicad
+  - schematic
+  - render
+  stage: P4
+  proposed_level: null
+  targets: []
   status: pending

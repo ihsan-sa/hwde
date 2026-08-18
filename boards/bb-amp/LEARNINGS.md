@@ -244,3 +244,66 @@ difference between a zero-via pair and a pour slot under the input; (2) P6 canno
 placement agent that finds an unavoidable pair crossing should report the pole swap rather than
 spend vias on it; (3) a `board_update` will NOT carry a pad-net rewire (it refuses by design) - the
 fix costs a P5 re-init, so it is cheapest caught at P4 review.
+
+## 2026-08-17 [P2][P5][P7][P8][constraints][diff-pair][orchestrator] `diff_pairs` conflates "route these symmetrically" with "control these to an impedance", and every consumer assumes the second
+
+Four sightings on ONE board, each in a different phase and each looking like an
+unrelated problem:
+
+- **P2** - the `interface:in` coverage slot is typed from `diff_pairs[].base`, so it
+  inherited `gap_mm` / `max_skew_mm` / `max_uncoupled_mm`. None of the interface
+  records' envelopes could be tested against geometric dims, so all five returned
+  `unknown` and could only ever read `provisional`. Fixed by retyping the slot's
+  `operating_point` with electrical dims (`rsource_ohm`, `vcm_v`, `ibias_ua`, `dt_c`...).
+- **P5** - `rules_gen.py:166` is `dp.get("impedance_ohm", 90)`, and the diff-pair
+  NETCLASS WIDTH is solved from that number. A pair with no impedance declared got a
+  **1.3743 mm** trace width on a board with no controlled impedance anywhere. The router
+  traces at class width, so this ships silently.
+- **P7** - `route_critical --only diff` drives `route_diff.py`, which REQUIRES the pair to
+  emerge coupled at the declared gap and errors otherwise. Running it would have converged
+  both legs onto the mirror axis and into R1's pads.
+- **P8** - `check_diffpair` failed the verify gate demanding both legs stay within 0.75 mm
+  of each other, flagging all 10.81 mm of a deliberately mirror-symmetric pair as
+  "uncoupled".
+
+**The rule.** A low-frequency differential pair needs EQUALITY (length, width, via count,
+neighbourhood, capacitance to the reference), not COUPLING. Coupling is an
+impedance-control mechanism, and forcing it on a precision DC pair actively destroys the
+symmetry it looks like it is protecting.
+
+**What to do until the schema grows a `symmetry_only` flag:** declare `impedance_ohm` as
+the impedance the pair ACTUALLY HAS at the width you want (solve it backwards from
+`lib/impedance.py` against the real stackup), set `max_uncoupled_mm` past the run length,
+and put a `_note` key in the JSON saying both are consequences rather than targets. Fix
+the premise, never waive the symptom - a waiver leaves the wrong number in the file for
+the next reader.
+
+## 2026-08-17 [P6][P4][process][orchestrator] A late pin change must sweep every artifact that STATES the pin order, not just the ones a gate reads
+
+The P6 J1 pole swap propagated correctly into the netlist, the schematic, the board and
+the P6 digest - every artifact a gate consumes. It did NOT reach `requirements.md`
+(sections 2 and 9a), `architecture/blocks.md` (B1 and the block diagram), or the
+design-doc PDF already delivered at H1. Those are exactly the artifacts a HUMAN reads.
+
+The board then shipped to P8 review with **no connector legend at all** and **every
+document stating the opposite pole order**. On a hand-wired board that is a destroyed-IC
+path: J3 reversed puts -3.3 V on both supply pins.
+
+No gate catches either half. ERC, DRC, verify, DFM and the netlist audit are all blind to
+a missing silkscreen legend and to a stale sentence in a markdown file. Only a
+fresh-context reviewer looking at the RENDER found it.
+
+**Rule:** when a pin or pole assignment changes after P4, grep the whole workspace for the
+old order and fix every hit, then regenerate the design doc. Treat "which artifacts state
+this fact" as part of the change, not as documentation cleanup afterwards.
+
+## 2026-08-17 [P4][kicad][schematic][render] KiCad DRAWS text-box overflow instead of clipping it, and no gate sees it
+
+Hit twice on this board while adding notes to the equations box. When a text box's content
+outgrows its border, KiCad renders the overflow outside the frame - across the sheet and
+into the margin - while ERC and `netlist_audit` both stay clean, because neither looks at
+graphics.
+
+Both times it was caught only by measuring the rendered line pitch off the plotted PDF
+(~1.45x font size per line) and re-reading the render. **Any generated schematic text
+needs a render check, not a gate run.**
