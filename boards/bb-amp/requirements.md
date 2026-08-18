@@ -43,6 +43,8 @@ Scope consequences every later phase and both reviewers should read from here:
 
 ## 2. Interfaces
 
+> **POLE ORDER CORRECTED AT P6.** J1's physical poles are **1 = IN-, 2 = IN+, 3 = GND**. J1's poles and the AD8226's input pin order were reversed, forcing the input pair to cross; swapping poles 1 and 2 uncrosses it and lets the pair route fully planar and mirror-symmetric with zero vias. Nothing electrical changed - IN+ still drives U1 pin 4 and the polarity convention is unchanged; only which physical pole carries IN+ moved. Any text below that reads `IN+ / IN- / GND` predates that swap. The board silk and the netlist are authoritative.
+
 Three screw terminals, all named by the brief. They are the block's one input,
 one output and its power entry - in scope at `block-only`.
 
@@ -260,7 +262,7 @@ Downstream phases design to THIS section, not to section 9's defaults.
 | Q | answer |
 |---|---|
 | 1 | Excitation **3.3 V, sharing this board's ground**. Input common-mode sits at **~1.65 V**. |
-| 2 | **3-pole input terminal**: IN+, IN-, GND. Cable shield lands on that GND pole. |
+| 2 | **3-pole input terminal**. Physical pole order is **1 = IN-, 2 = IN+, 3 = GND** (corrected at P6 to uncross the input pair; see the note in section 2). Cable shield lands on the GND pole. |
 | 3 | Bridge **350 ohm** nominal. |
 | 4 | **Absolute** gain (NOT ratiometric). No excitation-sense input. |
 | 5 | Input range to design for: **-1 mV to +25 mV**; beyond that the amplifier clips gracefully and recovers. No added protection parts. |

@@ -1,0 +1,111 @@
+{
+ "script": "check_irdrop",
+ "status": "pass",
+ "board": "bb-amp.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "checked": [
+  {
+   "net": "+3V3",
+   "requested_a": 0.01,
+   "injected_a": 0.01,
+   "source_ref": "J3",
+   "source_mode": "largest_pad_area",
+   "sink_pads": 6,
+   "layers": [
+    "F.Cu",
+    "B.Cu"
+   ],
+   "min_feature_mm": 0.2,
+   "grid": {
+    "cell_mm": 0.0125,
+    "cells": 137700,
+    "cells_across_min_feature": 16.0,
+    "refine": "doubled",
+    "cell_mm_pair": 0.025,
+    "cells_pair": 34313
+   },
+   "resistance_mohm": 46.6722,
+   "resistance_pair_mohm": [
+    46.6722,
+    46.826
+   ],
+   "richardson_delta": 0.0033,
+   "worst_drop_mv": 0.4668,
+   "worst_sink": {
+    "ref": "U2",
+    "drop_mv": 0.4667
+   },
+   "jmax": {
+    "a_per_mm": 0.1093,
+    "pos": [
+     39.3125,
+     39.3563
+    ],
+    "layer": "F.Cu"
+   },
+   "necks": [
+    {
+     "a_per_mm": 0.1093,
+     "pos": [
+      39.3125,
+      39.3563
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.0999,
+     "pos": [
+      36.7875,
+      38.6938
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.0804,
+     "pos": [
+      34.4,
+      28.1938
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.0581,
+     "pos": [
+      34.4,
+      37.2563
+     ],
+     "layer": "F.Cu"
+    },
+    {
+     "a_per_mm": 0.0556,
+     "pos": [
+      39.35,
+      44.2938
+     ],
+     "layer": "F.Cu"
+    }
+   ],
+   "vias": {
+    "used": 1,
+    "skipped": 0
+   }
+  }
+ ],
+ "stackup_assumed": false,
+ "model": {
+  "kind": "2.5D resistor-grid FDM",
+  "rho_cu_ohm_m": 1.72e-08,
+  "via_plating_mm": 0.025,
+  "injection": "worst-case uniform per pad unless source_ref/sinks given"
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-18T04:58:54+00:00",
+ "input": "boards\\bb-amp\\kicad\\bb-amp.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6"
+}

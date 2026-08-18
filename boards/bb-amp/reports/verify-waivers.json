@@ -1,0 +1,15 @@
+{
+  "_comment": "P8 verify-gate waivers for bb-amp. Every entry carries a non-empty reason and an approved field. The verify gate PASSES without this file (the single finding is warning-severity); this records the disposition rather than leaving it implicit.",
+  "waivers": [
+    {
+      "check": "check_silk",
+      "kind": "silk_misattributed",
+      "net": null,
+      "refs": [
+        "C4"
+      ],
+      "reason": "C4's refdes cannot be placed legibly and there is nowhere left to put it. silk_place was re-run scoped to C4 at a raised 0.5 mm clearance and reported 'no collision-free candidate within +3.0 mm push (channel narrower than the label)' - the band between U2 and J3 is 5.1 mm carrying two rows of parts. KiCad's own DRC, which is the authoritative oracle, reports 0 silk findings; this is check_silk's stricter readability heuristic, which objects that the label reads as U2's. The three alternatives all cost more than the defect: adding ~1.5 mm of board height fights the earned-outline principle on a board whose binding makes size an OUTPUT of the placement; moving C4 takes it off the /VREF_SET node it filters; and shrinking the text trades one legibility problem for another. The label is legible on a bare board and hidden once assembled, and C4 is unambiguous from the schematic and the BOM.",
+      "approved": "orchestrator, under the owner's standing delegation of 2026-08-16 ('Make decisions yourself based on what will give the best learning for the basic system'). Cosmetic, warning-severity, no electrical or manufacturing consequence. NOT an owner ruling - flagged here so the promote pass can see the provenance."
+    }
+  ]
+}

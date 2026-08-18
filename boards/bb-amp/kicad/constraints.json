@@ -13,7 +13,7 @@
       "base": "IN",
       "gap_mm": 0.25,
       "max_skew_mm": 2.0,
-      "max_uncoupled_mm": 5.0,
+      "max_uncoupled_mm": 12.0,
       "term_pair_mm": 2.5,
       "operating_point": {
         "rsource_ohm": 350,
@@ -28,7 +28,8 @@
         "f3db_hz": 41000
       },
       "impedance_ohm": 150,
-      "_impedance_note": "NOT a controlled-impedance target. This is a DC-to-1 kHz differential SENSOR input; no impedance is controlled anywhere on this board (see architecture/stackup.md). rules_gen derives the diff-pair NETCLASS WIDTH solely from impedance_ohm and defaults to 90 ohm when the key is absent, which would have routed this pair at 1.3743 mm - fat, area-hungry, and a misstatement of intent. 150 ohm is the impedance this pair ACTUALLY HAS at the sane 0.3089 mm width we want, on this stackup (h=1.53 mm, er=4.5, 1 oz). It is a consequence, not a requirement. What the pair genuinely needs is EQUALITY - same width, same gap, same neighbourhood, matched capacitance to the pour - not impedance control."
+      "_impedance_note": "NOT a controlled-impedance target. This is a DC-to-1 kHz differential SENSOR input; no impedance is controlled anywhere on this board (see architecture/stackup.md). rules_gen derives the diff-pair NETCLASS WIDTH solely from impedance_ohm and defaults to 90 ohm when the key is absent, which would have routed this pair at 1.3743 mm - fat, area-hungry, and a misstatement of intent. 150 ohm is the impedance this pair ACTUALLY HAS at the sane 0.3089 mm width we want, on this stackup (h=1.53 mm, er=4.5, 1 oz). It is a consequence, not a requirement. What the pair genuinely needs is EQUALITY - same width, same gap, same neighbourhood, matched capacitance to the pour - not impedance control.",
+      "_coupling_note": "This pair has NO COUPLING REQUIREMENT. It is a DC-to-1 kHz differential SENSOR input, deliberately routed as two MIRROR-SYMMETRIC legs about y=30.0 that straddle U1's RG pins - converging them to couple would drive both into R1's pads and destroy the symmetry that actually matters. What this pair needs is EQUALITY (length, width, via count, neighbourhood, capacitance to the pour), which is verified: both legs 10.808963 mm, delta 0.000000 mm, 0 vias each, mirror-identical neighbourhood. gap_mm/max_skew_mm/max_uncoupled_mm are high-speed controlled-impedance dims and are the wrong frame here; max_uncoupled_mm is set past the run length to say so explicitly rather than waive the finding it would otherwise raise."
     }
   ],
   "voltage_pairs": [

@@ -1,0 +1,112 @@
+{
+ "script": "review.board",
+ "board": "bb-amp.kicad_pcb",
+ "status": "violations",
+ "counts": {
+  "total": 5,
+  "by_severity": {
+   "error": 2,
+   "warning": 3
+  },
+  "by_source": {
+   "review.board": 5
+  }
+ },
+ "violations": [
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": [19.3, 32.54],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": ["J1", "J2", "J3"],
+   "msg": "No connector pole legend anywhere on the silkscreen: the PCB contains exactly 14 pieces of F.SilkS text and all 14 are refdes. Three hand-soldered, hand-wired screw terminals expose 7 unmarked poles, and the only pole-1 indication is a 0.21 mm footprint dot that lands under the connector body (J1's at board 14.000,24.920) and disappears at assembly. The schematic itself states twice that this legend is required ('J1 POLE ORDER: IN- / IN+ / GND - the silk legend must read that way' and 'THE SILK MUST SAY IN- / IN+ / GND'), and requirements.md s2 promises 'silkscreened IN+ / IN- / GND / OUT / +3V3'. Consequence: J3 reversed puts -3.3 V on U1.8 and U2.8, past absolute maximum, destroying both ICs; J1 poles 1/2 reversed negates Vdiff and drives U1 below its guaranteed 0.10 V output floor for every positive input, so the board sits pinned near the bottom rail across the whole span and reads as a dead amplifier. Room exists for J1 (clear 0.95 mm strip at x 13.00..13.95, clear ~2.1 mm strip at x 24.80..26.90); J2 and J3 have only ~0.6 mm bands and realistically want 1.5-2 mm more board on their edges, which the canonical binding licenses.",
+   "source": "review.board",
+   "kind": "no-connector-legend",
+   "domain": "silk"
+  },
+  {
+   "check": "board-review",
+   "severity": "error",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": ["J1"],
+   "msg": "Every human-facing document states the OPPOSITE J1 pole order to the board. The board is pole 1 = IN- (/IN_N -> U1.1 -IN), pole 2 = IN+ (/IN_P -> U1.4 +IN), pole 3 = GND - the deliberate and correct P6 swap. But architecture/blocks.md B1 says 'IN+ / IN- / GND', requirements.md s2 and 9a Q2 say '3 poles (IN+, IN-, GND)', and reports/design_doc/bb-amp-design-doc.tex/.pdf says it in four places. The design doc was generated 2026-08-16 21:28 (H1) and never regenerated after the 2026-08-17 swap, and it is the artifact H4 actually reads. Only the schematic text notes and log/P6-digest.md carry the truth. Combined with the missing silk legend this is a wiring error waiting to happen: the board has no legend, so the user consults the design doc, and the design doc is wrong. Fix: correct blocks.md B1 and requirements.md s2/9a Q2 to match the schematic, then regenerate the design doc.",
+   "source": "review.board",
+   "kind": "pole-order-doc-drift",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "verify_all ran 2 of its 8 checks and the verify gate reports 8 of 8. reports/verify_all.json records coverage.ran = [check_diffpair, check_silk] with six entries in skipped_error ('no constraints' / 'no decoupling') because verify_all was invoked without --constraints and --decoupling - even though kicad/constraints.json and kicad/decoupling.json exist and their digests are recorded in gate-verify.json's own record_result.inputs. gate-verify.json then reports ran = passed = all eight and skipped_error = {}, so a reader of the gate cannot see the hole. I closed it: re-ran all six against the real files. check_current, check_decoupling and check_pdn are real passes (+3V3 needs 0.005 mm and has 0.2 mm; C1 1.50 mm / 2.69 nH, C3 1.53 mm / 2.71 nH, C2 15.99 mm / 12.97 nH; rail has 3 caps / 10.2 uF); check_return_path, check_creepage and check_thermal pass vacuously with checked: [] because the board has no high_speed list, no >30 V pair and no thermal list, all three of which are correct for a 3.3 V 2.3 mW board. No defect is hiding behind the hole, but the gate's coverage reporting is wrong and would hide one on the next board.",
+   "source": "review.board",
+   "kind": "gate-coverage-misreported",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "The ERC gate's evidence is stale. reports/gate-erc.json (P4) records sch sexpr_no_uuid:f12934c5dab8276174315e46b624c347bffc5dc89a20572c99583ac1589b9afb, but the current schematic hashes to sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960 (computed with the pipeline's own statelib.hash_artifact). The J1 pad-net rewire at P5/P6 changed the schematic after ERC passed and ERC was never re-run, so the green ERC gate on record does not describe the shipped schematic. I re-ran it: 0 violations on 54a2c346. Schematic-to-board net parity is covered independently - drc-routed.json ran with parity: true against the current files and found 0.",
+   "source": "review.board",
+   "kind": "stale-gate-evidence",
+   "domain": "review"
+  },
+  {
+   "check": "board-review",
+   "severity": "warning",
+   "pos": [37.35, 39.03],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": ["R2", "R3", "U1", "U2"],
+   "msg": "Six clearances sit on the 5 mil fab floor with 1.7 um of margin, on a board with room to spare. Measured edge-to-edge with pad rotations corrected: 0.1287 mm at R2.2(/VREF_SET)<->trk +3V3, U1.5(GND)<->trk +3V3, U1.6(/VREF)<->trk +3V3, U1.7(/AMP1_OUT)<->trk +3V3 and two spots U2.6(/FB2)<->trk /AMP1_OUT, plus 0.1341 mm at R3.2(GND)<->trk /VREF_SET. The DRU floor and jlc_capabilities 2layer_1oz min_clearance are both 0.1270 mm, so KiCad DRC and dfm_check both pass - this is legal, not a violation. But the board is 47.98 x 28.251 mm with 14 parts and 74 segments and nothing forced any of them. Two are on nodes where a short is silent rather than obvious: /FB2 shorted to /AMP1_OUT collapses G2 from 3.49 to 1, so the board still amplifies at 39.9 V/V instead of 139.2 and presents as a calibration problem. Leakage at this spacing is NOT a concern - worst case (+3V3 into the 9.24 k /VREF_SET node) shifts the pedestal 282 uV, i.e. 2.0 uV RTI, even at a contaminated 100 Mohm surface resistance, and it calibrates out.",
+   "source": "review.board",
+   "kind": "clearance-at-fab-floor",
+   "domain": "router"
+  }
+ ],
+ "waivers_recommended": [
+  {
+   "check": "check_silk",
+   "kind": "silk_misattributed",
+   "refs": ["C4"],
+   "verdict": "uphold",
+   "reason": "Verified independently. The C4 refdes at (42.300, 33.975) sits inside U2's silk outline (x 40.35..43.82, y 29.96..35.12) and under the SOP-8 plastic body (x 40.35..44.25, y 30.09..34.99), so it is invisible after assembly; before assembly it reads as U2's designator while C4's own body at (40.30, 36.60) carries no label. U2's own designator is 2.6 mm to the left, outside the outline, so it is not displaced. KiCad DRC reports 0 silk findings, dfm_check's silk group passes, and JLC places C4 from the CPL. Cosmetic, no electrical or manufacturing consequence. I checked every other refdes by pad-extent distance and found no second misattribution.",
+   "caveat": "The waiver's reasoning that growing the board ~1.5 mm 'fights the earned-outline principle' is backwards: reference/build-modes.md says at canonical binding the board becomes what the placement needs, and legible silk is part of what it needs. Practically this matters because the missing-connector-legend error forces a silk pass and probably a small grow anyway - C4 should be re-placed in that same pass rather than carried as a standing waiver."
+  }
+ ],
+ "verified_held": [
+  "input pair: /IN_N and /IN_P each one F.Cu segment, width 0.309, 0 vias, both 10.808963 mm, delta 0.000000 mm; mirroring /IN_P about y=30.0000 reproduces /IN_N endpoint for endpoint; zero B.Cu tracks on the board; nearest via to the corridor 7.13 mm",
+  "input pair neighbourhood: 15 items within 4 mm on each leg, pairwise identical except /RG_A-trk 0.9719 vs /RG_B-trk 0.9852 mm (13 um) and J1's GND end-pole at 3.7255 mm on the /IN_P side vs a +3V3 track at 3.9618 mm on the /IN_N side - the latter is unmirrorable geometry, not workmanship",
+  "ground reference: B.Cu zone is exactly ONE filled_polygon of 528 vertices, shoelace area 1236.8224 mm2, bit-identical to planes_gen's pre-route 1236.822; sampling every 0.25 mm along each input trace shows the only void is the first 1.26 mm (J1's own antipad), identical on both legs; 2400 mirrored samples across the corridor x 18..31.5 y 25..35 show ZERO asymmetry",
+  "all three GND through-hole pads (J1.3, J2.2, J3.2) carry 4-spoke thermal reliefs into the pour, so the hand-soldered terminals are solderable",
+  "pin maps read from lib/aiee.kicad_sym: AD8226ARZ 1 -IN / 2 RG / 3 RG / 4 +IN / 5 -VS / 6 REF / 7 VOUT / 8 +VS and OPA2333AIDR 1 OUTA / 2 INA- / 3 INA+ / 4 V- / 5 INB+ / 6 INB- / 7 OUTB / 8 V+ are both the real parts; all 11 nets land on the intended topology; no correct-but-wrong connection found",
+  "R5 returns to /VREF not GND; C4 is on /VREF_SET not the buffer output; R1 across U1 pins 2-3 with /RG_A and /RG_B both 2.2597 mm, mirror-placed about y=30",
+  "values: G1 = 1+49.4k/1.27k = 39.898, G2 = 1+24.9/10.0 = 3.49, G = 139.24, Vped = 3.3*10.0/131.0 = 0.25191 V",
+  "the nearest copper to each high-impedance input is its own RG pad (0.1405 mm), which an in-amp holds at the input pin's own potential - self-guarding as well as symmetric; no leakage driving force within 4 mm of either input",
+  "recorded accuracy miss re-derived and correct: 13.8/56.3 uV offset drift, 87 uV max gain drift at FS, 1.1-2.3 uV pedestal ratio-TCR; rail term 0.0771/139.235 = 554 uV RTI/V so 5 uV is spent by 0.27 % of rail - the record's 548 uV/V and 0.28 % agree to two digits",
+  "geometry: one gr_rect Edge.Cuts (13.000,23.549)-(60.980,51.800) = 47.980 x 28.251 mm earned under canonical; all three connector wire entries face off their own board edge (J1 -x, J2 +x, J3 +y) with 1.0 mm of board beyond each body; closest copper to any edge 1.1459 mm; no F.Cu pour"
+ ],
+ "open": [
+  "The AD8226's 'REF source impedance below 2 ohm' rule is met only to ~700 Hz - bench b9 measures the U2A buffer at 0.43 mohm DC, 0.17 ohm at 60 Hz, 2.86 ohm at 1 kHz, 116 ohm at 41 kHz - so above ~700 Hz the buffer's rising Zout, not the AD8226, sets this board's CMRR (90.8 dB at 1 kHz, ~59 dB at 41 kHz). Already recorded as a FINDING in b9's bounds and in the schematic notes, and defensible here only because requirements Q1 pins the common mode statically at 1.65 V. NOT re-reported as a finding; flagged because it is the one property of this board that is correct because of a requirements assumption rather than because of the circuit, and is the first thing that breaks on reuse with a moving common mode.",
+  "Not judgeable from the board and renders: whether the wire bundles from three terminals on three different edges physically clear each other on a real bench. Geometry looks fine (separate edges, 1.0 mm beyond each body, all entries outward) but bend radius and ferrule length were not modelled."
+ ],
+ "renders": [
+  "reports/renders/bb-amp_F-SilkS-only.svg",
+  "reports/renders/bb-amp_top-silk-cu.svg",
+  "reports/renders/bb-amp_bcu-pour-verify.png"
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "input": "boards\\bb-amp\\kicad\\bb-amp.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6"
+}

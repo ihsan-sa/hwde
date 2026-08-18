@@ -18,7 +18,7 @@ where they win and named where they lose.
 ```mermaid
 flowchart LR
   subgraph SIGNAL["signal chain - left to right"]
-    J1["J1 3-pole screw<br/>IN+ / IN- / GND<br/>-1..+20 mV diff<br/>Vcm 1.65 V, 350 ohm src"]
+    J1["J1 3-pole screw<br/>IN- / IN+ / GND (P6)<br/>-1..+20 mV diff<br/>Vcm 1.65 V, 350 ohm src"]
     U1["U1 AD8226ARZ<br/>in-amp, G1 = 39.9<br/>RG = R1 1.27k<br/>REF = /VREF"]
     U2B["U2B OPA2333 half<br/>non-inv gain G2 = 3.49<br/>R4 24.9k fb, R5 10k to /VREF"]
     J2["J2 2-pole screw<br/>OUT / GND<br/>0.11..3.04 V into >100k"]
@@ -102,7 +102,7 @@ forced by a data sheet limit, derived in section 4:
 
 ## 3. Blocks
 
-**B1 - input interface (J1).** 3-pole 5.08 mm screw terminal, IN+ / IN- /
+**B1 - input interface (J1).** 3-pole 5.08 mm screw terminal, IN- / IN+ /
 GND, top side, hand-soldered. The third pole is not a convenience: it is the
 input-bias-current return path both cited data sheets require
 (refdesign D12; INA333 s8.2.2.5 "without a bias current path, the inputs

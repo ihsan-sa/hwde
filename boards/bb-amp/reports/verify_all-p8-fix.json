@@ -1,0 +1,175 @@
+{
+ "script": "verify_all",
+ "board": "bb-amp.kicad_pcb",
+ "status": "violations",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check_silk": 1
+  },
+  "by_check": {
+   "check_return_path": 0,
+   "check_current": 0,
+   "check_decoupling": 0,
+   "check_diffpair": 0,
+   "check_creepage": 0,
+   "check_thermal": 0,
+   "check_silk": 1,
+   "check_pdn": 0
+  }
+ },
+ "checks": {
+  "check_return_path": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards\\bb-amp\\kicad\\reports\\checks\\check_return_path.json"
+  },
+  "check_current": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards\\bb-amp\\kicad\\reports\\checks\\check_current.json"
+  },
+  "check_decoupling": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards\\bb-amp\\kicad\\reports\\checks\\check_decoupling.json"
+  },
+  "check_diffpair": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards\\bb-amp\\kicad\\reports\\checks\\check_diffpair.json"
+  },
+  "check_creepage": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards\\bb-amp\\kicad\\reports\\checks\\check_creepage.json"
+  },
+  "check_thermal": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards\\bb-amp\\kicad\\reports\\checks\\check_thermal.json"
+  },
+  "check_silk": {
+   "status": "violations",
+   "counts": {
+    "total": 1,
+    "by_severity": {
+     "warning": 1
+    },
+    "by_source": {
+     "check_silk": 1
+    }
+   },
+   "report": "boards\\bb-amp\\kicad\\reports\\checks\\check_silk.json"
+  },
+  "check_pdn": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards\\bb-amp\\kicad\\reports\\checks\\check_pdn.json"
+  }
+ },
+ "coverage": {
+  "strict": false,
+  "required": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "ran": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "passed": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "failed": [],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ },
+ "violations": [
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    42.3,
+    33.975
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "C4"
+   ],
+   "msg": "refdes \"C4\" sits 1.30 mm beyond its own pads and 0.00 mm from U2 - reads as U2's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"C4\" sits 1.30 mm beyond its own pads and 0.00 mm from U2 - reads as U2's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      42.3,
+      33.975
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "C4",
+   "offset_mm": 1.3,
+   "nearest_ref": "U2",
+   "nearest_mm": 0.0
+  }
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-18T05:55:55+00:00",
+ "input": "boards\\bb-amp\\kicad\\bb-amp.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd"
+}

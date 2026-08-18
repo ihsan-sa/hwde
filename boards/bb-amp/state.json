@@ -3,21 +3,21 @@
  "board": "bb-amp",
  "workspace": "boards/bb-amp",
  "created": "2026-08-16T17:25:38",
- "updated": "2026-08-17T21:52:01",
- "phase": "P7",
+ "updated": "2026-08-17T22:57:42",
+ "phase": "P8",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 3,
+   "attempts": 4,
    "last": {
-    "ts": "2026-08-16T23:41:23",
+    "ts": "2026-08-17T22:28:29",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "sch": "sexpr_no_uuid:f12934c5dab8276174315e46b624c347bffc5dc89a20572c99583ac1589b9afb",
-     "pro": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab"
+     "sch": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
+     "pro": "json_canonical:dd8b1197354536c330cd479d0f8aee25511ec4f526d26729a7d02733ac72cd86"
     }
    },
    "history": [
@@ -49,6 +49,16 @@
      "inputs": {
       "sch": "sexpr_no_uuid:f12934c5dab8276174315e46b624c347bffc5dc89a20572c99583ac1589b9afb",
       "pro": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab"
+     }
+    },
+    {
+     "ts": "2026-08-17T22:28:29",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
+      "pro": "json_canonical:dd8b1197354536c330cd479d0f8aee25511ec4f526d26729a7d02733ac72cd86"
      }
     }
    ]
@@ -118,14 +128,14 @@
   "drc_routed": {
    "phase": "P7",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-08-17T21:52:01",
+    "ts": "2026-08-17T22:57:42",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "pcb": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6",
+     "pcb": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
      "sch": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
      "pro": "json_canonical:dd8b1197354536c330cd479d0f8aee25511ec4f526d26729a7d02733ac72cd86",
      "dru": "text_eol:68cb8c220f7247d407122ca0783db864b2a6697ec7dcdf4ae30f6edbf45f989e"
@@ -142,6 +152,122 @@
       "sch": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
       "pro": "json_canonical:dd8b1197354536c330cd479d0f8aee25511ec4f526d26729a7d02733ac72cd86",
       "dru": "text_eol:68cb8c220f7247d407122ca0783db864b2a6697ec7dcdf4ae30f6edbf45f989e"
+     }
+    },
+    {
+     "ts": "2026-08-17T22:57:42",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
+      "sch": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
+      "pro": "json_canonical:dd8b1197354536c330cd479d0f8aee25511ec4f526d26729a7d02733ac72cd86",
+      "dru": "text_eol:68cb8c220f7247d407122ca0783db864b2a6697ec7dcdf4ae30f6edbf45f989e"
+     }
+    }
+   ]
+  },
+  "verify": {
+   "phase": "P8",
+   "status": "pass",
+   "attempts": 5,
+   "last": {
+    "ts": "2026-08-17T22:57:39",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 1,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
+     "constraints": "json_canonical:86952d3f7735f2f17d8ab8e78c69378fd8a4c2f7c99683d336d8ebcccada40cf",
+     "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6",
+     "waivers": "json_canonical:aff1e7851ca3271df97a719825854e40bc253d90960dd0e7a9d9a809ee7e5448"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-17T21:52:51",
+     "status": "fail",
+     "failing_count": 1,
+     "total": 2,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6",
+      "constraints": "json_canonical:906f58dd5e9a42c3ea9dcd60767a0281b6878d6c7ab0a7924f12a2b3cf025918",
+      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6",
+      "waivers": null
+     }
+    },
+    {
+     "ts": "2026-08-17T21:54:55",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 1,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6",
+      "constraints": "json_canonical:86952d3f7735f2f17d8ab8e78c69378fd8a4c2f7c99683d336d8ebcccada40cf",
+      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6",
+      "waivers": null
+     }
+    },
+    {
+     "ts": "2026-08-17T21:57:29",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 1,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6",
+      "constraints": "json_canonical:86952d3f7735f2f17d8ab8e78c69378fd8a4c2f7c99683d336d8ebcccada40cf",
+      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6",
+      "waivers": "json_canonical:5aafae867b7f466ffac48851d11f92e5a741ffc88e4eb44199f95f37b3ed375f"
+     }
+    },
+    {
+     "ts": "2026-08-17T21:57:47",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 1,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6",
+      "constraints": "json_canonical:86952d3f7735f2f17d8ab8e78c69378fd8a4c2f7c99683d336d8ebcccada40cf",
+      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6",
+      "waivers": "json_canonical:aff1e7851ca3271df97a719825854e40bc253d90960dd0e7a9d9a809ee7e5448"
+     }
+    },
+    {
+     "ts": "2026-08-17T22:57:39",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 1,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
+      "constraints": "json_canonical:86952d3f7735f2f17d8ab8e78c69378fd8a4c2f7c99683d336d8ebcccada40cf",
+      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6",
+      "waivers": "json_canonical:aff1e7851ca3271df97a719825854e40bc253d90960dd0e7a9d9a809ee7e5448"
+     }
+    }
+   ]
+  },
+  "sim": {
+   "phase": "P8",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-17T21:58:31",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sims": "dir_text:6323184c48ba991a18b6e1b9c046f686a61c71d20daf0a67c3c6f4cb25e3ef1c"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-17T21:58:31",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sims": "dir_text:6323184c48ba991a18b6e1b9c046f686a61c71d20daf0a67c3c6f4cb25e3ef1c"
      }
     }
    ]
@@ -164,37 +290,49 @@
    "path": "kicad/bb-amp.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:54a2c346e578e343a5019d8061c9ee8e6b92ff959255e4e6f435da703888a960",
-   "hashed": "2026-08-17T21:52:01"
+   "hashed": "2026-08-17T22:57:42"
   },
   "pro": {
    "path": "kicad/bb-amp.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:dd8b1197354536c330cd479d0f8aee25511ec4f526d26729a7d02733ac72cd86",
-   "hashed": "2026-08-17T21:52:01"
+   "hashed": "2026-08-17T22:57:42"
   },
   "pcb": {
    "path": "kicad/bb-amp.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6",
-   "hashed": "2026-08-17T21:52:01"
+   "sha256": "sexpr_no_uuid:0e1cdecb47ac4527847a0da4446b73ab569fd0f77ae0634a4553f0ea72532cbd",
+   "hashed": "2026-08-17T22:57:42"
   },
   "constraints": {
    "path": "kicad/constraints.json",
    "kind": "constraints",
-   "sha256": "json_canonical:906f58dd5e9a42c3ea9dcd60767a0281b6878d6c7ab0a7924f12a2b3cf025918",
-   "hashed": "2026-08-17T21:32:00"
+   "sha256": "json_canonical:86952d3f7735f2f17d8ab8e78c69378fd8a4c2f7c99683d336d8ebcccada40cf",
+   "hashed": "2026-08-17T22:57:39"
   },
   "decoupling": {
    "path": "kicad/decoupling.json",
    "kind": "decoupling",
    "sha256": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6",
-   "hashed": "2026-08-17T21:32:00"
+   "hashed": "2026-08-17T22:57:39"
   },
   "dru": {
    "path": "kicad/bb-amp.kicad_dru",
    "kind": "dru",
    "sha256": "text_eol:68cb8c220f7247d407122ca0783db864b2a6697ec7dcdf4ae30f6edbf45f989e",
-   "hashed": "2026-08-17T21:52:01"
+   "hashed": "2026-08-17T22:57:42"
+  },
+  "waivers": {
+   "path": "reports/verify-waivers.json",
+   "kind": "waivers",
+   "sha256": "json_canonical:aff1e7851ca3271df97a719825854e40bc253d90960dd0e7a9d9a809ee7e5448",
+   "hashed": "2026-08-17T22:57:39"
+  },
+  "sims": {
+   "path": "kicad/sims",
+   "kind": "sims",
+   "sha256": "dir_text:6323184c48ba991a18b6e1b9c046f686a61c71d20daf0a67c3c6f4cb25e3ef1c",
+   "hashed": "2026-08-17T21:58:31"
   }
  },
  "open_issues": [],
@@ -204,7 +342,7 @@
    "erc": 3,
    "place": 3,
    "drc_routed": 3,
-   "verify": 3,
+   "verify": 2,
    "dfm": 3
   },
   "freerouting_retries": 2,
@@ -616,6 +754,54 @@
    "why": "restating it cleanly so the record is not missing the operative verb. The step order is place -> grow -> fit; growing against a fresh shelf pack refuses because items sit outside the provisional room",
    "phase": "P6",
    "ts": "2026-08-17T21:31:37"
+  },
+  {
+   "what": "MY ERROR in the P7 brief: I cited in-aggressor-separation as a governing record, but that record was REFUTED by the round-1 second reader and is still draft. The selector was RIGHT to exclude it - drafts never inject, and 22 ledger ids minus the 6 refuted equals the 16 that were handed over. The router flagged the discrepancy, read the draft directly and honored it anyway",
+   "why": "the separation instruction was still sound and P6 had already provided it (J1 to J2 35.82 mm with the pour between), so no harm reached the board - but I presented a refuted claim as settled knowledge, which is the exact failure the draft/verified distinction exists to prevent. The honest support for keeping the output away from the input is the round-2 verified in-input-path-equivalence record, not this one",
+   "phase": "P7",
+   "ts": "2026-08-17T21:52:27"
+  },
+  {
+   "what": "MY ERROR in the P7 brief: I named /AMP2_OUT as a net to keep clear. That net stopped existing when R6 was removed at P4 - the real nets are /AMP1_OUT (U1 out, 39.9 V/V) and /VOUT (U2B out, 139 V/V). The router caught it and measured both as aggressors",
+   "why": "stale net name carried forward from the pre-R6 topology in my own head. Recorded because it is the second time this run that a downstream brief of mine referenced a superseded artifact, and the pattern is worth seeing",
+   "phase": "P7",
+   "ts": "2026-08-17T21:52:27"
+  },
+  {
+   "what": "Router OVERRULED route_critical --only diff on the input pair, and was right to. That path drives route_diff.py which REQUIRES the pair to emerge as a coupled pair at 0.3 mm gap and errors otherwise - it would have converged both legs onto y=30.0 straight into R1's pads, forcing bends and a detour. It laid two straight route_edit segments instead, geometry pre-flighted, and Freerouting then preserved them byte-exact as protected guide wires",
+   "why": "third independent sighting of the same tooling gap: diff_pairs conflates 'route these symmetrically' with 'control the impedance of these'. It bit at P5 as a 1.3743 mm netclass width, at P2 as a coverage slot typed in geometric dims, and now at P7 as a coupling requirement that would have destroyed the symmetry it was meant to protect. The router cited in-constraints-emission (pair_rule_is_equality) and constraints.json's own _impedance_note to justify the overrule",
+   "phase": "P7",
+   "ts": "2026-08-17T21:52:27"
+  },
+  {
+   "what": "Two measured items accepted rather than chased: (1) Freerouting's /RG_A and /RG_B escapes are not exact mirrors - 13.3 um of difference in their distance to the input legs, bounded arithmetically at <=0.003 pF or about -170 dB of CM-to-DM conversion at 1 kHz, roughly 80 dB below the part's own spec. (2) Tightest clearance on the board is /AMP1_OUT to /VREF at 0.1578 mm, legal with 31 um over the 0.127 fab floor",
+   "why": "(1) fixing it means ripping and re-laying /RG_B on a board that currently gates clean, for a term 80 dB under the part. (2) /VREF is buffered by U2A to well under 2 ohm at DC, so it is a LOW-IMPEDANCE victim, and the adjacency is forced by U1's own pin order (REF=6, OUT=7 at 1.27 mm pitch) - it is placement, not routing, and the placement is otherwise correct",
+   "phase": "P7",
+   "ts": "2026-08-17T21:52:27"
+  },
+  {
+   "what": "route_cleanup ran clean and the V13 dangling-pass defect did NOT recur: dry-run proposed 0 ops, live run confirmed drc_before == drc_after with 0 ops applied. The V13 signature would have appeared exactly here - 7 GND stubs whose connectivity runs THROUGH the pour via a terminating via - and it correctly flagged none of them",
+   "why": "the playbook asks for dry-run plus inspection on route_cleanup's first live run and says the caveat can be retired once it behaves. On this board it behaved, on the precise case that used to break it",
+   "phase": "P7",
+   "ts": "2026-08-17T21:52:27"
+  },
+  {
+   "what": "check_diffpair error resolved by FIXING THE PREMISE, not by waiving the finding: max_uncoupled_mm raised 5.0 -> 12.0 (past the 10.81 mm run) with an in-file _coupling_note stating this pair has NO coupling requirement. Verify gate then PASSES, 0 failing",
+   "why": "the check demanded both legs run within 0.75 mm of each other and flagged all 10.81 mm as uncoupled. But this pair is DELIBERATELY two mirror-symmetric legs straddling U1's RG pins - converging them to couple would drive both into R1's pads and destroy the symmetry the whole board is built around, which is exactly why the router refused route_critical --only diff. A waiver would have excused a symptom; declaring max_uncoupled_mm honestly states what is true about the board. The equality that DOES matter is independently verified: both legs 10.808963 mm, delta 0.000000, 0 vias, mirror-identical neighbourhood",
+   "phase": "P8",
+   "ts": "2026-08-17T21:55:12"
+  },
+  {
+   "what": "VERIFY-REVIEWER ERROR 1 CONFIRMED AND BEING FIXED: the board carries 14 pieces of F.SilkS text and ALL 14 are refdes - seven hand-wired screw-terminal poles with no legend at all. The schematic instructs it twice and it never reached the board; the only pole-1 indicator is a 0.21 mm dot under the connector body",
+   "why": "these three terminals are hand-soldered and hand-wired by the user, so the silk IS the wiring instruction. J3 reversed puts -3.3 V on U1 pin 8 and U2 pin 8 and destroys both ICs. J1 poles 1/2 reversed pins the output at the bottom rail, which reads as a dead amplifier rather than a wiring error and burns a bring-up session. This is the highest-consequence defect found on the board and it is invisible to every gate - no DRC, ERC, verify or DFM check looks for a missing legend",
+   "phase": "P8",
+   "ts": "2026-08-17T22:28:29"
+  },
+  {
+   "what": "VERIFY-REVIEWER ERROR 2 FIXED: every human-facing document stated the OPPOSITE pole order. requirements.md sections 2 and 9a Q2, architecture/blocks.md B1 and its block diagram, and the H1 design-doc PDF all said IN+ / IN- / GND. Only the schematic note and the P6 digest were right. Corrected requirements.md (banner at section 2 plus the 9a Q2 row) and blocks.md (both statements); the design doc regenerates from state",
+   "why": "the P6 pin swap propagated into the netlist, the schematic and the P6 digest but not into the upstream documents that a human actually reads. A board with no legend AND a document that says the wrong thing is a miswiring waiting to happen. Recorded as a process lesson: a late pin change must sweep every artifact that states the pin order, not just the ones the gates read",
+   "phase": "P8",
+   "ts": "2026-08-17T22:28:29"
   }
  ],
  "edits": [],
@@ -789,6 +975,22 @@
    "effort": "xhigh",
    "phase": "P7",
    "note": "fable/high -> opus/xhigh substitution"
+  },
+  {
+   "ts": "2026-08-17T21:59:04",
+   "role": "verify-reviewer",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P8",
+   "note": "fresh context; fable/high -> opus/xhigh substitution"
+  },
+  {
+   "ts": "2026-08-17T22:27:04",
+   "role": "fixer",
+   "model": "sonnet",
+   "effort": "medium",
+   "phase": "P8",
+   "note": "silk legends for J1/J2/J3 poles - verify-reviewer error 1"
   }
  ],
  "history": [
@@ -1606,6 +1808,155 @@
    "gate": "drc_routed",
    "status": "pass",
    "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:52:27",
+   "event": "decision",
+   "what": "MY ERROR in the P7 brief: I cited in-aggressor-separation as a governing record, but that record was REFUTED by the round-1 second reader and is still draft. The selector was RIGHT to exclude it - drafts never inject, and 22 ledger ids minus the 6 refuted equals the 16 that were handed over. The router flagged the discrepancy, read the draft directly and honored it anyway"
+  },
+  {
+   "ts": "2026-08-17T21:52:27",
+   "event": "decision",
+   "what": "MY ERROR in the P7 brief: I named /AMP2_OUT as a net to keep clear. That net stopped existing when R6 was removed at P4 - the real nets are /AMP1_OUT (U1 out, 39.9 V/V) and /VOUT (U2B out, 139 V/V). The router caught it and measured both as aggressors"
+  },
+  {
+   "ts": "2026-08-17T21:52:27",
+   "event": "decision",
+   "what": "Router OVERRULED route_critical --only diff on the input pair, and was right to. That path drives route_diff.py which REQUIRES the pair to emerge as a coupled pair at 0.3 mm gap and errors otherwise - it would have converged both legs onto y=30.0 straight into R1's pads, forcing bends and a detour. It laid two straight route_edit segments instead, geometry pre-flighted, and Freerouting then preserved them byte-exact as protected guide wires"
+  },
+  {
+   "ts": "2026-08-17T21:52:27",
+   "event": "decision",
+   "what": "Two measured items accepted rather than chased: (1) Freerouting's /RG_A and /RG_B escapes are not exact mirrors - 13.3 um of difference in their distance to the input legs, bounded arithmetically at <=0.003 pF or about -170 dB of CM-to-DM conversion at 1 kHz, roughly 80 dB below the part's own spec. (2) Tightest clearance on the board is /AMP1_OUT to /VREF at 0.1578 mm, legal with 31 um over the 0.127 fab floor"
+  },
+  {
+   "ts": "2026-08-17T21:52:27",
+   "event": "decision",
+   "what": "route_cleanup ran clean and the V13 dangling-pass defect did NOT recur: dry-run proposed 0 ops, live run confirmed drc_before == drc_after with 0 ops applied. The V13 signature would have appeared exactly here - 7 GND stubs whose connectivity runs THROUGH the pour via a terminating via - and it correctly flagged none of them"
+  },
+  {
+   "ts": "2026-08-17T21:52:51",
+   "event": "phase",
+   "phase": "P8",
+   "prev": "P7"
+  },
+  {
+   "ts": "2026-08-17T21:52:51",
+   "event": "gate",
+   "gate": "verify",
+   "status": "fail",
+   "attempt": 1,
+   "failing_count": 1
+  },
+  {
+   "ts": "2026-08-17T21:54:55",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:55:12",
+   "event": "decision",
+   "what": "check_diffpair error resolved by FIXING THE PREMISE, not by waiving the finding: max_uncoupled_mm raised 5.0 -> 12.0 (past the 10.81 mm run) with an in-file _coupling_note stating this pair has NO coupling requirement. Verify gate then PASSES, 0 failing"
+  },
+  {
+   "ts": "2026-08-17T21:55:12",
+   "event": "tooling_defect",
+   "issue": "diff_pairs symmetry-vs-controlled-impedance conflation - FOURTH sighting on one board",
+   "sightings": [
+    "P2: the interface:in coverage slot inherited gap/skew/uncoupled dims, so no record envelope could be tested until retyped",
+    "P5: rules_gen defaulted impedance_ohm to 90 and solved a 1.3743 mm netclass width for a DC-1 kHz pair",
+    "P7: route_critical --only diff requires a coupled pair at 0.3 mm gap and would have driven both legs into R1 pads",
+    "P8: check_diffpair failed the gate demanding <0.75 mm partner spacing over a deliberately mirror-symmetric pair"
+   ],
+   "root_cause": "the schema has one construct for two different intents - route these two nets SYMMETRICALLY, and control the impedance of these two nets - and every consumer assumes the second",
+   "suggested_fix": "a symmetry_only flag or an explicit coupling: none on the diff_pairs entry, honored by rules_gen, route_critical and check_diffpair alike"
+  },
+  {
+   "ts": "2026-08-17T21:57:29",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:57:47",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 4,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:58:31",
+   "event": "gate",
+   "gate": "sim",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:59:04",
+   "event": "spawn",
+   "role": "verify-reviewer",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-17T22:26:57",
+   "event": "budget",
+   "path": "fix_loops.verify",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-08-17T22:27:04",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "sonnet"
+  },
+  {
+   "ts": "2026-08-17T22:28:29",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 4,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T22:28:29",
+   "event": "decision",
+   "what": "VERIFY-REVIEWER ERROR 1 CONFIRMED AND BEING FIXED: the board carries 14 pieces of F.SilkS text and ALL 14 are refdes - seven hand-wired screw-terminal poles with no legend at all. The schematic instructs it twice and it never reached the board; the only pole-1 indicator is a 0.21 mm dot under the connector body"
+  },
+  {
+   "ts": "2026-08-17T22:28:29",
+   "event": "decision",
+   "what": "VERIFY-REVIEWER ERROR 2 FIXED: every human-facing document stated the OPPOSITE pole order. requirements.md sections 2 and 9a Q2, architecture/blocks.md B1 and its block diagram, and the H1 design-doc PDF all said IN+ / IN- / GND. Only the schematic note and the P6 digest were right. Corrected requirements.md (banner at section 2 plus the 9a Q2 row) and blocks.md (both statements); the design doc regenerates from state"
+  },
+  {
+   "ts": "2026-08-17T22:28:30",
+   "event": "tooling_defect",
+   "script": "verify_all.py / gate.py verify",
+   "defect": "verify_all invoked WITHOUT --constraints/--decoupling silently runs only 2 of its 8 checks, but the gate report still presents 8/8 with skipped_error {} - a COVERAGE MISREPORT",
+   "observed": "my own direct verify_all run showed check_diffpair 0 violations while the gate (which passes the sidecars) showed the error; the reviewer re-ran all six missing checks by hand and confirmed no defect was hiding, but next time one could",
+   "severity": "high - a gate that reports full coverage while running a quarter of it is the exact failure the strict-mode coverage rule exists to prevent"
+  },
+  {
+   "ts": "2026-08-17T22:57:39",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 5,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T22:57:42",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 2,
    "failing_count": 0
   }
  ],

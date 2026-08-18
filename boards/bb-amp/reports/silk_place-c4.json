@@ -1,0 +1,57 @@
+{
+ "script": "silk_place",
+ "status": "violations",
+ "board": "bb-amp.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "silk_place": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "silk_place",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [
+    "C4"
+   ],
+   "msg": "C4: no collision-free candidate within +3.0 mm push (channel narrower than the label)",
+   "source": "silk_place",
+   "items": [
+    {
+     "msg": "C4: no collision-free candidate within +3.0 mm push (channel narrower than the label)",
+     "pos": null
+    }
+   ],
+   "kind": "silk_residual"
+  }
+ ],
+ "targets": 1,
+ "moved": 0,
+ "residual": [
+  {
+   "ref": "C4",
+   "reason": "no collision-free candidate within +3.0 mm push (channel narrower than the label)"
+  }
+ ],
+ "skipped": [],
+ "min_silk_clearance": 0.5,
+ "median_beyond_extent_mm_before": null,
+ "median_beyond_extent_mm": null,
+ "ops_out": "boards\\bb-amp\\kicad\\silk_ops_c4.json",
+ "results": [],
+ "applied": false,
+ "drc_silk_total": 0,
+ "drc_total": 0,
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-18T04:56:42+00:00",
+ "input": "boards\\bb-amp\\kicad\\bb-amp.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:2b314ae795acdb28947d0cd99ef710918e743443b409023ce12068dc7c5671c6"
+}
