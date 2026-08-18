@@ -1,62 +1,62 @@
 [
  {
-  "measure": "os_a3",
+  "measure": "os_a_r0",
   "max": 5.0,
   "severity": "error",
-  "msg": "DESIGN TARGET (blocks.md B4). AS-BUILT: R6 = 100 R, CL = 1 nF (REQUIREMENTS Q8 worst case), calibrated ro = 1 kohm, whole signal path. Measured 0.63 % overshoot at J2."
+  "msg": "DESIGN TARGET (blocks.md B4). THE SHIPPING CIRCUIT: no isolation resistor, CL = 1 nF (REQUIREMENTS Q8 worst case), calibrated ro = 1 kohm, whole signal path. Measured 0.61 % overshoot at J2. This is the claim the board now rests on after R6 was removed at P4."
  },
  {
-  "measure": "os_a1",
-  "max": 5.0,
-  "severity": "error",
-  "msg": "DESIGN TARGET (blocks.md B4), with R6 ABSENT. Measured 0.61 % - 0.02 points worse than with R6 = 100 R. This is the measurement that says R6 = 100 R does nothing on the real signal path."
- },
- {
-  "measure": "os_c1",
+  "measure": "os_a_nc",
   "max": 1.0,
   "severity": "error",
   "msg": "DESIGN TARGET. Control: with no cable (CL = 1 pF) there must be no overshoot at all. Measured 0.0 %."
  },
  {
-  "measure": "os_c2",
+  "measure": "os_b_nc",
   "max": 1.0,
   "severity": "error",
   "msg": "Same control on the pessimistic ro = 2 kohm bracket. Measured 0.0 %."
  },
  {
-  "measure": "sp_a3",
+  "measure": "sp_a_r0",
   "min": 99.5,
   "severity": "error",
-  "msg": "REQUIREMENTS Q8 (load > 100 kohm) + blocks.md B5, which rejected any series output resistor because it 'would add a divider error into a 100 k load'. Delivered span as a percentage of the unloaded 2.7848 V design span: R6 = 100 R costs 0.13 %. MUTATION-VERIFIED: R6 100 R -> 10 k reads 90.9 %."
+  "msg": "REQUIREMENTS Q8 (load > 100 kohm) + blocks.md B5, which rejected any series output resistor because it 'would add a divider error into a 100 k load'. With no isolation resistor the delivered span is 99.97 % of the unloaded 2.7848 V design span, which is that objection answered. MUTATION-VERIFIED: a 10 k series element reads 90.9 %."
+ },
+ {
+  "measure": "os_b_r0",
+  "max": 10.0,
+  "severity": "warning",
+  "msg": "DESIGN TARGET, shipping circuit on the pessimistic ro = 2 kohm bracket. Measured 2.91 %."
  },
  {
   "measure": "d_os_a",
   "min": 0.0,
-  "severity": "error",
-  "msg": "GRADIENT GUARD. Overshoot at R6 = 0 minus overshoot at R6 = 1 k must stay >= 0: more isolation resistance may not make the response worse. The R6 recommendation is a statement about this gradient, so a change made in its direction must be re-derived, not re-run. Measured +0.15 points."
+  "severity": "warning",
+  "msg": "EVIDENCE GUARD, not a board bound (which is why it is a warning): overshoot at riso = 0 minus overshoot at riso = 1 k, calibrated ro, measured +0.15 points. It guards the ungated riso sweep that documents WHY R6 was removed - if the sign ever inverts, the removal argument has to be re-derived rather than re-run."
  },
  {
   "measure": "d_os_b",
   "min": 0.0,
-  "severity": "error",
-  "msg": "Same gradient guard on the pessimistic ro = 2 kohm bracket. Measured +1.00 points."
+  "severity": "warning",
+  "msg": "Same evidence guard on the pessimistic bracket: +1.00 points."
  },
  {
-  "measure": "os_b3",
-  "max": 10.0,
+  "measure": "sp_a_r100",
+  "min": 99.5,
   "severity": "warning",
-  "msg": "DESIGN TARGET, pessimistic ro = 2 kohm bracket, as built. Measured 2.81 %."
+  "msg": "EVIDENCE, kept from the R6 comparison: the 100 R that was fitted at P3 delivered 99.87 % of span. Recorded so the cost side of the removal stays reproducible."
  },
  {
-  "measure": "os_b1",
-  "max": 10.0,
+  "measure": "os_a_r100",
+  "max": 5.0,
   "severity": "warning",
-  "msg": "Same bracket with R6 absent. Measured 2.91 %."
+  "msg": "EVIDENCE, kept from the R6 comparison: with 100 R fitted the full path overshot 0.63 %, i.e. 0.02 points WORSE than with none. On the real signal path R6 = 100 R did nothing."
  },
  {
-  "measure": "sp_a6",
-  "min": 98.5,
+  "measure": "os_a_r1k",
+  "max": 5.0,
   "severity": "warning",
-  "msg": "Recorded because it is what the R6 recommendation trades against: R6 = 1 kohm would deliver 98.98 % of span, a 1.0 % loss that REQUIREMENTS Q7 calibrates out but that also drops b6's -5 %-rail full scale from 3.022 V to about 2.994 V."
+  "msg": "EVIDENCE, kept from the R6 comparison: riso = 1 kohm - the value that would actually isolate - reaches 0.47 %, at 1.0 % of span (sp_a_r1k) and a -5 %-rail full scale of about 2.994 V, below blocks.md B6."
  }
 ]

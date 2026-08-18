@@ -4,65 +4,65 @@
   "min": 135.0,
   "max": 144.0,
   "severity": "error",
-  "msg": "DESIGN TARGET (blocks.md s2/B1). Best-fit 0..20 mV slope; design 139.2 V/V = (1+49.4k/R1)*(1+R4/R5) = 39.898*3.490, x0.999 for the R6/RL divider -> 139.10. THE headline wrong-value detector. MUTATION-VERIFIED: R1 1.27k->12.7k reads 17.05; R4 24.9k->2.49k reads 49.78."
+  "msg": "DESIGN TARGET (blocks.md s2/B1). Best-fit 0..20 mV slope; design 139.24 V/V = (1+49.4k/R1)*(1+R4/R5) = 39.898*3.490, measured 139.235 now that no series resistor divides the output. THE headline wrong-value detector. MUTATION-VERIFIED: R1 1.27k->12.7k reads 17.05; R4 24.9k->2.49k reads 49.78."
  },
  {
   "measure": "vout_0",
   "min": 0.235,
   "max": 0.27,
   "severity": "error",
-  "msg": "DESIGN TARGET (blocks.md B1). Pedestal at zero scale, design 0.2519 V = 3.3*R3/(R2+R3). The +-18 mV window is sized for the AD8226's untrimmed offset maximum (VOSI 100 uV + VOSO/G1 = 115 uV RTI = 16 mV at the output, DATASHEET Table 3); the model itself has zero offset and requirements Q7 calibrates initial offset out. MUTATION-VERIFIED: R3 10k->1.0k reads 0.234."
+  "msg": "DESIGN TARGET (blocks.md B1). Pedestal at zero scale, design 0.2519 V = 3.3*R3/(R2+R3); measured 0.25302 (the extra 1.15 mV is the modelled CMRR floor acting on the fixed 1.65 V common mode, a static term Q7 calibrates out). The +-18 mV window is sized for the AD8226's untrimmed offset maximum (VOSI 100 uV + VOSO/G1 = 115 uV RTI = 16 mV at the output, DATASHEET Table 3). MUTATION-VERIFIED: R3 10k->1.0k reads 0.234."
  },
  {
   "measure": "vout_20m",
   "min": 2.95,
   "max": 3.12,
   "severity": "error",
-  "msg": "DESIGN TARGET (blocks.md B1). Full scale, design 3.037 V. The ceiling is set by REQUIREMENTS Q10's -5 % rail, not by the swing spec - see b6."
+  "msg": "DESIGN TARGET (blocks.md B1). Full scale, design 3.037 V, measured 3.0377. The ceiling is set by REQUIREMENTS Q10's -5 % rail, not by the swing spec - see b6."
  },
  {
   "measure": "vout_m1m",
   "min": 0.095,
   "max": 0.135,
   "severity": "error",
-  "msg": "REQUIREMENTS Q5 + DESIGN TARGET (blocks.md B1). The -1 mV worst case must stay visibly above zero so it can be calibrated; design 0.113 V."
+  "msg": "REQUIREMENTS Q5 + DESIGN TARGET (blocks.md B1). The -1 mV worst case must stay visibly above zero so it can be calibrated; design 0.113 V, measured 0.1138."
  },
  {
   "measure": "amp1_m1m",
   "min": 0.1,
   "severity": "error",
-  "msg": "DATASHEET (AD8226 Table 3, OUTPUT / Output Swing: 0.1 V min, RL = 10 kohm to 1.35 V, TA -40..+125 degC). Stage 1's own output at the -1 mV worst case must clear the guaranteed floor. This is the bound behind blocks.md Ruling 1: with REF grounded this node sits at -0.10 V and the bottom 2 mV of scale dies in FIRST-stage saturation, where no downstream pedestal can recover it. Measured 0.212 V. MUTATION-VERIFIED: R3 10k->1.0k drops it to 0.086."
+  "msg": "DATASHEET (AD8226 Table 3, OUTPUT / Output Swing: 0.1 V min, RL = 10 kohm to 1.35 V, TA -40..+125 degC). Stage 1's own output at the -1 mV worst case must clear the guaranteed floor. This is the bound behind blocks.md Ruling 1: with REF grounded this node sits at -0.10 V and the bottom 2 mV of scale dies in FIRST-stage saturation, where no downstream pedestal can recover it. Measured 0.2123 V. MUTATION-VERIFIED: R3 10k->1.0k drops it to 0.086."
  },
  {
   "measure": "amp1_20m",
   "max": 3.2,
   "severity": "error",
-  "msg": "DATASHEET (AD8226 Table 3: +VS - 0.1 V max at VS = 3.3 V). Stage 1 at full scale, design 1.050 V - a 2.15 V margin, which is why the gain split puts the rail-facing job on the OPA2333."
+  "msg": "DATASHEET (AD8226 Table 3: +VS - 0.1 V max at VS = 3.3 V). Stage 1 at full scale, measured 1.0501 V - a 2.15 V margin, which is why the gain split puts the rail-facing job on the OPA2333."
  },
  {
   "measure": "vref_v",
   "min": 0.24,
   "max": 0.264,
   "severity": "error",
-  "msg": "DESIGN TARGET (blocks.md B3). Buffered pedestal node, design 3.3*10.0k/131k = 0.2519 V, window +-5 %. MUTATION-VERIFIED: R3 10k->1.0k reads 0.027."
+  "msg": "DESIGN TARGET (blocks.md B3). Buffered pedestal node, design 3.3*10.0k/131k = 0.2519 V, window +-5 %, measured 0.25191. MUTATION-VERIFIED: R3 10k->1.0k reads 0.027."
  },
  {
   "measure": "vout_25m",
   "min": 3.15,
   "max": 3.3,
   "severity": "error",
-  "msg": "REQUIREMENTS Q5 (clip gracefully at +25 mV) + DESIGN TARGET (blocks.md B1). Clip level, model 3.280 V. The model clips about 10 mV above the OPA2333's 30 mV-from-rail typ (SBOS351D p.3) because of the forward drop in the macromodel's output clamp diode - see the .cir header."
+  "msg": "REQUIREMENTS Q5 (clip gracefully at +25 mV) + DESIGN TARGET (blocks.md B1). Clip level, measured 3.2829 V. The model clips about 13 mV above the OPA2333's 30 mV-from-rail typ (SBOS351D p.3) because of the forward drop in the macromodel's output clamp diode - see the .cir header."
  },
  {
   "measure": "mono_25m",
   "min": -0.001,
   "severity": "error",
-  "msg": "REQUIREMENTS Q5 ('clips gracefully and recovers'). Vout(25 mV) - Vout(24 mV) must not go negative: no fold-back once clipped. Measured 0.0 V (flat-topped)."
+  "msg": "REQUIREMENTS Q5 ('clips gracefully and recovers'). Vout(25 mV) - Vout(24 mV) must not go negative: no fold-back once clipped. Measured 1e-13 V (flat-topped)."
  },
  {
   "measure": "inl_max",
   "max": 0.05,
   "severity": "warning",
-  "msg": "DESIGN TARGET, EXPLICITLY NOT A DATASHEET NUMBER. AD8226 Table 3 (single supply, this board's condition) has NO Gain Nonlinearity row at all - that spec exists only in Table 2 (dual supply), and the P3 extraction flagged the gap. Kept as a warning and labelled, so nothing downstream reads it as a vendor limit. Second caveat: the generic macromodel has no nonlinearity mechanism, so what this measure actually detects is a stage clipping inside 0..20 mV (measured 9e-9 %)."
+  "msg": "DESIGN TARGET, EXPLICITLY NOT A DATASHEET NUMBER. AD8226 Table 3 (single supply, this board's condition) has NO Gain Nonlinearity row at all - that spec exists only in Table 2 (dual supply), and the P3 extraction flagged the gap. Kept as a warning and labelled, so nothing downstream reads it as a vendor limit. Second caveat: the generic macromodel has no nonlinearity mechanism, so what this measure actually detects is a stage clipping inside 0..20 mV (measured 8e-9 %)."
  }
 ]

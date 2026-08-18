@@ -4,7 +4,7 @@
   "min": 25.0,
   "max": 40.0,
   "severity": "warning",
-  "msg": "CALIBRATION, and the one bound in this workspace that fixes a model parameter the datasheet does not state. A PLAIN unity-gain OPA2333 follower into CL = 1 nF must reproduce the roughly mid-30 % small-signal overshoot of SBOS351D Figure 15 (a GRAPH READ - the datasheet tabulates no capacitive-load number and its own table just says 'See Typical Characteristics'). Measured 32.0 %, which is what fixes ro = 1.0 kohm. If this bound moves, every R6 conclusion moves with it."
+  "msg": "CALIBRATION, and the one bound in this workspace that fixes a model parameter the datasheet does not state. A PLAIN unity-gain OPA2333 follower into CL = 1 nF must reproduce the roughly mid-30 % small-signal overshoot of SBOS351D Figure 15 (a GRAPH READ - the datasheet tabulates no capacitive-load number and its own table just says 'See Typical Characteristics'). Measured 32.0 %, which is what fixes ro = 1.0 kohm. If this bound moves, every conclusion about the output stage - including the P4 decision to remove R6 - moves with it. It must not be deleted."
  },
  {
   "measure": "os_ub1",
@@ -20,51 +20,51 @@
   "msg": "CALIBRATION of the BRACKET. With ro = 2 kohm - TI's literal open-loop output impedance, stated only at f = 350 kHz - the same unity buffer overshoots 45.5 %, MORE than Figure 15. That is how the 2 kohm bracket is known to be pessimistic rather than merely different, and it bounds ro from above."
  },
  {
-  "measure": "os_sa3",
+  "measure": "os_s_r0",
   "max": 12.0,
   "severity": "error",
-  "msg": "DESIGN TARGET. The AS-BUILT output stage - U2B at G2 = 3.49, R6 = 100 R - into the full 1 nF REQUIREMENTS Q8 allows, calibrated ro. Measured 6.28 %, about 63 degrees of phase margin; 12 % is about 55 degrees."
+  "msg": "DESIGN TARGET. THE SHIPPING OUTPUT STAGE: U2B at G2 = 3.49 with NO isolation resistor, driving the full 1 nF REQUIREMENTS Q8 allows, calibrated ro. Measured 6.60 %, about 63 degrees of phase margin; 12 % is about 55 degrees. THIS is the measurement that removed R6 - the Figure 15 curve that motivated the part is a UNITY-GAIN measurement (os_ub2 = 32 % under identical conditions), and U2B's noise gain of 3.49 moves the loop crossover from 350 kHz to 100 kHz."
  },
  {
-  "measure": "os_sa1",
-  "max": 12.0,
-  "severity": "error",
-  "msg": "DESIGN TARGET, same stage with R6 ABSENT: 6.60 %. The stage is stable into 1 nF without R6, and this is the bound that says so."
- },
- {
-  "measure": "os_sb3",
+  "measure": "os_t_r0",
   "max": 25.0,
   "severity": "error",
-  "msg": "DESIGN TARGET, as built, on the pessimistic ro = 2 kohm bracket: 16.68 %, about 50 degrees of phase margin. 25 % is about 41 degrees - still unconditionally stable, which is where the acceptance line is drawn."
+  "msg": "DESIGN TARGET, shipping stage on the pessimistic ro = 2 kohm bracket: 17.94 %, about 50 degrees of phase margin. 25 % is about 41 degrees - still unconditionally stable, which is where the acceptance line is drawn. The board is stable into the specified cable on EITHER end of the ro bracket with no isolation resistor."
  },
  {
-  "measure": "os_sb1",
-  "max": 25.0,
-  "severity": "error",
-  "msg": "Same bracket with R6 absent: 17.94 %."
- },
- {
-  "measure": "os_sc1",
+  "measure": "os_s_nc",
   "max": 1.0,
   "severity": "error",
   "msg": "DESIGN TARGET. Control: no cable, no overshoot. Measured 0.0 %."
  },
  {
-  "measure": "os_sc2",
+  "measure": "os_t_nc",
   "max": 1.0,
   "severity": "error",
   "msg": "Same control on the pessimistic bracket. Measured 0.0 %."
  },
  {
+  "measure": "os_s_r100",
+  "max": 12.0,
+  "severity": "warning",
+  "msg": "EVIDENCE, kept from the R6 comparison: the 100 R fitted at P3 gave 6.28 % against 6.60 % with none - 0.3 points. An out-of-loop series R has authority only in proportion to riso/ro, so against an ro of 1-2 kohm a 100 R does essentially nothing. That, plus the unity-gain premise being wrong, is the whole case for the removal."
+ },
+ {
+  "measure": "os_s_r1k",
+  "max": 12.0,
+  "severity": "warning",
+  "msg": "EVIDENCE: riso = 1 kohm - comparable to ro at last - halves the overshoot to 3.19 %. This is what a working isolation resistor would have looked like, and what the board decided it does not need."
+ },
+ {
   "measure": "d_a",
   "min": 0.0,
-  "severity": "error",
-  "msg": "GRADIENT GUARD. Overshoot at R6 = 0 minus overshoot at R6 = 1 k, calibrated ro: measured +3.41 points. Must stay >= 0."
+  "severity": "warning",
+  "msg": "EVIDENCE GUARD, not a board bound: overshoot at riso = 0 minus riso = 1 k on the calibrated ro, measured +3.41 points. Guards the sign of the ungated comparison sweep."
  },
  {
   "measure": "d_b",
   "min": 0.0,
-  "severity": "error",
-  "msg": "Same gradient guard, pessimistic bracket: +9.36 points."
+  "severity": "warning",
+  "msg": "Same evidence guard, pessimistic bracket: +9.36 points."
  }
 ]

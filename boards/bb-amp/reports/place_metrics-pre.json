@@ -1,0 +1,335 @@
+{
+ "script": "place_metrics",
+ "status": "pass",
+ "board": "bb-amp.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "metrics": {
+  "counts": {
+   "footprints": 14,
+   "movable": 14,
+   "nets": 11
+  },
+  "hpwl": {
+   "total_mm": 174.25,
+   "by_net": {
+    "+3V3": 29.17,
+    "/AMP1_OUT": 15.34,
+    "/FB2": 6.58,
+    "/IN_N": 14.43,
+    "/IN_P": 14.43,
+    "/RG_A": 2.33,
+    "/RG_B": 2.33,
+    "/VOUT": 10.95,
+    "/VREF": 14.21,
+    "/VREF_SET": 8.8,
+    "GND": 55.68
+   }
+  },
+  "crossings": {
+   "count": 12,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/AMP1_OUT",
+      "/VREF"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/VREF_SET",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/AMP1_OUT"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/VREF"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/AMP1_OUT",
+      "/FB2"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/AMP1_OUT",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/IN_N",
+      "/IN_P"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/VREF",
+      "GND"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "crossings_signal": {
+   "count": 6,
+   "pairs": [
+    {
+     "nets": [
+      "/AMP1_OUT",
+      "/VREF"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/AMP1_OUT"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/VREF"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/AMP1_OUT",
+      "/FB2"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/IN_N",
+      "/IN_P"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 24,
+   "rows": 15,
+   "max": 5,
+   "mean_nonzero": 1.6986,
+   "hotspots": [
+    {
+     "cell": [
+      13,
+      4
+     ],
+     "center": [
+      40.0,
+      32.549
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      13,
+      5
+     ],
+     "center": [
+      40.0,
+      34.549
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      10,
+      2
+     ],
+     "center": [
+      34.0,
+      28.549
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      14,
+      6
+     ],
+     "center": [
+      42.0,
+      36.549
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      14,
+      7
+     ],
+     "center": [
+      42.0,
+      38.549
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      15,
+      2
+     ],
+     "center": [
+      44.0,
+      28.549
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      15,
+      4
+     ],
+     "center": [
+      44.0,
+      32.549
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      10,
+      4
+     ],
+     "center": [
+      34.0,
+      32.549
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      12,
+      7
+     ],
+     "center": [
+      38.0,
+      38.549
+     ],
+     "demand": 3
+    },
+    {
+     "cell": [
+      13,
+      6
+     ],
+     "center": [
+      40.0,
+      36.549
+     ],
+     "demand": 3
+    }
+   ]
+  },
+  "congestion_signal_max": 4,
+  "decoupling": [
+   {
+    "cap": "C1",
+    "pin": "U1.8",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 1.5,
+    "euclid_mm": 1.5,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.05
+   },
+   {
+    "cap": "C2",
+    "pin": "U1.8",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 17.09,
+    "euclid_mm": 12.4982,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 14.963
+   },
+   {
+    "cap": "C3",
+    "pin": "U2.8",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 1.53,
+    "euclid_mm": 1.53,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.071
+   }
+  ],
+  "utilization": {
+   "component_mm2": 495.2031,
+   "board_mm2": 1355.483,
+   "ratio": 0.365
+  }
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-18T04:04:14+00:00",
+ "input": "boards\\bb-amp\\kicad\\bb-amp.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:d8a134c159da339bf8dd91ba2f9accbaabc4d6bb073ad911d3855d507f5b79c0",
+ "coverage": {
+  "strict": false,
+  "required": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "ran": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "passed": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "failed": [],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ }
+}

@@ -1,34 +1,41 @@
 [
  {
+  "measure": "dvr_dvs",
+  "min": 0.0755,
+  "max": 0.0772,
+  "severity": "error",
+  "msg": "DESIGN TARGET, and the SHARP form of this bench's claim. Rail sensitivity measured AT the buffered pedestal node /VREF, which is the only path by which the rail reaches the output: design R3/(R2+R3) = 10.0k/131k = 0.076336 V/V, measured 0.0763352 - agreement to six digits. A wrong R2 or R3 moves this directly."
+ },
+ {
   "measure": "dvo_dvs",
   "max": 0.09,
   "severity": "error",
-  "msg": "DESIGN TARGET (blocks.md B6). dVout/dVs at zero scale over REQUIREMENTS Q10's 3.135..3.465 V rail; design 0.0763 V/V, which is exactly the R2/R3 divider ratio - the pedestal rides the rail and nothing else does. Measured 0.0766."
+  "msg": "DESIGN TARGET (blocks.md B6). Same sensitivity measured end to end at J2: 0.0771 V/V. It reads about 0.0008 V/V higher than the divider ratio above, and that residue is macromodel scaffolding, not circuit - every clamp node in the gopamp model is defined as V(vp) - const and carries ngspice's default 1e-12 GMIN to a high-impedance node, so it tracks the rail very slightly. dvr_dvs is the bound to trust for the divider; this one is the loose end-to-end guard."
  },
  {
   "measure": "v20_lo",
   "min": 3.0,
   "severity": "error",
-  "msg": "REQUIREMENTS Q10 + Q6. Full scale must not clip at the -5 % rail; the OPA2333 ceiling there is 3.135 - 0.03 = 3.105 V and the design lands at 3.022 V. blocks.md B6 asks for >= 3.02 V, which the board meets by only 2 mV; the bound is set at 3.00 V because the R6/RL divider already eats 0.1 % of that margin and any larger R6 would eat more (R6 = 470 R would put this at 3.011 V, below blocks.md's own figure). See the R6 finding in the report."
+  "msg": "REQUIREMENTS Q10 + Q6. Full scale must not clip at the -5 % rail; the OPA2333 ceiling there is 3.135 - 0.03 = 3.105 V and the design lands at 3.0251 V, clearing blocks.md B6's own 3.02 V figure by 5.1 mV. That margin was only 2.1 mV while R6 = 100 R was fitted, and would have gone NEGATIVE at the 470 R that would have been needed to make an isolation resistor actually work - one of the reasons R6 was removed at P4."
  },
  {
   "measure": "span_lo",
   "min": 2.7,
   "severity": "error",
-  "msg": "REQUIREMENTS Q7 (12-bit usable over the output span). Usable span at the -5 % rail, design 2.785 V; 2.70 V still leaves 0.66 mV per 12-bit LSB. Measured 2.782 V."
+  "msg": "REQUIREMENTS Q7 (12-bit usable over the output span). Usable span at the -5 % rail, design 2.785 V, measured 2.7847 V; 2.70 V still leaves 0.66 mV per 12-bit LSB."
  },
  {
   "measure": "v0_lo",
   "min": 0.23,
   "max": 0.25,
   "severity": "warning",
-  "msg": "DESIGN TARGET. Pedestal at the -5 % rail: 3.135*10/131 = 0.2393 V."
+  "msg": "DESIGN TARGET. Pedestal at the -5 % rail: 3.135*10/131 = 0.2393 V plus the static 1.15 mV common-mode term; measured 0.2404 V."
  },
  {
   "measure": "v0_hi",
   "min": 0.255,
   "max": 0.275,
   "severity": "warning",
-  "msg": "DESIGN TARGET. Pedestal at the +5 % rail: 3.465*10/131 = 0.2645 V."
+  "msg": "DESIGN TARGET. Pedestal at the +5 % rail: 3.465*10/131 = 0.2645 V plus the same static term; measured 0.2659 V."
  }
 ]

@@ -3,20 +3,20 @@
  "board": "bb-amp",
  "workspace": "boards/bb-amp",
  "created": "2026-08-16T17:25:38",
- "updated": "2026-08-16T23:11:38",
- "phase": "P4",
+ "updated": "2026-08-17T21:32:00",
+ "phase": "P6",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 2,
+   "attempts": 3,
    "last": {
-    "ts": "2026-08-16T23:11:38",
+    "ts": "2026-08-16T23:41:23",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "sch": "sexpr_no_uuid:e23d4c878c50836bd356106cd5a8d69f3f4142b73373e68f7644c04a93624e5f",
+     "sch": "sexpr_no_uuid:f12934c5dab8276174315e46b624c347bffc5dc89a20572c99583ac1589b9afb",
      "pro": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab"
     }
    },
@@ -40,6 +40,78 @@
       "sch": "sexpr_no_uuid:e23d4c878c50836bd356106cd5a8d69f3f4142b73373e68f7644c04a93624e5f",
       "pro": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab"
      }
+    },
+    {
+     "ts": "2026-08-16T23:41:23",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:f12934c5dab8276174315e46b624c347bffc5dc89a20572c99583ac1589b9afb",
+      "pro": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab"
+     }
+    }
+   ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 4,
+   "last": {
+    "ts": "2026-08-17T21:32:00",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:7ce845852337e054f3f015c5bb8dc08708eb97f20ce48a073a5dbb6885c81308",
+     "constraints": "json_canonical:906f58dd5e9a42c3ea9dcd60767a0281b6878d6c7ab0a7924f12a2b3cf025918",
+     "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-17T21:06:36",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:7a08e217180387903d03429077c8c0ce56cce8f14c238b25c5afadfa0365b4d0",
+      "constraints": "json_canonical:906f58dd5e9a42c3ea9dcd60767a0281b6878d6c7ab0a7924f12a2b3cf025918",
+      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6"
+     }
+    },
+    {
+     "ts": "2026-08-17T21:11:15",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:9f3e2cfe587a2c07215da22c4a4a243ae9922168e6113c00c8788c9753468499",
+      "constraints": "json_canonical:906f58dd5e9a42c3ea9dcd60767a0281b6878d6c7ab0a7924f12a2b3cf025918",
+      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6"
+     }
+    },
+    {
+     "ts": "2026-08-17T21:26:32",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:7ce845852337e054f3f015c5bb8dc08708eb97f20ce48a073a5dbb6885c81308",
+      "constraints": "json_canonical:906f58dd5e9a42c3ea9dcd60767a0281b6878d6c7ab0a7924f12a2b3cf025918",
+      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6"
+     }
+    },
+    {
+     "ts": "2026-08-17T21:32:00",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:7ce845852337e054f3f015c5bb8dc08708eb97f20ce48a073a5dbb6885c81308",
+      "constraints": "json_canonical:906f58dd5e9a42c3ea9dcd60767a0281b6878d6c7ab0a7924f12a2b3cf025918",
+      "decoupling": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6"
+     }
     }
    ]
   }
@@ -49,20 +121,43 @@
    "status": "skipped",
    "ts": "2026-08-16T21:29:20",
    "note": "H1 presented as a record rather than a blocking hold, per the owner's standing instruction of 2026-08-16 ('Make decisions yourself based on what will give the best learning for the basic system') while three boards run in parallel. Recorded as SKIPPED and deliberately not as APPROVED: no human has ruled on this content, and the status vocabulary has no 'presented under delegation' value. The run proceeds to P3. Nothing before P10 is irreversible and the block-only default stops the run at P9, so no money-spending step is reached without an explicit owner decision. Design doc: reports/design_doc/bb-amp-design-doc.pdf"
+  },
+  "2": {
+   "status": "skipped",
+   "ts": "2026-08-16T23:42:10",
+   "note": "H2 presented as a record rather than a blocking hold, per the owner standing instruction of 2026-08-16. Recorded as SKIPPED and deliberately not APPROVED: no human has ruled on this content. Artifacts: reports/schematic.pdf, reports/review-schematic.md (0 errors / 5 warnings), reports/erc-waivers.md (4 fixed, 1 waived), reports/sim.json (11 benches green). Gate erc PASS and committed."
   }
  },
  "artifacts": {
   "sch": {
    "path": "kicad/bb-amp.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:e23d4c878c50836bd356106cd5a8d69f3f4142b73373e68f7644c04a93624e5f",
-   "hashed": "2026-08-16T23:11:38"
+   "sha256": "sexpr_no_uuid:f12934c5dab8276174315e46b624c347bffc5dc89a20572c99583ac1589b9afb",
+   "hashed": "2026-08-16T23:41:23"
   },
   "pro": {
    "path": "kicad/bb-amp.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:ee215ba4153e477d4bd55d45c71cc2162c8c4e10fab52675b1b7437ec580b0ab",
-   "hashed": "2026-08-16T23:11:38"
+   "hashed": "2026-08-16T23:41:23"
+  },
+  "pcb": {
+   "path": "kicad/bb-amp.kicad_pcb",
+   "kind": "pcb",
+   "sha256": "sexpr_no_uuid:7ce845852337e054f3f015c5bb8dc08708eb97f20ce48a073a5dbb6885c81308",
+   "hashed": "2026-08-17T21:32:00"
+  },
+  "constraints": {
+   "path": "kicad/constraints.json",
+   "kind": "constraints",
+   "sha256": "json_canonical:906f58dd5e9a42c3ea9dcd60767a0281b6878d6c7ab0a7924f12a2b3cf025918",
+   "hashed": "2026-08-17T21:32:00"
+  },
+  "decoupling": {
+   "path": "kicad/decoupling.json",
+   "kind": "decoupling",
+   "sha256": "json_canonical:51a334ffb74f785f0b522db63d920a361b47b4b2d08409f7fa1dd64067abc1a6",
+   "hashed": "2026-08-17T21:32:00"
   }
  },
  "open_issues": [],
@@ -394,6 +489,96 @@
    "why": "the analyst diffed its hand-typed topology against kicad/bb-amp.net when the netlist appeared mid-run (sim_run --fragment): every value and every connection matched, including R5 returning to /VREF. That is real wrong-value verification rather than a restatement of the design intent",
    "phase": "P4",
    "ts": "2026-08-16T23:05:50"
+  },
+  {
+   "what": "R6 removal folded into the benches and the board measures BETTER without it: b1 slope 139.096 -> 139.235 (exactly the design, no divider), full scale at the -5 pct rail 3.0221 -> 3.02513 V so blocks.md B6's 3.02 V figure is met by 5.1 mV instead of 2.1 mV, and delivered span 99.874 -> 99.974 pct. Shipping stage into the specified 1 nF: 6.60 pct overshoot (~63 deg phase margin), 17.94 pct on the pessimistic ro=2k bracket (~50 deg)",
+   "why": "blocks.md B5's original objection to any series resistor is now answered on measurements rather than traded away, and the stability claim the board rests on is gated on both ends of the ro bracket",
+   "phase": "P4",
+   "ts": "2026-08-16T23:19:25"
+  },
+  {
+   "what": "The R6 removal exposed TWO stale constants in the benches themselves, both caught by the sidecars: b4's settling thresholds were pinned to the old R6-loaded final value (3.03747) so t_rec stopped crossing and returned as a MISSING measure, and b3's f-3dB trigger was pinned to 20*log10(139.10)-3. Both retuned",
+   "why": "worth recording as evidence the sim gate works on its own author: a bench that silently carries a stale constant is exactly the failure mode a bounds sidecar exists to catch, and here it caught the analyst rather than the board",
+   "phase": "P4",
+   "ts": "2026-08-16T23:19:25"
+  },
+  {
+   "what": "W1 ACCEPTED as a real gap in the recorded accuracy budget: blocks.md Ruling 3's error table counts the R2/R3 ratio TCR (1.1 uV) but OMITS the rail term that ratio multiplies. The pedestal is 7.63 pct of the rail and reaches the output at gain 1, so dVout/dVs = 0.0763 (measured by bench B6), and 0.28 pct of post-calibration rail movement - about 9.1 mV on 3.3 V - consumes the entire 5 uV budget on its own",
+   "why": "the fact itself was recorded at P2 ('pedestal tracks the rail at 548 uV RTI per volt'), but it never made it into the error-budget TABLE that H1 presented, which is the artifact a reader trusts. Not an electrical error and not a scope violation - a reference IC is out of scope at block-only and a static pedestal calibrates out - but on a teaching board an incomplete budget table is a defect. The reviewer is right and the table must carry the term",
+   "phase": "P4",
+   "ts": "2026-08-16T23:33:55"
+  },
+  {
+   "what": "W2 and W3 are WRONG STATEMENTS ON A TEACHING BOARD and will be fixed, not waived. W2: the sheet claims U2A buffers the pedestal to '<2 ohm at U1 REF' unqualified, while this board's own B9 bench puts the 2-ohm crossing at 350-700 Hz and reads 2.86-5.71 ohm at 1 kHz. W3: the equations box attributes 'Eq.2 allows 1.33 V, G<=66' to Vcm=1.65 V, but Eq.2 at 1.65 V gives 1.49 V and G<=75 - the 1.33 V figure belongs to the unnamed Vcm=1.7325 V excitation-+5 pct corner",
+   "why": "this board exists to be studied, so a wrong equation or an unqualified claim in its own documentation is a real defect with a real victim - the next reader. Both are cheap to correct and neither touches the netlist",
+   "phase": "P4",
+   "ts": "2026-08-16T23:33:55"
+  },
+  {
+   "what": "W4 is a latent landmine and will be fixed in the library: KF128-5.08-2P carries reference prefix 'U' while its 3P sibling carries 'J'. A re-annotate-with-reset would rename J2/J3 and silently break constraints.json, parts.json and the P9 CPL",
+   "why": "harmless today because the refdes are already assigned, which is exactly why it would go unnoticed until something re-annotates. Cheap to fix now, expensive to diagnose later",
+   "phase": "P4",
+   "ts": "2026-08-16T23:33:55"
+  },
+  {
+   "what": "Declared impedance_ohm: 150 on the /IN_P + /IN_N pair, with an in-file _impedance_note saying it is NOT a controlled-impedance target. 150 ohm is what this pair ACTUALLY MEASURES at the 0.3089 mm width we want on this stackup (h=1.53 mm, er=4.5, 1 oz) - a consequence, not a requirement. Result: 0.3089 mm width, 0.3 mm gap, netclass Diff150",
+   "why": "rules_gen has no way to express 'route these symmetrically, no impedance target', and its 90 ohm default would have produced a 1.3743 mm pair. Removing the diff_pairs entry instead was rejected: knowledge retrieval keys the interface records off diff_pairs[].base, so deleting it would have silently dropped all eight verified interface records - thermal EMF, aggressor separation, path equivalence - out of the P6 and P7 spawn prompts, which is where they are actually needed. Declaring the true measured impedance is the least-bad lever and it states a fact rather than inventing a target",
+   "phase": "P5",
+   "ts": "2026-08-17T20:27:56"
+  },
+  {
+   "what": "P5 setup complete: board_init self-check parity 0, setup_violations 0, clean true (30 unconnected are P7's). Stackup JLC2313_1.6, 2 layers, fab profile 2layer_1oz with floors min_clearance 0.127 / min_track 0.127 / min_via 0.6 / min_hole 0.3 / annular 0.15 / hole-to-hole 0.5 / copper-to-edge 0.3, all at ERROR severity. 14 components, 11 nets, 0 mounting holes. Provisional outline 41.0 x 57.7 mm",
+   "why": "the provisional outline is deliberately generous and is NOT the board: under the canonical binding geometry is an OUTPUT, so P6 places to the canonical layout and board_edit --outline fit earns the real size afterwards. Reporting the fab floors explicitly because a clean DRC against floors below the fab minimums means nothing - that has shipped twice on prior boards",
+   "phase": "P5",
+   "ts": "2026-08-17T20:27:56"
+  },
+  {
+   "what": "CORRECTION to my own P5 record: board_init.json.outline_bbox is [13.0, 13.0, 41.02, 57.69] = MIN/MAX CORNERS, not a size. The provisional outline was 28.02 x 44.69 mm, not the 41.0 x 57.7 I recorded in the P5 digest and passed to the placement brief",
+   "why": "caught by the placement agent, which then found the canonical layout needs ~46 mm of width and could not fit in 28 mm at any density. It grew the room deliberately, placed to the layout, then earned the size back. The order is load-bearing and is now a workspace learning: --outline fit CLIPS content to the current outline, so placing outside the room first and fitting afterwards silently returns a smaller board",
+   "phase": "P6",
+   "ts": "2026-08-17T21:18:17"
+  },
+  {
+   "what": "Board size EARNED by the placement: 47.98 x 28.251 mm (content 45.980 x 26.250 at a 1.0 mm margin). Gate place PASS, 0 failing across all five legality legs; DRC 30 findings all unconnected, 0 copper/silk/courtyard/parity; check_decoupling pass; route probe on a scratch copy completion 1.00, 0 unrouted of 30",
+   "why": "geometry is an OUTPUT under the canonical binding and this is what the layout needed - no dimension was ever treated as a target. hpwl fell 323.181 -> 173.45 mm from seed to final. The annealer's four candidates were all REJECTED and the canonical tile hand-built instead, because with movable_clusters 2 of 5 every candidate HPWL was dominated by connectors pinned to a provisional outline - stage 2 was noise on this board and the agent said so up front",
+   "phase": "P6",
+   "ts": "2026-08-17T21:18:17"
+  },
+  {
+   "what": "TAKING the J1 pin-swap fix: J1 pole 1 becomes IN-, pole 2 becomes IN+. J1's poles run (IN+,IN-,GND) while the AD8226's inputs run (-IN,RG,RG,+IN), so the pair must cross exactly once under ANY rotation or edge assignment - verified across all eight combinations, so it is structural, not a placement artifact",
+   "why": "the crossing is NOT a defect (2 vias on one leg, ~0.6 pF imbalance, -123 dB at 1 kHz, inside the declared 1 pF budget and 33 dB under the part's own 90 dB spec). But the fix is a LABEL SWAP with zero electrical consequence that buys a fully planar mirror-symmetric zero-via pair, and input-path symmetry is the single thing this board exists to teach. Two vias would also punch the B.Cu reference directly under the input pair and add asymmetric junctions on the net whose thermal-EMF symmetry is the dominant 5 uV-budget term. board_update REFUSES pad-net rewires by design, so this costs a P5 re-init - but the ops trail (kicad/canonical2.ops.json) makes the replace deterministic rather than a true rewind",
+   "phase": "P6",
+   "ts": "2026-08-17T21:18:17"
+  },
+  {
+   "what": "J1 pin swap VERIFIED to deliver: input pair HPWL 15.23 -> 11.43 mm per leg, board HPWL 173.45 -> 165.85, signal crossings 6 -> 5 with the pair crossing gone, length delta 0.000000 mm, mirror axis y=30.0000 exact (= U1 centre = R1 centre). Proven by a machine test, not an argument: two straight F.Cu segments laid on a scratch copy with ZERO vias gave 0 non-unconnected DRC findings and dropped unconnected 30 -> 28. Outline reproduced identically at 47.98 x 28.251 mm - fit is idempotent to the micron",
+   "why": "the replay had to prove both that the layout reproduced and that the swap bought what it was for. The route probe alone could not have answered the second question - it measures completion without importing copper, so it cannot say whether the pair took vias. The two-segment DRC test is what actually settles it",
+   "phase": "P6",
+   "ts": "2026-08-17T21:31:09"
+  },
+  {
+   "what": "CORRECTION to my own replay instruction: the grow step cannot come first. Growing the outline against a fresh shelf pack REFUSES (10 blocking items - 2 footprint_outside, 8 copper_to_edge, because the shelf puts U1 and J3 below y=53). The real order is PLACE -> GROW -> FIT",
+   "why": "I wrote 'open the room first, then place, then fit' in the handoff. The agent had reported the principle, not the literal step order, and re-derived the correct sequence rather than following my wrong instruction. The invariant that actually matters is that  runs only when every item is already inside the outline, because fit CLIPS",
+   "phase": "P6",
+   "ts": "2026-08-17T21:31:09"
+  },
+  {
+   "what": "ACCEPTING the silk residual: C2's and C4's refdes land under J3's and U2's package bodies - legible on a bare board, hidden once assembled. silk_place reports 0 residual at 0.30 mm clearance and DRC finds 0 silk issues",
+   "why": "the alternatives both cost more than the defect: clearing them needs ~1.5 mm of extra board height, which fights the earned-outline principle on a board whose binding makes size an output, or moves C4 off the /VREF_SET node it filters. A refdes under a body is normal and cosmetic; a filter cap moved off its node is not",
+   "phase": "P6",
+   "ts": "2026-08-17T21:31:10"
+  },
+  {
+   "what": "Residual imbalance recorded, not actionable: J1 pole 3 (GND, the bias-return path) is adjacent to whichever signal pole sits in the middle, which after the swap is /IN_P - its corridor is 3.726 mm from the GND pad where /IN_N's is 8.719 mm. Same magnitude as before the swap, opposite leg",
+   "why": "this is the connector's own 3-pole order, not the layout's, and it cannot be removed without a different connector. Both input pads still have identical pour clearance rings, neither takes a pour tie or thermal relief, nothing within 10 mm dissipates, and the vertical plate capacitance that dominates the match is identical. Recorded so it is visible rather than discovered later",
+   "phase": "P6",
+   "ts": "2026-08-17T21:31:10"
+  },
+  {
+   "what": "Amending the prior record, whose why-text lost a word to shell substitution: the invariant is that board_edit --outline fit runs ONLY when every item is already inside the outline, because fit CLIPS content rather than growing to hold it",
+   "why": "restating it cleanly so the record is not missing the operative verb. The step order is place -> grow -> fit; growing against a fresh shelf pack refuses because items sit outside the provisional room",
+   "phase": "P6",
+   "ts": "2026-08-17T21:31:37"
   }
  ],
  "edits": [],
@@ -543,6 +728,22 @@
    "model": "opus",
    "effort": "high",
    "phase": "P4"
+  },
+  {
+   "ts": "2026-08-16T23:19:25",
+   "role": "schematic-reviewer",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P4",
+   "note": "fresh context; fable/high -> opus/xhigh substitution"
+  },
+  {
+   "ts": "2026-08-17T20:28:41",
+   "role": "placement",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P6",
+   "note": "fable/high -> opus/xhigh substitution; knowledge prompt_block (48 KB, 16 records) passed by file path"
   }
  ],
  "history": [
@@ -1171,6 +1372,175 @@
    "gate": "erc",
    "status": "pass",
    "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T23:19:25",
+   "event": "decision",
+   "what": "R6 removal folded into the benches and the board measures BETTER without it: b1 slope 139.096 -> 139.235 (exactly the design, no divider), full scale at the -5 pct rail 3.0221 -> 3.02513 V so blocks.md B6's 3.02 V figure is met by 5.1 mV instead of 2.1 mV, and delivered span 99.874 -> 99.974 pct. Shipping stage into the specified 1 nF: 6.60 pct overshoot (~63 deg phase margin), 17.94 pct on the pessimistic ro=2k bracket (~50 deg)"
+  },
+  {
+   "ts": "2026-08-16T23:19:25",
+   "event": "decision",
+   "what": "The R6 removal exposed TWO stale constants in the benches themselves, both caught by the sidecars: b4's settling thresholds were pinned to the old R6-loaded final value (3.03747) so t_rec stopped crossing and returned as a MISSING measure, and b3's f-3dB trigger was pinned to 20*log10(139.10)-3. Both retuned"
+  },
+  {
+   "ts": "2026-08-16T23:19:25",
+   "event": "spawn",
+   "role": "schematic-reviewer",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-16T23:33:55",
+   "event": "decision",
+   "what": "W1 ACCEPTED as a real gap in the recorded accuracy budget: blocks.md Ruling 3's error table counts the R2/R3 ratio TCR (1.1 uV) but OMITS the rail term that ratio multiplies. The pedestal is 7.63 pct of the rail and reaches the output at gain 1, so dVout/dVs = 0.0763 (measured by bench B6), and 0.28 pct of post-calibration rail movement - about 9.1 mV on 3.3 V - consumes the entire 5 uV budget on its own"
+  },
+  {
+   "ts": "2026-08-16T23:33:55",
+   "event": "decision",
+   "what": "W2 and W3 are WRONG STATEMENTS ON A TEACHING BOARD and will be fixed, not waived. W2: the sheet claims U2A buffers the pedestal to '<2 ohm at U1 REF' unqualified, while this board's own B9 bench puts the 2-ohm crossing at 350-700 Hz and reads 2.86-5.71 ohm at 1 kHz. W3: the equations box attributes 'Eq.2 allows 1.33 V, G<=66' to Vcm=1.65 V, but Eq.2 at 1.65 V gives 1.49 V and G<=75 - the 1.33 V figure belongs to the unnamed Vcm=1.7325 V excitation-+5 pct corner"
+  },
+  {
+   "ts": "2026-08-16T23:33:55",
+   "event": "decision",
+   "what": "W4 is a latent landmine and will be fixed in the library: KF128-5.08-2P carries reference prefix 'U' while its 3P sibling carries 'J'. A re-annotate-with-reset would rename J2/J3 and silently break constraints.json, parts.json and the P9 CPL"
+  },
+  {
+   "ts": "2026-08-16T23:41:23",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-16T23:42:10",
+   "event": "tooling_gap",
+   "finding": "KiCad DRAWS overflowing text-box content rather than clipping it, so a text box that outgrows its border spills across the sheet while ERC and the netlist both still pass",
+   "context": "the W1/W2/W3 additions grew the equations box from 47 to 75 lines and would have overflowed silently",
+   "how_caught": "the schematic agent measured the rendered line pitch (~1.45x font size per line) off the plotted PDF rather than trusting the source, then resized the box to the clear span between the chain note and the title block",
+   "generalisable": "any generated schematic text box needs a rendered-height check; no gate in this pipeline sees it"
+  },
+  {
+   "ts": "2026-08-16T23:42:10",
+   "event": "human",
+   "checkpoint": "2",
+   "status": "skipped"
+  },
+  {
+   "ts": "2026-08-16T23:42:11",
+   "event": "phase",
+   "phase": "P5",
+   "prev": "P4"
+  },
+  {
+   "ts": "2026-08-17T20:27:55",
+   "event": "tooling_defect",
+   "script": "rules_gen.py",
+   "line": "166: dp.get(\"impedance_ohm\", 90)",
+   "defect": "the constraints schema conflates TWO different things under diff_pairs - (a) these nets are a differential pair that must be routed SYMMETRICALLY, and (b) these nets are CONTROLLED IMPEDANCE. There is no way to declare (a) without (b), and an entry omitting impedance_ohm silently defaults to 90 ohm, from which the diff-pair NETCLASS WIDTH is solved",
+   "impact_here": "a DC-to-1 kHz 20 mV sensor input would have been routed at 1.3743 mm on a board with no controlled impedance anywhere - fat, area-hungry on a board whose binding makes the placement earn the size, and a misstatement of design intent. The router traces at class width, so this would have shipped",
+   "also_seen": "the P2 interface researcher independently flagged the same conflation from the coverage side: the interface:in slot was typed from diff_pairs and inherited gap/skew/uncoupled-length dims, which are the wrong frame at a kilohertz",
+   "suggested_fix": "allow a diff_pairs entry to declare width_mm directly, or a symmetry_only flag, so a pair can be matched without asserting an impedance target"
+  },
+  {
+   "ts": "2026-08-17T20:27:56",
+   "event": "decision",
+   "what": "Declared impedance_ohm: 150 on the /IN_P + /IN_N pair, with an in-file _impedance_note saying it is NOT a controlled-impedance target. 150 ohm is what this pair ACTUALLY MEASURES at the 0.3089 mm width we want on this stackup (h=1.53 mm, er=4.5, 1 oz) - a consequence, not a requirement. Result: 0.3089 mm width, 0.3 mm gap, netclass Diff150"
+  },
+  {
+   "ts": "2026-08-17T20:27:56",
+   "event": "decision",
+   "what": "P5 setup complete: board_init self-check parity 0, setup_violations 0, clean true (30 unconnected are P7's). Stackup JLC2313_1.6, 2 layers, fab profile 2layer_1oz with floors min_clearance 0.127 / min_track 0.127 / min_via 0.6 / min_hole 0.3 / annular 0.15 / hole-to-hole 0.5 / copper-to-edge 0.3, all at ERROR severity. 14 components, 11 nets, 0 mounting holes. Provisional outline 41.0 x 57.7 mm"
+  },
+  {
+   "ts": "2026-08-17T20:28:14",
+   "event": "phase",
+   "phase": "P6",
+   "prev": "P5"
+  },
+  {
+   "ts": "2026-08-17T20:28:41",
+   "event": "spawn",
+   "role": "placement",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-17T21:06:36",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:11:15",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:18:17",
+   "event": "decision",
+   "what": "CORRECTION to my own P5 record: board_init.json.outline_bbox is [13.0, 13.0, 41.02, 57.69] = MIN/MAX CORNERS, not a size. The provisional outline was 28.02 x 44.69 mm, not the 41.0 x 57.7 I recorded in the P5 digest and passed to the placement brief"
+  },
+  {
+   "ts": "2026-08-17T21:18:17",
+   "event": "decision",
+   "what": "Board size EARNED by the placement: 47.98 x 28.251 mm (content 45.980 x 26.250 at a 1.0 mm margin). Gate place PASS, 0 failing across all five legality legs; DRC 30 findings all unconnected, 0 copper/silk/courtyard/parity; check_decoupling pass; route probe on a scratch copy completion 1.00, 0 unrouted of 30"
+  },
+  {
+   "ts": "2026-08-17T21:18:17",
+   "event": "decision",
+   "what": "TAKING the J1 pin-swap fix: J1 pole 1 becomes IN-, pole 2 becomes IN+. J1's poles run (IN+,IN-,GND) while the AD8226's inputs run (-IN,RG,RG,+IN), so the pair must cross exactly once under ANY rotation or edge assignment - verified across all eight combinations, so it is structural, not a placement artifact"
+  },
+  {
+   "ts": "2026-08-17T21:24:03",
+   "event": "snapshot",
+   "label": "pre-j1swap-reinit",
+   "files": 2
+  },
+  {
+   "ts": "2026-08-17T21:26:32",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:31:09",
+   "event": "decision",
+   "what": "J1 pin swap VERIFIED to deliver: input pair HPWL 15.23 -> 11.43 mm per leg, board HPWL 173.45 -> 165.85, signal crossings 6 -> 5 with the pair crossing gone, length delta 0.000000 mm, mirror axis y=30.0000 exact (= U1 centre = R1 centre). Proven by a machine test, not an argument: two straight F.Cu segments laid on a scratch copy with ZERO vias gave 0 non-unconnected DRC findings and dropped unconnected 30 -> 28. Outline reproduced identically at 47.98 x 28.251 mm - fit is idempotent to the micron"
+  },
+  {
+   "ts": "2026-08-17T21:31:09",
+   "event": "decision",
+   "what": "CORRECTION to my own replay instruction: the grow step cannot come first. Growing the outline against a fresh shelf pack REFUSES (10 blocking items - 2 footprint_outside, 8 copper_to_edge, because the shelf puts U1 and J3 below y=53). The real order is PLACE -> GROW -> FIT"
+  },
+  {
+   "ts": "2026-08-17T21:31:10",
+   "event": "decision",
+   "what": "ACCEPTING the silk residual: C2's and C4's refdes land under J3's and U2's package bodies - legible on a bare board, hidden once assembled. silk_place reports 0 residual at 0.30 mm clearance and DRC finds 0 silk issues"
+  },
+  {
+   "ts": "2026-08-17T21:31:10",
+   "event": "decision",
+   "what": "Residual imbalance recorded, not actionable: J1 pole 3 (GND, the bias-return path) is adjacent to whichever signal pole sits in the middle, which after the swap is /IN_P - its corridor is 3.726 mm from the GND pad where /IN_N's is 8.719 mm. Same magnitude as before the swap, opposite leg"
+  },
+  {
+   "ts": "2026-08-17T21:31:37",
+   "event": "decision",
+   "what": "Amending the prior record, whose why-text lost a word to shell substitution: the invariant is that board_edit --outline fit runs ONLY when every item is already inside the outline, because fit CLIPS content rather than growing to hold it"
+  },
+  {
+   "ts": "2026-08-17T21:32:00",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 4,
    "failing_count": 0
   }
  ],

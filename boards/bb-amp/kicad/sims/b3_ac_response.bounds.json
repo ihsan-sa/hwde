@@ -4,31 +4,31 @@
   "min": 135.0,
   "max": 144.0,
   "severity": "error",
-  "msg": "DESIGN TARGET (blocks.md s2). Independent frequency-domain read of the same chain gain b1 measures in DC - a wrong gain resistor trips both."
+  "msg": "DESIGN TARGET (blocks.md s2). Independent frequency-domain read of the same chain gain b1 measures in DC - a wrong gain resistor trips both. Measured 139.235 V/V."
  },
  {
   "measure": "droop_pct",
   "max": 1.0,
   "severity": "error",
-  "msg": "REQUIREMENTS Q9: response flat within about 1 % at 1 kHz. Design 0.03 %, measured 0.029 %."
+  "msg": "REQUIREMENTS Q9: response flat within about 1 % at 1 kHz. Design 0.03 %, measured 0.0293 %."
  },
  {
   "measure": "f3db",
   "min": 20000.0,
   "severity": "error",
-  "msg": "DESIGN TARGET (blocks.md B3, design 41 kHz). REQUIREMENTS Q9's 1 % droop at 1 kHz needs only about 7 kHz for a single pole; 20 kHz is blocks.md's own floor. Measured 38.7 kHz. NOTE: the trigger level is hard-coded at 39.865 dB (design gain - 3 dB) because ngspice evaluates `when val` at parse time; a wrong DC gain makes this measure MISSING, which the gate reports as an error."
+  "msg": "DESIGN TARGET (blocks.md B3, design 41 kHz). REQUIREMENTS Q9's 1 % droop at 1 kHz needs only about 7 kHz for a single pole; 20 kHz is blocks.md's own floor. Measured 38.7 kHz. NOTE: the trigger level is hard-coded at 39.875 dB (design gain 20*log10(139.24) minus 3 dB) because ngspice evaluates `when val` at parse time; a wrong DC gain makes this measure MISSING, which the gate reports as an error."
  },
  {
   "measure": "peak_db",
   "max": 0.5,
   "severity": "error",
-  "msg": "DESIGN TARGET (blocks.md B3): no peaking anywhere 1 Hz..1 MHz. Measured 1e-10 dB. This is the whole-chain number; the output stage's own margin into a 1 nF cable is b11's job."
+  "msg": "DESIGN TARGET (blocks.md B3): no peaking anywhere 1 Hz..1 MHz. Measured 2e-10 dB. This is the whole-chain number; the output stage's own margin into a 1 nF cable is b11's job."
  },
  {
   "measure": "g10k_db",
   "min": 42.0,
   "max": 43.2,
   "severity": "warning",
-  "msg": "DESIGN TARGET. Shape check one decade above the signal band: 42.62 dB against 42.87 dB at DC."
+  "msg": "DESIGN TARGET. Shape check one decade above the signal band: 42.63 dB against 42.88 dB at DC."
  }
 ]

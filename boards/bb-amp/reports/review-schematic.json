@@ -1,0 +1,59 @@
+{
+ "violations": [
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/VREF",
+   "refs": ["R2", "R3", "U2"],
+   "msg": "The output pedestal is a fixed 7.63 % of the supply rail (Vped = Vs*R3/(R2+R3)) and reaches J2 at gain 1, so dVout/dVs = 0.0763 V/V (B6 measured 0.0763352) - only 22 dB of rail rejection on the output zero - yet blocks.md Ruling 3's error budget counts the R2/R3 ratio TCR (1.1 uV RTI) and omits the rail term that ratio multiplies, which needs only 0.28 % of post-calibration rail movement (9.1 mV) to consume the whole 5 uV RTI budget of Q7 on its own.",
+   "source": "review.schematic",
+   "kind": "pedestal-rail-sensitivity"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "/VREF",
+   "refs": ["U2", "U1"],
+   "msg": "The on-sheet row note claims \"U2A buffers it to < 2 ohm at U1 REF\" with no frequency qualifier, but this board's own B9 bench measures the buffer's closed-loop Zout crossing the AD8226's 2 ohm REF rule at 700 Hz (calibrated ro) / 350 Hz (pessimistic ro) and reaching 2.86-5.71 ohm at 1 kHz - the top of the DC-to-1 kHz band the board is specified over - so the study sheet teaches an unconditional claim the workspace itself recorded as a band-limited warning.",
+   "source": "review.schematic",
+   "kind": "ref-zout-band-overclaim"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": ["U1"],
+   "msg": "The equations box attributes \"Eq.2 allows |G*Vdiff| <= 1.33 V, i.e. G <= 66 at 20 mV FS\" to \"Vcm = 1.65 V and the -5 % rail\", but Equation 2 at that stated corner gives 2*(3.135 - 0.7385 - 1.65) = 1.49 V and G <= 75 (blocks.md's own Ruling 2 table says exactly that); 1.33 V / G <= 66 belongs to the Vcm = 1.7325 V corner (excitation +5 %) that the sheet never names, so a reader who recomputes the stated condition gets a different answer than the sheet.",
+   "source": "review.schematic",
+   "kind": "sheet-eq2-condition"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": ["J2", "J3"],
+   "msg": "Workspace symbol KF128-5.08-2P carries reference prefix \"U\" while its sibling KF128-5.08-3P carries \"J\", so any KiCad annotate-with-reset would rename J2/J3 into the U series and silently break constraints.json placement.edges, parts.json refs, decoupling metadata and P9's ref->LCSC CPL map, none of which ERC or netlist_audit can see.",
+   "source": "review.schematic",
+   "kind": "connector-refdes-prefix"
+  },
+  {
+   "check": "schematic-review",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "+3V3",
+   "refs": ["J3"],
+   "msg": "Connector checklist item \"reverse-plug consequence stated (protected or destructive - if destructive, flag)\" is unmet for the hand-wired 2-pole power terminal: swapping J3's two wires puts -3.3 V across both ICs and forward-biases their substrate diodes with no series limit, and nothing in the schematic notes, requirements or blocks.md says so. FIX IS A SILK/DOC NOTE ONLY - reverse-polarity protection parts remain excluded at block-only scope and must not be added.",
+   "source": "review.schematic",
+   "kind": "reverse-plug-not-flagged"
+  }
+ ]
+}

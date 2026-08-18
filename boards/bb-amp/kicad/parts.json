@@ -1,0 +1,325 @@
+{
+ "_comment": "bb-amp P3 parts list. Build qty 5, JLC PCBA single-sided top (U1/U2/R1-R5/C1-C4 SMT-placed; J1/J2/J3 THT hand-soldered - see refdes_notes). Every LCSC code/stock/price verified live via parts_search.py at selection time (2026-08-16). One entry per DISTINCT part; 'refs' lists every refdes it covers. Values (gain, pedestal, resistor nominals) are fixed by architecture/blocks.md - not re-derived here. Three things settled per spawn brief: (1) connector - the verified record in-terminal-selection (WR-TBL 691361100003) is a cable-side 'Vertical Cable Entry Plug', NOT board-side solderable; replaced with Cixi Kefa KF128-5.08 family (board-side, THT, JLC-stocked, single fixed body per pole-count), 5.08mm pitch chosen over the research's 3.5mm read (see J1 role); (2) J1 is ONE 3-pole body so both signal poles share identical metallurgy/moulding per in-terminal-selection and in-terminal-thermal-emf; (3) package/grade sanity - every part is 0603/0805/SOIC-8/SOP-8, JLC-assemblable on a 2-layer board, confirmed in OPEN.",
+ "parts": [
+  {
+   "ref_prefix_hint": "U",
+   "refs": [
+    "U1"
+   ],
+   "block": "inamp",
+   "mpn": "AD8226ARZ-R7",
+   "lcsc": "C34250",
+   "value": "AD8226ARZ-R7 - instrumentation amplifier, A grade, single-resistor gain G=1+49.4k/RG, 2.2-36V single supply, REF pin driven (not grounded)",
+   "package": "SOIC-8",
+   "basic": false,
+   "type": "Extended",
+   "stock": 2845,
+   "price": 3.6811,
+   "price_breaks": [
+    { "qty": 1, "price": 3.6811 },
+    { "qty": 10, "price": 3.2119 },
+    { "qty": 30, "price": 2.9174 },
+    { "qty": 100, "price": 2.6148 },
+    { "qty": 500, "price": 2.4789 },
+    { "qty": 1000, "price": 2.4207 }
+   ],
+   "brand": "Analog Devices",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Analog-Devices-AD8226ARZ-R7_C34250.pdf",
+   "alternates": [
+    {
+     "mpn": "AD8226BRZ-R7",
+     "lcsc": "C652550",
+     "note": "True pin/package/gain-law compatible (same G=1+49.4k/RG, same SOIC-8) - a straight swap, R1 unchanged. B grade roughly halves the in-amp offset-drift RTI term (VOSI_TC max 2->1 uV/degC, VOSO_TC max 10->5 uV/degC -> Ruling-3 in-amp-drift term ~2.25->~1.13 uV/degC max) but does NOT touch the larger gain-drift term (~30-87 uV at FS, unchanged by grade), so it narrows but does not close the recorded 5 uV budget miss. Costs +85% ($6.80 vs $3.68 @1) and stock is thin: 17 pcs today, below the 5x-qty margin a primary would need - usable as a qty-5 fallback only, not a resupply-safe alternate."
+    }
+   ],
+   "role": "B2, the block under study. Live-reconfirmed today: still C34250, still orderable, stock/price essentially unchanged from P1 (2845 pcs, $3.68@1). A grade (ARZ) kept as specified - this is the grade the whole P2 drift analysis (Ruling 3) was computed against; not upgraded or downgraded. AD8227 (ADI's own 'pin-compatible' escape part, per inamp-headroom-escape-gain-in-difference-amp) was checked and rejected as the formal alternate: same SOIC-8 pinout exists at JLC (AD8227ARZ-R7, C2059223) but its difference amplifier has a nonzero default gain (internal G2=5), so the SAME RG=1.27k would NOT reproduce G1=39.9 on it - a footprint-compatible swap still requires recalculating R1, and its stock (18 pcs) is thinner than even the B-grade option. Not listed as an alternate; noted here as a considered and rejected option."
+  },
+  {
+   "ref_prefix_hint": "U",
+   "refs": [
+    "U2"
+   ],
+   "block": "ref_gain2",
+   "mpn": "OPA2333AIDR",
+   "lcsc": "C38732",
+   "value": "OPA2333AIDR - dual zero-drift RRIO CMOS op-amp, 1.8-5.5V single supply. U2A = unity buffer for the 0.252V pedestal (REF driver); U2B = G2=3.49 non-inverting second stage. Both halves used.",
+   "package": "SOP-8",
+   "basic": false,
+   "type": "Extended",
+   "stock": 15520,
+   "price": 0.9838,
+   "price_breaks": [
+    { "qty": 1, "price": 0.9838 },
+    { "qty": 10, "price": 0.788 },
+    { "qty": 30, "price": 0.6893 },
+    { "qty": 100, "price": 0.5923 },
+    { "qty": 500, "price": 0.534 },
+    { "qty": 1000, "price": 0.5049 }
+   ],
+   "brand": "Texas Instruments",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809200040_Texas-Instruments-OPA2333AIDR_C38732.pdf",
+   "alternates": [
+    {
+     "mpn": "OPA2333AIDR(UMW)",
+     "lcsc": "C22365332",
+     "note": "Second-source manufacturer (Youtai Semiconductor) for the identical TI part number/pinout - same SOP-8, same published specs, real fetchable datasheet. Stock 5263, $0.34@1 (cheaper than the TI-branded part). Its own precision is not budget-critical here: U2's offset/drift divide by G1=39.9 (U2B) or by G_total=139.2 (U2A, since a Vref shift appears at the output at unity gain per blocks.md section 2's algebra), so even a materially worse dual op-amp would not move the board's dominant error terms."
+    }
+   ],
+   "role": "B3 (reference buffer) + B4 (second gain stage) in one package. Live-reconfirmed: C38732, stock 15520, $0.98@1, unchanged from P1. Confirmed 1.8-5.5V and Rail-to-Rail Input AND Output via parts_search attributes - meets the spawn brief's requirement. A dual is correct per blocks.md Ruling 1 (grounded REF fails Table-3 output-swing floor; REF must be driven, and driving it needs a buffer - see inamp-ref-pin-drive-impedance, max_source_impedance_ohm=2) plus Ruling 2 (single-stage gain violates the internal-node diamond, forcing a second gain stage) - one IC does both jobs a single op-amp could not."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "refs": [
+    "R1"
+   ],
+   "block": "gain_set",
+   "mpn": "RT0603BRD071K27L",
+   "lcsc": "C861195",
+   "value": "1.27k, 0.1%, 25ppm/degC thin film (RG for U1, G1 = 1 + 49.4k/1.27k = 39.9)",
+   "package": "0603",
+   "basic": false,
+   "type": "Extended",
+   "stock": 181,
+   "price": 0.035,
+   "price_breaks": [
+    { "qty": 1, "price": 0.035 },
+    { "qty": 200, "price": 0.0298 },
+    { "qty": 600, "price": 0.0271 },
+    { "qty": 5000, "price": 0.0253 },
+    { "qty": 10000, "price": 0.0238 },
+    { "qty": 20000, "price": 0.023 }
+   ],
+   "brand": "YAGEO",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2311211102_YAGEO-RT0603BRD071K27L_C861195.pdf",
+   "attributes": [
+    { "name": "Resistance", "value": "1.27kOhm" },
+    { "name": "Tolerance", "value": "+/-0.1%" },
+    { "name": "Temperature Coefficient", "value": "+/-25ppm/C" },
+    { "name": "Type", "value": "Thin Film Resistor" }
+   ],
+   "alternates": [],
+   "role": "Sourced exactly to the spec the P2 error budget assumed (0.1%, 25ppm/degC thin film, RG=1.27k contributing to CMRR-drift Ruling 4b) - no substitution needed. Stock 181 is the thinnest of the four precision values but still 7x the 5x-build-qty floor (25). Same YAGEO RT0603BRD07 0.1%/25ppm family used for R2/R3/R4/R5 for consistent TCR grade across the board (see block gain_set/vref/stage2_fb entries and bb-buck's identical family choice for R1/R2)."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "refs": [
+    "R2"
+   ],
+   "block": "vref",
+   "mpn": "RT0603BRD07121KL",
+   "lcsc": "C861095",
+   "value": "121k, 0.1%, 25ppm/degC thin film (pedestal divider top leg, 121k/10.0k off +3V3 -> 0.2519V)",
+   "package": "0603",
+   "basic": false,
+   "type": "Extended",
+   "stock": 4578,
+   "price": 0.0356,
+   "price_breaks": [
+    { "qty": 1, "price": 0.0356 },
+    { "qty": 200, "price": 0.0303 },
+    { "qty": 600, "price": 0.0272 },
+    { "qty": 5000, "price": 0.0255 },
+    { "qty": 10000, "price": 0.0238 },
+    { "qty": 20000, "price": 0.023 }
+   ],
+   "brand": "YAGEO",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2204130915_YAGEO-RT0603BRD07121KL_C861095.pdf",
+   "attributes": [
+    { "name": "Resistance", "value": "121kOhm" },
+    { "name": "Tolerance", "value": "+/-0.1%" },
+    { "name": "Temperature Coefficient", "value": "+/-25ppm/C" },
+    { "name": "Type", "value": "Thin Film Resistor" }
+   ],
+   "alternates": [],
+   "role": "Sourced to spec (0.1%, 25ppm/degC). Same RT0603BRD07 family as R1/R3/R4/R5. Pedestal drift from this divider's TCR mismatch is the smallest term in Ruling 3's error table (1.1 typ/2.3 max uV RTI) precisely because 25ppm/degC was assumed here - a looser part would widen that term."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "refs": [
+    "R3",
+    "R5"
+   ],
+   "block": "vref_stage2_fb",
+   "mpn": "RT0603BRD0710KL",
+   "lcsc": "C95204",
+   "value": "10.0k, 0.1%, 25ppm/degC thin film (R3 = pedestal divider bottom leg; R5 = stage-2 gain-set bottom leg, returned to /VREF not GND)",
+   "package": "0603",
+   "basic": false,
+   "type": "Extended",
+   "stock": 1322448,
+   "price": 0.0331,
+   "price_breaks": [
+    { "qty": 1, "price": 0.0331 },
+    { "qty": 200, "price": 0.0282 },
+    { "qty": 600, "price": 0.0261 },
+    { "qty": 5000, "price": 0.0242 },
+    { "qty": 10000, "price": 0.0235 },
+    { "qty": 20000, "price": 0.023 }
+   ],
+   "brand": "YAGEO",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811082117_YAGEO-RT0603BRD0710KL_C95204.pdf",
+   "attributes": [
+    { "name": "Resistance", "value": "10kOhm" },
+    { "name": "Tolerance", "value": "+/-0.1%" },
+    { "name": "Temperature Coefficient", "value": "+/-25ppm/C" },
+    { "name": "Type", "value": "Thin Film Resistor" }
+   ],
+   "alternates": [],
+   "role": "Same nominal 10.0k value serves two different refdes/functions (R3 in the pedestal divider, R5 in the stage-2 gain divider) - one BOM line per part-sourcer convention. Same RT0603BRD07 0.1%/25ppm family as R1/R2/R4; using one manufacturer/series for R4+R5 (the gain-setting pair whose 50ppm/degC MISMATCH the error budget assumed) gives more correlated TCR behaviour than mixing vendors, though R4 and R5 are different nominal values so this is a process-consistency argument, not a matched-pair guarantee. Stock effectively unlimited (1.3M) - by far the deepest-stocked precision value found."
+  },
+  {
+   "ref_prefix_hint": "R",
+   "refs": [
+    "R4"
+   ],
+   "block": "stage2_fb",
+   "mpn": "RT0603BRD0724K9L",
+   "lcsc": "C136967",
+   "value": "24.9k, 0.1%, 25ppm/degC thin film (stage-2 feedback resistor, G2 = 1 + 24.9k/10.0k = 3.49)",
+   "package": "0603",
+   "basic": false,
+   "type": "Extended",
+   "stock": 6621,
+   "price": 0.0348,
+   "price_breaks": [
+    { "qty": 1, "price": 0.0348 },
+    { "qty": 200, "price": 0.0298 },
+    { "qty": 600, "price": 0.0269 },
+    { "qty": 5000, "price": 0.0253 },
+    { "qty": 10000, "price": 0.0238 },
+    { "qty": 20000, "price": 0.023 }
+   ],
+   "brand": "YAGEO",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_YAGEO-RT0603BRD0724K9L_C136967.pdf",
+   "attributes": [
+    { "name": "Resistance", "value": "24.9kOhm" },
+    { "name": "Tolerance", "value": "+/-0.1%" },
+    { "name": "Temperature Coefficient", "value": "+/-25ppm/C" },
+    { "name": "Type", "value": "Thin Film Resistor" }
+   ],
+   "alternates": [],
+   "role": "Sourced to spec (0.1%, 25ppm/degC), same RT0603BRD07 family as R1/R2/R3/R5. Paired with R5 (also this family) for the R4/R5 mismatch term the P2 gain-drift budget assumed at 50ppm/degC (Ruling 3's largest error term, 30-87uV at full scale, driven mostly by the AD8226's own -100ppm/degC gain TC, not by this pair)."
+  },
+  {
+   "ref_prefix_hint": "C",
+   "refs": [
+    "C1",
+    "C3",
+    "C4"
+   ],
+   "block": "decoupling",
+   "mpn": "CC0603KRX7R9BB104",
+   "lcsc": "C14663",
+   "value": "100nF, 50V, X7R",
+   "package": "0603",
+   "basic": true,
+   "type": "Basic",
+   "stock": 67435327,
+   "price": 0.0174,
+   "brand": "YAGEO",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf",
+   "alternates": [],
+   "role": "One part, three refdes, two functions. C1/C3 satisfy inamp-supply-decoupling-and-local-ground's HF tier ('0.1uF as close as possible to each supply pin', hf_cap_uf=0.1) - C1 at U1 pin 8, C3 at U2 pin 8. C4 is a different job: the pedestal-divider filter cap (R2/R3 Thevenin 9.24k, corner ~172Hz), placed on the DIVIDER node per blocks.md section 5 item 5, never on U2A's buffer output. Basic part, JLC's deepest-stocked 100nF/0603 line - no reason to source anything else.",
+   "refdes_notes": {
+    "C1": "AD8226 pin-8 (+VS) HF decoupling, per inamp-supply-decoupling-and-local-ground.",
+    "C3": "OPA2333 pin-8 (+VS) HF decoupling, same record.",
+    "C4": "Pedestal divider filter cap (R2/R3 node), NOT a supply-pin cap - do not relocate to U2A's output."
+   }
+  },
+  {
+   "ref_prefix_hint": "C",
+   "refs": [
+    "C2"
+   ],
+   "block": "power",
+   "mpn": "CL21A106KAYNNNE",
+   "lcsc": "C15850",
+   "value": "10uF, 25V, X5R",
+   "package": "0805",
+   "basic": true,
+   "type": "Basic",
+   "stock": 9593072,
+   "price": 0.0997,
+   "brand": "Samsung Electro-Mechanics",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Samsung-Electro-Mechanics-CL21A106KAYNNNE_C15850.pdf",
+   "alternates": [],
+   "role": "Bulk decoupling near J3, satisfying inamp-supply-decoupling-and-local-ground's bulk tier (10uF, 'farther from the part', bulk_cap_uf=10). AD8226 Figure 61 shows this as a 10uF TANTALUM; substituted with a 10uF ceramic (X5R ML CC) - cheaper, no polarity, lower ESR, and JLC's deterministic basic-passive auto-pick (parts_search --pick basic-passive --qty 5) selected this exact part, confirming it is the standard low-risk choice for this role at this voltage/package. 25V rating is 7.6x the 3.3V rail."
+  },
+  {
+   "ref_prefix_hint": "J",
+   "refs": [
+    "J1"
+   ],
+   "block": "input",
+   "mpn": "KF128-5.08-3P-AA",
+   "lcsc": "C474953",
+   "value": "3-pole 5.08mm pitch THT screw terminal, 250V/24A, -40 to 105C (IN+ / IN- / GND)",
+   "package": "Plugin, P=5.08mm",
+   "basic": false,
+   "type": "Extended",
+   "stock": 17657,
+   "price": 0.3038,
+   "price_breaks": [
+    { "qty": 1, "price": 0.3038 },
+    { "qty": 50, "price": 0.2416 },
+    { "qty": 150, "price": 0.2114 },
+    { "qty": 400, "price": 0.172 },
+    { "qty": 2400, "price": 0.1645 },
+    { "qty": 4800, "price": 0.1601 }
+   ],
+   "brand": "Cixi Kefa Elec",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2408211511_Cixi-Kefa-Elec-KF128-5-08-3P-AA_C474953.pdf",
+   "alternates": [
+    {
+     "mpn": "DB128L-5.08-3P-BK-S",
+     "lcsc": "C430602",
+     "note": "DORABO equivalent, same 'Screw Terminal Blocks' (fixed one-piece, not pluggable) category, 5.08mm THT, 12-22AWG, stock 47788."
+    }
+   ],
+   "role": "Item 1 (connector trap) resolved: the verified record in-terminal-selection reads a WR-TBL order code (691361100003) that is a 'Vertical Cable Entry Plug' - the CABLE half of a pluggable pair, not solderable to a board. KF128-5.08-3P-AA is genuinely board-side: JLC category 'Screw Terminal Blocks' (fixed one-piece body, confirmed by fetching its own datasheet - single PA66 UL94V-0 moulding, 3 through-hole pins, 4.3mm pin length into a 1.4mm PCB hole; contact is copper alloy, tin plated). Pitch: chose 5.08mm over the research's 3.5mm read - blocks.md's own block descriptions (B1/B5/B6) specify 5.08mm three times, this project's sibling board bb-buck already standardised on this exact KF128-5.08 family for its screw terminals, and larger THT pads/pins are more forgiving for the hand-solder step this connector needs (see refdes_notes) than a 3.5mm-pitch equivalent. Item 2 (thermal EMF) resolved: ONE 3-pole body seats IN+/IN-/GND in the same moulding, same contact-metal lot, same plating pass - the mechanism in-terminal-selection and in-terminal-thermal-emf require (identical junction construction on both signal poles, so their Seebeck voltages cancel when the two poles are at the same temperature; a symmetric copper pour and equal-length input traces from J1 to U1 pins 1/4 do the rest, per constraints.json's J1->U1 corridor). Wire window is 22-12AWG (vs the requirements' assumed ~24-16AWG) - covers 16-22AWG cleanly; if the actual sensor cable is thinner than 22AWG the clamp is oversized for it (see OPEN).",
+   "assembly_class": "hand_install",
+   "refdes_notes": {
+    "J1": "THT screw terminal - hand-solder (JLC standard SMT service will not place it; single-sided top assembly per requirements.md section 7). The bias-current return path for both inputs runs through the 350ohm sensor source itself (in-bias-return-path-required's 'source already returns to ground' case) - no bleeder resistors are added at this connector."
+   }
+  },
+  {
+   "ref_prefix_hint": "J",
+   "refs": [
+    "J2",
+    "J3"
+   ],
+   "block": "output_power",
+   "mpn": "KF128-5.08-2P-AA",
+   "lcsc": "C474952",
+   "value": "2-pole 5.08mm pitch THT screw terminal, 250V/24A, -40 to 105C",
+   "package": "Plugin, P=5.08mm",
+   "basic": false,
+   "type": "Extended",
+   "stock": 54307,
+   "price": 0.1905,
+   "price_breaks": [
+    { "qty": 1, "price": 0.1905 },
+    { "qty": 50, "price": 0.1491 },
+    { "qty": 150, "price": 0.129 },
+    { "qty": 600, "price": 0.1077 },
+    { "qty": 2400, "price": 0.1026 },
+    { "qty": 4800, "price": 0.0997 }
+   ],
+   "brand": "Cixi Kefa Elec",
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2408211511_Cixi-Kefa-Elec-KF128-5-08-2P-AA_C474952.pdf",
+   "alternates": [
+    {
+     "mpn": "DB128L-5.08-2P-GN-S",
+     "lcsc": "C395868",
+     "note": "DORABO equivalent, same fixed one-piece 'Screw Terminal Blocks' category, 5.08mm THT, 12-22AWG, stock 52646."
+    }
+   ],
+   "role": "J2 (output, OUT/GND) and J3 (power entry, +3V3/GND) - same part for BOM consolidation, same family and pitch as J1 for a consistent connector line across the board (also matches bb-buck's identical choice for its two screw terminals). 24A/250V is far past this board's ~1mA-class signal current and 3.3V rail - current/voltage headroom is not the selection driver here, board-side solderability and hand-solder-friendly pad size are.",
+   "assembly_class": "hand_install",
+   "refdes_notes": {
+    "J2": "THT screw terminal - hand-solder (JLC standard SMT service will not place it; single-sided top assembly per requirements.md section 7). Also the block's measurement point - no separate test point exists.",
+    "J3": "THT screw terminal - hand-solder, same as J2. GND pin ties into the same B.Cu pour as J1/J2."
+   }
+  }
+ ]
+}

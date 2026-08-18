@@ -3,25 +3,25 @@
   "measure": "hr_165",
   "min": 0.1,
   "severity": "warning",
-  "msg": "ADVISORY. DATASHEET arithmetic (AD8226 Equation 2 + Table 8 at +25 degC): headroom of internal Node 1 below +VS - V_PLUS_LIMIT = 3.135 - 0.70 = 2.435 V, at the board's own Vcm = 1.65 V. Design 0.386 V. The MODEL's boundary is hand-entered from Table 8, so this checks the design's arithmetic with the schematic's actual RG, not the part. blocks.md Ruling 2/4d's hand calculation (>= 264 mV at full scale in the worst 0 degC / -5 % rail corner) is the standing proof."
+  "msg": "ADVISORY. DATASHEET arithmetic (AD8226 Equation 2 + Table 8 at +25 degC): headroom of internal Node 1 below +VS - V_PLUS_LIMIT = 3.135 - 0.70 = 2.435 V, at the board's own Vcm = 1.65 V. Measured 0.386 V. The MODEL's boundary is hand-entered from Table 8, so this checks the design's arithmetic with the schematic's actual RG, not the part. blocks.md Ruling 2/4d's hand calculation (>= 264 mV at full scale in the worst 0 degC / -5 % rail corner) is the standing proof."
  },
  {
   "measure": "hr_180",
   "min": 0.05,
   "severity": "warning",
-  "msg": "ADVISORY, same source. Headroom at the top of the common-mode range blocks.md B2 asks to stay flat over. Design 0.236 V."
+  "msg": "ADVISORY, same source. Headroom at the top of the common-mode range blocks.md B2 asks to stay flat over. Measured 0.236 V."
  },
  {
   "measure": "nd1_165",
   "max": 2.435,
   "severity": "warning",
-  "msg": "ADVISORY. Internal Node 1 = Vcm + G1*Vdiff/2 against the Table 8 +25 degC boundary at VS = 3.135 V. Design 2.049 V."
+  "msg": "ADVISORY. Internal Node 1 = Vcm + G1*Vdiff/2 against the Table 8 +25 degC boundary at VS = 3.135 V. Measured 2.0491 V."
  },
  {
   "measure": "eq3_165",
   "min": 0.1,
   "severity": "warning",
-  "msg": "ADVISORY. DATASHEET Equation 3 margin: (G1*Vdiff/2 + Vcm + Vref)/2 against +VS - VREF_LIMIT = 3.135 - 1.15 V. Design 0.834 V - not binding, which is what blocks.md Ruling 2 concluded."
+  "msg": "ADVISORY. DATASHEET Equation 3 margin: (G1*Vdiff/2 + Vcm + Vref)/2 against +VS - VREF_LIMIT = 3.135 - 1.15 V. Measured 0.834 V - not binding, which is what blocks.md Ruling 2 concluded."
  },
  {
   "measure": "flat_pct",
@@ -33,13 +33,13 @@
   "measure": "vcm_knee",
   "min": 1.95,
   "severity": "warning",
-  "msg": "ADVISORY. Common-mode voltage at which the model's output has fallen 0.4 %, i.e. where the Table 8 boundary bites. Measured 2.057 V against a hand prediction of 2.435 - 0.399 = 2.036 V, and 0.41 V above the board's fixed 1.65 V common mode (REQUIREMENTS Q1). Bound requires the knee to stay above the required range."
+  "msg": "ADVISORY. Common-mode voltage at which the model's output has fallen 0.4 %, i.e. where the Table 8 boundary bites. Measured 2.052 V against a hand prediction of 2.435 - 0.399 = 2.036 V, and 0.40 V above the board's fixed 1.65 V common mode (REQUIREMENTS Q1). Bound requires the knee to stay above the required range."
  },
  {
   "measure": "vo_165",
   "min": 3.0,
   "max": 3.05,
   "severity": "warning",
-  "msg": "DESIGN TARGET. Full-scale output at the -5 % rail and the board's own common mode; design 3.022 V. Cross-check of b6."
+  "msg": "DESIGN TARGET. Full-scale output at the -5 % rail and the board's own common mode; measured 3.0251 V. Cross-check of b6."
  }
 ]

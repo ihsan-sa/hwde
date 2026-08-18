@@ -1,0 +1,48 @@
+{
+  "script": "rules_gen",
+  "status": "pass",
+  "capability_class": "2layer_1oz",
+  "stackup": "JLC2313_1.6",
+  "copper_oz": 1.0,
+  "rule_count": 11,
+  "rule_names": [
+    "aiee_track_width_floor",
+    "aiee_clearance_floor",
+    "aiee_via_drill_floor",
+    "aiee_via_diameter_floor",
+    "aiee_annular_floor",
+    "aiee_edge_clearance_floor",
+    "aiee_hole_to_hole_floor",
+    "aiee_silk_width_floor",
+    "aiee_pwr_width_3V3",
+    "aiee_diff_gap_IN",
+    "aiee_diff_outer_only_IN"
+  ],
+  "power": [
+    {
+      "net": "+3V3",
+      "current_a": 0.01,
+      "dt_c": 10.0,
+      "min_width_mm": 0.005,
+      "netclass": "Default",
+      "class_width_mm": 0.2
+    }
+  ],
+  "diff_pairs": [
+    {
+      "pair": [
+        "/IN_P",
+        "/IN_N"
+      ],
+      "impedance_ohm": 150,
+      "width_mm": 0.3089,
+      "gap_mm": 0.3
+    }
+  ],
+  "hv_rules": [],
+  "classes": [
+    "Diff150"
+  ],
+  "out_dru": "boards/bb-amp/kicad/bb-amp.kicad_dru",
+  "pro": "boards/bb-amp/kicad/bb-amp.kicad_pro"
+}

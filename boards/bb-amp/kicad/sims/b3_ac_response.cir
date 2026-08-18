@@ -2,8 +2,8 @@
 * Requirements Q9: response flat within ~1 % at 1 kHz. blocks.md s4a designs
 * the chain corner at ~41 kHz from U1 45.8 kHz (interpolated) cascaded with
 * U2B 350 kHz / 3.49 = 100 kHz.
-* f3db's trigger level is hard-coded at 39.865 dB = the design DC gain
-* 20*log10(139.10) minus 3 dB, because ngspice evaluates a `.meas ... when
+* f3db's trigger level is hard-coded at 39.875 dB = the design DC gain
+* 20*log10(139.24) minus 3 dB, because ngspice evaluates a `.meas ... when
 * val` at parse time and cannot reference an earlier measure there. If the
 * DC gain were wrong the trigger never fires and f3db comes back as a
 * MISSING measure - which the gate reports as an error, the same verdict b1
@@ -145,7 +145,7 @@ CL   nout gnd {cl}
 RL   nout gnd {rl}
 .ends
 *
-* NETLIST CROSS-CHECK (2026-08-16, P4). These benches were TYPED from
+* NETLIST CROSS-CHECK (2026-08-16, P4; RE-TAKEN after the R6 removal). These benches were TYPED from
 * architecture/blocks.md s1-s2 and constraints.json, not synthesized, because
 * schematic-block was authoring the sheet concurrently. As soon as
 * kicad/bb-amp.net appeared it was diffed against them with
@@ -153,9 +153,11 @@ RL   nout gnd {rl}
 * and every value and every connection MATCHES what is modelled here:
 *   R1 1.27k across U1 pins 2-3 (/RG_A,/RG_B)  R2 121k  +3V3 -> /VREF_SET
 *   R3 10.0k /VREF_SET -> GND                  C4 100n on /VREF_SET
-*   R4 24.9k /AMP2_OUT -> /FB2                 R5 10.0k /FB2 -> /VREF
-*   C1,C3 100n / C2 10u on +3V3                and NO R6: /AMP2_OUT is /VOUT
-*     (R6 removed at P4 by ruling, on b11's evidence - see the chain subckt)
+*   R4 24.9k /VOUT -> /FB2                     R5 10.0k /FB2 -> /VREF
+*   C1,C3 100n / C2 10u on +3V3                NO R6 - `--refs R6` now
+*     answers "refs not in netlist", U2B pin 7 IS /VOUT and drives J2 pin 1
+*     directly, and the net /AMP2_OUT no longer exists (R6 removed at P4 by
+*     ruling on b11's evidence - see the chain subckt and the b10/b11 heads)
 *   U1 REF (pin 6) = /VREF - the BUFFERED node, not the divider, not ground
 *   U2A = unity buffer: OUTA = INA- = /VREF, INA+ = /VREF_SET
 *   U2B: INB+ = /AMP1_OUT, INB- = /FB2, OUTB = /AMP2_OUT
@@ -163,7 +165,8 @@ RL   nout gnd {rl}
 *   on, and the one a netlist diff is the only way to confirm.
 * Net map, bench -> schematic: n_ip=/IN_P n_in=/IN_N n_rga=/RG_A n_rgb=/RG_B
 * n_amp1=/AMP1_OUT n_vrefset=/VREF_SET n_vref=/VREF n_fb=/FB2
-* n_u2bout=/AMP2_OUT n_out=/VOUT p3v3=+3V3 gnd=GND.
+* n_u2bout and n_out are BOTH /VOUT on the shipping board (they are the two
+* ends of the 1 milliohm riso stand-in); p3v3=+3V3 gnd=GND.
 * THE CROSS-CHECK IS A SNAPSHOT: these benches carry their own copy of every
 * value and will NOT notice a later schematic edit. Re-run the --fragment
 * diff above after any change to R1..R5, R2/R3 or the U2 pin assignment.
@@ -193,7 +196,7 @@ X1   n_ip n_in n_out p3v3 0 chain riso=0.001 cl=1p rl=100k ro2333=1k
 .meas ac g1k_db  find vdb(n_out) at=1000
 .meas ac g10k_db find vdb(n_out) at=10000
 .meas ac gpk_db  max  vdb(n_out) from=1 to=1meg
-.meas ac f3db    when vdb(n_out)=39.865 fall=1
+.meas ac f3db    when vdb(n_out)=39.875 fall=1
 .meas ac droop_pct param='(1-pow(10,(g1k_db-gdc_db)/20))*100'
 .meas ac peak_db   param='gpk_db-gdc_db'
 .meas ac gdc_vv    param='pow(10,gdc_db/20)'

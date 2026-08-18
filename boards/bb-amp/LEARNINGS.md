@@ -157,3 +157,90 @@ deleting the buffer and driving REF from the bare 9.24 k divider Thevenin moved 
 bench from 0.134 mV to 17.06 mV over a 0.2 V common-mode sweep, 57x over its window, and
 moved the reference node itself by 16.9 mV. Seed exactly that defect to prove the bound
 before shipping it.
+
+## 2026-08-16 [P4][sim-analyst][datasheet] A datasheet stability curve is taken AT A STATED GAIN - a unity-gain overshoot figure does not transfer to a stage running at higher noise gain
+The error this board actually made, and the reason a part was designed in and then removed
+one phase later. OPA2333 Figure 15 ("SMALL-SIGNAL OVERSHOOT vs LOAD CAPACITANCE") shows
+overshoot reaching roughly the mid-30 % range by CL = 1 nF, and requirements allowed 1 nF of
+output cable, so P3 added R6 = 100 R as an isolation resistor. What the figure does not say
+on its face - its test conditions are not labelled on the page, only the page-level
+"TA = +25C, VS = +5V" note - is that an overshoot-vs-CL curve is a UNITY-GAIN measurement,
+the worst case for a voltage-feedback amplifier. The stage it was applied to runs at a noise
+gain of 3.49, which moves the loop crossover from GBW to GBW/3.49 and is worth roughly 25
+degrees of phase margin against the identical load. Measured in one bench: the same
+calibrated macromodel gives 32.0 % for a plain unity buffer into 1 nF (reproducing Figure 15,
+which is how the model was calibrated) and 6.6 % for the real stage into the same 1 nF with
+NO isolation resistor. The part was never needed. Rules: (1) before designing a part in on
+the strength of a capacitive-load, overshoot, phase-margin or settling curve, find the GAIN
+the curve was taken at and re-ask the question at the gain you are actually running - and if
+the datasheet does not label the figure, say so and treat unity gain as the assumption;
+(2) a stability curve read at the wrong gain is not conservative, it is simply a different
+circuit; (3) put the calibration instance IN the bench (here a unity buffer reproducing
+Figure 15 alongside the real stage) so a reader can audit the transfer instead of trusting
+it. Corollary already recorded above: an out-of-loop series resistor only isolates in
+proportion to R/ro, so 100 R against a 1-2 kohm open-loop output impedance moved overshoot
+by 0.3 to 1.3 points - it would not have done the job even if the job had existed.
+
+
+## 2026-08-17 [P6][board_init][board_edit][build-modes] `outline_bbox` is a BBOX, not a size - and the "generous provisional room" auto picked was the wrong ASPECT, not the wrong area
+
+`reports/board_init.json` records `"outline_bbox": [13.0, 13.0, 41.02, 57.69]` - min/max corners.
+The P5 digest (and the P6 spawn brief that quoted it) both read that as "41.0 x 57.7 mm". The board
+is 28.02 x 44.69 mm. That is not a rounding difference: it inverts which dimension is scarce. The
+canonical layout for this block is a WIDE board (J1 on the left edge, J2 on the right edge, a two-IC
+chain between them), and it does not fit in 28 mm of width at any packing density - while the AREA
+auto chose (1252 mm2) is within 8 % of what the layout finally needed (1259 mm2 of content). Two
+rules: (1) print `w x h` derived from the bbox, never the bbox corners, in any prose a later stage
+reads; (2) at a `canonical` binding `--outline auto` is only sized, never shaped - check the aspect
+against the block's own layout before treating the provisional room as roomy.
+
+## 2026-08-17 [P6][board_edit][placement] `--outline fit` CLIPS to the CURRENT outline, so "place canonically, then fit" only works if you GROW the room first
+
+`board_edit.content_bounds()` intersects the union of courtyards/copper/rule-areas with the current
+outline before taking the bbox - deliberately, so fit can never invent a containment violation. The
+consequence for the canonical flow is an ordering constraint nobody states: if the placement you want
+extends past the provisional edge, `--outline fit` measures only the part that was inside and returns
+a SMALLER board, silently. The working order is grow (`--outline WxH`, generous in both axes) ->
+place -> `--outline fit`. `--outline WxH` also refuses while the CURRENT placement has anything
+outside the NEW rect, so the grow rect has to cover the union of the old and new placements, or the
+placement has to be applied first. Companion fact: fit is idempotent (re-running with the same margin
+reproduces the same rect), so the orchestrator's own post-gate fit is a no-op confirmation.
+
+## 2026-08-17 [P6][placement][kicad][render] The KF128 top-view "teeth" are the connector's REAR, not its wire entry - and the 3D model is rotated 180 from the footprint
+
+The KF128-5.08 3D model is instantiated with `(rotate (xyz 0 0 180))`, so a top render shows the body
+mirrored relative to the footprint silk. In the top view all three terminals appeared to have their
+funnel-like triangles facing the board interior, which reads as "all three are backwards"; they are
+the rear ledge. The footprint silk is the truthful cue (three notched rectangles at local y
++3.33..+5.30 = the wire entry, at local +Y), and the orthographic side render is decisive: with
+J1 at 270, J2 at 90 and J3 at 0, `render.py --views left,right,front` shows 3 / 2 / 2 dark wire
+cavities face-on in the left / right / front views respectively. Confirms the 2026-07-28 and
+2026-08-09 root entries: mouth at local +Y, so 0 = out the BOTTOM edge, 90 = RIGHT, 180 = TOP,
+270 = LEFT. Never grade a connector's mating direction from the top render.
+
+
+## 2026-08-17 [P6][P4][placement][diff-pair][inamp] A connector's pole ORDER against the IC's pin order forces exactly one crossing on the input pair - and it is a free schematic fix, measured both ways
+
+bb-amp's J1 was drawn (IN+, IN-, GND) on poles 1/2/3 while the AD8226's inputs run (-IN, RG, RG,
++IN) on pins 1..4. Those two orders are reversed, so /IN_P and /IN_N must swap exactly once between
+connector and amplifier. This is TOPOLOGICAL, not a placement failure: rotation preserves orientation,
+so I enumerated all eight combinations (J1 on each of four edges x U1's input face toward it) and
+every one interleaves. Rotating BOTH parts mirrors both orders and preserves the interleave; only a
+reflection of one of them fixes it, and a front-side SMD part cannot be reflected.
+
+Measured, same placement, only the two pad-net assignments changed (J1.1 <-> J1.2):
+  before   /IN_P, /IN_N HPWL 15.23 mm each, board HPWL 173.45, crossings_signal 6 (incl. IN_N x IN_P)
+  after    /IN_P, /IN_N HPWL 11.43 mm each, board HPWL 165.85, crossings_signal 5 (pair gone)
+  geometry start dy -/+2.540 -> end -/+1.900, dx 10.790, euclid 10.8090 on BOTH legs, delta 0.000000
+  routing  two straight F.Cu segments at the netclass width, ZERO vias, kicad-cli --severity-all
+           reports 0 non-unconnected findings and 0 remaining unconnected on either input net
+Before the swap the same placement needed a via pair on one leg (~0.6 pF of imbalance, ~-123 dB at
+1 kHz by in-input-path-equivalence's 1.1 ppm/pF) plus a slot in the B.Cu reference under the input
+region, which blocks.md section 5 item 6 forbids.
+
+Rules: (1) at P4, order a multi-pole input terminal to MATCH the amplifier's pin order along the
+facing direction, not to match the schematic's reading order - it costs nothing and it is the
+difference between a zero-via pair and a pour slot under the input; (2) P6 cannot fix it, so a
+placement agent that finds an unavoidable pair crossing should report the pole swap rather than
+spend vias on it; (3) a `board_update` will NOT carry a pad-net rewire (it refuses by design) - the
+fix costs a P5 re-init, so it is cheapest caught at P4 review.

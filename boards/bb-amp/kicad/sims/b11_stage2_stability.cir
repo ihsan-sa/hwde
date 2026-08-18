@@ -167,7 +167,7 @@ CL   nout gnd {cl}
 RL   nout gnd {rl}
 .ends
 *
-* NETLIST CROSS-CHECK (2026-08-16, P4). These benches were TYPED from
+* NETLIST CROSS-CHECK (2026-08-16, P4; RE-TAKEN after the R6 removal). These benches were TYPED from
 * architecture/blocks.md s1-s2 and constraints.json, not synthesized, because
 * schematic-block was authoring the sheet concurrently. As soon as
 * kicad/bb-amp.net appeared it was diffed against them with
@@ -175,9 +175,11 @@ RL   nout gnd {rl}
 * and every value and every connection MATCHES what is modelled here:
 *   R1 1.27k across U1 pins 2-3 (/RG_A,/RG_B)  R2 121k  +3V3 -> /VREF_SET
 *   R3 10.0k /VREF_SET -> GND                  C4 100n on /VREF_SET
-*   R4 24.9k /AMP2_OUT -> /FB2                 R5 10.0k /FB2 -> /VREF
-*   C1,C3 100n / C2 10u on +3V3                and NO R6: /AMP2_OUT is /VOUT
-*     (R6 removed at P4 by ruling, on b11's evidence - see the chain subckt)
+*   R4 24.9k /VOUT -> /FB2                     R5 10.0k /FB2 -> /VREF
+*   C1,C3 100n / C2 10u on +3V3                NO R6 - `--refs R6` now
+*     answers "refs not in netlist", U2B pin 7 IS /VOUT and drives J2 pin 1
+*     directly, and the net /AMP2_OUT no longer exists (R6 removed at P4 by
+*     ruling on b11's evidence - see the chain subckt and the b10/b11 heads)
 *   U1 REF (pin 6) = /VREF - the BUFFERED node, not the divider, not ground
 *   U2A = unity buffer: OUTA = INA- = /VREF, INA+ = /VREF_SET
 *   U2B: INB+ = /AMP1_OUT, INB- = /FB2, OUTB = /AMP2_OUT
@@ -185,7 +187,8 @@ RL   nout gnd {rl}
 *   on, and the one a netlist diff is the only way to confirm.
 * Net map, bench -> schematic: n_ip=/IN_P n_in=/IN_N n_rga=/RG_A n_rgb=/RG_B
 * n_amp1=/AMP1_OUT n_vrefset=/VREF_SET n_vref=/VREF n_fb=/FB2
-* n_u2bout=/AMP2_OUT n_out=/VOUT p3v3=+3V3 gnd=GND.
+* n_u2bout and n_out are BOTH /VOUT on the shipping board (they are the two
+* ends of the 1 milliohm riso stand-in); p3v3=+3V3 gnd=GND.
 * THE CROSS-CHECK IS A SNAPSHOT: these benches carry their own copy of every
 * value and will NOT notice a later schematic edit. Re-run the --fragment
 * diff above after any change to R1..R5, R2/R3 or the U2 pin assignment.

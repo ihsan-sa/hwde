@@ -74,12 +74,25 @@ bare divider is equally forbidden - Figure 59 crosses that exact schematic out
 and marks it INCORRECT, because source impedance at REF must stay below
 2 ohm.  Hence U2A, the buffer, and hence a DUAL op-amp doing both jobs.
 
+How well the buffer holds that rule is a MEASURED, FREQUENCY-DEPENDENT
+answer, not a flat one - bench B9 reads U2A's closed-loop Zout as 0.43 mohm
+at DC, 0.17 ohm at 60 Hz, 2.86 ohm at 1 kHz and 116 ohm at 41 kHz, so the
+2 ohm rule is met through DC and the low frequencies where the AD8226
+specifies CMRR and is exceeded above about 700 Hz (350 Hz on the pessimistic
+ro = 2 kohm bracket).  It does not bite on THIS board because Q1 fixes the
+common mode at a STATIC 1.65 V with nothing at 1 kHz to convert, and the
+residual common-mode gain error is 90.8 dB - at or above the part's own
+90 dB minimum at 5 kHz.  A board with a moving common mode would have to
+rederive it.  Wherever this file or the sheet says "< 2 ohm", that is the
+qualified claim it means.
+
 =====================================================================
 3.  PIN HANDLING - every pin of every part is wired; there are NO no-connects
 =====================================================================
 U1 AD8226ARZ (parts/C34250.json):
     1 -IN  -> /IN_N      5 -VS  -> GND   (single supply: -VS IS the return)
-    2 RG   -> /RG_A      6 REF  -> /VREF (driven, < 2 ohm - see s2)
+    2 RG   -> /RG_A      6 REF  -> /VREF (buffer-driven; see s2 for the
+                                          measured Zout-vs-frequency claim)
     3 RG   -> /RG_B      7 VOUT -> /AMP1_OUT
     4 +IN  -> /IN_P      8 +VS  -> +3V3  (C1 100 nF + shared C2 10 uF bulk)
   The library names pin 2 "RG/2" and pin 3 "RG"; the data sheet calls both
@@ -104,8 +117,31 @@ interchangeable here:
 Passives, by pin: R1 (1,2) across U1 pins 2-3; R2 +3V3 -> /VREF_SET; R3
 /VREF_SET -> GND; C4 /VREF_SET -> GND; R4 /VOUT -> /FB2; R5 /FB2 -> /VREF;
 C1/C2/C3 +3V3 -> GND.
-Connectors: J1 (1 /IN_P, 2 /IN_N, 3 GND), J2 (1 /VOUT, 2 GND),
-J3 (1 +3V3, 2 GND) - all per sheets.md s2.
+Connectors: J1 (1 /IN_N, 2 /IN_P, 3 GND), J2 (1 /VOUT, 2 GND),
+J3 (1 +3V3, 2 GND) - J2/J3 per sheets.md s2; J1's two signal poles are
+DELIBERATELY the reverse of sheets.md's order, see below.
+
+*** J1 POLE ORDER IS IN- / IN+ / GND, NOT IN+ / IN- / GND. ***
+sheets.md s2 tabulated J1 pin 1 = /IN_P, pin 2 = /IN_N.  P6 found that this
+forces the differential pair to CROSS: J1's poles would run (IN+, IN-) while
+the AD8226's input pins run (-IN, RG, RG, +IN) - opposite orders - and the
+placement agent verified the crossing survives ALL EIGHT rotation and
+edge-assignment combinations of the two parts.  It is structural, not a
+placement artifact.  Uncrossed, P7 pays 2 vias on ONE leg of the pair: about
+0.6 pF of imbalance, -123 dB at 1 kHz - inside the declared 1 pF budget and
+33 dB under the part's own 90 dB spec, so it was never a defect.  But those
+vias punch the B.Cu reference directly under the input pair and put
+asymmetric junctions on the one net whose symmetry is this board's dominant
+error term (blocks.md s5 item 2).  Swapping the two poles makes the pair
+fully planar and mirror-symmetric with ZERO vias, for the price of a legend.
+
+Nothing electrical moves: IN+ still reaches U1 pin 4 (+IN) and IN- still
+reaches U1 pin 1 (-IN), so requirements.md s2's polarity CONVENTION - "IN+
+above IN- gives a positive output" - is unchanged.  Only which physical pole
+carries IN+ moves, from pole 1 to pole 2.
+
+*** CONSEQUENCE FOR THE BOARD: the J1 silk legend must read IN- / IN+ / GND
+in pole order.  The board is wired by whatever the silk says. ***
 
 J1's third pole is not a convenience: it is the input-bias-current return
 path both cited data sheets require (blocks.md B1).  The 350 ohm bridge gives
@@ -261,8 +297,16 @@ UNIT2_TMP_REF = "U2B"
 UNIT_MERGE = {UNIT2_TMP_REF: "U2"}
 
 # The design-equations text box (task: "this board exists to be studied").
-TEXTBOX_AT = (215.90, 101.60)
-TEXTBOX_SIZE = (177.80, 114.30)
+# It grew when the P8 benches landed (the B9 Zout table, the corrected Eq.2
+# rows and the B6 rail term), so it is sized from a line pitch MEASURED off
+# the plotted PDF rather than guessed: KiCad renders this box at about
+# 1.45 x the font size per line, so 75 lines at font 1.27 need ~140 mm.  The
+# column is clear from y = 96.52 (just under the chain note) down to
+# y = 252.73 (just above the title block) - 156 mm, which fits with margin.
+# J2 at y = 76.2 is what stops the top edge going higher.
+TEXTBOX_AT = (215.90, 96.52)
+TEXTBOX_SIZE = (177.80, 156.21)
+TEXTBOX_FONT = 1.27
 
 EQUATIONS = """bb-amp - BRIDGE FRONT END ON ONE 3.3 V RAIL   (architecture/blocks.md)
 
@@ -275,11 +319,16 @@ GAIN SPLIT   G1 * G2 = 39.90 * 3.49
     G1 = 1 + 49.4k/RG = 1 + 49.4k/1.27k = 39.90   U1 AD8226, R1 across pins 2-3
     G2 = 1 + R4/R5    = 1 + 24.9k/10.0k = 3.49    U2B, OPA2333 half B
   WHY IT IS SPLIT: the AD8226's INPUT VOLTAGE RANGE section (Eq.1-3, Table 8)
-  limits the internal 1st/2nd-stage nodes, not the pins.  At Vcm = 1.65 V and
-  the -5 % rail, Eq.2 allows |G*Vdiff| <= 1.33 V, i.e. G <= 66 at 20 mV FS.
-  A single stage at G = 139 saturates INSIDE the part while its input and its
-  output both still look legal.  The data sheet's own remedy is this one:
-  less gain in the in-amp, the rest later in the chain.
+  limits the internal 1st/2nd-stage nodes, not the pins.  Eq.2 ceiling on
+  |G*Vdiff| and the gain it allows at 20 mV FS (blocks.md Ruling 2) - note
+  which Vcm each row belongs to:
+      Vcm 1.65 V (Q1), rail -5 %, 0 degC .............. 1.49 V   G <= 75
+      Vcm 1.7325 V, rail -5 % AND excitation +5 % ..... 1.33 V   G <= 66
+  1.65 V is the stated operating point; the 1.33 V / G <= 66 pair is the
+  WORST CORNER, not the nominal common mode.  Either way a single stage at
+  G = 139 saturates INSIDE the part while its input and its output both
+  still look legal.  The data sheet's own remedy: less gain in the in-amp,
+  the rest later in the chain.
 
 PEDESTAL   Vref = 3.3 V * R3/(R2+R3) = 3.3 * 10.0k/131.0k = 0.2519 V
     C4 filters the DIVIDER node (Thevenin 9.24k -> 172 Hz corner), never the
@@ -288,6 +337,15 @@ PEDESTAL   Vref = 3.3 V * R3/(R2+R3) = 3.3 * 10.0k/131.0k = 0.2519 V
     out and marks it INCORRECT: source impedance at REF must stay below
     2 ohm, or the +IN path is amplified by 2(50k + Rref)/(100k + Rref) and
     CMRR collapses (9.24k there = ~8.5 % error = ~21 dB of CMRR left).
+
+  HOW WELL THE BUFFER MEETS THAT RULE IS MEASURED, NOT FLAT (bench B9):
+      DC 0.43 mohm    60 Hz 0.17 ohm    1 kHz 2.86 ohm    41 kHz 116 ohm
+  Met through DC and the low frequencies where the AD8226 specifies CMRR;
+  EXCEEDED above ~700 Hz (350 Hz on the pessimistic ro = 2 kohm bracket).
+  Not a defect here - Q1 fixes the common mode at a STATIC 1.65 V with
+  nothing at 1 kHz to convert, and the residual common-mode gain error is
+  90.8 dB, at or above the part's own 90 dB min at 5 kHz.  A board with a
+  MOVING common mode would have to rederive this.
 
 *** R5 RETURNS TO /VREF, NOT TO GROUND ***
     U2B's + input sits at   V1 = Vref + G1*Vdiff.
@@ -301,6 +359,15 @@ PEDESTAL   Vref = 3.3 V * R3/(R2+R3) = 3.3 * 10.0k/131.0k = 0.2519 V
 
 /VREF IS ONE NODE WITH THREE LOADS: U2A OUT (1), U1 REF (6), R5.
 
+J1 POLE ORDER IS IN- / IN+ / GND - LAYOUT DROVE THE PIN ASSIGNMENT.  J1 as
+(IN+, IN-) against the AD8226's (-IN ... +IN) crosses the pair structurally
+(P6 checked all 8 rotation/edge combinations).  Uncrossed costs 2 vias in
+ONE leg - 0.6 pF, -123 dB at 1 kHz, inside budget - but they break the B.Cu
+reference under the pair and unbalance the net whose symmetry is this
+board's dominant error term.  Swapped: planar, symmetric, zero vias.
+NOTHING ELECTRICAL MOVED - IN+ still lands on U1 pin 4 and "IN+ above IN-
+gives positive out" holds.  THE SILK MUST SAY IN- / IN+ / GND.
+
 SINGLE SUPPLY: U1 pin 5 (-VS) and U2 pin 4 (V-) go to GND.  The RRIO OPA2333
 (30 mV typ from either rail) is the part that faces the rails, not the AD8226
 (0.10 V guaranteed floor) - the same spec that makes a grounded REF unusable.
@@ -309,28 +376,45 @@ ACCURACY, RECORDED NOT SMOOTHED (blocks.md Ruling 3): Q7's 5 uV RTI over
 0-50 degC is 10 ppm of full scale per degC and is NOT met - 13.9 uV typ /
 56.4 uV max offset drift, plus 30-87 uV of gain drift at full scale.  No
 3.3 V-capable part reaches it; zero and span are calibrated downstream.
+  THE TERM blocks.md's TABLE OMITS - RAIL SENSITIVITY.  The pedestal is a
+  RATIO of the rail (0.2519/3.3 = 7.63 %) and reaches the output at gain 1,
+  so dVout/dVs = 0.0763 V/V (bench B6 measures exactly that) = 548 uV RTI
+  per volt of rail.  So 0.28 % of rail movement AFTER calibration - about
+  9.1 mV on 3.3 V - eats the whole 5 uV budget on its own, the DOMINANT
+  post-calibration term, ahead of the 1.1 uV R2/R3 ratio-TCR the table does
+  count.  Not an error and not a scope miss (a static pedestal calibrates
+  out; a voltage reference is excluded at block-only) - it is a requirement
+  on the +3V3 SOURCE, stated here so it is not lost.
 
-NO OUTPUT ISOLATION RESISTOR, AND THAT IS A RESULT, NOT AN OMISSION.  The
-OPA2333's ~mid-30 % overshoot into 1 nF (Fig.15) is a UNITY-GAIN figure; this
-stage runs at noise gain 3.49.  Simulated into the 1 nF that Q8 allows, the
-as-built stage overshoots 6.6 % with about 63 deg of phase margin, so nothing
-needs isolating - and at block-only scope, conditioning the data sheet does
-not require is out of scope."""
+(The "no output isolation resistor" result is recorded on the sheet itself,
+beside the U2B -> J2 run where the part would have gone.)"""
 
 # One-line annotations, one per row, in the gap below it.  Kept short so a
 # centred KiCad text item stays inside its row's own horizontal span.
 ROW_NOTES = [
     ((152.40, 92.71),
      "SIGNAL CHAIN   J1 -> U1 (G1 = 39.90) -> U2B (G2 = 3.49) -> J2"),
-    ((215.90, 55.88),
+    ((63.50, 100.33),
+     "J1 POLE ORDER: IN- / IN+ / GND - the silk legend must read that way"),
+    ((63.50, 105.41),
+     "IN+ still drives U1 pin 4; the polarity convention is unchanged (P6)"),
+    ((203.20, 55.88),
      "NO OUTPUT ISOLATION RESISTOR: OPA2333 Fig.15's mid-30 % overshoot into "
      "1 nF is a UNITY-GAIN figure."),
-    ((215.90, 60.96),
+    ((203.20, 60.96),
      "This stage runs at noise gain 3.49 - simulated 6.6 % into the 1 nF of "
      "Q8, ~63 deg phase margin."),
+    ((243.84, 66.04),
+     "Nothing needs isolating; block-only scope excludes conditioning anyway."),
     ((88.90, 135.89),
      "PEDESTAL   R2/R3 off +3V3 = 0.2519 V, C4 on the DIVIDER node, "
-     "U2A buffers it to < 2 ohm at U1 REF"),
+     "U2A buffers it for U1 REF"),
+    ((88.90, 140.97),
+     "AD8226's 2 ohm REF rule: met at DC and low frequency (B9: 0.43 mohm DC, "
+     "0.17 ohm at 60 Hz),"),
+    ((88.90, 146.05),
+     "crossed above ~700 Hz - harmless, Q1's common mode is STATIC. Numbers "
+     "in the box."),
     ((127.00, 171.45),
      "STAGE-2 GAIN SET   R5 RETURNS TO /VREF, NOT GND - that is what makes "
      "the pedestal EXACT"),
@@ -444,14 +528,22 @@ def build() -> schlib.Sheet:
         sh.wire_pins(ref, pins)
 
     # ======================================================= B1 input (J1)
-    # 3-pole: IN+ / IN- / GND.  Pole 3 is the input-bias-current return for
-    # BOTH inputs and the landing for the cable shield - not a convenience
-    # pole (blocks.md B1; refdesign D12).  No series R, no RC, no TVS: the
-    # AD8226's inputs are internally protected to +-40 V beyond the rails and
-    # the bridge is inherently current limited.
+    # 3-pole: IN- / IN+ / GND, in that pole order.  The two signal poles are
+    # the REVERSE of sheets.md s2 on purpose - see the module docstring s3:
+    # J1 (IN+, IN-) against U1 (-IN ... +IN) is a structural crossing that
+    # costs 2 vias in one leg of the pair and punches the B.Cu reference
+    # under it; swapping the poles makes the pair planar and symmetric.
+    # Electrically identical - IN+ still lands on U1 pin 4.
+    # Pole 3 is the input-bias-current return for BOTH inputs and the landing
+    # for the cable shield - not a convenience pole (blocks.md B1; refdesign
+    # D12).  No series R, no RC, no TVS: the AD8226's inputs are internally
+    # protected to +-40 V beyond the rails and the bridge is inherently
+    # current limited.
     add(S_J3P, "J1", "KF128-5.08-3P", (38.10, Y_CHAIN), F_J3P,
-        {"1": "IN_P", "2": "IN_N", "3": "GND"},
-        note="SENSOR IN: 1=IN+, 2=IN-, 3=GND (bias-current return + shield)")
+        {"1": "IN_N", "2": "IN_P", "3": "GND"},
+        note="SENSOR IN, silk legend IN-/IN+/GND: 1=IN- (U1 pin 1), "
+             "2=IN+ (U1 pin 4), 3=GND (bias-current return + shield). "
+             "Pole order reversed vs sheets.md at P6 to uncross the pair.")
 
     # ==================================================== B2 in-amp (U1, R1)
     # Pin map: parts/C34250.json.  REF (6) is DRIVEN from /VREF - see the
@@ -578,7 +670,7 @@ def build() -> schlib.Sheet:
 
     # ================================================= the study apparatus
     sh.sch.add_text_box(EQUATIONS, position=TEXTBOX_AT, size=TEXTBOX_SIZE,
-                        font_size=1.27, stroke_width=0.254,
+                        font_size=TEXTBOX_FONT, stroke_width=0.254,
                         stroke_type="solid", fill_type="none",
                         justify_horizontal="left", justify_vertical="top")
     for at, line in ROW_NOTES:
