@@ -1,0 +1,123 @@
+{
+ "script": "fix_dispatch",
+ "status": "violations",
+ "board": "bb-ldo.kicad_pcb",
+ "gate": null,
+ "counts": {
+  "orders": 7,
+  "violations": 8,
+  "by_domain": {
+   "router": 1,
+   "plane": 1,
+   "fab": 1,
+   "review": 1,
+   "placement": 1,
+   "silk": 1,
+   "library": 1
+  },
+  "with_remediation": 0
+ },
+ "orders": [
+  {
+   "id": 1,
+   "fixer": "router",
+   "severity": "error",
+   "net": "GND",
+   "kinds": [
+    "single-via-ground-path",
+    "via-in-smd-pad"
+   ],
+   "count": 2,
+   "remediations": [],
+   "work_order": "boards/bb-ldo/log/workorders/wo-1.json"
+  },
+  {
+   "id": 2,
+   "fixer": "plane",
+   "severity": "warning",
+   "net": "+3V3",
+   "kinds": [
+    "solid-pour-on-handsoldered-pin"
+   ],
+   "count": 1,
+   "remediations": [],
+   "work_order": "boards/bb-ldo/log/workorders/wo-2.json"
+  },
+  {
+   "id": 3,
+   "fixer": "fab",
+   "severity": "warning",
+   "net": null,
+   "kinds": [
+    "netclass-clearance-overridden-by-dru"
+   ],
+   "count": 1,
+   "remediations": [],
+   "work_order": "boards/bb-ldo/log/workorders/wo-3.json"
+  },
+  {
+   "id": 4,
+   "fixer": "review",
+   "severity": "warning",
+   "net": "+3V3",
+   "kinds": [
+    "check-suppressed-by-constraint-not-waived"
+   ],
+   "count": 1,
+   "remediations": [],
+   "work_order": "boards/bb-ldo/log/workorders/wo-4.json"
+  },
+  {
+   "id": 5,
+   "fixer": "placement",
+   "severity": "warning",
+   "net": null,
+   "kinds": [
+    "outline-aspect-not-earned"
+   ],
+   "count": 1,
+   "remediations": [],
+   "work_order": "boards/bb-ldo/log/workorders/wo-5.json"
+  },
+  {
+   "id": 6,
+   "fixer": "silk",
+   "severity": "warning",
+   "net": null,
+   "kinds": [
+    "no-hot-surface-legend"
+   ],
+   "count": 1,
+   "remediations": [],
+   "work_order": "boards/bb-ldo/log/workorders/wo-6.json"
+  },
+  {
+   "id": 7,
+   "fixer": "library",
+   "severity": "warning",
+   "net": null,
+   "kinds": [
+    "wrong-3d-model-case-size"
+   ],
+   "count": 1,
+   "remediations": [],
+   "work_order": "boards/bb-ldo/log/workorders/wo-7.json"
+  }
+ ],
+ "parallel_groups": [
+  [
+   1,
+   2,
+   4,
+   6,
+   7
+  ],
+  [
+   3
+  ],
+  [
+   5
+  ]
+ ],
+ "out_dir": "boards/bb-ldo/log/workorders"
+}

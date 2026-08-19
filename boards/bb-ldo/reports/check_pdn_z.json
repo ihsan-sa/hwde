@@ -1,0 +1,104 @@
+{
+ "script": "check_pdn_z",
+ "status": "pass",
+ "board": "bb-ldo.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "pairs": [
+  {
+   "rail": "+3V3",
+   "reference": "GND",
+   "layers": [
+    "F.Cu",
+    "B.Cu"
+   ],
+   "geometry": "bounding_rect_assumed",
+   "origin": [
+    5.625,
+    20.2
+   ],
+   "a_mm": 49.0,
+   "b_mm": 25.42,
+   "d_mm": 1.53,
+   "epsilon_r": 4.5,
+   "t_cu_mm": 0.035,
+   "c00_nf": 0.03244,
+   "modes": {
+    "m": 30,
+    "n": 30,
+    "m_check": 60,
+    "first_min": {
+     "f_hz": 730768.2,
+     "z_mohm": 20.0002
+    },
+    "first_min_check": {
+     "f_hz": 730768.2,
+     "z_mohm": 20.0003
+    },
+    "first_min_shift": 0.0
+   },
+   "obs": {
+    "ic": "U1",
+    "pos": [
+     28.03,
+     32.91
+    ],
+    "pins": [
+     "2"
+    ]
+   },
+   "decaps": [
+    {
+     "cap": "C2",
+     "value": "22uF 16V solid tantalum ESR 0.8ohm",
+     "c_f": 2.2e-05,
+     "esl_nh": 1.4546,
+     "esr_mohm": 20.0,
+     "pos": [
+      24.7875,
+      32.91
+     ],
+     "rail_leg_mm": null,
+     "return_leg_mm": 0.6495
+    }
+   ],
+   "skipped_caps": [],
+   "peaks": [],
+   "z_max": {
+    "mohm": 2960.1018,
+    "f_hz": 200000000.0,
+    "note": "band-edge model artifact (no VRM/package model) - judge peaks/first_min, not this"
+   },
+   "target_mohm": null
+  }
+ ],
+ "skipped_pairs": [],
+ "skipped_rails": [
+  {
+   "rail": "+5V",
+   "reason": "no plane pair detected (rail has decoupling associations but no adjacent-layer fill pair)"
+  }
+ ],
+ "stackup_assumed": false,
+ "model": {
+  "kind": "rectangular plane-pair cavity sum",
+  "tan_delta": 0.02,
+  "sigma_cu_s_per_m": 58000000.0,
+  "esr_default_mohm": 20.0,
+  "band_hz": [
+   10000.0,
+   200000000.0
+  ],
+  "points": 301,
+  "curve_out": null
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-18T15:40:53+00:00",
+ "input": "boards\\bb-ldo\\kicad\\bb-ldo.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e"
+}

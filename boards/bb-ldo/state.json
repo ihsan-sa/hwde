@@ -3,8 +3,8 @@
  "board": "bb-ldo",
  "workspace": "boards/bb-ldo",
  "created": "2026-08-16T17:24:47",
- "updated": "2026-08-17T21:41:46",
- "phase": "P7",
+ "updated": "2026-08-19T02:35:25",
+ "phase": "P8",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -140,14 +140,14 @@
   "drc_routed": {
    "phase": "P7",
    "status": "pass",
-   "attempts": 2,
+   "attempts": 5,
    "last": {
-    "ts": "2026-08-17T21:41:46",
+    "ts": "2026-08-19T02:35:24",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "pcb": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+     "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
      "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
      "pro": "json_canonical:596bd68ce1cf9c31f3771df8532e7511d85f8725dc14757381a7f8c226c99d0f",
      "dru": "text_eol:f66401e376e86eaa09917a3ba4cee9839f5af1c0793e3a818bcde91c5da75c82"
@@ -177,6 +177,109 @@
       "pro": "json_canonical:596bd68ce1cf9c31f3771df8532e7511d85f8725dc14757381a7f8c226c99d0f",
       "dru": "text_eol:f66401e376e86eaa09917a3ba4cee9839f5af1c0793e3a818bcde91c5da75c82"
      }
+    },
+    {
+     "ts": "2026-08-19T02:18:35",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:7acec5cc0e54e71f5f2f92176ff1ca8169b09156a0c0643ca0c8860304f870f2",
+      "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
+      "pro": "json_canonical:596bd68ce1cf9c31f3771df8532e7511d85f8725dc14757381a7f8c226c99d0f",
+      "dru": "text_eol:f66401e376e86eaa09917a3ba4cee9839f5af1c0793e3a818bcde91c5da75c82"
+     }
+    },
+    {
+     "ts": "2026-08-19T02:32:38",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
+      "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
+      "pro": "json_canonical:596bd68ce1cf9c31f3771df8532e7511d85f8725dc14757381a7f8c226c99d0f",
+      "dru": "text_eol:f66401e376e86eaa09917a3ba4cee9839f5af1c0793e3a818bcde91c5da75c82"
+     }
+    },
+    {
+     "ts": "2026-08-19T02:35:24",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
+      "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
+      "pro": "json_canonical:596bd68ce1cf9c31f3771df8532e7511d85f8725dc14757381a7f8c226c99d0f",
+      "dru": "text_eol:f66401e376e86eaa09917a3ba4cee9839f5af1c0793e3a818bcde91c5da75c82"
+     }
+    }
+   ]
+  },
+  "verify": {
+   "phase": "P8",
+   "status": "pass",
+   "attempts": 4,
+   "last": {
+    "ts": "2026-08-19T02:35:25",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 4,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
+     "constraints": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
+     "decoupling": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23",
+     "waivers": "json_canonical:00aeaf842fe692f696bdcb2f6add4199b06298174d1d8d30aa4a5b47c0b44123"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-18T08:39:38",
+     "status": "fail",
+     "failing_count": 1,
+     "total": 4,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+      "constraints": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
+      "decoupling": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23",
+      "waivers": null
+     }
+    },
+    {
+     "ts": "2026-08-18T08:40:26",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 4,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+      "constraints": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
+      "decoupling": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23",
+      "waivers": "json_canonical:c3cc6faa258db223e7a31b2cca5ca249d05a704a66e535697a13a3d1eda3ca83"
+     }
+    },
+    {
+     "ts": "2026-08-19T02:32:45",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 4,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
+      "constraints": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
+      "decoupling": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23",
+      "waivers": "json_canonical:00aeaf842fe692f696bdcb2f6add4199b06298174d1d8d30aa4a5b47c0b44123"
+     }
+    },
+    {
+     "ts": "2026-08-19T02:35:25",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 4,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
+      "constraints": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
+      "decoupling": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23",
+      "waivers": "json_canonical:00aeaf842fe692f696bdcb2f6add4199b06298174d1d8d30aa4a5b47c0b44123"
+     }
     }
    ]
   }
@@ -203,31 +306,31 @@
    "path": "kicad/bb-ldo.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
-   "hashed": "2026-08-17T21:41:46"
+   "hashed": "2026-08-19T02:35:24"
   },
   "pro": {
    "path": "kicad/bb-ldo.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:596bd68ce1cf9c31f3771df8532e7511d85f8725dc14757381a7f8c226c99d0f",
-   "hashed": "2026-08-17T21:41:46"
+   "hashed": "2026-08-19T02:35:24"
   },
   "pcb": {
    "path": "kicad/bb-ldo.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
-   "hashed": "2026-08-17T21:41:46"
+   "sha256": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
+   "hashed": "2026-08-19T02:35:25"
   },
   "constraints": {
    "path": "kicad/constraints.json",
    "kind": "constraints",
    "sha256": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
-   "hashed": "2026-08-17T21:24:22"
+   "hashed": "2026-08-19T02:35:25"
   },
   "decoupling": {
    "path": "kicad/decoupling.json",
    "kind": "decoupling",
    "sha256": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23",
-   "hashed": "2026-08-17T21:24:22"
+   "hashed": "2026-08-19T02:35:25"
   },
   "gerbers": {
    "path": "fab/bb-ldo_gerbers.zip",
@@ -253,17 +356,219 @@
    "path": "kicad/bb-ldo.kicad_dru",
    "kind": "dru",
    "sha256": "text_eol:f66401e376e86eaa09917a3ba4cee9839f5af1c0793e3a818bcde91c5da75c82",
-   "hashed": "2026-08-17T21:41:46"
+   "hashed": "2026-08-19T02:35:24"
+  },
+  "waivers": {
+   "path": "reports/verify-waivers.json",
+   "kind": "waivers",
+   "sha256": "json_canonical:00aeaf842fe692f696bdcb2f6add4199b06298174d1d8d30aa4a5b47c0b44123",
+   "hashed": "2026-08-19T02:35:25"
   }
  },
- "open_issues": [],
- "next_issue_id": 1,
+ "open_issues": [
+  {
+   "id": 1,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-08-18T09:16:42",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "router",
+   "net": "GND",
+   "kinds": [
+    "single-via-ground-path",
+    "via-in-smd-pad"
+   ],
+   "severity": "error",
+   "count": 2,
+   "region": {
+    "bbox": [
+     27.677,
+     30.064,
+     27.677,
+     30.064
+    ],
+    "center": [
+     27.677,
+     30.064
+    ]
+   },
+   "work_order": "boards/bb-ldo/log/workorders/wo-1.json"
+  },
+  {
+   "id": 2,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-08-18T09:16:42",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "plane",
+   "net": "+3V3",
+   "kinds": [
+    "solid-pour-on-handsoldered-pin"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": [
+     48.625,
+     23.37,
+     48.625,
+     23.37
+    ],
+    "center": [
+     48.625,
+     23.37
+    ]
+   },
+   "work_order": "boards/bb-ldo/log/workorders/wo-2.json"
+  },
+  {
+   "id": 3,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-08-18T09:16:42",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "fab",
+   "net": null,
+   "kinds": [
+    "netclass-clearance-overridden-by-dru"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": null,
+    "center": null
+   },
+   "work_order": "boards/bb-ldo/log/workorders/wo-3.json"
+  },
+  {
+   "id": 4,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-08-18T09:16:42",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "review",
+   "net": "+3V3",
+   "kinds": [
+    "check-suppressed-by-constraint-not-waived"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": [
+     33.97,
+     32.91,
+     33.97,
+     32.91
+    ],
+    "center": [
+     33.97,
+     32.91
+    ]
+   },
+   "work_order": "boards/bb-ldo/log/workorders/wo-4.json"
+  },
+  {
+   "id": 5,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-08-18T09:16:42",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "placement",
+   "net": null,
+   "kinds": [
+    "outline-aspect-not-earned"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": null,
+    "center": null
+   },
+   "work_order": "boards/bb-ldo/log/workorders/wo-5.json"
+  },
+  {
+   "id": 6,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-08-18T09:16:42",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "silk",
+   "net": null,
+   "kinds": [
+    "no-hot-surface-legend"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": [
+     31.0,
+     32.91,
+     31.0,
+     32.91
+    ],
+    "center": [
+     31.0,
+     32.91
+    ]
+   },
+   "work_order": "boards/bb-ldo/log/workorders/wo-6.json"
+  },
+  {
+   "id": 7,
+   "status": "open",
+   "agent": null,
+   "attempts": 0,
+   "opened": "2026-08-18T09:16:42",
+   "closed": null,
+   "gate": null,
+   "phase": null,
+   "fixer": "library",
+   "net": null,
+   "kinds": [
+    "wrong-3d-model-case-size"
+   ],
+   "severity": "warning",
+   "count": 1,
+   "region": {
+    "bbox": [
+     21.3775,
+     32.91,
+     21.3775,
+     32.91
+    ],
+    "center": [
+     21.3775,
+     32.91
+    ]
+   },
+   "work_order": "boards/bb-ldo/log/workorders/wo-7.json"
+  }
+ ],
+ "next_issue_id": 8,
  "budgets": {
   "fix_loops": {
    "erc": 3,
    "place": 3,
    "drc_routed": 3,
-   "verify": 3,
+   "verify": 2,
    "dfm": 3
   },
   "freerouting_retries": 2,
@@ -483,6 +788,90 @@
    "why": "Placement agent measured both. +3V3 and GND are declared plane_fed, so their trunks are pours; asking the router to wire them as traces both fails to complete and would carve up the thermal pour the board is designed around.",
    "phase": "P6",
    "ts": "2026-08-17T21:12:56"
+  },
+  {
+   "what": "planes_gen run with --no-thermal-vias. TOOLING GAP recorded: planes_gen's exposed-pad heuristic grids thermal vias under any netted SMD pad >= 4 mm2 whose net is a plane net, and it does NOT read constraints.thermal[U1].min_vias. U1's tab is 8.4 mm2 on +3V3, so it qualified.",
+   "why": "The constraint that says 'no vias here' and the script that drills them never meet - min_vias: 0 is read by check_thermal, not by planes_gen. Left alone, the generator would have drilled U1's LIVE tab (the +3V3 heatsink pad) on a board whose bottom layer is a continuous GND plane: at best it voids the GND plane under the hottest part of the board and wastes the copper the design is built on, and the whole point of record linear-regulator-live-tab-thermal-vias is that a via from this pour to GND is a short, not a heat path. The router caught it by reading the script's heuristic rather than trusting that a declared constraint would be honored. C2's 8.3 mm2 tantalum pads clear the same 4 mm2 floor, so this was not a near-miss on one pad.",
+   "phase": "P7",
+   "ts": "2026-08-17T21:42:08"
+  },
+  {
+   "what": "Ripped 10 KRT-finish F.Cu GND traces and replaced them with 3 pad-stitch vias (one per F.Cu GND SMD pad). Pour recovered 1189.6 -> 1199.2 mm2, effective 577.1 -> 585.0 mm2, DRC still 0/0.",
+   "why": "route_auto's KRT mop-up closed GND by daisy-chaining U1.1, C1.2 and C2.2 to J1 with ~25.6 mm of trace straight ACROSS the +3V3 heatsink pour, including a slit 7 mm from the tab - it bought connectivity with the one resource this board cannot spend, and cost 2.6% of effective area, the same order as the margin the 50 mm width was chosen to hold. route_critical's own report names the intended mechanism ('SMD pads stitched by stitch_vias'), so the fix was to use it: each via sits on a ring just past its pad edge, inside the void the pad already cuts in the pour. A router optimizing connectivity has no term for thermal copper - that is exactly the judgment the stage exists to add.",
+   "phase": "P7",
+   "ts": "2026-08-17T21:42:08"
+  },
+  {
+   "what": "check_current's 3 insufficient_transition_vias warnings ACCEPTED as-is: one stitch via per GND pad, not two. Not fixed.",
+   "why": "Two independent reasons, and the second is decisive. (1) Cross-section: a 0.3 mm barrel at 20 um plating is ~0.019 mm2 of copper, more than 2x the 0.0090 mm2 of a 0.2575 mm track in 1 oz - one via already carries more than the trace feeding it. (2) The heuristic attributes the WHOLE net's 0.515 A to every via, which is wrong here: the load return does not pass through these vias at all. Current flows J2's GND pin -> B.Cu plane -> J1's GND pin, and BOTH are through-hole screw terminals whose pins penetrate every layer directly. These three vias carry only U1's quiescent current and the capacitors' ripple - milliamps. Doubling them would spend ~2 mm2 of heatsink pour to silence an advisory the verify gate does not fail on, which is the exact trade this board must not make. check_current's own message already labels it advisory for a plane-fed rail.",
+   "phase": "P7",
+   "ts": "2026-08-17T21:42:08"
+  },
+  {
+   "what": "P8 triage: 4 of 8 board-review findings FIXED (wo-1 router via-in-pad + single-via ground, wo-2 plane J2.1 relief, wo-6 silk hot legend); 4 ACCEPTED with recorded reasoning (wo-3 clearance, wo-4 audit trail, wo-5 aspect, wo-7 3D model). One fixer runs all three orders SEQUENTIALLY - a deviation from one-fixer-per-order.",
+   "why": "The three orders mutate the same 50 x 26 mm board and the board file is single-writer; serializing them inside one agent is safer than racing three fixers over the same copper, and the playbook says correctness beats wall-clock when in doubt. Each is verified before the next.",
+   "phase": "P8",
+   "ts": "2026-08-18T09:20:38"
+  },
+  {
+   "what": "ACCEPTED, not fixed: the board is fabricated at 0.127 mm copper clearance rather than the 0.2 mm its netclasses declare, because the unconditional aiee_clearance_floor DRU rule outranks netclass clearance (measured 0.127 mm pad-to-pour on every isolated pad).",
+   "why": "0.127 mm IS the JLC 2layer_1oz floor, so the board is manufacturable as built - this is a loss of intended DESIGN MARGIN, not a fab violation, and on a 5 V board carrying 0.5 A with no fine-pitch parts the electrical consequence is nil. Fixing it properly means changing how rules_gen orders generic-vs-netclass rules, which is a pipeline change and not this board's to make. Recorded as a systemic finding: any board in this pipeline is built to the fab floor, not to its declared netclass clearance, and nothing warns about it.",
+   "phase": "P8",
+   "ts": "2026-08-18T09:20:38"
+  },
+  {
+   "what": "ACCEPTED: the outline's AREA was earned but its ASPECT RATIO was not - the 50 mm width is set by placement.edges pinning J1 left and J2 right. Cost ~1.4 C/W.",
+   "why": "Reviewer is right that this is an input surviving inside an output. But in/out on opposite edges is the canonical arrangement for a bench block - a user lands 5 V on one side and takes 3.3 V from the other, and the screw terminals are 10.16 mm deep, so the width is dominated by real mechanical parts rather than by an arbitrary number. 1.4 C/W against a 10-15 C margin is not worth re-placing the board. Recorded so the aspect is understood as a constraint-driven choice rather than something the thermal sweep produced.",
+   "phase": "P8",
+   "ts": "2026-08-18T09:20:38"
+  },
+  {
+   "what": "ACCEPTED, library note only: C2's 3D model is CASE-E (7343-43, 4.1 mm) while the ordered part is CASE-D (7343-31, 3.1 mm). The FOOTPRINT is correct - only the .wrl/.step is wrong.",
+   "why": "Zero fabrication consequence: 3D models are not manufactured, height is unconstrained at this tier, and the footprint's copper was verified against the ordered case size at P3. It matters only if someone later runs a mechanical/enclosure check off the model. Noted for the librarian rather than fixed, because swapping it needs a correct CASE-D model this workspace does not hold - and the same pulled library already produced three other defects, so the model is the least of it.",
+   "phase": "P8",
+   "ts": "2026-08-18T09:20:38"
+  },
+  {
+   "what": "wo-1 FIXED: 3 in-pad GND vias relocated 0.55 mm past their pad edges with 4 new 0.6 mm F.Cu GND stubs, plus a 4th redundant via on U1 pin 1. Pour 1199.221 -> 1196.867 mm2 (-2.354), ONE island, 0 orphaned; 1083.825 mm2 within 25 mm (floor 1000). drc_routed pass 0/0.",
+   "why": "The vias were BARE - stitch_vias emitted no F.Cu stub because GND has no top-layer copper on this board (the top layer is the +3V3 pour), so an off-pad via would have been orphaned; relocating them required authoring the stubs as well. U1's two barrels sit on opposite halves of the pad 1.6 mm apart so a single void cannot take both, and the nearest new via is 4.28 mm from the tab, so nothing was punched through the GND plane under it. Baseline was re-measured on the pre-fix snapshot with the same script, so before/after are apples-to-apples rather than two different measurement paths.",
+   "phase": "P8",
+   "ts": "2026-08-19T02:21:05"
+  },
+  {
+   "what": "TOOLING DEFECTS in stitch_vias.py, recorded for promotion (not fixed here - skill scripts are out of this board's scope): (a) RING_RADII are measured from the pad CENTRE, so any pad with a half-extent > 0.65 mm gets its via placed INSIDE it; (b) via_check only tests FOREIGN copper, so a via landing in its OWN pad is never caught; (c) it emits no F.Cu stub with a pad via, which orphans the via on any board whose top layer has no copper for that net.",
+   "why": "This is the second tooling gap this board found in the same area (planes_gen drilling the live tab was the first), and together they are the run's most transferable output. (a) and (b) compound: the script places the via wrong AND its own checker is blind to that exact error, which is why it took a human-style visual review at P8 to catch a defect introduced at P7. Consequence on an economy PCBA that neither fills nor plugs vias is starved or open joints under paste apertures.",
+   "phase": "P8",
+   "ts": "2026-08-19T02:21:05"
+  },
+  {
+   "what": "Second redundant via APPROVED for C2 pin 2, NOT for C1 pin 2. Redundancy is granted where an open barrel causes a FUNCTIONAL failure, not by symmetry.",
+   "why": "C2 is the compensation element - its ESR is inside the regulator's feedback loop - so losing its ground return does not merely remove a bypass, it removes the loop's zero and the regulator oscillates. That is the same class of consequence as U1 losing its ground reference, and it costs ~0.65 mm2 of a 1196 mm2 pour. C1 is the input bypass: an open return there degrades input decoupling on a bench-supplied rail, which is a noise problem rather than a failure, so it stays single and the asymmetry is deliberate rather than an oversight.",
+   "phase": "P8",
+   "ts": "2026-08-19T02:21:06"
+  },
+  {
+   "what": "wo-2 (J2 pin 1 thermal relief) NOT APPLIED - accepted as a tooling block, mitigated by an assembly instruction instead. J2.1 stays solid-connected to the pour.",
+   "why": "No script in the skill can set a per-pad zone connection: the only zone_connect call is planes_gen's ZONE-WIDE SetPadConnection, route_edit is add_track/add_via/remove only, and place_edit is footprint+text only. The one scripted workaround - a small higher-priority thermal zone over the pad - is refused by planes_gen's unconditional >=80% existing-fill idempotency guard. The remaining option is a raw (zone_connect 1) edit, which the hard rule 'scripts own all writes' forbids, and I am not going to break that rule to save a hand-solder joint on a qty-5 bench board. MITIGATION: the assembly note tells the assembler to preheat the board and use a high-thermal-mass iron for J2 pin 1. Cost of the unbuilt fix was measured on a scratch copy, so this is a tooling block and not a cost objection: DRC 0/0, pour stays one island, zone fill loses 5.363 mm2 - and check_thermal's credited area is BIT-IDENTICAL at 581.9632 mm2 either way.",
+   "phase": "P8",
+   "ts": "2026-08-19T02:35:05"
+  },
+  {
+   "what": "CORRECTION to two numbers in the P8 board review, found by the fixer on a scratch copy: (a) the reviewer's 'copper on 72/72 of a ring at r=1.6 mm' test CANNOT distinguish thermal relief from a solid connection - KiCad's default 0.5 mm thermal gap lies between r=1.0 and r=1.5, so r=1.6 reads full copper in both cases; (b) the relief's cost is 5.363 mm2 of ZONE FILL (not the 2.93 mm2 net-copper delta), and since J2.1 is 17.49 mm from the tab, ALL of it falls INSIDE the 25 mm circle rather than outside it.",
+   "why": "Recorded because the review's conclusion was right while two of its supporting measurements were not, and a later reader would otherwise inherit both. The substance survives: check_thermal's credited area is unchanged to the last digit, so the relief is genuinely free against the thermal model even though it is not free against the 25 mm figure. A ring test for solid-vs-relief must sample INSIDE the thermal gap band (r <= pad_r + gap), which is the transferable lesson.",
+   "phase": "P8",
+   "ts": "2026-08-19T02:35:05"
+  },
+  {
+   "what": "THIRD tooling gap recorded: there is no scripted way to set per-pad zone connection. Proposed fix (for the skill, not this board): a  op on route_edit.py backed by pad.SetLocalZoneConnection, plus a per-entry force/override on planes_gen's >=80% existing-fill guard.",
+   "why": "Hand-soldered through-hole pins in a solid pour are a recurring, ordinary need - any board that pours a rail and hand-installs a connector on it hits this - and the pipeline currently has no answer except a rule-breaking raw edit. Third gap this board found, after planes_gen ignoring min_vias and stitch_vias placing vias inside pads with a checker blind to it.",
+   "phase": "P8",
+   "ts": "2026-08-19T02:35:06"
+  },
+  {
+   "what": "CORRECTION to the preceding tooling-gap entry: a shell quoting slip ate the proposed op name. It should read - propose a pad_zone_connect {ref, pad, mode} op on route_edit.py, backed by pad.SetLocalZoneConnection, plus a per-entry force/override on planes_gen's 80-percent existing-fill guard.",
+   "why": "The recorded text lost the op name to backtick command substitution, leaving the proposal unreadable. Correcting rather than leaving an ambiguous audit entry, since this is the concrete remedy for the third tooling gap and a later reader needs the name and the API call.",
+   "phase": "P8",
+   "ts": "2026-08-19T02:35:14"
   }
  ],
  "edits": [
@@ -629,6 +1018,30 @@
    "role": "router",
    "model": "opus/high",
    "phase": "P7"
+  },
+  {
+   "ts": "2026-08-18T08:42:07",
+   "role": "verify-reviewer",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high: fable unavailable)",
+   "phase": "P8"
+  },
+  {
+   "ts": "2026-08-18T09:20:38",
+   "role": "fixer",
+   "model": "opus/high",
+   "phase": "P8"
+  },
+  {
+   "ts": "2026-08-19T02:21:05",
+   "role": "fixer",
+   "model": "opus/high",
+   "phase": "P8"
+  },
+  {
+   "ts": "2026-08-19T02:35:04",
+   "role": "fixer",
+   "model": "opus/high",
+   "phase": "P8"
   }
  ],
  "history": [
@@ -1103,6 +1516,251 @@
    "gate": "drc_routed",
    "status": "pass",
    "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-17T21:42:08",
+   "event": "decision",
+   "what": "planes_gen run with --no-thermal-vias. TOOLING GAP recorded: planes_gen's exposed-pad heuristic grids thermal vias under any netted SMD pad >= 4 mm2 whose net is a plane net, and it does NOT read constraints.thermal[U1].min_vias. U1's tab is 8.4 mm2 on +3V3, so it qualified."
+  },
+  {
+   "ts": "2026-08-17T21:42:08",
+   "event": "decision",
+   "what": "Ripped 10 KRT-finish F.Cu GND traces and replaced them with 3 pad-stitch vias (one per F.Cu GND SMD pad). Pour recovered 1189.6 -> 1199.2 mm2, effective 577.1 -> 585.0 mm2, DRC still 0/0."
+  },
+  {
+   "ts": "2026-08-17T21:42:08",
+   "event": "decision",
+   "what": "check_current's 3 insufficient_transition_vias warnings ACCEPTED as-is: one stitch via per GND pad, not two. Not fixed."
+  },
+  {
+   "ts": "2026-08-18T08:39:26",
+   "event": "phase",
+   "phase": "P8",
+   "prev": "P7"
+  },
+  {
+   "ts": "2026-08-18T08:39:38",
+   "event": "gate",
+   "gate": "verify",
+   "status": "fail",
+   "attempt": 1,
+   "failing_count": 1
+  },
+  {
+   "ts": "2026-08-18T08:40:26",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-18T08:42:07",
+   "event": "spawn",
+   "role": "verify-reviewer",
+   "model": "opus/xhigh (SUBSTITUTED for fable/high: fable unavailable)"
+  },
+  {
+   "ts": "2026-08-18T09:16:36",
+   "event": "budget",
+   "path": "fix_loops.verify",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-08-18T09:16:36",
+   "event": "snapshot",
+   "label": "pre-fix-verify-a1",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-18T09:16:42",
+   "event": "issue_open",
+   "id": 1,
+   "gate": null,
+   "fixer": "router",
+   "kinds": [
+    "single-via-ground-path",
+    "via-in-smd-pad"
+   ]
+  },
+  {
+   "ts": "2026-08-18T09:16:42",
+   "event": "issue_open",
+   "id": 2,
+   "gate": null,
+   "fixer": "plane",
+   "kinds": [
+    "solid-pour-on-handsoldered-pin"
+   ]
+  },
+  {
+   "ts": "2026-08-18T09:16:42",
+   "event": "issue_open",
+   "id": 3,
+   "gate": null,
+   "fixer": "fab",
+   "kinds": [
+    "netclass-clearance-overridden-by-dru"
+   ]
+  },
+  {
+   "ts": "2026-08-18T09:16:42",
+   "event": "issue_open",
+   "id": 4,
+   "gate": null,
+   "fixer": "review",
+   "kinds": [
+    "check-suppressed-by-constraint-not-waived"
+   ]
+  },
+  {
+   "ts": "2026-08-18T09:16:42",
+   "event": "issue_open",
+   "id": 5,
+   "gate": null,
+   "fixer": "placement",
+   "kinds": [
+    "outline-aspect-not-earned"
+   ]
+  },
+  {
+   "ts": "2026-08-18T09:16:42",
+   "event": "issue_open",
+   "id": 6,
+   "gate": null,
+   "fixer": "silk",
+   "kinds": [
+    "no-hot-surface-legend"
+   ]
+  },
+  {
+   "ts": "2026-08-18T09:16:42",
+   "event": "issue_open",
+   "id": 7,
+   "gate": null,
+   "fixer": "library",
+   "kinds": [
+    "wrong-3d-model-case-size"
+   ]
+  },
+  {
+   "ts": "2026-08-18T09:20:38",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-18T09:20:38",
+   "event": "decision",
+   "what": "P8 triage: 4 of 8 board-review findings FIXED (wo-1 router via-in-pad + single-via ground, wo-2 plane J2.1 relief, wo-6 silk hot legend); 4 ACCEPTED with recorded reasoning (wo-3 clearance, wo-4 audit trail, wo-5 aspect, wo-7 3D model). One fixer runs all three orders SEQUENTIALLY - a deviation from one-fixer-per-order."
+  },
+  {
+   "ts": "2026-08-18T09:20:38",
+   "event": "decision",
+   "what": "ACCEPTED, not fixed: the board is fabricated at 0.127 mm copper clearance rather than the 0.2 mm its netclasses declare, because the unconditional aiee_clearance_floor DRU rule outranks netclass clearance (measured 0.127 mm pad-to-pour on every isolated pad)."
+  },
+  {
+   "ts": "2026-08-18T09:20:38",
+   "event": "decision",
+   "what": "ACCEPTED: the outline's AREA was earned but its ASPECT RATIO was not - the 50 mm width is set by placement.edges pinning J1 left and J2 right. Cost ~1.4 C/W."
+  },
+  {
+   "ts": "2026-08-18T09:20:38",
+   "event": "decision",
+   "what": "ACCEPTED, library note only: C2's 3D model is CASE-E (7343-43, 4.1 mm) while the ordered part is CASE-D (7343-31, 3.1 mm). The FOOTPRINT is correct - only the .wrl/.step is wrong."
+  },
+  {
+   "ts": "2026-08-19T02:18:35",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-19T02:21:05",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-19T02:21:05",
+   "event": "decision",
+   "what": "wo-1 FIXED: 3 in-pad GND vias relocated 0.55 mm past their pad edges with 4 new 0.6 mm F.Cu GND stubs, plus a 4th redundant via on U1 pin 1. Pour 1199.221 -> 1196.867 mm2 (-2.354), ONE island, 0 orphaned; 1083.825 mm2 within 25 mm (floor 1000). drc_routed pass 0/0."
+  },
+  {
+   "ts": "2026-08-19T02:21:05",
+   "event": "decision",
+   "what": "TOOLING DEFECTS in stitch_vias.py, recorded for promotion (not fixed here - skill scripts are out of this board's scope): (a) RING_RADII are measured from the pad CENTRE, so any pad with a half-extent > 0.65 mm gets its via placed INSIDE it; (b) via_check only tests FOREIGN copper, so a via landing in its OWN pad is never caught; (c) it emits no F.Cu stub with a pad via, which orphans the via on any board whose top layer has no copper for that net."
+  },
+  {
+   "ts": "2026-08-19T02:21:06",
+   "event": "decision",
+   "what": "Second redundant via APPROVED for C2 pin 2, NOT for C1 pin 2. Redundancy is granted where an open barrel causes a FUNCTIONAL failure, not by symmetry."
+  },
+  {
+   "ts": "2026-08-19T02:27:42",
+   "event": "snapshot",
+   "label": "pre-fix-3items",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-19T02:32:38",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 4,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-19T02:32:45",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-19T02:35:04",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-19T02:35:05",
+   "event": "decision",
+   "what": "wo-2 (J2 pin 1 thermal relief) NOT APPLIED - accepted as a tooling block, mitigated by an assembly instruction instead. J2.1 stays solid-connected to the pour."
+  },
+  {
+   "ts": "2026-08-19T02:35:05",
+   "event": "decision",
+   "what": "CORRECTION to two numbers in the P8 board review, found by the fixer on a scratch copy: (a) the reviewer's 'copper on 72/72 of a ring at r=1.6 mm' test CANNOT distinguish thermal relief from a solid connection - KiCad's default 0.5 mm thermal gap lies between r=1.0 and r=1.5, so r=1.6 reads full copper in both cases; (b) the relief's cost is 5.363 mm2 of ZONE FILL (not the 2.93 mm2 net-copper delta), and since J2.1 is 17.49 mm from the tab, ALL of it falls INSIDE the 25 mm circle rather than outside it."
+  },
+  {
+   "ts": "2026-08-19T02:35:06",
+   "event": "decision",
+   "what": "THIRD tooling gap recorded: there is no scripted way to set per-pad zone connection. Proposed fix (for the skill, not this board): a  op on route_edit.py backed by pad.SetLocalZoneConnection, plus a per-entry force/override on planes_gen's >=80% existing-fill guard."
+  },
+  {
+   "ts": "2026-08-19T02:35:14",
+   "event": "decision",
+   "what": "CORRECTION to the preceding tooling-gap entry: a shell quoting slip ate the proposed op name. It should read - propose a pad_zone_connect {ref, pad, mode} op on route_edit.py, backed by pad.SetLocalZoneConnection, plus a per-entry force/override on planes_gen's 80-percent existing-fill guard."
+  },
+  {
+   "ts": "2026-08-19T02:35:24",
+   "event": "gate",
+   "gate": "drc_routed",
+   "status": "pass",
+   "attempt": 5,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-19T02:35:25",
+   "event": "gate",
+   "gate": "verify",
+   "status": "pass",
+   "attempt": 4,
    "failing_count": 0
   }
  ],

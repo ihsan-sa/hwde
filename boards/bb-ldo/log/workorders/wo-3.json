@@ -1,0 +1,54 @@
+{
+ "id": 3,
+ "created": "2026-08-18T09:16:42",
+ "gate": null,
+ "phase": null,
+ "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+ "fixer": "fab",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "fab_export.py",
+  "bom_cpl.py",
+  "dfm_check.py"
+ ],
+ "guidance": [
+  "Export-stage defects: re-run fab_export.py (fresh out dir) and re-check with dfm_check.py before re-gating."
+ ],
+ "remediations": [],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "netclass-clearance-overridden-by-dru"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": null,
+   "center": null
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": null,
+    "layer": null,
+    "net": null,
+    "refs": [],
+    "msg": "The board is fabricated at 0.127 mm copper clearance, not the 0.2 mm its own netclasses declare. Measured pad-to-pour gap is 0.127 mm on every isolated pad (C1.1, C1.2, C2.2, J1.1, J1.2, J2.2, U1.1, U1.3 - all identical), while bb-ldo.kicad_pro puts +5V/+3V3/GND in Pwr_0p255mm / Pwr_0p2575mm with clearance 0.2 and the zone itself declares (connect_pads yes (clearance 0.5)). Mechanism to confirm: bb-ldo.kicad_dru's 'aiee_clearance_floor' constrains clearance min 0.1270mm with NO condition, so it matches every object pair and outranks the netclass it was meant to floor; rules_gen emits per-net rules for track_width only, never for clearance, so nothing wins it back - despite the file's own header claiming 'per-net design rules last (later rule wins)'. Consequence on THIS board is mild (0.127 mm is JLC's 2-layer minimum, DRC is 0/0, and the pour is marginally larger than modelled), but the board is built with zero etch and registration margin where the design intended 57 % more, and this is a generated-rules defect that reaches every board the pipeline makes - including ones where the gap is a safety clearance.",
+    "source": "review.board",
+    "kind": "netclass-clearance-overridden-by-dru",
+    "domain": "fab"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+  "schematic": "boards/bb-ldo/kicad/bb-ldo.kicad_sch",
+  "constraints": "boards/bb-ldo/kicad/constraints.json",
+  "decoupling": "boards/bb-ldo/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

@@ -1,0 +1,71 @@
+{
+ "id": 2,
+ "created": "2026-08-18T09:16:42",
+ "gate": null,
+ "phase": null,
+ "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+ "fixer": "plane",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "planes_gen.py",
+  "plane_repair.py",
+  "stitch_vias.py",
+  "route_edit.py",
+  "kc.py"
+ ],
+ "guidance": [
+  "plane_repair.py detects and repairs split planes itself; run it before hand-crafting jumpers.",
+  "Always refill zones after copper edits on plane layers (kicad-cli pcb drc --refill-zones --save-board).",
+  "plane_repair/route_cleanup mutate the board in place and self-detect regressions (exit 1): on exit 1 restore the pre-fix snapshot (state.py restore) and report."
+ ],
+ "remediations": [],
+ "cluster": {
+  "net": "+3V3",
+  "kinds": [
+   "solid-pour-on-handsoldered-pin"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": [
+    48.625,
+    23.37,
+    48.625,
+    23.37
+   ],
+   "center": [
+    48.625,
+    23.37
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": [
+     48.625,
+     23.37
+    ],
+    "layer": "F.Cu",
+    "net": "+3V3",
+    "refs": [
+     "J2"
+    ],
+    "msg": "J2 pin 1 (+3V3) is SOLID-connected to 1199.221 mm2 of 1 oz pour and is then hand-soldered: measured, its full 3.142 mm2 is merged into the zone with copper on 72/72 of a ring at r=1.6 mm. constraints.json planes sets connect 'solid' for the F.Cu +3V3 zone, which is correct and load-bearing for U1's tab, but it applies zone-wide and J2 is a through-hole screw terminal that requirements.md s.7 says is hand soldered after PCBA. The iron cannot raise the pad against that plane: the outcome is a cold joint on the 3.3 V output pin or an overheated board. Every other hand-soldered pin is fine (J1.2 and J2.2 already get 4-spoke relief from the B.Cu zone, J1.1 is isolated on both layers) - J2.1 is the single exception. Fix: per-pad (zone_connect 1) on J2.1 only; it sits 17.49 mm from the tab, outside check_thermal's 14.33 mm reach entirely, and the relief costs ~2.93 mm2 of pour in the partial-effectiveness band - thermally free. If left as-is, put a preheat note in the assembly instructions.",
+    "source": "review.board",
+    "kind": "solid-pour-on-handsoldered-pin",
+    "domain": "plane"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+  "schematic": "boards/bb-ldo/kicad/bb-ldo.kicad_sch",
+  "constraints": "boards/bb-ldo/kicad/constraints.json",
+  "decoupling": "boards/bb-ldo/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

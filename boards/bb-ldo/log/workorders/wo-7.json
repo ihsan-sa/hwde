@@ -1,0 +1,68 @@
+{
+ "id": 7,
+ "created": "2026-08-18T09:16:42",
+ "gate": null,
+ "phase": null,
+ "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+ "fixer": "library",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "lib_pull.py",
+  "fp_verify.py",
+  "datasheet_extract.py"
+ ],
+ "guidance": [
+  "Re-pull the part with lib_pull.py, verify with fp_verify.py against the datasheet land-pattern JSON.",
+  "A footprint change under placed parts requires re-import/re-placement of those refs - flag `requires_pipeline_rewind`."
+ ],
+ "remediations": [],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "wrong-3d-model-case-size"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": [
+    21.3775,
+    32.91,
+    21.3775,
+    32.91
+   ],
+   "center": [
+    21.3775,
+    32.91
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": [
+     21.3775,
+     32.91
+    ],
+    "layer": "F.Cu",
+    "net": null,
+    "refs": [
+     "C2"
+    ],
+    "msg": "C2's 3D model is the wrong case size. CAP-SMD_L7.3-W4.3.kicad_mod references lib/aiee.3dshapes/CASE-E_L7.3-W4.3-H4.1.wrl (EIA 7343-43, 4.1 mm modelled height) and the render has 'CASE-E' printed on the body, but the ordered part is 293D226X9016D2TE3, package CASE-D-7343-31(mm) per parts/parts.json - EIA 7343-31, 3.1 mm max height. Zero consequence at this tier: height is unconstrained, there is no enclosure, and the land pattern and courtyard are correct for 7343 either way. Logged because the 3D model is the artifact any later mechanical or enclosure check reads, and it is currently 1.0 mm too tall.",
+    "source": "review.board",
+    "kind": "wrong-3d-model-case-size",
+    "domain": "library"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+  "schematic": "boards/bb-ldo/kicad/bb-ldo.kicad_sch",
+  "constraints": "boards/bb-ldo/kicad/constraints.json",
+  "decoupling": "boards/bb-ldo/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

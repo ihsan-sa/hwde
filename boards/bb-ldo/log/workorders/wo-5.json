@@ -1,0 +1,60 @@
+{
+ "id": 5,
+ "created": "2026-08-18T09:16:42",
+ "gate": null,
+ "phase": null,
+ "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+ "fixer": "placement",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "place_edit.py",
+  "place_metrics.py",
+  "render.py"
+ ],
+ "guidance": [
+  "Move/rotate/flip parts ONLY via place_edit.py --ops (absolute ops, atomic, verified).",
+  "Moving a placed-and-routed part strands its copper: after any move on a routed board, the affected nets must be re-routed (route_edit removals + route_auto/route_critical) before the routed gates re-pass. Flag this in your summary.",
+  "Re-check with place_metrics.py (or gate.py --gate place)."
+ ],
+ "remediations": [],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "outline-aspect-not-earned"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": null,
+   "center": null
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": null,
+    "layer": null,
+    "net": null,
+    "refs": [
+     "J1",
+     "J2",
+     "U1"
+    ],
+    "msg": "The outline's AREA was earned but its ASPECT RATIO was not, on a canonical binding where geometry is supposed to be an output. 50.000 x 26.420 mm came out of board_edit --outline fit over a thermally-driven placement (thermal_area.json shows the work), but the 50 mm width is forced by constraints.json placement.edges pinning J1 to the left edge and J2 to the right: two 10.16 mm-deep terminals on opposite ends plus U1+C1+C2 between them cannot fit in less, and the height then follows. Heat spreads radially, so shape matters as much as area: at the same 1321 mm2, a squarer outline with the tab near the centre would put roughly 1300 mm2 within 25 mm of the tab instead of the delivered 1086.18 mm2 - about +200 mm2 of effective copper, ~1.4 C/W on the AMS table's own slope, i.e. ~10 % of the 10-15 C junction margin. RECOMMEND WAIVING for this build: the gain is small and the fix is a re-placement plus re-route plus re-pour, and the delivered layout already beat the alternatives (cand1 carried only 517 mm2 within 25 mm). Logged because it is the same species as the bb-buck defect - a geometry input that bound the design without being earned - and nothing else in the pipeline will ever notice it.",
+    "source": "review.board",
+    "kind": "outline-aspect-not-earned",
+    "domain": "placement"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+  "schematic": "boards/bb-ldo/kicad/bb-ldo.kicad_sch",
+  "constraints": "boards/bb-ldo/kicad/constraints.json",
+  "decoupling": "boards/bb-ldo/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

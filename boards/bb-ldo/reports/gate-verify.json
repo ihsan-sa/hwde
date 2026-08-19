@@ -1,0 +1,123 @@
+{
+  "script": "gate",
+  "gate": "verify",
+  "phase": "P8",
+  "tool": "verify",
+  "input": "boards\\bb-ldo\\kicad\\bb-ldo.kicad_pcb",
+  "input_digest": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+  "status": "pass",
+  "criteria": {
+    "fail_severities": [
+      "error"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 4,
+    "by_severity": {
+      "warning": 3,
+      "error": 1
+    },
+    "by_source": {
+      "check_current": 3,
+      "check_thermal": 1
+    },
+    "by_check": {
+      "check_return_path": 0,
+      "check_current": 3,
+      "check_decoupling": 0,
+      "check_diffpair": 0,
+      "check_creepage": 0,
+      "check_thermal": 1,
+      "check_silk": 0,
+      "check_pdn": 0
+    }
+  },
+  "failing_count": 0,
+  "failing": [],
+  "waived_count": 1,
+  "waived": [
+    {
+      "check": "check_thermal",
+      "severity": "error",
+      "pos": [
+        29.515,
+        32.91
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "U1"
+      ],
+      "msg": "U1 dissipates 1.00 W into 585 mm2 of +3V3 copper: ~77 C rise (theta_JA ~77 C/W) > 65 C allowed; add thermal vias to an inner/back plane",
+      "source": "check_thermal",
+      "items": [
+        {
+          "msg": "U1 dissipates 1.00 W into 585 mm2 of +3V3 copper: ~77 C rise (theta_JA ~77 C/W) > 65 C allowed; add thermal vias to an inner/back plane",
+          "pos": [
+            29.515,
+            32.91
+          ]
+        }
+      ],
+      "kind": "thermal_area",
+      "power_w": 1.0,
+      "area_mm2": 584.9742,
+      "theta_ja": 77.3711,
+      "rise_c": 77.3711,
+      "dt_allowed_c": 65.0
+    }
+  ],
+  "coverage": {
+    "strict": false,
+    "required": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "ran": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "passed": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_silk",
+      "check_pdn"
+    ],
+    "failed": [],
+    "waived": [
+      "check_thermal"
+    ],
+    "not_applicable": {},
+    "skipped_error": {}
+  },
+  "record_result": {
+    "ok": true,
+    "recorded": true,
+    "workspace": "boards/bb-ldo",
+    "gate": "verify",
+    "status": "pass",
+    "attempts": 2,
+    "inputs": {
+      "pcb": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+      "constraints": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
+      "decoupling": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23",
+      "waivers": "json_canonical:c3cc6faa258db223e7a31b2cca5ca249d05a704a66e535697a13a3d1eda3ca83"
+    }
+  }
+}

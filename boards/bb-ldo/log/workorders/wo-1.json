@@ -1,0 +1,92 @@
+{
+ "id": 1,
+ "created": "2026-08-18T09:16:42",
+ "gate": null,
+ "phase": null,
+ "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+ "fixer": "router",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "route_edit.py",
+  "kc.py",
+  "render.py",
+  "stitch_vias.py",
+  "route_cleanup.py"
+ ],
+ "guidance": [
+  "Edit copper ONLY via route_edit.py ops (add_track/add_via/remove-by-uuid); never raw file edits.",
+  "DRC violations carry the item uuid (items[].uuid) - remove by uuid, then re-add corrected geometry. Check violations carry coordinates; locate the uuid by matching start/end in the board file text (read-only grounding).",
+  "Repair width rule: match the same-net copper abutting the segment's endpoints, never below the check's required minimum.",
+  "If an edit crosses a zone fill, refill before re-gating: kicad-cli pcb drc --refill-zones --save-board (kc.run_drc refill=True)."
+ ],
+ "remediations": [],
+ "cluster": {
+  "net": "GND",
+  "kinds": [
+   "single-via-ground-path",
+   "via-in-smd-pad"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "error",
+  "count": 2,
+  "region": {
+   "bbox": [
+    27.677,
+    30.064,
+    27.677,
+    30.064
+   ],
+   "center": [
+    27.677,
+    30.064
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "error",
+    "pos": [
+     27.677,
+     30.064
+    ],
+    "layer": "F.Cu",
+    "net": "GND",
+    "refs": [
+     "U1",
+     "C1",
+     "C2"
+    ],
+    "msg": "Three unfilled 0.3 mm vias sit INSIDE SMT solder pads on a JLCPCB economy PCBA board that does not fill or plug vias: (17.318,32.910) fully inside C2.2 (0.283 mm2), (24.820,37.310) inside C1.2 (0.209 mm2), (27.677,30.064) inside U1.1 with its centre 0.004 mm from the pad edge so 0.146 mm of the drill breaks the pad boundary. Paste apertures equal the pads (pad_to_mask_clearance 0), so paste prints over open barrels: solder wicks into the hole and flux volatiles are trapped by the tented back side, giving starved and voided joints; C1.2/C2.2 are polarised tantalum terminations where a void also tilts the part, and U1.1 is the regulator's ONLY ground connection. Root cause is systemic: stitch_vias.py measures RING_RADII (0.65,0.9,1.15) from the pad CENTRE despite documenting them as 'just past the pad edge', and via_check tests foreign copper only, so any pad with a half-extent over 0.65 mm gets a via inside it. Fix: push each via 0.4-0.6 mm further out onto the tool's existing add_track stub; each costs 2.01 mm2 of pour (~6 mm2 of 585 mm2 effective, about 0.1 C/W).",
+    "source": "review.board",
+    "kind": "via-in-smd-pad",
+    "domain": "router"
+   },
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": [
+     27.677,
+     30.064
+    ],
+    "layer": "F.Cu",
+    "net": "GND",
+    "refs": [
+     "U1"
+    ],
+    "msg": "U1's ground reaches the B.Cu plane through exactly ONE 0.3 mm via, with no redundancy: F.Cu carries no GND copper anywhere (the top layer is the +3V3 heatsink pour by design), so this single barrel is the regulator's entire ground path - and per the via-in-smd-pad finding it is also the joint most likely to be compromised. An open or cracked barrel leaves U1 with no ground reference and its output rises toward VIN: 5 V on a rail specified at 3.20-3.40 V, into the owner's load, on a board that by accepted scope carries no protection. This is a redundancy argument, NOT the ampacity question that verify-waivers.json waived - that waiver's cross-section reasoning is correct and does not cover it. Add a second via on U1.1, and on C2.2 (the compensation capacitor's only return); 2.01 mm2 of pour each.",
+    "source": "review.board",
+    "kind": "single-via-ground-path",
+    "domain": "router"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+  "schematic": "boards/bb-ldo/kicad/bb-ldo.kicad_sch",
+  "constraints": "boards/bb-ldo/kicad/constraints.json",
+  "decoupling": "boards/bb-ldo/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

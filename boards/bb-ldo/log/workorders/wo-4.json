@@ -1,0 +1,65 @@
+{
+ "id": 4,
+ "created": "2026-08-18T09:16:42",
+ "gate": null,
+ "phase": null,
+ "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+ "fixer": "review",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "render.py"
+ ],
+ "guidance": [
+  "No script owns this violation kind - triage: either identify the right domain and say so, or escalate to human with a render and a one-paragraph explanation."
+ ],
+ "remediations": [],
+ "cluster": {
+  "net": "+3V3",
+  "kinds": [
+   "check-suppressed-by-constraint-not-waived"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": [
+    33.97,
+    32.91,
+    33.97,
+    32.91
+   ],
+   "center": [
+    33.97,
+    32.91
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": [
+     33.97,
+     32.91
+    ],
+    "layer": "F.Cu",
+    "net": "+3V3",
+    "refs": [
+     "U1"
+    ],
+    "msg": "A second check_thermal finding is suppressed by a constraint value rather than waived, so it is invisible in the gate record. check_thermal computes need_vias = (dt/power) < theta_ja(A_SAT) = 65 < 73.85 -> True and would emit a 'thermal_vias' warning for len(vias) < min_vias, but constraints.json thermal[0].min_vias = 0 makes the test 0 < 0. The ENGINEERING IS CORRECT and should not change - the tab pour is +3V3 and B.Cu is a continuous GND plane, so a stitch via there is a short; state.json records the 12 -> 0 correction on a schematic-reviewer finding with a verified knowledge record behind it. The defect is the audit trail: gate-verify.json reports 3 warnings when the checker wanted to raise 4, and the reasoning lives in a constraints.json _min_vias_why comment instead of verify-waivers.json where a reviewer looks. Either add a third waiver record restating it, or have the gate surface constraint-suppressed checks.",
+    "source": "review.board",
+    "kind": "check-suppressed-by-constraint-not-waived",
+    "domain": "review"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+  "schematic": "boards/bb-ldo/kicad/bb-ldo.kicad_sch",
+  "constraints": "boards/bb-ldo/kicad/constraints.json",
+  "decoupling": "boards/bb-ldo/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

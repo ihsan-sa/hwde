@@ -1,0 +1,100 @@
+{
+  "violations": [
+    {
+      "check": "board-review",
+      "severity": "error",
+      "pos": [27.677, 30.064],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": ["U1", "C1", "C2"],
+      "msg": "Three unfilled 0.3 mm vias sit INSIDE SMT solder pads on a JLCPCB economy PCBA board that does not fill or plug vias: (17.318,32.910) fully inside C2.2 (0.283 mm2), (24.820,37.310) inside C1.2 (0.209 mm2), (27.677,30.064) inside U1.1 with its centre 0.004 mm from the pad edge so 0.146 mm of the drill breaks the pad boundary. Paste apertures equal the pads (pad_to_mask_clearance 0), so paste prints over open barrels: solder wicks into the hole and flux volatiles are trapped by the tented back side, giving starved and voided joints; C1.2/C2.2 are polarised tantalum terminations where a void also tilts the part, and U1.1 is the regulator's ONLY ground connection. Root cause is systemic: stitch_vias.py measures RING_RADII (0.65,0.9,1.15) from the pad CENTRE despite documenting them as 'just past the pad edge', and via_check tests foreign copper only, so any pad with a half-extent over 0.65 mm gets a via inside it. Fix: push each via 0.4-0.6 mm further out onto the tool's existing add_track stub; each costs 2.01 mm2 of pour (~6 mm2 of 585 mm2 effective, about 0.1 C/W).",
+      "source": "review.board",
+      "kind": "via-in-smd-pad",
+      "domain": "router"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [27.677, 30.064],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": ["U1"],
+      "msg": "U1's ground reaches the B.Cu plane through exactly ONE 0.3 mm via, with no redundancy: F.Cu carries no GND copper anywhere (the top layer is the +3V3 heatsink pour by design), so this single barrel is the regulator's entire ground path - and per the via-in-smd-pad finding it is also the joint most likely to be compromised. An open or cracked barrel leaves U1 with no ground reference and its output rises toward VIN: 5 V on a rail specified at 3.20-3.40 V, into the owner's load, on a board that by accepted scope carries no protection. This is a redundancy argument, NOT the ampacity question that verify-waivers.json waived - that waiver's cross-section reasoning is correct and does not cover it. Add a second via on U1.1, and on C2.2 (the compensation capacitor's only return); 2.01 mm2 of pour each.",
+      "source": "review.board",
+      "kind": "single-via-ground-path",
+      "domain": "router"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [48.625, 23.37],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": ["J2"],
+      "msg": "J2 pin 1 (+3V3) is SOLID-connected to 1199.221 mm2 of 1 oz pour and is then hand-soldered: measured, its full 3.142 mm2 is merged into the zone with copper on 72/72 of a ring at r=1.6 mm. constraints.json planes sets connect 'solid' for the F.Cu +3V3 zone, which is correct and load-bearing for U1's tab, but it applies zone-wide and J2 is a through-hole screw terminal that requirements.md s.7 says is hand soldered after PCBA. The iron cannot raise the pad against that plane: the outcome is a cold joint on the 3.3 V output pin or an overheated board. Every other hand-soldered pin is fine (J1.2 and J2.2 already get 4-spoke relief from the B.Cu zone, J1.1 is isolated on both layers) - J2.1 is the single exception. Fix: per-pad (zone_connect 1) on J2.1 only; it sits 17.49 mm from the tab, outside check_thermal's 14.33 mm reach entirely, and the relief costs ~2.93 mm2 of pour in the partial-effectiveness band - thermally free. If left as-is, put a preheat note in the assembly instructions.",
+      "source": "review.board",
+      "kind": "solid-pour-on-handsoldered-pin",
+      "domain": "plane"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": [],
+      "msg": "The board is fabricated at 0.127 mm copper clearance, not the 0.2 mm its own netclasses declare. Measured pad-to-pour gap is 0.127 mm on every isolated pad (C1.1, C1.2, C2.2, J1.1, J1.2, J2.2, U1.1, U1.3 - all identical), while bb-ldo.kicad_pro puts +5V/+3V3/GND in Pwr_0p255mm / Pwr_0p2575mm with clearance 0.2 and the zone itself declares (connect_pads yes (clearance 0.5)). Mechanism to confirm: bb-ldo.kicad_dru's 'aiee_clearance_floor' constrains clearance min 0.1270mm with NO condition, so it matches every object pair and outranks the netclass it was meant to floor; rules_gen emits per-net rules for track_width only, never for clearance, so nothing wins it back - despite the file's own header claiming 'per-net design rules last (later rule wins)'. Consequence on THIS board is mild (0.127 mm is JLC's 2-layer minimum, DRC is 0/0, and the pour is marginally larger than modelled), but the board is built with zero etch and registration margin where the design intended 57 % more, and this is a generated-rules defect that reaches every board the pipeline makes - including ones where the gap is a safety clearance.",
+      "source": "review.board",
+      "kind": "netclass-clearance-overridden-by-dru",
+      "domain": "fab"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [33.97, 32.91],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": ["U1"],
+      "msg": "A second check_thermal finding is suppressed by a constraint value rather than waived, so it is invisible in the gate record. check_thermal computes need_vias = (dt/power) < theta_ja(A_SAT) = 65 < 73.85 -> True and would emit a 'thermal_vias' warning for len(vias) < min_vias, but constraints.json thermal[0].min_vias = 0 makes the test 0 < 0. The ENGINEERING IS CORRECT and should not change - the tab pour is +3V3 and B.Cu is a continuous GND plane, so a stitch via there is a short; state.json records the 12 -> 0 correction on a schematic-reviewer finding with a verified knowledge record behind it. The defect is the audit trail: gate-verify.json reports 3 warnings when the checker wanted to raise 4, and the reasoning lives in a constraints.json _min_vias_why comment instead of verify-waivers.json where a reviewer looks. Either add a third waiver record restating it, or have the gate surface constraint-suppressed checks.",
+      "source": "review.board",
+      "kind": "check-suppressed-by-constraint-not-waived",
+      "domain": "review"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": ["J1", "J2", "U1"],
+      "msg": "The outline's AREA was earned but its ASPECT RATIO was not, on a canonical binding where geometry is supposed to be an output. 50.000 x 26.420 mm came out of board_edit --outline fit over a thermally-driven placement (thermal_area.json shows the work), but the 50 mm width is forced by constraints.json placement.edges pinning J1 to the left edge and J2 to the right: two 10.16 mm-deep terminals on opposite ends plus U1+C1+C2 between them cannot fit in less, and the height then follows. Heat spreads radially, so shape matters as much as area: at the same 1321 mm2, a squarer outline with the tab near the centre would put roughly 1300 mm2 within 25 mm of the tab instead of the delivered 1086.18 mm2 - about +200 mm2 of effective copper, ~1.4 C/W on the AMS table's own slope, i.e. ~10 % of the 10-15 C junction margin. RECOMMEND WAIVING for this build: the gain is small and the fix is a re-placement plus re-route plus re-pour, and the delivered layout already beat the alternatives (cand1 carried only 517 mm2 within 25 mm). Logged because it is the same species as the bb-buck defect - a geometry input that bound the design without being earned - and nothing else in the pipeline will ever notice it.",
+      "source": "review.board",
+      "kind": "outline-aspect-not-earned",
+      "domain": "placement"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [31.0, 32.91],
+      "layer": "F.SilkS",
+      "net": null,
+      "refs": ["U1"],
+      "msg": "No hot-surface legend anywhere on a board whose entire top copper IS the radiator. At the design point the tab copper sits near 95 C and the pour runs 65-80 C across most of the top face, so there is no cool place for a user to hold it; requirements.md s.8 records this as a live bench hazard ('typically 80-110 C surface'). The top silk carries only the terminal legend and refdes, and the bottom silk is completely empty. One gr_text on the empty bottom copper or beside U1 costs nothing and is not an excluded feature class (block-only excludes 'indicators', i.e. LEDs, not legend). Waivable: requirements s.8 rules the HAZARD out of scope, which is about the hazard rather than about labelling it - the human decides.",
+      "source": "review.board",
+      "kind": "no-hot-surface-legend",
+      "domain": "silk"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [21.3775, 32.91],
+      "layer": "F.Cu",
+      "net": null,
+      "refs": ["C2"],
+      "msg": "C2's 3D model is the wrong case size. CAP-SMD_L7.3-W4.3.kicad_mod references lib/aiee.3dshapes/CASE-E_L7.3-W4.3-H4.1.wrl (EIA 7343-43, 4.1 mm modelled height) and the render has 'CASE-E' printed on the body, but the ordered part is 293D226X9016D2TE3, package CASE-D-7343-31(mm) per parts/parts.json - EIA 7343-31, 3.1 mm max height. Zero consequence at this tier: height is unconstrained, there is no enclosure, and the land pattern and courtyard are correct for 7343 either way. Logged because the 3D model is the artifact any later mechanical or enclosure check reads, and it is currently 1.0 mm too tall.",
+      "source": "review.board",
+      "kind": "wrong-3d-model-case-size",
+      "domain": "library"
+    }
+  ]
+}

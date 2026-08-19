@@ -1,0 +1,68 @@
+{
+ "id": 6,
+ "created": "2026-08-18T09:16:42",
+ "gate": null,
+ "phase": null,
+ "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+ "fixer": "silk",
+ "role_prompt": "C:/dev/ai-ee3/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "place_edit.py",
+  "render.py"
+ ],
+ "guidance": [
+  "place_edit.py carries add_text (board-frame silk text, idempotent) and move_text (refdes/value field repositioning) ops - S14 closed the V17 gap. Labels must be PIN-LOCKED (a label readable against the wrong pin is worse than none); footprint-INTERNAL silk defects are librarian edits (approval + lib/EDITS.md), not board text.",
+  "A silk collision may also be fixed by nudging the FOOTPRINT via place_edit within placement legality.",
+  "Verify with check_silk.py, the drc_routed gate (err+warn includes silk), and a render of the region READ back."
+ ],
+ "remediations": [],
+ "cluster": {
+  "net": null,
+  "kinds": [
+   "no-hot-surface-legend"
+  ],
+  "checks": [
+   "review.board"
+  ],
+  "severity": "warning",
+  "count": 1,
+  "region": {
+   "bbox": [
+    31.0,
+    32.91,
+    31.0,
+    32.91
+   ],
+   "center": [
+    31.0,
+    32.91
+   ]
+  },
+  "violations": [
+   {
+    "check": "board-review",
+    "severity": "warning",
+    "pos": [
+     31.0,
+     32.91
+    ],
+    "layer": "F.SilkS",
+    "net": null,
+    "refs": [
+     "U1"
+    ],
+    "msg": "No hot-surface legend anywhere on a board whose entire top copper IS the radiator. At the design point the tab copper sits near 95 C and the pour runs 65-80 C across most of the top face, so there is no cool place for a user to hold it; requirements.md s.8 records this as a live bench hazard ('typically 80-110 C surface'). The top silk carries only the terminal legend and refdes, and the bottom silk is completely empty. One gr_text on the empty bottom copper or beside U1 costs nothing and is not an excluded feature class (block-only excludes 'indicators', i.e. LEDs, not legend). Waivable: requirements s.8 rules the HAZARD out of scope, which is about the hazard rather than about labelling it - the human decides.",
+    "source": "review.board",
+    "kind": "no-hot-surface-legend",
+    "domain": "silk"
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/bb-ldo/kicad/bb-ldo.kicad_pcb",
+  "schematic": "boards/bb-ldo/kicad/bb-ldo.kicad_sch",
+  "constraints": "boards/bb-ldo/kicad/constraints.json",
+  "decoupling": "boards/bb-ldo/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}
