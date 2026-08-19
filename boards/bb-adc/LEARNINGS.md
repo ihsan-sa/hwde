@@ -523,3 +523,103 @@ whole sweep, because the wrong numbers arrive silently and plausibly. The cheap 
 that caught it: run the deck at three `reltol` settings decades apart - real physics is
 identical to 5 digits (verified so for every settling number in `acquisition-settling`),
 a fallback-corrupted solve is not.
+
+## 2026-08-18 [P8][sim][analog] Seeding a REJECTED PART as the deliberate defect turns a bench into an independent audit of an earlier decision
+
+Every bench on this board was calibrated by mutating one value to the defect it exists
+to catch, confirming the bound trips, and reverting. For the settling bench the obvious
+mutation was a wrong resistor - but substituting the **rejected amplifier** was
+available for free, and it did something a value-mutation cannot.
+
+The OPA333 had been rejected at P2/P3 on three arguments assembled from datasheet
+numbers: a GBW floor of 48/(2*pi*t_acq) = 849 kHz against its 350 kHz, its own measured
+40.4 us settling curve, and an isolation-resistor interval that looked empty (that third
+argument was later WITHDRAWN as an overreach - the vendor equation gives an optimum, not
+a maximum). Dropping its model into the settling bench moved the settling error from
+**0.136 uV to 4509 uV** - a 33,000x miss of a 15.6 uV budget.
+
+Why this is worth more than an ordinary seeded defect: the rejection had been argued
+across two phases, partly on a leg that turned out to be wrong, and re-derived from a
+different datasheet's timing section. A defect seed that reproduces a REAL earlier
+decision closes the loop on it with a different method entirely - simulation rather than
+datasheet arithmetic - and would have flagged a rejection made for bad reasons.
+
+Generalise: when a bench needs a seeded defect and the project has already REJECTED a
+candidate for that exact role, seed the rejected candidate. It costs nothing extra, it
+proves the bound discriminates on the axis that actually decided the design, and it
+audits a decision that otherwise never gets re-tested.
+
+## 2026-08-19 [P7][stitch_vias][drc][kicad] stitch_vias' hole-to-hole model is 0.3 mm too permissive - KiCad measures hole EDGE to hole EDGE, so the tool ships DRC errors it cannot see
+
+stitch_vias' docstring pins its spacing model as "EDGE_GAP = 0.5 - 0.3 = 0.2 mm - identical
+to the S11-verified 0.5 mm CENTRE floor for two standard 0.3-drill vias". That equivalence
+is wrong, and it is wrong in the unsafe direction.
+
+THE ARITHMETIC. KiCad 10 measures `hole_to_hole` between hole EDGES, so what the rule sees is
+
+    measured = centre_spacing - drill_diameter        (both drills 0.30 mm)
+
+On this board stitch_vias proposed a GND via at (41.85, 39.85) for U3.2 while an existing
+0.6/0.3 GND via sat at (41.60, 40.40): centre spacing sqrt(0.25^2 + 0.55^2) = **0.604 mm**,
+comfortably past its own 0.5 mm model floor. Applied to a scratch copy of the finished board,
+that exact spacing produces a hard error:
+
+    error hole_to_hole | Drilled hole too close to other hole
+                       | (rule 'aiee_hole_to_hole_floor' min 0.4995 mm; actual 0.3042 mm)
+
+0.604 - 0.30 = 0.304, matching the reported 0.3042 exactly. So a 0.5 mm hole_to_hole rule needs
+**0.8 mm centre-to-centre** for two 0.3-drill vias, not 0.5 mm: everything stitch_vias places in
+the (0.5, 0.8) mm band next to an existing same-net via is a violation its own check passes and
+the gate then fails on. The band widens with drill size - the floor is always
+`rule + drill_a/2 + drill_b/2` centre-to-centre.
+
+SECOND TRAP, same op. `already_stitched` is a **0.2 mm pad-centre-to-via proximity test**, so a
+pad properly connected by a short track to a via 0.9 mm away is reported as needing stitching at
+all. 11 of 12 GND SMD pads here were correctly skipped; the 12th was electrically stitched
+already and still generated a proposal.
+
+MITIGATION. Always run `--dry-run` first and treat every proposal as a candidate **LOCATION**,
+not as an addition to apply. Measure each proposed `at` against the existing same-net vias with
+the arithmetic above before writing anything. On this board the proposed spot was directly under
+the pad and strictly better than what was there, so the right answer was not to add the via but
+to **REPLACE** the existing one - and the jog track that had forced the offset via disappeared
+with it, shortening the op-amp's V- return and leaving more guard copper inside the ring. A
+proposal that is illegal as an addition is often correct as a relocation.
+
+## 2026-08-19 [P7][planes_gen][guard-ring][analog] A driven guard ring is a planes_gen zone with connect:solid - and closure is a provable geometric property, not an eyeball
+
+The /AIN_DIV tap on this board (~240 kohm Thevenin) needs a guard ring poured on
+/AIN_BUF, the buffer OUTPUT - same potential, low impedance (record
+`resistive-attenuator-high-z-tap-guard-and-leakage`). Two things made it buildable
+without hand-drawing a trace loop:
+
+1. **planes_gen builds it.** One entry in a `planes` sidecar -
+   `{"net":"/AIN_BUF","layer":"F.Cu","region":[40.40,37.90,45.20,43.20],"priority":1,
+   "connect":"solid","min_width":0.25}` - and KiCad's own filler forms the ring, because
+   the fill flows around every foreign pad at clearance and merges with the same-net pad
+   it must be driven from. `connect: solid` is load-bearing: with the default thermal
+   relief the fill does NOT merge with U3.1's pad and the ring never closes through it.
+   Gotcha: planes_gen REJECTS unknown keys on a `planes` entry - a `_why` string, which
+   every other constraints.json section carries, is a hard `CheckError: planes[0]: unknown
+   keys ['_why']`. Park the rationale in a sibling key on the sidecar root.
+
+2. **The region is chosen from the CHANNELS, not from the node.** Copper 0.127 wide plus
+   2 x 0.127 clearance needs 0.381 mm, so the 0.35 mm SOT-23-5 pin1/pin2 and pin2/pin3
+   channels cannot carry the ring at all - the closed ring has to encircle the V- pin
+   TOGETHER with the +IN pin, and V- escapes straight down through its own via. The four
+   legs run through the channels that DO fit: the 1.5 mm inter-row channel under the
+   package (north), the 0.87 mm channels under the two adjacent 0805 bodies (west/east),
+   and open board south of the string.
+
+3. **Closure is a test, not a judgement.** Union the net's F.Cu copper (fill + pads +
+   tracks); the ring is closed iff that union is ONE polygon carrying an interior ring
+   (a hole) that `contains()` the whole guarded net's copper. Here: 1 polygon, 1 hole,
+   `contains(/AIN_DIV) == True`, minimum ring copper width 0.612 mm, guard-to-node gap
+   exactly 0.127 mm (the DRU floor - the guard sits as tight as it is legal to sit).
+   Re-run it after EVERY refill: route_auto, route_edit + refill and plane_repair all
+   restate the fill, and a ring that closed before the autoroute is not evidence about
+   the ring that ships.
+
+Anything placed inside the ring must exist BEFORE the pour, because KiCad's filler leaves
+no room for a via added later: the V- escape via and both /AIN_DIV traces were laid with
+route_edit first, and the fill formed around them.

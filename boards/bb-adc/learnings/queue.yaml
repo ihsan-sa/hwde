@@ -1,7 +1,7 @@
 version: 1
 board: bb-adc
 source: LEARNINGS.md
-compiled: '2026-08-16'
+compiled: '2026-08-19'
 entries:
 - entry: 2026-08-16-a-blockquoted-brief-silently-disables-the-entire
   line: 8
@@ -213,4 +213,158 @@ entries:
   - boards/bb-adc/research/records/precision-buffer-riso-settling-stability-collision.yaml
   - boards/bb-adc/research/records/precision-buffer-sar-charge-bucket-interface.yaml
   - boards/bb-adc/research/records/precision-buffer-settles-not-bandwidth.yaml
+  status: pending
+- entry: 2026-08-16-lcsc-s-own-datasheet-url-can-resolve
+  line: 346
+  date: '2026-08-16'
+  title: LCSC's own datasheet URL can resolve to a "Datasheet temporarily unavailable" stub, and parts_search
+    does not filter that pattern
+  tags:
+  - P3
+  - parts
+  - jlc
+  - sourcing
+  stage: P3
+  proposed_level: null
+  targets:
+  - scripts/parts_search.py
+  status: pending
+- entry: 2026-08-17-place-ic-with-decoupling-s-default-caps
+  line: 376
+  date: '2026-08-17'
+  title: '`place_ic_with_decoupling`''s default `caps_dx` is too small for this library''s 2-pin symbols,
+    and it fails as a confusing label-guard error'
+  tags:
+  - P4
+  - schlib
+  - python
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-17-kicad-10-0-3-erc-is-indifferent
+  line: 394
+  date: '2026-08-17'
+  title: KiCad 10.0.3 ERC is indifferent to `no_connect`-typed pins - marker or no marker - so the NC
+    marker is documentation, not compliance
+  tags:
+  - P4
+  - schematic
+  - erc
+  stage: P4
+  proposed_level: null
+  targets:
+  - scripts/kc.py
+  status: pending
+- entry: 2026-08-17-schlib-guards-labels-landing-on-wires-a
+  line: 412
+  date: '2026-08-17'
+  title: schlib guards labels-landing-on-wires; a hand-drawn wire needs the MIRROR check, and on this
+    board that guard is the only thing between a correct netlist and a silently wrong one
+  tags:
+  - P4
+  - schematic
+  - analog
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-18-supersedes-the-2026-08-17-sense-run
+  line: 431
+  date: '2026-08-18'
+  title: 'SUPERSEDES the 2026-08-17 sense-run entry: a remote sense must be its OWN NET with a single-point
+    tie PART - "electrically one net" is the wrong unit of analysis once a pour exists'
+  tags:
+  - P4
+  - schematic
+  - analog
+  - layout
+  stage: P4
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-18-a-freshly-pulled-symbol-comes-back-with
+  line: 464
+  date: '2026-08-18'
+  title: A freshly pulled symbol comes back with `input` pins into a library whose other symbols were
+    already retyped - and the whole-library fixer would undo a hand-edit
+  tags:
+  - P4
+  - parts
+  - lib_pull
+  - erc
+  stage: P4
+  proposed_level: null
+  targets:
+  - scripts/lib_pin_types.py
+  - scripts/lib_pull.py
+  - scripts/schlib.py
+  status: pending
+- entry: 2026-08-19-meas-param-rejects-braces-and-the-measure
+  line: 485
+  date: '2026-08-19'
+  title: '`.meas ... param=''...''` rejects {braces} - and the measure vanishes with the run still reporting
+    ok'
+  tags:
+  - P8
+  - sim
+  - ngspice
+  stage: P8
+  proposed_level: null
+  targets:
+  - scripts/sim_run.py
+  status: pending
+- entry: 2026-08-19-mixing-clamped-and-unclamped-output-stages-in
+  line: 506
+  date: '2026-08-19'
+  title: Mixing clamped and unclamped output stages in ONE .dc deck silently corrupts the OTHER instances
+  tags:
+  - P8
+  - sim
+  - ngspice
+  - opamp
+  stage: P8
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-18-seeding-a-rejected-part-as-the-deliberate
+  line: 527
+  date: '2026-08-18'
+  title: Seeding a REJECTED PART as the deliberate defect turns a bench into an independent audit of an
+    earlier decision
+  tags:
+  - P8
+  - sim
+  - analog
+  stage: P8
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-19-stitch-vias-hole-to-hole-model-is
+  line: 552
+  date: '2026-08-19'
+  title: stitch_vias' hole-to-hole model is 0.3 mm too permissive - KiCad measures hole EDGE to hole EDGE,
+    so the tool ships DRC errors it cannot see
+  tags:
+  - P7
+  - stitch_vias
+  - drc
+  - kicad
+  stage: P7
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-19-a-driven-guard-ring-is-a-planes
+  line: 589
+  date: '2026-08-19'
+  title: A driven guard ring is a planes_gen zone with connect:solid - and closure is a provable geometric
+    property, not an eyeball
+  tags:
+  - P7
+  - planes_gen
+  - guard-ring
+  - analog
+  stage: P7
+  proposed_level: null
+  targets: []
   status: pending
