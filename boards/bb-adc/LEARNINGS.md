@@ -774,3 +774,36 @@ SILK GOTCHA from the same pass: `add_text` at size 0.7 draws a `text_height` DRC
 board setup enforces a 0.8 mm silk minimum. `check_silk` does NOT catch it (it is lenient
 by design and never the oracle); `kicad-cli pcb drc` does. Size every scripted silk string
 at >= the board's own minimum and verify with kc drc.
+
+## 2026-08-19 [P6][P8][library][placement] A footprint can contradict ITSELF, and then a render check certifies the wrong orientation
+
+`CONN-TH_2P-P5.00_WJ500V-5.08-2P` in `lib/aiee.pretty` draws its silk wire-entry arrows
+on the OPPOSITE face from its own 3D model's openings. The placement agent did the right
+thing - it explicitly refused to trust the seed rotation and PROVED the mating direction
+with an orthographic side render - and got the wrong answer, because the render faithfully
+rendered a lie. The board went to routing with a screw terminal whose wire throats faced
+INTO the board: the field lead would have had to enter from the interior and lay back
+across the 1 Mohm string and the header ribbon.
+
+A fresh-context reviewer caught it by going to the 3D model's actual opening geometry
+(two 3.0 mm openings, z 3.0-9.8 mm, on the local +y face; the opposite face solid) and
+applying the rotation transform. The vendor drawing settles it: the body is ASYMMETRIC
+about the pin row, 4.50 mm on one side and 3.14 mm on the other, and the openings are on
+the 4.50 side. That asymmetry is the check - it is a NUMBER, not a picture.
+
+The rule to carry: **a render of a footprint cannot outrank the part geometry it draws.**
+When orientation matters (any connector with a mating direction), verify against a
+dimensioned asymmetry - courtyard or fab-layer extents about the pad row - or against the
+3D model, and treat footprint silk as decoration. Cost here: a full placement round-trip,
+a re-route of two nets, and the discovery that a 180-degree rotation SWAPS THE PADS, so
+"just rotate it" without re-routing would have shipped a differently-wrong board.
+
+Two follow-ons worth having. The library footprint is deliberately NOT patched - a re-pull
+reverts it - so anyone reusing it inherits the trap. And the wrong arrows were also
+PRINTED on the board instance, next to correct SIG/GND text: a user trusting the arrow
+over the text is actively misled by the board. Fixing that exposed a pipeline gap - no
+scripted op owns footprint-instance graphics (`remove_text` matches `board.GetDrawings()`,
+i.e. board-frame `gr_text` only; `route_edit` does copper, `board_edit` does Edge.Cuts,
+`fpfix` takes a `.pretty` and never a board), so it needed a one-off SWIG worker built on
+`place_edit`'s stage-verify-replace contract. A `mirror_fp_graphic` / `remove_fp_graphic`
+op on `place_swig` is the gap worth closing.

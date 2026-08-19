@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries bb-adc --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-19 04:54:28
+generated 2026-08-19 04:58:13
 \end{center}
 \tableofcontents
 
@@ -30,9 +30,9 @@ generated 2026-08-19 04:54:28
 board & bb-adc \\
 workspace & \texttt{boards/bb-adc} \\
 phase & P9 \\
-gate status & all 5 recorded gates pass \\
+gate status & all 6 recorded gates pass \\
 state created & 2026-08-16T17:25:12 \\
-state updated & 2026-08-19T04:54:08 \\
+state updated & 2026-08-19T04:57:53 \\
 \bottomrule
 \end{longtable}
 }
@@ -403,6 +403,7 @@ P8 & E1 fix verified from the FOOTPRINTS OWN GEOMETRY rather than from my ruling
 P8 & Board size held at 54.750 x 34.920 mm after the J1 rotation. A re-fit was checked with --report-only and would have given 54.75 x 34.937 - a 17 um delta, below manufacturing noise - and was REFUSED because applying it would trigger the board-grew path and force a planes\_gen re-run for nothing & Re-fitting is not free: it invalidates the pour and drags a re-verification of the guard ring, which on this board closes on a 73 um margin. Spending that to chase 17 um is a bad trade, and checking with --report-only before touching anything is exactly the right way to find that out \\
 P8 & W1 root cause fixed rather than its symptom: verify\_all warned "no bulk on +3V3" and it was a FALSE POSITIVE - C1 is a 10 uF sitting 0.925 mm from J2.1 - but the cause was that decoupling.json OMITTED C1 entirely, so check\_decoupling never examined the rail-entry bulk at all. C1 is now associated, and both check\_decoupling and check\_pdn read 0 & The warning was right to fire and wrong about why. A check that passes because an association is missing is worse than one that fails: it reports on copper it never looked at. Fixing the sidecar makes the check examine real copper instead of passing by omission \\
 P8 & ACCEPTED, with the deviation disclosed: the J1 silk arrows were corrected on the board instance by a one-off SWIG worker, because NO PIPELINE OP OWNS FOOTPRINT-INSTANCE GRAPHICS. add\_text/remove\_text/move\_text are the only silk ops and remove\_text matches board.GetDrawings() - board-frame gr\_text - so it cannot see footprint children at all; route\_edit does tracks and vias, board\_edit does Edge.Cuts, and fpfix takes --lib \textless{}dir\textgreater{}.pretty and never a board. The worker followed place\_edits own contract: stage a copy beside the board, edit under bundled python, re-parse and DRC the copy, os.replace only after it verified clean & The alternative was shipping a board whose own silkscreen contradicts its own labels within millimetres - an arrow pointing at a solid plastic wall next to text saying SIG. The agent disclosed the deviation plainly rather than quietly raw-editing, and used the safest available pattern. Recorded as a PIPELINE GAP worth a plan step: a mirror\_fp\_graphic / remove\_fp\_graphic op on place\_swig. Nice detail found on the way - the correct mirror axis is the BODY axis at x 25.06, not the pad row at 24.5; mirroring about the pad row would have overhung the body by \textasciitilde{}1 mm and collided with the new SIG label \\
+P8 & Issue 1 (corridor\_void cluster, 2 errors) CLOSED as fixed: /SCLK and /DOUT cleared entirely by rebuilding the /CS crossing as a perpendicular via pair so both crossings fall inside the vias 0.95 mm excision disks; the /CS residual fell 2.35 -\textgreater{} 0.20 mm2 and 1.81 -\textgreater{} 0.03 mm and is waived on two independent grounds & Recorded as a decision because the issue record itself takes no note field. One of the two findings was fixed outright, one was reduced by \textasciitilde{}91 pct and waived - so "fixed" is the honest status for the cluster while the waiver carries the remainder \\
 \bottomrule
 \end{longtable}
 }
@@ -535,7 +536,7 @@ Spatial order across the board, from D4: {*}{*}\texttt{J1} -\textgreater{} \text
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-18T08:52:06, failing 0 of 0.
+Gate \texttt{erc} (phase P4): \textbf{pass} after 3 attempt(s); last 2026-08-19T04:57:36, failing 0 of 0.
 \subsection*{Review waivers}
 \subsection*{ERC / schematic-review waivers - bb-adc}
 Machine ERC is 0/0 (gate \texttt{erc} PASS, commit 1befa1e). This file records the schematic-review WARNINGS that are accepted rather than fixed, and why. The single ERROR (E1, the Kelvin sense not surviving the pour) was FIXED, not waived.
@@ -563,7 +564,7 @@ statement).
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-Gate \texttt{place} (phase P6): \textbf{pass} after 6 attempt(s); last 2026-08-19T03:00:09, failing 0 of 0.
+Gate \texttt{place} (phase P6): \textbf{pass} after 7 attempt(s); last 2026-08-19T04:57:37, failing 0 of 0.
 
 Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 10 attempt(s); last 2026-08-19T04:53:50, failing 0 of 0.
 \begin{center}
@@ -800,7 +801,35 @@ makes it negligible; a humid, unwashed one makes it worse.
 bench plate I cannot see.
 \end{itemize}
 \section{DFM and Fabrication}
-Gate \texttt{dfm}: \emph{not recorded}.
+Gate \texttt{dfm} (phase P9): \textbf{pass} after 2 attempt(s); last 2026-08-19T04:56:31, failing 0 of 0.
+DFM findings by severity: none.
+\subsection*{Fabrication outputs}
+Exported layers: F.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
+\subsection*{Bill of materials}
+{\small
+\begin{longtable}{p{4.4cm}p{2.8cm}p{4.6cm}l}
+\toprule
+\textbf{Comment} & \textbf{Designator} & \textbf{Footprint} & \textbf{LCSC} \\
+\midrule
+\endhead
+10uF 25V X5R & C1,C8 & C0805 & C15850 \\
+100nF 16V X7R & C2,C4,C6 & C0402 & C1525 \\
+47uF 16V X7R & C3 & C1210 & C5440143 \\
+2.2uF 10V X7R & C5 & C0603 & C513691 \\
+1nF 50V C0G/NP0 & C7 & C0603 & C106246 \\
+WJ500V-5.08-2P & J1 & CONN-TH\_2P-P5.00\_WJ500V-5.08-2P & C8465 \\
+1x6P 2.54mm male header & J2 & HDR-TH\_6P-P2.54-V-M-1 & C37208 \\
+200K 0.02\% 10ppm/C & R1,R2,R3,R4,R5 & R0805 & C23067436 \\
+49.9 ohm 1\% & R6 & R0603 & C23185 \\
+10 ohm 1\% & R7 & R0603 & C22859 \\
+0 ohm 1\% & R8 & R0603 & C21189 \\
+ADS8326IB & U1 & VSSOP-8\_L3.0-W3.0-P0.65-LS5.0-BL & C544731 \\
+ADR4520B & U2 & SOIC-8\_L5.0-W4.0-P1.27-LS6.0-BL & C579305 \\
+OPA320 & U3 & SOT-23-5\_L3.0-W1.7-P0.95-LS2.8-BR & C92494 \\
+\bottomrule
+\end{longtable}
+}
+2 CPL rotation correction(s) applied; no missing LCSC numbers.
 \emph{fab/order.json not available.}
 \section{Run Record (Appendix)}
 \subsection*{Phase digests}
@@ -904,7 +933,29 @@ screw terminal bind no standard. Detail lives in research/{*}.md.\\
   B1 gap on constraints-emission only. No research spent, 2 tasks remain.
 \end{quote}
 \paragraph*{P4}
-\emph{(no digest recorded)}
+\begin{quote}\small\ttfamily\raggedright
+\# P4 Schematic - digest\\
+~\\
+- ONE schematic agent, FLAT root sheet (a child-sheet label exports as\\
+  /\textless{}sheet\textgreater{}/\textless{}LABEL\textgreater{} and silently unhooks every constraints.json entry - the defect that\\
+  cost lumina-par). 24 components, 14 canonical nets, 61/61 pins connected.\\
+- Gate `erc` PASS 0/0 (2 attempts; commits 1befa1e then d1738e6). netlist\_audit exit 0\\
+  with one accepted warning (`power\_no\_consumers` on VREF - the REF pin is typed\\
+  `passive` in the pulled symbol; not hand-retyped because lib\_pin\_types.py would\\
+  silently revert U2's five no\_connect pins).\\
+- Adversarial review 1 error / 5 warnings. E1 was the important one and it overturned\\
+  my own guidance: -IN on GND with the Kelvin intent carried by PLACEMENT does not\\
+  survive the pour, because the pour TERMINATES pin 3 locally and the sense node stops\\
+  being the string bottom at all. Fixed by giving it its own net /AGND\_SENSE =\\
+  \{U1.3, R5.2, R8.1\} with a single 0 ohm tie R8 - netlist-enforced, so every gate now\\
+  checks it. Residual is the J1-return-to-string-bottom offset at sub-1 uV.\\
+- Warnings actioned: the error budget had been computed on the OPA333 and was restated\\
+  for the OPA320 actually fitted; the host power-up wait rose 10 -\textgreater{} 50 ms (charging\\
+  49.2 uF at the reference's 10 mA limit is ALREADY 7-10 ms); J2's destructive\\
+  mis-mate stated; C7's floor to be sized on GUARANTEED minimum at P8.\\
+- The reviewer parsed the s-expression and the netlist directly rather than trusting\\
+  the rendered PDF - which is how E1 was found at all.
+\end{quote}
 \paragraph*{P5}
 \begin{quote}\small\ttfamily\raggedright
 \# P5 Board Setup - digest\\
@@ -924,9 +975,49 @@ screw terminal bind no standard. Detail lives in research/{*}.md.\\
   later gate resolves them from the board's own directory.
 \end{quote}
 \paragraph*{P6}
-\emph{(no digest recorded)}
+\begin{quote}\small\ttfamily\raggedright
+\# P6 Placement - digest\\
+~\\
+- Hand-placed canonical layout; EVERY anneal candidate rejected. Root cause recorded:\\
+  place\_anneal RE-DERIVES satellite slots from place\_seed rather than inheriting the\\
+  placement handed to it, so a 0.7 \% hpwl win cost a 60 \% violation of a declared\\
+  decoupling distance (C3 3.97 mm against a 2.5 mm limit). hpwl 327.23 -\textgreater{} 223.47 mm.\\
+- Gate `place` PASS 0/0; route probe completion 1.00 (41/41); 25/25 front, 25/25 locked\\
+  (the guard room, tap stub, sense tie and string order are specifications no gate can\\
+  re-verify - locking is what stops a later pass optimising them away).\\
+- Geometry EARNED: 63.95 x 66.03 provisional -\textgreater{} 54.750 x 34.920 mm, 1911.9 mm2. The\\
+  J1-to-R1 span decomposes as 4.5 mm connector body + 2.0 mm screwdriver access +\\
+  0.8 mm pad approach = 7.3 mm. The earlier 16.5 mm was not merely unearned, it was\\
+  WORSE: every record touching that net says leakage and pickup scale with length.\\
+  H1/H2 - not J1 - had been defining the west edge.\\
+- Silk 0 warnings after silk\_place (2 refdes moved, no residual).\\
+- Handed to P7: the SPI fan needs exactly 2 crossings (J2 CS,SCLK,DOUT vs converter\\
+  CS,DOUT,SCLK is a 3-cycle), and the guard ring cannot close through the 0.35 mm\\
+  U3 pin2/pin3 channel, so it must encircle V- together with the input pin.
+\end{quote}
 \paragraph*{P7}
-\emph{(no digest recorded)}
+\begin{quote}\small\ttfamily\raggedright
+\# P7 Routing - digest\\
+~\\
+- 2-layer chain, one deliberate substitution: `route\_critical` SKIPPED (no diff pairs,\\
+  no RF, no high-current net, and its 0.3 mm POWER\_WIDTH\_FLOOR would have forced widths)\\
+  and replaced by a hand pre-route of the analog-critical nets. planes\_gen -\textgreater{}\\
+  route\_auto (rung 1, 4 passes, completion 1.00, 73 SES items) -\textgreater{} stitch\_vias DRY ONLY\\
+  -\textgreater{} plane\_repair (0 splits) -\textgreater{} route\_cleanup SKIPPED (2L pour board, S14).\\
+- Gate `drc\_routed` PASS 0/0. GND pour 1745.23 mm2, single polygon.\\
+- Guard ring CLOSED and PROVEN geometrically, not eyeballed: the whole /AIN\_BUF F.Cu\\
+  net is one polygon with one interior hole that contains() all /AIN\_DIV copper, min\\
+  ring width 0.612 mm, guard-to-node gap 0.127 mm. It closes ONLY at the 0.127 mm\\
+  floor - at 0.2 mm the south leg is culled, the pour drops 19.03 -\textgreater{} 8.68 mm2 and there\\
+  are ZERO holes, yet it still fills and still looks like a ring in a render.\\
+- +3V3 widened 0.2 -\textgreater{} 0.5 mm per constraints (impedance to the decoupling caps, not\\
+  current - my brief had argued from current and was wrong), with a `Power3V3` netclass\\
+  added so a future re-route cannot silently revert it. R 0.108 -\textgreater{} 0.043 ohm.\\
+- Two pipeline defects found: stitch\_vias models hole-to-hole CENTRE spacing while\\
+  KiCad measures EDGE to edge (unsafe band 0.5-0.8 mm for 0.3 mm drills); and\\
+  geom.\_refill\_copy stages the .kicad\_pro but NOT the .kicad\_dru, so --verify-fill\\
+  refills without the 0.127 mm floor and reports a false stale fill on EVERY board.
+\end{quote}
 \paragraph*{P8}
 \begin{quote}\small\ttfamily\raggedright
 \# P8 Verification - digest\\
@@ -955,7 +1046,24 @@ screw terminal bind no standard. Detail lives in research/{*}.md.\\
 - Board 54.750 x 34.920 mm, 1911.9 mm2. A 17 um re-fit was refused as sub-noise.
 \end{quote}
 \paragraph*{P9}
-\emph{(no digest recorded)}
+\begin{quote}\small\ttfamily\raggedright
+\# P9 DFM - digest\\
+~\\
+- `fab\_export` PASS: 9 layers, Protel-extension gerbers + drill, zipped\\
+  (`fab/bb-adc\_gerbers.zip`, sha recorded), plus the position export.\\
+- `bom\_cpl` PASS: BOM of record + JLC upload pair + CPL. 21 parts, ALL placed,\\
+  `bom\_complete` true, class split 21 `smt\_placed` / 4 `board\_feature` (the mounting\\
+  holes). No missing LCSC, no unsourced, no off-LCSC, no unplaced SMT, no qty mismatch.\\
+  {*}{*}2 rotation corrections applied{*}{*} from `jlc\_rotations.csv` - the catcher for a\\
+  polarized part mounted backwards, which net-level parity is blind to by construction.\\
+- Gate `dfm` PASS 0/0. Note what it graded: gerbers RE-EXPORTED to scratch from the\\
+  board, plus the sibling schematic as the CPL polarity oracle and parts.json for the\\
+  BOM leg. The shipped zip is an ordering artifact and is NOT a gate input.\\
+- Board 54.750 x 34.920 mm, 2 layers, 1 oz, HASL, no impedance control - the cheapest\\
+  class JLC sells. \textasciitilde{}\$31/board of parts at qty 5, 84 \% of it U1 + U2.\\
+- Stops here by mode: `block-only` defaults end at P9 with the fab package. Ordering is\\
+  a separate owner decision and no money has been committed.
+\end{quote}
 \subsection*{Gate attempt history}
 {\small
 \begin{longtable}{llll}
@@ -994,6 +1102,10 @@ screw terminal bind no standard. Detail lives in research/{*}.md.\\
 2026-08-19T04:52:54 & verify & pass & 0/1 \\
 2026-08-19T04:53:50 & drc\_routed & pass & 0/0 \\
 2026-08-19T04:53:50 & verify & pass & 0/1 \\
+2026-08-19T04:56:09 & dfm & pass & 0/0 \\
+2026-08-19T04:56:31 & dfm & pass & 0/0 \\
+2026-08-19T04:57:36 & erc & pass & 0/0 \\
+2026-08-19T04:57:37 & place & pass & 0/0 \\
 \bottomrule
 \end{longtable}
 }
@@ -1004,7 +1116,7 @@ screw terminal bind no standard. Detail lives in research/{*}.md.\\
 \textbf{Id} & \textbf{Phase} & \textbf{Kinds} & \textbf{Severity} & \textbf{Status} \\
 \midrule
 \endhead
-1 & P8 & corridor\_void & error & open \\
+1 & P8 & corridor\_void & error & fixed \\
 \bottomrule
 \end{longtable}
 }
@@ -1030,9 +1142,12 @@ screw terminal bind no standard. Detail lives in research/{*}.md.\\
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 182,777 B &  \\
+\texttt{state.json} & 187,160 B &  \\
 \texttt{kicad/bb-adc.kicad\_pcb} & 156,878 B &  \\
 \texttt{kicad/bb-adc.kicad\_sch} & 112,879 B &  \\
+\texttt{fab/bb-adc\_gerbers.zip} & 23,905 B &  \\
+\texttt{fab/BOM.csv} & 615 B &  \\
+\texttt{fab/CPL.csv} & 734 B &  \\
 \texttt{brief/brief.md} & 742 B &  \\
 \texttt{requirements.md} & 23,802 B &  \\
 \texttt{architecture/blocks.md} & 39,585 B &  \\
@@ -1042,14 +1157,17 @@ screw terminal bind no standard. Detail lives in research/{*}.md.\\
 \texttt{architecture/stackup.md} & 5,012 B &  \\
 \texttt{reports/board\_edit-fit.json} & 2,051 B &  \\
 \texttt{reports/board\_init.json} & 1,592 B &  \\
+\texttt{reports/bom\_cpl.json} & 12,867 B &  \\
 \texttt{reports/drc-postfit.json} & 32,916 B &  \\
 \texttt{reports/drc-refill.json} & 586 B &  \\
 \texttt{reports/erc-waivers.md} & 2,572 B &  \\
 \texttt{reports/erc.json} & 465 B &  \\
+\texttt{reports/fab\_export.json} & 2,217 B &  \\
 \texttt{reports/fix-dispatch-verify.json} & 651 B &  \\
+\texttt{reports/gate-dfm.json} & 2,109 B &  \\
 \texttt{reports/gate-drc\_routed.json} & 1,073 B &  \\
-\texttt{reports/gate-erc.json} & 1,925 B &  \\
-\texttt{reports/gate-place.json} & 1,497 B &  \\
+\texttt{reports/gate-erc.json} & 871 B &  \\
+\texttt{reports/gate-place.json} & 1,483 B &  \\
 \texttt{reports/gate-sim.json} & 1,371 B &  \\
 \texttt{reports/gate-verify.json} & 5,201 B &  \\
 \texttt{reports/netlist\_audit.json} & 1,476 B &  \\
