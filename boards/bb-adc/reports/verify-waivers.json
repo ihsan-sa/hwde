@@ -1,0 +1,11 @@
+{
+  "waivers": [
+    {
+      "check": "check_return_path",
+      "kind": "corridor_void",
+      "net": "/CS",
+      "approved": "orchestrator (owner-delegated), 2026-08-19",
+      "reason": "Residual 0.20 mm2 deficit / 0.03 mm crossing, down from 2.35 mm2 / 1.81 mm after the crossing was rebuilt as a perpendicular via PAIR. Two independent reasons to waive rather than fix. (1) OUT OF MODEL: on a 2-LAYER board a B.Cu trace has no adjacent GND plane to reference - F.Cu carries only the guard zone on /AIN_BUF - so its return is the COPLANAR B.Cu pour around it, which check_return_path's adjacent-layer model cannot express. This is the 2-layer analogue of the documented F/GND/+3V3/B class where every B.Cu trace fails by construction. (2) TOPOLOGICALLY FORCED: J2 orders CS,SCLK,DOUT and the converter orders CS,DOUT,SCLK - a 3-cycle - so /CS must cross both other signals, and a crossing can only occur where /CS is on B.Cu. The crossing is unavoidable; only its geometry was negotiable, and it has been minimised. The residual 0.03 mm is the gap between the two vias' 0.95 mm excision disks. It COULD be driven to zero by shortening the tunnel 0.09 mm so the disks overlap, which would change no physics and would cut via-to-trace DRC margin to ~0.04 mm - REFUSED as tuning geometry to land inside a checker's bookkeeping at the cost of real manufacturing margin. Electrically: 0.03 mm of a 500 kHz clock's neighbour crossing a 0.20 mm2 antipad, sited east of U1 with no B.Cu copper anywhere west of x=56, i.e. 12+ mm from the analog section. The true fix is a J2 pin-order change to match the converter (CS,DOUT,SCLK), which removes the 3-cycle and both crossings entirely - recorded as a next-revision item, not worth a P4 rewind and full re-route now."
+    }
+  ]
+}

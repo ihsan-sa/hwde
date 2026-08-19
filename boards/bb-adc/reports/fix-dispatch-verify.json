@@ -1,0 +1,36 @@
+{
+ "script": "fix_dispatch",
+ "status": "violations",
+ "board": "bb-adc.kicad_pcb",
+ "gate": "verify",
+ "counts": {
+  "orders": 1,
+  "violations": 2,
+  "by_domain": {
+   "plane": 1
+  },
+  "with_remediation": 1
+ },
+ "orders": [
+  {
+   "id": 1,
+   "fixer": "plane",
+   "severity": "error",
+   "net": null,
+   "kinds": [
+    "corridor_void"
+   ],
+   "count": 2,
+   "remediations": [
+    "C:/dev/ai-ee3/.claude/skills/ai-ee/reference/remediations/corridor_void.md"
+   ],
+   "work_order": "boards/bb-adc/log/workorders/wo-1.json"
+  }
+ ],
+ "parallel_groups": [
+  [
+   1
+  ]
+ ],
+ "out_dir": "boards/bb-adc/log/workorders"
+}

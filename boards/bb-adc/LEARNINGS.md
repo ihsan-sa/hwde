@@ -623,3 +623,73 @@ without hand-drawing a trace loop:
 Anything placed inside the ring must exist BEFORE the pour, because KiCad's filler leaves
 no room for a via added later: the V- escape via and both /AIN_DIV traces were laid with
 route_edit first, and the fill formed around them.
+
+## 2026-08-19 [P8][check_return_path][geom][kicad] `--verify-fill` is broken by a missing `.kicad_dru`, NOT by a fill-model disagreement - and it mis-measures every ai-ee board
+
+`check_return_path --verify-fill` dies on this board with
+
+    StaleFillError: zone 0 on F.Cu: committed fill 17.176 mm^2 differs from fresh 6.613 mm^2 (> 1%)
+
+The tempting reading - "KiCad's filler disagrees with the checker's own independent fill
+model, so a `connect: solid` zone cannot be verified" - is WRONG on both halves. There is no
+independent model: `geom.BoardGeom.assert_fresh(refill=True)` calls `_refill_copy()`, which runs
+the real `kicad-cli pcb drc --refill-zones --save-board` on a temp copy. Both numbers are KiCad's.
+
+The actual cause is a missing sidecar. `_refill_copy` copies the `.kicad_pcb` and, explicitly,
+"the sibling .kicad_pro if present (keeps DRC rules identical)" - but **not the `.kicad_dru`**.
+Measured three ways on the finished board, reading the guard zone and the GND pour:
+
+    staged files              guard F.Cu     GND B.Cu
+    pcb + pro + dru           17.176 mm2     1745.233 mm2   <- EXACTLY the committed fill
+    pcb + pro (_refill_copy)   6.613 mm2     1728.589 mm2
+    pcb alone                  6.613 mm2     1728.502 mm2
+
+The `.kicad_pro` makes no difference at all; the `.kicad_dru` makes all of it. Without the DRU,
+`aiee_clearance_floor (min 0.127 mm)` is gone and KiCad refills at its stock 0.2 mm default. The
+loss is not proportional: wider clearance drops narrow passages under the zone's 0.25 mm
+min_thickness, those passages vanish, and island removal then culls whatever they were feeding -
+so 0.073 mm of extra clearance destroyed 61% of the guard pour.
+
+BLAST RADIUS. `rules_gen` writes a `.kicad_dru` for every ai-ee board, so `--verify-fill`
+mis-measures every one of them - this is not a `connect: solid` quirk. The READ path is safe
+(the copy is discarded, and the gate does not pass `--verify-fill`), but the same omission in
+any WRITE path would commit a silently wrong fill. Verified NOT affected here: planes_gen,
+route_auto and route_edit stage the board with its same-stem sidecars, and every fill they
+produced matched the pcb+pro+dru number.
+
+## 2026-08-19 [P7][check_return_path][routing] An unavoidable layer-change crossing stops being an ERROR when the crossing lands inside the transition via's excision disk
+
+`check_return_path` grades severity ONLY on centerline crossing length -
+`sev = "error" if crossing >= CROSSING_ERROR_MM else "warning"`, and `CROSSING_ERROR_MM = 0.01`.
+So shortening or straightening a crossing never clears it; the centerline must not cross
+surviving deficit at all. What removes deficit is the excision step: a disk of
+`item_radius + ALLOW_CLEARANCE_MM (0.65)` around each single via - 0.95 mm for a 0.6 mm via.
+
+This board's SPI fan needs 2 crossings (J2 orders CS,SCLK,DOUT; the converter orders
+CS,DOUT,SCLK - a 3-cycle, so /CS must cross both). The crossings are topologically forced: /CS's
+B.Cu tunnel MUST pass under both F.Cu traces, so "move it under bare board" is not available.
+What IS available is moving the tunnel so each crossing sits inside a transition via's disk.
+
+    before: one 4.39 mm tunnel, 45 deg diagonal, single via
+            /SCLK  ERROR   0.73 mm2, 0.64 mm crossing
+            /DOUT  warning 0.09 mm2, 0.00 mm crossing  <- already excised, 0.53 mm from the via
+            /CS    ERROR   2.35 mm2, 1.81 mm crossing
+
+    after:  1.93 mm tunnel, PERPENDICULAR, via pair straddling both crossed traces
+            (66.000, 40.980) via -> B.Cu -> via (66.000, 39.050); /DOUT crossed at 0.65 mm
+            from the south via, /SCLK at 0.63 mm from the north via, both < 0.95 mm
+            /SCLK  gone      /DOUT  gone      /CS  error 0.20 mm2, 0.03 mm (-91% / -98%)
+
+/DOUT was the tell: it already passed as a warning purely because its centerline happened to
+cross 0.53 mm from the existing via. Reading WHY one of three sibling nets passed gave the rule.
+
+This is physics, not checker-gaming: where the pour void under the aggressor is the transition
+via's own antipad rather than a slot, the return current detours around a small disk instead of
+running the length of a cut. The routing rule: put the layer transition as close to the crossed
+trace as DRC allows (via edge + clearance + half the crossed trace), and cross perpendicular.
+
+COROLLARY, and a real design margin: this board's driven guard ring CLOSES at the DRU's 0.127 mm
+clearance and does NOT close at 0.2 mm - refilled at 0.2 the /AIN_BUF pour drops 19.03 -> 8.68
+mm2, the entire south leg is culled and the closure test finds ZERO holes. The ring still fills,
+still looks like copper in a render, and is no longer a guard. Any change to the clearance floor
+or fab class must re-run the closure proof.

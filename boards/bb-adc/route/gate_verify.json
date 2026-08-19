@@ -1,0 +1,228 @@
+{
+  "script": "gate",
+  "gate": "verify",
+  "phase": "P8",
+  "tool": "verify",
+  "input": "boards\\bb-adc\\kicad\\bb-adc.kicad_pcb",
+  "input_digest": "sexpr_no_uuid:519baf7635ad4c7294767c50ceba17d3e7d75b9b881be1e30fadb8ab5c87dd6f",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 2,
+    "by_severity": {
+      "error": 1,
+      "warning": 1
+    },
+    "by_source": {
+      "check_return_path": 1,
+      "check_pdn": 1
+    },
+    "by_check": {
+      "check_return_path": 1,
+      "check_current": 0,
+      "check_decoupling": 0,
+      "check_diffpair": 0,
+      "check_creepage": 0,
+      "check_thermal": 0,
+      "check_silk": 0,
+      "check_pdn": 1
+    }
+  },
+  "failing_count": 1,
+  "failing": [
+    {
+      "check": "check_return_path",
+      "severity": "error",
+      "pos": [
+        66.0,
+        40.015
+      ],
+      "layer": "F.Cu",
+      "net": "/CS",
+      "refs": [],
+      "msg": "return corridor of /CS (B.Cu) leaves continuous GND copper on F.Cu: 0.20 mm2 deficit, 0.03 mm of trace crossing",
+      "source": "check_return_path",
+      "items": [
+        {
+          "msg": "return corridor of /CS (B.Cu) leaves continuous GND copper on F.Cu: 0.20 mm2 deficit, 0.03 mm of trace crossing",
+          "pos": [
+            66.0,
+            40.015
+          ]
+        }
+      ],
+      "kind": "corridor_void",
+      "signal_layer": "B.Cu",
+      "reference_net": "GND",
+      "crossing_len_mm": 0.03,
+      "area_mm2": 0.2017,
+      "polygon": [
+        [
+          65.4,
+          40.245
+        ],
+        [
+          65.422,
+          40.226
+        ],
+        [
+          65.525,
+          40.157
+        ],
+        [
+          65.636,
+          40.102
+        ],
+        [
+          65.754,
+          40.062
+        ],
+        [
+          65.876,
+          40.038
+        ],
+        [
+          66.0,
+          40.03
+        ],
+        [
+          66.124,
+          40.038
+        ],
+        [
+          66.246,
+          40.062
+        ],
+        [
+          66.364,
+          40.102
+        ],
+        [
+          66.475,
+          40.157
+        ],
+        [
+          66.578,
+          40.226
+        ],
+        [
+          66.6,
+          40.245
+        ],
+        [
+          66.6,
+          39.785
+        ],
+        [
+          66.578,
+          39.804
+        ],
+        [
+          66.475,
+          39.873
+        ],
+        [
+          66.364,
+          39.928
+        ],
+        [
+          66.246,
+          39.968
+        ],
+        [
+          66.124,
+          39.992
+        ],
+        [
+          66.0,
+          40.0
+        ],
+        [
+          65.876,
+          39.992
+        ],
+        [
+          65.754,
+          39.968
+        ],
+        [
+          65.636,
+          39.928
+        ],
+        [
+          65.525,
+          39.873
+        ],
+        [
+          65.422,
+          39.804
+        ],
+        [
+          65.4,
+          39.785
+        ],
+        [
+          65.4,
+          40.245
+        ]
+      ]
+    }
+  ],
+  "coverage": {
+    "strict": false,
+    "required": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "ran": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "passed": [
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "failed": [
+      "check_return_path"
+    ],
+    "waived": [],
+    "not_applicable": {},
+    "skipped_error": {}
+  },
+  "record_result": {
+    "ok": true,
+    "recorded": true,
+    "workspace": "C:/dev/ai-ee3/boards/bb-adc",
+    "gate": "verify",
+    "status": "fail",
+    "attempts": 3,
+    "inputs": {
+      "pcb": "sexpr_no_uuid:519baf7635ad4c7294767c50ceba17d3e7d75b9b881be1e30fadb8ab5c87dd6f",
+      "constraints": "json_canonical:2cacbf7f01ddd424da4cc8c88b4419175b88653a7a5ca8fa7771cd0a02bc0748",
+      "decoupling": "json_canonical:06f48da563fad2f8773a625e97e8ba928ac6b4ecf504051d3c2c673debdb7ac9",
+      "waivers": null
+    }
+  }
+}
