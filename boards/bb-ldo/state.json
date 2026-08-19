@@ -3,7 +3,7 @@
  "board": "bb-ldo",
  "workspace": "boards/bb-ldo",
  "created": "2026-08-16T17:24:47",
- "updated": "2026-08-19T02:37:35",
+ "updated": "2026-08-19T02:39:22",
  "phase": "P9",
  "gates": {
   "erc": {
@@ -56,14 +56,14 @@
   "place": {
    "phase": "P6",
    "status": "pass",
-   "attempts": 6,
+   "attempts": 7,
    "last": {
-    "ts": "2026-08-17T21:24:22",
+    "ts": "2026-08-19T02:38:50",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "pcb": "sexpr_no_uuid:5ff3d4ce3219b208f1343ddbc16a6c8e4a98c35392e4b60abde564b16e2cdf6a",
+     "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
      "constraints": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
      "decoupling": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23"
     }
@@ -131,6 +131,17 @@
      "total": 0,
      "inputs": {
       "pcb": "sexpr_no_uuid:5ff3d4ce3219b208f1343ddbc16a6c8e4a98c35392e4b60abde564b16e2cdf6a",
+      "constraints": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
+      "decoupling": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23"
+     }
+    },
+    {
+     "ts": "2026-08-19T02:38:50",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
       "constraints": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
       "decoupling": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23"
      }
@@ -337,8 +348,8 @@
   },
   "3": {
    "status": "approved",
-   "ts": "2026-08-17T21:24:30",
-   "note": "H3 (optional, outline_change hold): board size earned at 50.000 x 26.420 mm. Reviewed the derivation, not just the result - the agent corrected its own 55 mm estimate after finding that sweep had inherited the pinned-width assumption it was meant to test. Renders at reports/place/renders/."
+   "ts": "2026-08-19T02:38:50",
+   "note": "Re-clearing the outline_change hold after the P8 copper fixes; board size unchanged at 50.000 x 26.420 mm, place gate re-run fresh."
   },
   "4": {
    "status": "approved",
@@ -363,39 +374,25 @@
    "path": "kicad/bb-ldo.kicad_pcb",
    "kind": "pcb",
    "sha256": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
-   "hashed": "2026-08-19T02:37:35"
+   "hashed": "2026-08-19T02:38:50"
   },
   "constraints": {
    "path": "kicad/constraints.json",
    "kind": "constraints",
    "sha256": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
-   "hashed": "2026-08-19T02:35:25"
+   "hashed": "2026-08-19T02:38:50"
   },
   "decoupling": {
    "path": "kicad/decoupling.json",
    "kind": "decoupling",
    "sha256": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23",
-   "hashed": "2026-08-19T02:35:25"
+   "hashed": "2026-08-19T02:38:50"
   },
   "gerbers": {
    "path": "fab/bb-ldo_gerbers.zip",
    "kind": "gerbers",
-   "sha256": null,
-   "hashed": "2026-08-17T21:18:23",
-   "stale": [
-    {
-     "ts": "2026-08-17T21:18:23",
-     "edit_class": "outline_change",
-     "refs": [],
-     "human_hold": 2
-    },
-    {
-     "ts": "2026-08-17T21:18:34",
-     "edit_class": "outline_change",
-     "refs": [],
-     "human_hold": 2
-    }
-   ]
+   "sha256": "gerber_design:6f194538f173f144bfdabd376d1259975bde1f8e945bd69d4d838625440453ef",
+   "hashed": "2026-08-19T02:39:22"
   },
   "dru": {
    "path": "kicad/bb-ldo.kicad_dru",
@@ -419,11 +416,11 @@
  "open_issues": [
   {
    "id": 1,
-   "status": "open",
-   "agent": null,
+   "status": "fixed",
+   "agent": "fixer",
    "attempts": 0,
    "opened": "2026-08-18T09:16:42",
-   "closed": null,
+   "closed": "2026-08-19T02:38:40",
    "gate": null,
    "phase": null,
    "fixer": "router",
@@ -450,7 +447,7 @@
   },
   {
    "id": 2,
-   "status": "open",
+   "status": "escalated",
    "agent": null,
    "attempts": 0,
    "opened": "2026-08-18T09:16:42",
@@ -480,7 +477,7 @@
   },
   {
    "id": 3,
-   "status": "open",
+   "status": "escalated",
    "agent": null,
    "attempts": 0,
    "opened": "2026-08-18T09:16:42",
@@ -502,7 +499,7 @@
   },
   {
    "id": 4,
-   "status": "open",
+   "status": "escalated",
    "agent": null,
    "attempts": 0,
    "opened": "2026-08-18T09:16:42",
@@ -532,7 +529,7 @@
   },
   {
    "id": 5,
-   "status": "open",
+   "status": "escalated",
    "agent": null,
    "attempts": 0,
    "opened": "2026-08-18T09:16:42",
@@ -554,11 +551,11 @@
   },
   {
    "id": 6,
-   "status": "open",
-   "agent": null,
+   "status": "fixed",
+   "agent": "fixer",
    "attempts": 0,
    "opened": "2026-08-18T09:16:42",
-   "closed": null,
+   "closed": "2026-08-19T02:38:40",
    "gate": null,
    "phase": null,
    "fixer": "silk",
@@ -584,7 +581,7 @@
   },
   {
    "id": 7,
-   "status": "open",
+   "status": "escalated",
    "agent": null,
    "attempts": 0,
    "opened": "2026-08-18T09:16:42",
@@ -1847,6 +1844,83 @@
    "status": "pass",
    "attempt": 2,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-08-19T02:38:40",
+   "event": "issue",
+   "id": 1,
+   "status": "fixed",
+   "agent": "fixer",
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-19T02:38:40",
+   "event": "issue",
+   "id": 6,
+   "status": "fixed",
+   "agent": "fixer",
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-19T02:38:40",
+   "event": "issue",
+   "id": 2,
+   "status": "escalated",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-19T02:38:40",
+   "event": "issue",
+   "id": 3,
+   "status": "escalated",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-19T02:38:40",
+   "event": "issue",
+   "id": 4,
+   "status": "escalated",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-19T02:38:40",
+   "event": "issue",
+   "id": 5,
+   "status": "escalated",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-19T02:38:41",
+   "event": "issue",
+   "id": 7,
+   "status": "escalated",
+   "agent": null,
+   "attempts": 0
+  },
+  {
+   "ts": "2026-08-19T02:38:50",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 7,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-19T02:38:50",
+   "event": "human",
+   "checkpoint": "3",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-19T02:39:22",
+   "event": "rehash",
+   "names": [
+    "gerbers"
+   ]
   }
  ],
  "mode": {

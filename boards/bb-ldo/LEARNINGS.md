@@ -117,3 +117,86 @@ workspace scaffold (`state.py`) creates `routing/`, while the P7 role prompt and
 default to `route/`, so the first `--out-report` of a session hits this. `mkdir` the report
 directory before the first write; re-running `route_critical` afterwards is safe (it detects
 `already_routed` and adds no duplicate copper).
+
+## 2026-08-18 [P6][build-modes][place_metrics][canonical] A PROVISIONAL outline binds placement just as hard as a stated one
+
+`placement.edges` is graded by `place_metrics` against whatever outline is on
+the board. At a `canonical` binding the outline at P6 is `board_init --outline
+auto`'s number - shelf-pack bbox plus whatever margin the orchestrator picked
+- so edge-pinned connectors get pinned to an arbitrary width and the fitted
+board inherits it. On bb-ldo that was 88.29 mm against a derived 50 mm: 38.7%
+more board for 1.4% less effective thermal copper, with the place gate green
+because the connectors genuinely were at the edges of the outline it was
+handed.
+
+This is the bb-buck defect mirrored. There a STATED size bound the layout;
+here an UNEARNED PROVISIONAL one did, and it is harder to see because no
+number was ever declared by anyone.
+
+The order that works is **place -> fit -> silk -> gate**: move the edge parts
+to the width the design wants, `board_edit --outline fit`, then gate, so the
+edge check is evaluated against the outline the design earned. Worth enforcing
+in the recipe rather than remembering.
+
+## 2026-08-18 [P6][silk_place][canonical] silk_place solves against the outline ON the board, so at a canonical binding it must run AFTER the fit
+
+Run before the fit it reported an EMPTY residual list while leaving J2's
+refdes 0.925 mm outside the future board edge - visible only by fitting a copy
+and running real DRC. Run after the fit, on the same board, it needed 0 moves
+and left 0 silk DRC findings. The rev-1 hand-fix of that one refdes treated a
+symptom; the defect was sequence.
+
+## 2026-08-18 [P8][stitch_vias][dfm] stitch_vias places vias INSIDE large pads, and its own checker cannot see it
+
+Two compounding defects. (1) `RING_RADII` are measured from the pad CENTRE, so
+any pad with a half-extent > 0.65 mm gets its "just past the pad edge" via
+placed inside the pad. (2) `via_check` only tests FOREIGN copper, so a via
+landing in its OWN pad is never flagged. On JLC economy PCBA - which neither
+fills nor plugs vias, with paste apertures equal to the pads - paste prints
+over an open barrel and wicks down it at reflow: starved or open joints.
+
+Third defect in the same family: it emits **no F.Cu stub** with a pad via, so
+on a board whose top layer has no copper for that net (here GND, because the
+top layer is the +3V3 heatsink pour) an off-pad via is orphaned. The tool
+should emit stub + via as a pair.
+
+Caught only by a human-style visual review at P8, three stages after the edit.
+
+## 2026-08-18 [P8][planes_gen][assembly] No scripted way to set a per-pad zone connection - hand-soldered pins in a solid pour have no fix
+
+The only `zone_connect` in the skill is planes_gen's ZONE-WIDE
+`SetPadConnection`; `route_edit` is add_track/add_via/remove, `place_edit` is
+footprint + text. So a through-hole pin sitting in a solid pour cannot be given
+thermal relief by any allowed script, and the scripted workaround - a small
+higher-priority thermal zone over the pad - is refused by planes_gen's
+unconditional `>=80% existing same-net fill` idempotency guard.
+
+Proposal: a `pad_zone_connect {ref, pad, mode}` op on route_edit backed by
+`pad.SetLocalZoneConnection`, plus a per-entry force/override on that guard.
+
+Also: a copper-coverage ring test for solid-vs-relief must sample INSIDE the
+thermal gap band (r <= pad_r + gap). A ring at r = 1.6 mm reads full copper for
+BOTH cases, because KiCad's default 0.5 mm gap lies between r = 1.0 and 1.5 -
+the P8 review's relief test proved nothing either way.
+
+## 2026-08-18 [P8][check_current][plane] check_current charges every transition via the whole net's current
+
+It wants >= 1 via per 0.5 A and attributes the full rail current to each via.
+On bb-ldo the 0.515 A load return never crosses the three GND stitch vias at
+all: it flows J2's GND pin -> B.Cu plane -> J1's GND pin, and BOTH are
+through-hole screw terminals whose pins penetrate every layer. Those vias carry
+only the regulator's quiescent current and capacitor ripple. Doubling them to
+satisfy the heuristic would have spent ~2 mm2 of heatsink pour to silence an
+advisory. The check's own message says "per-cluster current unattributed" -
+believe that qualifier before spending copper.
+
+## 2026-08-18 [P0][build-modes][thermal] At block-only, thermal is the whole design - and the datasheet's copper table is the spec
+
+Nothing about a 5 V -> 3.3 V linear regulator is interesting except where the
+watt goes. The part choice turned on which candidate published a copper-area
+-> theta_JA table measured on OUR board class (1 oz FR-4, 2 layer), not on
+which had the better headline numbers: the electrically superior MCP1825S was
+rejected because its only theta_JA figure is a JEDEC 4-layer number that a
+2-layer board cannot reach and its datasheet gives no curve to design against.
+Choosing it would have meant sizing the copper with no applicable data - the
+exact error the board exists to teach against.

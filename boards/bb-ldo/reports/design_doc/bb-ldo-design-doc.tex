@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries bb-ldo --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-19 02:36:12
+generated 2026-08-19 02:39:45
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-19 02:36:12
 \endhead
 board & bb-ldo \\
 workspace & \texttt{boards/bb-ldo} \\
-phase & P8 \\
-gate status & all 4 recorded gates pass \\
+phase & P9 \\
+gate status & all 5 recorded gates pass \\
 state created & 2026-08-16T17:24:47 \\
-state updated & 2026-08-19T02:35:25 \\
+state updated & 2026-08-19T02:39:22 \\
 \bottomrule
 \end{longtable}
 }
@@ -354,7 +354,7 @@ Gate \texttt{erc} (phase P4): \textbf{pass} after 3 attempt(s); last 2026-08-17T
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-Gate \texttt{place} (phase P6): \textbf{pass} after 6 attempt(s); last 2026-08-17T21:24:22, failing 0 of 0.
+Gate \texttt{place} (phase P6): \textbf{pass} after 7 attempt(s); last 2026-08-19T02:38:50, failing 0 of 0.
 
 Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 5 attempt(s); last 2026-08-19T02:35:24, failing 0 of 0.
 \begin{center}
@@ -561,7 +561,25 @@ actually void is a process question. If the fix is declined, it can only be
 settled by X-ray or by a cross-section on the first article.
 \end{itemize}
 \section{DFM and Fabrication}
-\emph{Pending --- produced at P9.}
+Gate \texttt{dfm} (phase P9): \textbf{pass} after 2 attempt(s); last 2026-08-19T02:37:35, failing 0 of 0.
+DFM findings by severity: none.
+\subsection*{Fabrication outputs}
+Exported layers: F.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
+\subsection*{Bill of materials}
+{\small
+\begin{longtable}{p{4.4cm}p{2.8cm}p{4.6cm}l}
+\toprule
+\textbf{Comment} & \textbf{Designator} & \textbf{Footprint} & \textbf{LCSC} \\
+\midrule
+\endhead
+10uF 16V solid tantalum & C1 & CAP-SMD\_L3.2-W1.6-RD-C7171 & C7171 \\
+22uF 16V solid tantalum ESR 0.8ohm & C2 & CAP-SMD\_L7.3-W4.3 & C215872 \\
+AMS1117-3.3 & U1 & SOT-223-3\_L6.5-W3.4-P2.30-LS7.0-BR & C6186 \\
+\bottomrule
+\end{longtable}
+}
+1 CPL rotation correction(s) applied; no missing LCSC numbers.
+\emph{fab/order.json not available.}
 \section{Run Record (Appendix)}
 \subsection*{Phase digests}
 \paragraph*{P0}
@@ -758,30 +776,46 @@ settled by X-ray or by a cross-section on the first article.
 \# P8 Verification - digest\\
 ~\\
 - {*}{*}Gate verify: PASS{*}{*} with 3 recorded waivers (commit e0e416d); drc\_routed\\
-  re-run 0/0 after every copper edit. All 8 checks ran. Advisory legs clean:\\
-  check\_irdrop 12.1 mV worst on +5V (grid converged), check\_pdn\_z pass.\\
-- Fresh-context reviewer: 1 error, 7 warnings. It upheld both waivers after\\
-  checking the thing that would have voided the thermal one - whether the tab\\
-  was thermal-relieved rather than solidly poured (it is `connect\_pads yes`,\\
-  all 8.424 mm2 merged).\\
-- {*}{*}The error was caused by my own P7 instruction{*}{*}: replacing the KRT traces\\
-  with stitch\_vias put 3 barrels INSIDE SMT pads on an economy PCBA that\\
-  neither fills nor plugs vias. Follow-on: U1's ground was that ONE barrel -\\
-  an open joint leaves the regulator with no ground reference and its output\\
-  rising toward 5 V.\\
-- Fixed: 3 vias relocated 0.55 mm past their pad edges with 4 authored F.Cu\\
-  GND stubs (they were BARE - stitch\_vias emits no stub, and GND has no top\\
-  copper), + redundant 2nd barrels on U1.1 and C2.2. C1.2 left single\\
-  deliberately: its return is input bypass, not a functional failure path.\\
-- Added `HOT SURFACE` silk legend - the whole top face is a radiator.\\
-- {*}{*}NOT fixed, tooling block{*}{*}: J2.1 per-pad thermal relief. No script can set\\
-  a pad zone connection, and planes\_gen refuses the two-zone workaround on a\\
-  poured board. Mitigated by an assembly note (preheat + \textgreater{}= 60 W iron).\\
-- {*}{*}Third tooling gap found by this board.{*}{*} planes\_gen ignores min\_vias;\\
-  stitch\_vias rings from the pad CENTRE and its own via\_check only tests\\
-  FOREIGN copper so it cannot see its own error; no pad\_zone\_connect op.\\
-- Pour through all edits: 1199.221 -\textgreater{} {*}{*}1196.210 mm2{*}{*}, ONE island, 0\\
-  orphaned, {*}{*}1083.167 mm2 within 25 mm{*}{*} (floor 1000).
+  0/0 after every copper edit; all 8 checks ran. Advisory legs clean:\\
+  check\_irdrop 12.1 mV worst on +5V, check\_pdn\_z pass.\\
+- Fresh reviewer: 1 error, 7 warnings. It upheld both existing waivers after\\
+  checking what would have voided the thermal one - whether the tab was\\
+  relieved rather than solidly poured (`connect\_pads yes`, all 8.424 mm2 in).\\
+- {*}{*}The error came from my own P7 instruction{*}{*}: swapping KRT traces for\\
+  stitch\_vias put 3 barrels INSIDE SMT pads on an economy PCBA that neither\\
+  fills nor plugs vias. Follow-on: U1's ground was that ONE barrel - open it\\
+  and the regulator loses its ground reference, output rising toward 5 V.\\
+- Fixed: 3 vias moved 0.55 mm past their pad edges with 4 authored F.Cu GND\\
+  stubs (they were BARE - stitch\_vias emits none, and GND has no top copper);\\
+  redundant 2nd barrels on U1.1 and C2.2. C1.2 left single deliberately - its\\
+  return is input bypass, not a functional failure path. Added HOT SURFACE silk.\\
+- {*}{*}NOT fixed, tooling block{*}{*}: J2.1 per-pad thermal relief. No script sets a\\
+  pad zone connection; planes\_gen refuses the two-zone workaround on a poured\\
+  board. Mitigated by assembly note (preheat + \textgreater{}= 60 W iron).\\
+- {*}{*}Third tooling gap this board found{*}{*}: planes\_gen ignores min\_vias;\\
+  stitch\_vias rings from the pad CENTRE and its via\_check only tests FOREIGN\\
+  copper, so it cannot see its own error; no pad\_zone\_connect op exists.\\
+- Pour across all edits: 1199.221 -\textgreater{} {*}{*}1196.210 mm2{*}{*}, ONE island, 0 orphaned,\\
+  {*}{*}1083.167 mm2 within 25 mm{*}{*} (floor 1000).
+\end{quote}
+\paragraph*{P9}
+\begin{quote}\small\ttfamily\raggedright
+\# P9 DFM - digest\\
+~\\
+- {*}{*}Gate dfm: PASS, 0 violations{*}{*} (gerbers re-exported to scratch from the\\
+  board and graded there, per the gate contract).\\
+- Fab package: 9 gerber layers + drill + job file, zipped\\
+  (`fab/bb-ldo\_gerbers.zip`, sha bb7d6fab...), plus `bb-ldo-pos.csv`.\\
+- BOM/CPL split correct by assembly\_class, not by what the position export\\
+  happened to contain: BOM.csv + CPL.csv carry the 3 SMT parts (U1, C1, C2);\\
+  both screw terminals appear in BOM-full.csv ONLY, marked `hand\_install`\\
+  with instructions - including the J2 preheat warning.\\
+- No `cpl\_polarity` finding: the two polarized tantalums' rotations survive\\
+  the jlc\_rotations correction, which is the mounted-backwards oracle.\\
+- Assembly notes written (`reports/assembly-notes.md`): preheat for J2.1,\\
+  tantalum polarity, the HOT SURFACE hazard, and the two first-article\\
+  measurements (C2 ring count, tab temperature).\\
+- JLCDFM (the fab's own 30+ checks) remains a human browser step at ordering.
 \end{quote}
 \subsection*{Gate attempt history}
 {\small
@@ -808,6 +842,9 @@ settled by X-ray or by a cross-section on the first article.
 2026-08-19T02:32:45 & verify & pass & 0/4 \\
 2026-08-19T02:35:24 & drc\_routed & pass & 0/0 \\
 2026-08-19T02:35:25 & verify & pass & 0/4 \\
+2026-08-19T02:37:21 & dfm & pass & 0/0 \\
+2026-08-19T02:37:35 & dfm & pass & 0/0 \\
+2026-08-19T02:38:50 & place & pass & 0/0 \\
 \bottomrule
 \end{longtable}
 }
@@ -818,13 +855,13 @@ settled by X-ray or by a cross-section on the first article.
 \textbf{Id} & \textbf{Phase} & \textbf{Kinds} & \textbf{Severity} & \textbf{Status} \\
 \midrule
 \endhead
-1 &  & single-via-ground-path, via-in-smd-pad & error & open \\
-2 &  & solid-pour-on-handsoldered-pin & warning & open \\
-3 &  & netclass-clearance-overridden-by-dru & warning & open \\
-4 &  & check-suppressed-by-constraint-not-waived & warning & open \\
-5 &  & outline-aspect-not-earned & warning & open \\
-6 &  & no-hot-surface-legend & warning & open \\
-7 &  & wrong-3d-model-case-size & warning & open \\
+1 &  & single-via-ground-path, via-in-smd-pad & error & fixed \\
+2 &  & solid-pour-on-handsoldered-pin & warning & escalated \\
+3 &  & netclass-clearance-overridden-by-dru & warning & escalated \\
+4 &  & check-suppressed-by-constraint-not-waived & warning & escalated \\
+5 &  & outline-aspect-not-earned & warning & escalated \\
+6 &  & no-hot-surface-legend & warning & fixed \\
+7 &  & wrong-3d-model-case-size & warning & escalated \\
 \bottomrule
 \end{longtable}
 }
@@ -837,8 +874,8 @@ settled by X-ray or by a cross-section on the first article.
 \endhead
 1 & P2 & approved & 2026-08-16T19:51:53 & Presented as a digest under the owner's 2026-08-16 delegation ('make decisions yourself based on what will give the best learning for the basic system'); no separate owner sign-off was solicited or given, and the run proceeded. Items that still need a GENUINE owner ruling and are NOT covered by this: promotion/approval of the 6 verified records + the linear-regulator checklist into the shared library, the P8 thermal\_area waiver (gate waivers are human artifacts by contract), and any order at P10. \\
 2 & P4 & approved & 2026-08-16T23:29:36 & Presented as a digest under the owner's delegation; ERC 0/0 with the netlist verified identical across the readability redraw. Reviewer's single ERROR (no terminal legend) is deferred to P6 as a silk requirement, not waived. \\
-3 & P6 & approved & 2026-08-17T21:24:30 & H3 (optional, outline\_change hold): board size earned at 50.000 x 26.420 mm. Reviewed the derivation, not just the result - the agent corrected its own 55 mm estimate after finding that sweep had inherited the pinned-width assumption it was meant to test. Renders at reports/place/renders/. \\
-4 & P8 & not reached &  &  \\
+3 & P6 & approved & 2026-08-19T02:38:50 & Re-clearing the outline\_change hold after the P8 copper fixes; board size unchanged at 50.000 x 26.420 mm, place gate re-run fresh. \\
+4 & P8 & approved & 2026-08-19T02:36:25 & H4 presented as a digest under the owner's delegation. verify PASS with 3 waivers (thermal\_area model-limit, transition-vias heuristic, thermal\_vias audit entry). 1 reviewer ERROR fixed (vias in pads + single-via ground path). 1 item NOT fixed and accepted as a tooling block with an assembly-note mitigation (J2.1 relief). The 3 waivers and the unfixed relief are exactly what an owner should re-examine before any order. \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
@@ -850,9 +887,12 @@ settled by X-ray or by a cross-section on the first article.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 89,336 B &  \\
+\texttt{state.json} & 93,277 B &  \\
 \texttt{kicad/bb-ldo.kicad\_pcb} & 54,568 B &  \\
 \texttt{kicad/bb-ldo.kicad\_sch} & 37,327 B &  \\
+\texttt{fab/bb-ldo\_gerbers.zip} & 14,782 B &  \\
+\texttt{fab/BOM.csv} & 218 B &  \\
+\texttt{fab/CPL.csv} & 137 B &  \\
 \texttt{brief/brief.md} & 608 B &  \\
 \texttt{requirements.md} & 13,344 B &  \\
 \texttt{architecture/blocks.md} & 16,013 B &  \\
@@ -862,12 +902,15 @@ settled by X-ray or by a cross-section on the first article.
 \texttt{architecture/stackup.md} & 6,862 B &  \\
 \texttt{reports/assembly-notes.md} & 2,573 B &  \\
 \texttt{reports/board\_init.json} & 1,586 B &  \\
+\texttt{reports/bom\_cpl.json} & 3,940 B &  \\
 \texttt{reports/check\_irdrop.json} & 3,602 B &  \\
 \texttt{reports/check\_pdn\_z.json} & 2,100 B &  \\
+\texttt{reports/fab\_export.json} & 2,214 B &  \\
 \texttt{reports/fix-dispatch-P8.json} & 2,256 B &  \\
+\texttt{reports/gate-dfm.json} & 3,199 B &  \\
 \texttt{reports/gate-drc\_routed.json} & 1,072 B &  \\
 \texttt{reports/gate-erc.json} & 871 B &  \\
-\texttt{reports/gate-place.json} & 15,302 B &  \\
+\texttt{reports/gate-place.json} & 1,483 B &  \\
 \texttt{reports/gate-verify.json} & 4,781 B &  \\
 \texttt{reports/review-board.json} & 9,785 B &  \\
 \texttt{reports/review-board.md} & 24,617 B &  \\
