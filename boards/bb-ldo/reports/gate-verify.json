@@ -4,7 +4,7 @@
   "phase": "P8",
   "tool": "verify",
   "input": "boards\\bb-ldo\\kicad\\bb-ldo.kicad_pcb",
-  "input_digest": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+  "input_digest": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
   "status": "pass",
   "criteria": {
     "fail_severities": [
@@ -49,11 +49,11 @@
       "refs": [
         "U1"
       ],
-      "msg": "U1 dissipates 1.00 W into 585 mm2 of +3V3 copper: ~77 C rise (theta_JA ~77 C/W) > 65 C allowed; add thermal vias to an inner/back plane",
+      "msg": "U1 dissipates 1.00 W into 582 mm2 of +3V3 copper: ~78 C rise (theta_JA ~78 C/W) > 65 C allowed; add thermal vias to an inner/back plane",
       "source": "check_thermal",
       "items": [
         {
-          "msg": "U1 dissipates 1.00 W into 585 mm2 of +3V3 copper: ~77 C rise (theta_JA ~77 C/W) > 65 C allowed; add thermal vias to an inner/back plane",
+          "msg": "U1 dissipates 1.00 W into 582 mm2 of +3V3 copper: ~78 C rise (theta_JA ~78 C/W) > 65 C allowed; add thermal vias to an inner/back plane",
           "pos": [
             29.515,
             32.91
@@ -62,9 +62,9 @@
       ],
       "kind": "thermal_area",
       "power_w": 1.0,
-      "area_mm2": 584.9742,
-      "theta_ja": 77.3711,
-      "rise_c": 77.3711,
+      "area_mm2": 581.9632,
+      "theta_ja": 77.5644,
+      "rise_c": 77.5644,
       "dt_allowed_c": 65.0
     }
   ],
@@ -112,12 +112,49 @@
     "workspace": "boards/bb-ldo",
     "gate": "verify",
     "status": "pass",
-    "attempts": 2,
+    "attempts": 4,
     "inputs": {
-      "pcb": "sexpr_no_uuid:70a5c2724593028afc46937cfaccb56357b500cfac38ebddeb239fdaea54b88e",
+      "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
       "constraints": "json_canonical:fe5c880091f3c5e002db055b7ec8e4ab901979d03919ea526b6b86aad6bc8bcb",
       "decoupling": "json_canonical:6adbb0914a360d6fcbb083dab538feb30de5ab57bae6fafdf4c8ad599f6e7d23",
-      "waivers": "json_canonical:c3cc6faa258db223e7a31b2cca5ca249d05a704a66e535697a13a3d1eda3ca83"
+      "waivers": "json_canonical:00aeaf842fe692f696bdcb2f6add4199b06298174d1d8d30aa4a5b47c0b44123"
     }
+  },
+  "commit_result": {
+    "committed": true,
+    "ok": true,
+    "commit": "e0e416d",
+    "scope": "boards/bb-ldo",
+    "excluded_dirty": [
+      "boards/bb-adc/architecture/blocks.md",
+      "boards/bb-adc/architecture/sheets.md",
+      "boards/bb-adc/kicad/bb-adc.kicad_pro",
+      "boards/bb-adc/reports/gate-erc.json",
+      "boards/bb-adc/reports/schematic.pdf",
+      "boards/bb-adc/reports/top.net",
+      "boards/bb-adc/state.json",
+      "boards/bb-amp/kicad/bb-amp.kicad_pro",
+      "boards/pd-trigger/reports/design_doc/pd-trigger-design-doc.pdf",
+      "boards/pd-trigger/reports/design_doc/pd-trigger-design-doc.tex",
+      "boards/stm32-blinky/reports/design_doc/stm32-blinky-design-doc.pdf",
+      "boards/stm32-blinky/reports/design_doc/stm32-blinky-design-doc.tex",
+      "NUL",
+      "boards/bb-adc/kicad/bb-adc.kicad_dru",
+      "boards/bb-adc/kicad/bb-adc.kicad_pcb",
+      "boards/bb-adc/kicad/constraints.json",
+      "boards/bb-adc/kicad/sims/acquisition-settling.bounds.json",
+      "boards/bb-adc/kicad/sims/acquisition-settling.cir",
+      "boards/bb-adc/kicad/sims/buffer-stability.bounds.json",
+      "boards/bb-adc/kicad/sims/buffer-stability.cir",
+      "boards/bb-adc/kicad/sims/buffer-step.bounds.json",
+      "boards/bb-adc/kicad/sims/buffer-step.cir",
+      "boards/bb-adc/kicad/sims/divider-ratio.bounds.json",
+      "boards/bb-adc/kicad/sims/divider-ratio.cir",
+      "boards/bb-adc/kicad/sims/zero-scale-swing.cir",
+      "boards/bb-adc/log/P5-digest.md",
+      "boards/bb-adc/reports/board_init.json",
+      "boards/bb-adc/reports/rules_gen.json",
+      "boards/xhp-driver/state.json"
+    ]
   }
 }

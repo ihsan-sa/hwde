@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries bb-ldo --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-16 23:29:34
+generated 2026-08-19 02:36:12
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-16 23:29:34
 \endhead
 board & bb-ldo \\
 workspace & \texttt{boards/bb-ldo} \\
-phase & P4 \\
-gate status & all 1 recorded gates pass \\
+phase & P8 \\
+gate status & all 4 recorded gates pass \\
 state created & 2026-08-16T17:24:47 \\
-state updated & 2026-08-16T23:29:14 \\
+state updated & 2026-08-19T02:35:25 \\
 \bottomrule
 \end{longtable}
 }
@@ -265,6 +265,23 @@ P3 & CORRECTION to the preceding courtyard decision: its consequence (2) was rec
 P4 & thermal.min\_vias 12 -\textgreater{} 0 in constraints.json. NO thermal vias under U1's tab. B.Cu stays a CONTINUOUS GND plane under the pour. & Schematic-reviewer finding, and it was a real self-contradiction in the constraint set: min\_vias 12 demanded stitching vias in a +3V3 tab pour while B.Cu is GND - a via between those two nets is a SHORT, not a heat path (verified record linear-regulator-live-tab-thermal-vias). The alternative, a bottom-side +3V3 island to stitch into, would punch a hole in the ground return directly under the hottest part of the board to buy copper the dielectric already gives us for free. The record's own prescription for 2 layers over a GND bottom is precisely: large top-side VOUT pour, ground plane continuous beneath, NO vias through it - the far-side copper still works, coupled through the FR-4 (AMS1117 p5), worth about 5 C/W at 1000 mm2. The 12-via number was inherited from exposed-pad-to-GND practice where it is correct; here it is not. constraints\_lint re-run clean. \\
 P4 & P6 REQUIREMENT (schematic-reviewer ERROR, deferred to the layer where it lives): silkscreen must legend both screw terminals - polarity (+5V / GND on J1, +3V3 / GND on J2) AND direction (IN / OUT). Scripted silk only (silk\_place.py / place\_edit add\_text), pin-locked. & The reviewer is right and this is in scope: it is about THIS board's own correctness, not about adding an excluded protection feature. The WJ500V footprint's only cues are a 0.2 mm corner dot and two IDENTICAL arrows over both pins, and J1 and J2 are the SAME part - so nothing on the assembled board distinguishes input from output or plus from ground. On a board that by scope ruling has no reverse-polarity protection, a user wiring 5 V backwards puts -5 V on a VIN with no negative abs-max rating and reverse-biases C1, an MnO2 tantalum, with up to 2 A of bench supply behind it: it fails SHORT and can burn. Feeding 5 V into J2 likewise forces VOUT \textgreater{} VIN, also unrated. A legend costs nothing but silkscreen and is the only thing standing between the user and that outcome. Deferred to P6 because silk is a board artifact, not a schematic one - no schematic change is needed. \\
 P4 & C2 ESR margin: ACCEPTED as unquantified-at-the-floor, to be settled at bring-up by load-transient ring count (\textless{}= 4 rings), not by the datasheet number. & Reviewer sharpened the earlier residual usefully: LCSC's 0.8 ohm is a 100 kHz CEILING from a parametric field, while the window's 0.3 ohm end is a FLOOR on MINIMUM-over-frequency ESR - so the two numbers are not measured the same way and the margin that actually matters is not quantified by anything we hold. No Vishay 293D datasheet is in research/sources to close it. This does not block: it is not marginal on the face of it (0.8 vs 0.3), and the verified record already prescribes the ring-count test as the settlement for exactly this case. Recorded so bring-up knows it is a real check to run, not a formality. \\
+P6 & Anneal candidate 1 (best HPWL) OVERRULED on thermal grounds; placement rebuilt thermal-first. U1 rotated 180 so the tab faces open field. & Measured, not asserted: cand1 fits to 88.29 x 12.42 mm carrying 943 mm2 of tab-connected pour, only 517 mm2 of it within a thermal decay length - under the 1000 mm2 the design target needs. HPWL is close to fiction on this board anyway: +3V3 is plane\_fed, so its trunk IS the pour and two of the three nets have no wire to shorten. The chosen placement is 2\% worse on total HPWL while the only net that becomes a real trace, +5V, is 39\% SHORTER (48.1 -\textgreater{} 29.3 mm). Delivered pour: 2009.5 mm2 measured as one island, 1080 mm2 within 25 mm of the tab. \\
+P6 & Added a '+' silkscreen mark over C2's anode (small scope extension beyond the reviewer's J1/J2 legend finding). & C2's only polarity marks are its band, which sits UNDER the 7.3 x 4.3 mm body, and a 0.03 mm-radius dot at the body edge - i.e. nothing an assembler or a user can see. On a 22 uF MnO2 tantalum on a board with no reverse-polarity protection, that is the same failure mode as the unlabelled connectors: a reversed tantalum fails SHORT and can burn. C1's footprint already prints a '+', so this also removes an inconsistency between the two. \\
+P6 & P7 note: planes\_gen must run BEFORE routing. Route probe measured 1.00 completion on a fitted copy WITH planes, but only 0.89 on the zone-less board where the two plane\_fed nets are forced into traces. & Placement agent measured both. +3V3 and GND are declared plane\_fed, so their trunks are pours; asking the router to wire them as traces both fails to complete and would carve up the thermal pour the board is designed around. \\
+P7 & planes\_gen run with --no-thermal-vias. TOOLING GAP recorded: planes\_gen's exposed-pad heuristic grids thermal vias under any netted SMD pad \textgreater{}= 4 mm2 whose net is a plane net, and it does NOT read constraints.thermal{[}U1{]}.min\_vias. U1's tab is 8.4 mm2 on +3V3, so it qualified. & The constraint that says 'no vias here' and the script that drills them never meet - min\_vias: 0 is read by check\_thermal, not by planes\_gen. Left alone, the generator would have drilled U1's LIVE tab (the +3V3 heatsink pad) on a board whose bottom layer is a continuous GND plane: at best it voids the GND plane under the hottest part of the board and wastes the copper the design is built on, and the whole point of record linear-regulator-live-tab-thermal-vias is that a via from this pour to GND is a short, not a heat path. The router caught it by reading the script's heuristic rather than trusting that a declared constraint would be honored. C2's 8.3 mm2 tantalum pads clear the same 4 mm2 floor, so this was not a near-miss on one pad. \\
+P7 & Ripped 10 KRT-finish F.Cu GND traces and replaced them with 3 pad-stitch vias (one per F.Cu GND SMD pad). Pour recovered 1189.6 -\textgreater{} 1199.2 mm2, effective 577.1 -\textgreater{} 585.0 mm2, DRC still 0/0. & route\_auto's KRT mop-up closed GND by daisy-chaining U1.1, C1.2 and C2.2 to J1 with \textasciitilde{}25.6 mm of trace straight ACROSS the +3V3 heatsink pour, including a slit 7 mm from the tab - it bought connectivity with the one resource this board cannot spend, and cost 2.6\% of effective area, the same order as the margin the 50 mm width was chosen to hold. route\_critical's own report names the intended mechanism ('SMD pads stitched by stitch\_vias'), so the fix was to use it: each via sits on a ring just past its pad edge, inside the void the pad already cuts in the pour. A router optimizing connectivity has no term for thermal copper - that is exactly the judgment the stage exists to add. \\
+P7 & check\_current's 3 insufficient\_transition\_vias warnings ACCEPTED as-is: one stitch via per GND pad, not two. Not fixed. & Two independent reasons, and the second is decisive. (1) Cross-section: a 0.3 mm barrel at 20 um plating is \textasciitilde{}0.019 mm2 of copper, more than 2x the 0.0090 mm2 of a 0.2575 mm track in 1 oz - one via already carries more than the trace feeding it. (2) The heuristic attributes the WHOLE net's 0.515 A to every via, which is wrong here: the load return does not pass through these vias at all. Current flows J2's GND pin -\textgreater{} B.Cu plane -\textgreater{} J1's GND pin, and BOTH are through-hole screw terminals whose pins penetrate every layer directly. These three vias carry only U1's quiescent current and the capacitors' ripple - milliamps. Doubling them would spend \textasciitilde{}2 mm2 of heatsink pour to silence an advisory the verify gate does not fail on, which is the exact trade this board must not make. check\_current's own message already labels it advisory for a plane-fed rail. \\
+P8 & P8 triage: 4 of 8 board-review findings FIXED (wo-1 router via-in-pad + single-via ground, wo-2 plane J2.1 relief, wo-6 silk hot legend); 4 ACCEPTED with recorded reasoning (wo-3 clearance, wo-4 audit trail, wo-5 aspect, wo-7 3D model). One fixer runs all three orders SEQUENTIALLY - a deviation from one-fixer-per-order. & The three orders mutate the same 50 x 26 mm board and the board file is single-writer; serializing them inside one agent is safer than racing three fixers over the same copper, and the playbook says correctness beats wall-clock when in doubt. Each is verified before the next. \\
+P8 & ACCEPTED, not fixed: the board is fabricated at 0.127 mm copper clearance rather than the 0.2 mm its netclasses declare, because the unconditional aiee\_clearance\_floor DRU rule outranks netclass clearance (measured 0.127 mm pad-to-pour on every isolated pad). & 0.127 mm IS the JLC 2layer\_1oz floor, so the board is manufacturable as built - this is a loss of intended DESIGN MARGIN, not a fab violation, and on a 5 V board carrying 0.5 A with no fine-pitch parts the electrical consequence is nil. Fixing it properly means changing how rules\_gen orders generic-vs-netclass rules, which is a pipeline change and not this board's to make. Recorded as a systemic finding: any board in this pipeline is built to the fab floor, not to its declared netclass clearance, and nothing warns about it. \\
+P8 & ACCEPTED: the outline's AREA was earned but its ASPECT RATIO was not - the 50 mm width is set by placement.edges pinning J1 left and J2 right. Cost \textasciitilde{}1.4 C/W. & Reviewer is right that this is an input surviving inside an output. But in/out on opposite edges is the canonical arrangement for a bench block - a user lands 5 V on one side and takes 3.3 V from the other, and the screw terminals are 10.16 mm deep, so the width is dominated by real mechanical parts rather than by an arbitrary number. 1.4 C/W against a 10-15 C margin is not worth re-placing the board. Recorded so the aspect is understood as a constraint-driven choice rather than something the thermal sweep produced. \\
+P8 & ACCEPTED, library note only: C2's 3D model is CASE-E (7343-43, 4.1 mm) while the ordered part is CASE-D (7343-31, 3.1 mm). The FOOTPRINT is correct - only the .wrl/.step is wrong. & Zero fabrication consequence: 3D models are not manufactured, height is unconstrained at this tier, and the footprint's copper was verified against the ordered case size at P3. It matters only if someone later runs a mechanical/enclosure check off the model. Noted for the librarian rather than fixed, because swapping it needs a correct CASE-D model this workspace does not hold - and the same pulled library already produced three other defects, so the model is the least of it. \\
+P8 & wo-1 FIXED: 3 in-pad GND vias relocated 0.55 mm past their pad edges with 4 new 0.6 mm F.Cu GND stubs, plus a 4th redundant via on U1 pin 1. Pour 1199.221 -\textgreater{} 1196.867 mm2 (-2.354), ONE island, 0 orphaned; 1083.825 mm2 within 25 mm (floor 1000). drc\_routed pass 0/0. & The vias were BARE - stitch\_vias emitted no F.Cu stub because GND has no top-layer copper on this board (the top layer is the +3V3 pour), so an off-pad via would have been orphaned; relocating them required authoring the stubs as well. U1's two barrels sit on opposite halves of the pad 1.6 mm apart so a single void cannot take both, and the nearest new via is 4.28 mm from the tab, so nothing was punched through the GND plane under it. Baseline was re-measured on the pre-fix snapshot with the same script, so before/after are apples-to-apples rather than two different measurement paths. \\
+P8 & TOOLING DEFECTS in stitch\_vias.py, recorded for promotion (not fixed here - skill scripts are out of this board's scope): (a) RING\_RADII are measured from the pad CENTRE, so any pad with a half-extent \textgreater{} 0.65 mm gets its via placed INSIDE it; (b) via\_check only tests FOREIGN copper, so a via landing in its OWN pad is never caught; (c) it emits no F.Cu stub with a pad via, which orphans the via on any board whose top layer has no copper for that net. & This is the second tooling gap this board found in the same area (planes\_gen drilling the live tab was the first), and together they are the run's most transferable output. (a) and (b) compound: the script places the via wrong AND its own checker is blind to that exact error, which is why it took a human-style visual review at P8 to catch a defect introduced at P7. Consequence on an economy PCBA that neither fills nor plugs vias is starved or open joints under paste apertures. \\
+P8 & Second redundant via APPROVED for C2 pin 2, NOT for C1 pin 2. Redundancy is granted where an open barrel causes a FUNCTIONAL failure, not by symmetry. & C2 is the compensation element - its ESR is inside the regulator's feedback loop - so losing its ground return does not merely remove a bypass, it removes the loop's zero and the regulator oscillates. That is the same class of consequence as U1 losing its ground reference, and it costs \textasciitilde{}0.65 mm2 of a 1196 mm2 pour. C1 is the input bypass: an open return there degrades input decoupling on a bench-supplied rail, which is a noise problem rather than a failure, so it stays single and the asymmetry is deliberate rather than an oversight. \\
+P8 & wo-2 (J2 pin 1 thermal relief) NOT APPLIED - accepted as a tooling block, mitigated by an assembly instruction instead. J2.1 stays solid-connected to the pour. & No script in the skill can set a per-pad zone connection: the only zone\_connect call is planes\_gen's ZONE-WIDE SetPadConnection, route\_edit is add\_track/add\_via/remove only, and place\_edit is footprint+text only. The one scripted workaround - a small higher-priority thermal zone over the pad - is refused by planes\_gen's unconditional \textgreater{}=80\% existing-fill idempotency guard. The remaining option is a raw (zone\_connect 1) edit, which the hard rule 'scripts own all writes' forbids, and I am not going to break that rule to save a hand-solder joint on a qty-5 bench board. MITIGATION: the assembly note tells the assembler to preheat the board and use a high-thermal-mass iron for J2 pin 1. Cost of the unbuilt fix was measured on a scratch copy, so this is a tooling block and not a cost objection: DRC 0/0, pour stays one island, zone fill loses 5.363 mm2 - and check\_thermal's credited area is BIT-IDENTICAL at 581.9632 mm2 either way. \\
+P8 & CORRECTION to two numbers in the P8 board review, found by the fixer on a scratch copy: (a) the reviewer's 'copper on 72/72 of a ring at r=1.6 mm' test CANNOT distinguish thermal relief from a solid connection - KiCad's default 0.5 mm thermal gap lies between r=1.0 and r=1.5, so r=1.6 reads full copper in both cases; (b) the relief's cost is 5.363 mm2 of ZONE FILL (not the 2.93 mm2 net-copper delta), and since J2.1 is 17.49 mm from the tab, ALL of it falls INSIDE the 25 mm circle rather than outside it. & Recorded because the review's conclusion was right while two of its supporting measurements were not, and a later reader would otherwise inherit both. The substance survives: check\_thermal's credited area is unchanged to the last digit, so the relief is genuinely free against the thermal model even though it is not free against the 25 mm figure. A ring test for solid-vs-relief must sample INSIDE the thermal gap band (r \textless{}= pad\_r + gap), which is the transferable lesson. \\
+P8 & THIRD tooling gap recorded: there is no scripted way to set per-pad zone connection. Proposed fix (for the skill, not this board): a  op on route\_edit.py backed by pad.SetLocalZoneConnection, plus a per-entry force/override on planes\_gen's \textgreater{}=80\% existing-fill guard. & Hand-soldered through-hole pins in a solid pour are a recurring, ordinary need - any board that pours a rail and hand-installs a connector on it hits this - and the pipeline currently has no answer except a rule-breaking raw edit. Third gap this board found, after planes\_gen ignoring min\_vias and stitch\_vias placing vias inside pads with a checker blind to it. \\
+P8 & CORRECTION to the preceding tooling-gap entry: a shell quoting slip ate the proposed op name. It should read - propose a pad\_zone\_connect \{ref, pad, mode\} op on route\_edit.py, backed by pad.SetLocalZoneConnection, plus a per-entry force/override on planes\_gen's 80-percent existing-fill guard. & The recorded text lost the op name to backtick command substitution, leaving the proposal unreadable. Correcting rather than leaving an ambiguous audit entry, since this is the concrete remedy for the third tooling gap and a later reader needs the name and the API call. \\
 \bottomrule
 \end{longtable}
 }
@@ -333,13 +350,216 @@ C1 and C2 are associated with U1's input and output pins. {*}{*}Do NOT tag eithe
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-16T23:29:14, failing 0 of 0.
+Gate \texttt{erc} (phase P4): \textbf{pass} after 3 attempt(s); last 2026-08-17T21:24:21, failing 0 of 0.
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-\emph{Pending --- produced at P6.}
+Gate \texttt{place} (phase P6): \textbf{pass} after 6 attempt(s); last 2026-08-17T21:24:22, failing 0 of 0.
+
+Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 5 attempt(s); last 2026-08-19T02:35:24, failing 0 of 0.
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/bb-ldo_top.png}\\
+{\small\texttt{reports/renders/bb-ldo\_top.png}}
+\end{center}
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/bb-ldo_bottom.png}\\
+{\small\texttt{reports/renders/bb-ldo\_bottom.png}}
+\end{center}
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/bb-ldo_iso.png}\\
+{\small\texttt{reports/renders/bb-ldo\_iso.png}}
+\end{center}
 \section{Verification}
-\emph{Pending --- produced at P8.}
+Gate \texttt{verify} (phase P8): \textbf{pass} after 4 attempt(s); last 2026-08-19T02:35:25, failing 0 of 4.
+\emph{reports/verify\_all.json not available.}
+\subsection*{Design review of record}
+\subsection*{bb-ldo - board review (P8, adversarial, fresh context)}
+Board: \texttt{kicad/bb-ldo.kicad\_pcb}, 50.000 x 26.420 mm, 2 layers, 5 parts. Mode \texttt{block-basics} / scope \texttt{block-only} / binding \texttt{canonical} - protection, filtering, indicators, test points, config and mechanical are SCOPE, and their absence is not reported below. The board size is compared only to what the design earned and recorded, never to any stated number.
+
+Renders made for this review (all in \texttt{reports/renders/}): \texttt{bb-ldo\_top.png}, \texttt{bb-ldo\_bottom.png}, \texttt{bb-ldo\_iso.png}, and two I added because the top-down 3D view is actively misleading about connector orientation: \texttt{bb-ldo\_left.png}, \texttt{bb-ldo\_right.png}.
+
+Coverage note: \texttt{reports/checks/summary.json} does not exist on this workspace. The equivalent record is the \texttt{coverage} block in \texttt{reports/gate-verify.json}: all 8 required checks RAN, \texttt{skipped\_error} empty, \texttt{not\_applicable} empty. So there is no hole from a skipped check. Advisory legs \texttt{check\_irdrop} and \texttt{check\_pdn\_z} both pass. \texttt{dfm\_check} / \texttt{fab\_export} have not run - that is P9, not a hole at P8.
+
+---
+
+\subsubsection*{1. Verdict on waiver 1 - check\_thermal \texttt{thermal\_area} (ERROR, waived)}
+\textbf{SOUND. The waiver should stand.} I re-derived every load-bearing claim rather than accepting it, and two of them were the ones that could have silently invalidated the whole thing. Both hold.
+
+\emph{The clamp is real, and it is in the source, not in the argument.} \texttt{check\_thermal.py} sets \texttt{A\_SAT\_MM2 = 645.0} and \texttt{REACH\_MM = sqrt(645/pi) = 14.33}, then computes \texttt{a\_eff = min(645, net\_copper  intersect  circle(part\_centroid, 14.33))} and \texttt{theta\_ja(a) = 55 + (174-55){*}exp(-a/350)} clamped at \texttt{A\_SAT}. Two independent ceilings therefore bind at the same number: the credited area can never exceed 645 mm2 because that is the \emph{area of its own reach circle}, and the model clamps at 645 anyway. \texttt{theta\_ja(645) = 73.85 C/W}. The board's target is \texttt{dt\_c 65} at 1.00 W, i.e. 65 C/W. {*}{*}No 2-layer layout of any kind can pass this check at this target{*}{*} - not a better pour, not a bigger board, not a different placement. The gate is unreachable by construction, which is exactly what a waiver is for.
+
+{*}The delivered copper is what the waiver says it is - I measured it myself from the routed board's filled polygons, not from the P6 estimate.{*}
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} claim in the waiver \textbar{} my measurement \textbar{} verdict \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} 1199.221 mm2 contiguous F.Cu +3V3 pour \textbar{} {*}{*}1199.221 mm2{*}{*} \textbar{} exact \textbar{}\\
+\textbar{} ONE island, 0 mm2 orphaned \textbar{} one filled outline, contains U1 pad 4 \textbar{} confirmed \textbar{}\\
+\textbar{} 1085.679 mm2 within 25 mm of the tab \textbar{} {*}{*}1086.18 mm2{*}{*} (circle discretisation) \textbar{} confirmed \textbar{}\\
+\textbar{} (checker's own figure) 584.97 mm2 \textbar{} {*}{*}585.76 mm2{*}{*} inside r=14.33 at U1's pad centroid (29.515, 32.91) \textbar{} confirmed \textbar{}
+\end{quote}
+Reach-circle budget, which is the honest way to read the 585: the circle is 645.12 mm2; 16.72 mm2 of it falls off the board edge (the board is 26.42 mm tall, the circle is 28.66 mm across); 42.64 mm2 is carved by pads, the +5V corridor and clearances. {*}{*}The pour occupies 91 \% of every square millimetre the checker could ever credit.{*}{*} There is no layout headroom left inside the model.
+
+\emph{The claim that could have killed the waiver, and did not.} The whole waiver rests on the tab being poured SOLID. If the zone had been left on KiCad's default thermal relief, U1's tab would reach 1199 mm2 of copper through four 0.5 mm spokes and the delivered theta\_JA would be far worse than the checker's own pessimistic number - and nothing in the gate record would have shown it. Checked directly: the zone carries \texttt{(connect\_pads yes (clearance 0.5))}, and geometrically U1 pad 4's full 8.424 mm2 is merged into the pour (ring probe: copper on 72/72 of a circle at r=2.2 mm around the tab). U1.2, C2.1 and J2.1 are likewise fully merged. \textbf{The heat path is genuinely unobstructed.}
+
+\emph{Two caveats that do not change the verdict but belong in the record:}
+
+1. The waiver says the two vendor sweeps "agree within \textasciitilde{}1 C/W where they overlap". They do not overlap: AMS gives 65 C/W at 1000 mm2 and TI gives 66 C/W at 645 mm2, which are different areas. The correct statement is that they \emph{bracket} - two vendors, two test boards, both landing in the mid-60s C/W over the area band this board occupies. That is still good evidence; it is just not a point-for-point agreement, and the waiver overstates it slightly. 2. The margin is thin and everything in it is estimated. Tj 110-115 C against 125 C is 10-15 C, sitting on a model both vendors hedge in their own words ("a rough guideline... some experimentation will be necessary"; "not part of the TI component specification"), plus an ASSUMED 5 mA Iq (power\_tree gap 1 - the part's max is typically 10 mA, worth \textasciitilde{}+1.6 C). {*}{*}Bring-up measurement of the tab temperature at full load in still air should be an explicit acceptance step before any quantity order{*}{*}, not an optional nicety. The waiver already says as much; make it a condition.
+
+\subsubsection*{2. Verdict on waiver 2 - check\_current \texttt{insufficient\_transition\_vias} x3}
+\textbf{SOUND on the current question. The topology claim is true.} Verified against the board, not the prose:
+
+\begin{itemize}
+\item \texttt{J1.2} (GND) and \texttt{J2.2} (GND) are both \texttt{thru\_hole} pads with
+\texttt{(layers "{*}.Cu" "{*}.Mask")}, i.e. their barrels penetrate F.Cu and B.Cu
+directly. Confirmed visually in \texttt{bb-ldo\_bottom.png}: both show a four-spoke
+thermal relief into the plane, while J1.1 (+5V) and J2.1 (+3V3) show an
+isolating antipad.
+\item The B.Cu GND zone is a single unbroken island of 1226.833 mm2 covering the
+whole board. Ring probes at r=1.25 mm confirm 4-spoke relief on both GND
+terminals (20/72 of the ring is copper) and full isolation on both rail
+terminals (72/72 clear).
+\item Therefore the 0.515 A load return runs J2.2 -\textgreater{} B.Cu -\textgreater{} J1.2 and {*}{*}never
+passes through any of the three stitch vias{*}{*}. Those three vias serve only
+C1.2, C2.2 and U1.1 - U1's ground/quiescent current and capacitor ripple,
+milliamps. The heuristic's per-via 0.515 A attribution is wrong here, and
+the check labels itself advisory for exactly this reason.
+\end{itemize}
+{*}{*}But the waiver answers the ampacity question and leaves a different one open{*}{*}, which I have raised separately as finding 2 below: those same vias are the \emph{only} connection between each F.Cu GND pad and the plane, because F.Cu carries no GND copper at all (it is the +3V3 pour). One via, no redundancy, and for U1.1 the failure consequence is not "warm via" but "regulator loses its ground reference". That is a reliability argument the ampacity waiver never addresses, and it is not covered by it.
+
+---
+
+\subsubsection*{3. Findings, worst first}
+\paragraph*{F1 (ERROR) Three unfilled vias sit inside SMT solder pads}
+\texttt{reports/renders/bb-ldo\_top.png} shows nothing here - it is under the parts. The geometry:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} via \textbar{} lands in \textbar{} pad size \textbar{} overlap \textbar{} note \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} (17.318, 32.910) \textbar{} {*}{*}C2.2{*}{*} (GND, tantalum) \textbar{} 2.185 x 3.780 \textbar{} fully inside (0.283 mm2) \textbar{} 0.65 mm from pad centre \textbar{}\\
+\textbar{} (24.820, 37.310) \textbar{} {*}{*}C1.2{*}{*} (GND, tantalum) \textbar{} 1.530 x 1.296 \textbar{} 0.209 mm2 inside \textbar{} 0.65 mm from pad centre \textbar{}\\
+\textbar{} (27.677, 30.064) \textbar{} {*}{*}U1.1{*}{*} (GND, the regulator) \textbar{} 2.500 x 1.100 \textbar{} 0.144 mm2, {*}{*}centre on the pad boundary{*}{*} \textbar{} drill breaks the pad edge \textbar{}
+\end{quote}
+Assembly is JLCPCB economy PCBA, which does not fill or plug vias. Paste apertures equal the pads (\texttt{pad\_to\_mask\_clearance 0}), so paste is printed directly over open 0.3 mm barrels. At reflow the solder wicks into the barrel and the flux volatiles have nowhere to go (the back side is tented), giving a starved and voided joint. Two of the three are polarised tantalum terminations, where a void under one termination also tilts the part.
+
+U1.1 is the worst instance and deserves its own sentence: the via centre sits 0.004 mm inside the pad edge, so 0.146 mm of the drilled hole is \emph{outside} the mask/paste aperture, under a mask sliver that will not tent at that size - and this pad is the regulator's only ground connection.
+
+Root cause, so the fixer does not just move three vias and leave the trap armed: \texttt{stitch\_vias.py} documents its candidates as "rings just past the pad edge" but \texttt{RING\_RADII = (0.65, 0.9, 1.15)} are measured from the pad \textbf{centre} (\texttt{ring\_candidates(pad.center, bearing)}), and \texttt{via\_check} only tests foreign copper, so a same-net pad overlap is never rejected. Any pad with a half-extent over 0.65 mm gets a via inside it. That is most tantalum and SOT pads.
+
+Fix and its price: move each via 0.4-0.6 mm further out and let the tool's existing \texttt{add\_track} stub carry it (the code already emits one when the disc misses the pad). A 0.6 mm via with its 0.5 mm zone clearance removes 2.01 mm2 of pour; three of them cost about 6 mm2 of the 585 mm2 effective copper, i.e. roughly 0.1 C/W. That is a rounding error against a 10-15 C margin, and the right trade.
+
+\paragraph*{F2 (WARNING) U1's ground reaches the plane through exactly one via}
+F.Cu carries no GND copper anywhere - the top layer is the +3V3 heatsink pour by design. So U1.1's single 0.3 mm via at (27.677, 30.064) is the \emph{entire} ground path of the regulator. If that barrel is open or cracked (and per F1 it is the joint most likely to be compromised), U1 has no ground reference and its output rises toward VIN: \textbf{5 V on a rail specified at 3.20-3.40 V}, into whatever the owner has wired to J2, on a board that by accepted scope has no protection anywhere. The ampacity waiver's cross-section argument is correct and does not touch this.
+
+Add a second via on U1.1 (and, while there, on C2.2 which is the compensation capacitor's only return). Cost is 2.01 mm2 of pour each. This is redundancy, not ampacity - do not let it be re-argued as the waived question.
+
+\paragraph*{F3 (WARNING) J2 pin 1 is solid-poured to 1199 mm2 and then hand-soldered}
+\texttt{planes} declares \texttt{\{"layer": "F.Cu", "net": "+3V3", "connect": "solid"\}}, which is exactly right for U1's tab and is why waiver 1 holds. But the setting is zone-wide, and J2.1 (+3V3) is a {*}{*}through-hole screw-terminal pin that \texttt{requirements.md} s.7 says is hand soldered after PCBA{*}{*}. Measured: J2.1's full 3.142 mm2 is merged into the pour, with copper on 72/72 of a ring at r=1.6 mm - a completely solid tie to 1199 mm2 of 1 oz copper.
+
+This is the classic un-solderable joint: the iron cannot raise the pad because the plane drains it, and the operator either gives up with a cold joint on the 3.3 V output pin or overheats the board trying. Every other hand-soldered pin on this board is fine - J1.2 and J2.2 already get four-spoke relief from the B.Cu zone, and J1.1 is isolated on both layers. J2.1 is the single exception.
+
+Fix: a per-pad \texttt{(zone\_connect 1)} on J2.1 only. It sits 17.49 mm from the tab, outside the checker's 14.33 mm reach entirely, and the relief removes about 2.93 mm2 of pour out in the partial-effectiveness band - thermally free. If instead this is left as-is, say so in the fab/assembly note so whoever solders it brings a preheater.
+
+\paragraph*{F4 (WARNING) The board is built at 0.127 mm clearance, not the 0.2 mm its netclasses declare}
+Measured pad-to-pour gap on every isolated pad on the board: {*}{*}0.127 mm exactly{*}{*} (C1.1, C1.2, C2.2, J1.1, J1.2, J2.2, U1.1, U1.3 - all identical). But \texttt{bb-ldo.kicad\_pro} puts +5V, +3V3 and GND in netclasses \texttt{Pwr\_0p255mm} / \texttt{Pwr\_0p2575mm} with \texttt{"clearance": 0.2}, and the zone itself declares \texttt{(connect\_pads yes (clearance 0.5))}. Neither took effect.
+
+The likely mechanism, for the fixer to confirm: \texttt{bb-ldo.kicad\_dru} contains
+
+\begin{quote}\small\ttfamily\raggedright
+(rule "aiee\_clearance\_floor"\\
+	(constraint clearance (min 0.1270mm))\\
+)
+\end{quote}
+with \textbf{no condition}, so it matches every object pair on the board, and a matching custom rule outranks the netclass value it was meant to floor. The file's own header comment says "Baseline (fab floor) first, per-net design rules last (later rule wins)" - but \texttt{rules\_gen} emits per-net rules for \texttt{track\_width} only, never for \texttt{clearance}, so nothing ever wins it back.
+
+Consequence here is mild - 0.127 mm is JLC's stated 2-layer minimum and DRC is clean at 0/0 - but the board is fabricated with zero etch and registration margin where the design intended 57 \% more, and the delivered pour is very slightly larger than \texttt{thermal\_area.json} modelled (it assumed the 0.2 mm figure). The reason it is a finding rather than a note is that this is a generated-rules defect that will apply to every board this pipeline makes, including ones where the difference is a safety clearance rather than an etch margin.
+
+\paragraph*{F5 (WARNING) \texttt{check\_thermal}'s via warning is suppressed by a constraint, not by a waiver}
+\texttt{check\_thermal} computes \texttt{need\_vias = (dt/power) \textless{} theta\_ja(A\_SAT)}, which on this board is \texttt{65 \textless{} 73.85} -\textgreater{} True, and would then emit a \texttt{thermal\_vias} warning for \texttt{len(vias) \textless{} min\_vias}. It does not, because \texttt{constraints.json thermal{[}0{]}.min\_vias = 0} makes the test \texttt{0 \textless{} 0}.
+
+\textbf{The engineering is right} - the tab pour is +3V3 and B.Cu is a continuous GND plane, so a stitch via there is a short, and \texttt{state.json} records the 12 -\textgreater{} 0 correction on a schematic-reviewer finding with a verified knowledge record behind it. I am not asking for it to change.
+
+The finding is about the audit trail: a checker warning was silenced by a constraint value, so \texttt{gate-verify.json} reports \texttt{warning: 3} when the honest count of "things this checker wanted to say" is 4, and the reasoning lives in a \texttt{\_min\_vias\_why} comment rather than in \texttt{verify-waivers.json} where a reviewer looks. Either add a third waiver record restating that reasoning, or have the gate surface constraint-suppressed checks. Whoever reads only the gate JSON cannot currently see that this decision was made.
+
+\paragraph*{F6 (WARNING) The outline's area was earned; its aspect ratio was not}
+The binding is \texttt{canonical}, so geometry is an output, and the \emph{area} genuinely is one - 50.000 x 26.420 mm came out of \texttt{board\_edit --outline fit} over a thermally-driven placement, and \texttt{thermal\_area.json} shows the work. The \emph{aspect ratio} did not. It is fixed by \texttt{constraints.json placement.edges}, which pins J1 to the left edge and J2 to the right edge. Two 10.16 mm-deep connectors on opposite ends plus U1+C1+C2 between them cannot fit in less than about 50 mm of width, and the height then follows from the vertical stagger.
+
+That matters because heat spreads radially. At the same 1321 mm2 of board, a squarer outline with the tab near the centre would put roughly 1300 mm2 inside 25 mm of the tab instead of the delivered 1086 mm2 - about +200 mm2 of effective copper, worth roughly 1.4 C/W off theta\_JA on the AMS table's own slope, i.e. about 10 \% of the 10-15 C junction margin.
+
+\textbf{Recommend waiving this for this build.} The gain is real but small, the fix is a re-placement plus a re-route plus a re-pour, and the delivered layout is already the best of the three the pipeline produced (the P6 record shows cand1's 517 mm2 within 25 mm being overruled for the delivered 1086). It is logged because it is the same species as the bb-buck defect this run exists to teach - a geometry input that bound the design without ever being earned - just a much smaller instance, and because at \texttt{canonical} binding nothing else in the pipeline will ever notice it.
+
+\paragraph*{F7 (WARNING) No hot-surface legend on a board whose top copper is the radiator}
+At the design point the tab copper sits around 95 C and the pour is 65-80 C across most of the top face; the whole board is the heatsink, so there is no cool place to hold it. \texttt{requirements.md} s.8 records this as a live bench hazard ("typically 80-110 C surface"). There is no legend anywhere on the board saying so - the top silk carries only the terminal legend and refdes, and the bottom silk is completely empty (\texttt{bb-ldo\_bottom.png}).
+
+One \texttt{gr\_text} on the empty bottom copper, or beside U1 on top, costs nothing and is not an excluded feature class (\texttt{indicators} means LEDs, not legend). Noting plainly that requirements s.8 says the hazard is "not a scope item to fix" - true of the \emph{hazard}; this is about labelling it. A waiver is entirely reasonable if the owner wants the board bare.
+
+\paragraph*{F8 (WARNING) C2's 3D model is the wrong case size}
+\texttt{CAP-SMD\_L7.3-W4.3.kicad\_mod} references \texttt{lib/aiee.3dshapes/CASE-E\_L7.3-W4.3-H4.1.wrl}, and the render literally has "CASE-E" printed on the body (\texttt{bb-ldo\_top.png}, centre-left). The ordered part is \texttt{293D226X9016D2TE3}, package \texttt{CASE-D-7343-31(mm)} per \texttt{parts/parts.json} - EIA 7343-31, 3.1 mm max height, against the model's 4.3 mm case at 4.1 mm.
+
+Zero consequence today: height is unconstrained, there is no enclosure, and the land pattern and courtyard are correct for 7343 either way. It is logged because the 3D model is the artifact any later mechanical or enclosure check will read, and it is currently 1.0 mm wrong.
+
+---
+
+\subsubsection*{4. Checked hard and cleared (with the numbers, so it is not re-checked)}
+\textbf{Connector orientation - the top-down render lies about this.} In \texttt{bb-ldo\_top.png} both terminals appear to have their wire openings facing the board interior, which would be a serious defect. They do not. Three independent artifacts agree that both wire entries face \textbf{outward}: (a) the WRL mesh has two 4.0 x 5.5 mm rectangular openings centred exactly on the pin x-positions on the footprint -y face and nothing comparable on +y; (b) the footprint's two silk arrows sit on that same -y face pointing inward, the standard wire-insertion marking; (c) \texttt{bb-ldo\_left.png}, rendered for this review, shows J1's cage openings squarely facing the camera at -X while J2 presents its back. J1's entry face is 0.86 mm inside the left board edge, J2's 0.86 mm inside the right. \textbf{Correct.} What the top view shows on the inboard faces is a shallow moulded recess, not a hole.
+
+\textbf{Terminal legend, after assembly.} The P4 schematic review's ERROR (\texttt{connector-polarity-unmarked}) and WARNING (\texttt{connector-input-output-ambiguous}) are both closed by the P6 silk, and closed properly: \texttt{GND} at y=37.37 and \texttt{+5V} at y=42.45 are aligned pin-for-pin with J1.2 and J1.1; \texttt{+3V3} at 23.37 and \texttt{GND} at 28.45 with J2.1 and J2.2; \texttt{IN} and \texttt{OUT} at 1.6 mm sit on each connector's centreline. All seven texts sit 2.9-3.1 mm inboard of the connector bodies, i.e. {*}{*}outside them - they survive the connector being fitted{*}{*}, visible in \texttt{bb-ldo\_top.png}. Sizes 1.2/1.6 mm at 0.2 mm stroke, comfortably over the 0.15 mm DRU floor and JLC's legibility limit. One residual, judged and not escalated: read from the wire-insertion side the labels are behind a \textasciitilde{}10 mm tall block, so they are legible from above rather than from the front, and there is no room outboard to move them (0.86 mm to the edge).
+
+\textbf{Capacitor polarity, after assembly.} C2's added \texttt{+} at (24.800, 29.400) is directly over pad 1 at x=24.788 - the anode, on +3V3 - 0.52 mm clear of the body silk and outside the courtyard, so it is visible with the part fitted (\texttt{bb-ldo\_top.png}, and the zoomed body in the centre crop shows the model's own light anode stripe on that same right-hand end, agreeing with the mark). C2's native marks are indeed useless: the band at local x=+2.20 is under the 7.3 x 4.3 body and the pin-1 dot is a 0.03 mm radius circle. C1 needs no added mark - its footprint's own \texttt{+} glyph lands at (29.500, 38.810), outside its courtyard on the anode side, and its model stripe agrees. {*}{*}Both correct and both legible.{*}{*}
+
+\textbf{Hand-solder access.} J1 and J2 are the only hand-soldered parts and they solder from the bottom, where B.Cu carries nothing but the GND plane and three tented vias - no SMT parts, no obstructions (\texttt{bb-ldo\_bottom.png}). C1 and C2 are on the opposite face, 8.3 mm and further from the nearest THT pin; {*}{*}an iron at J1 or J2 cannot reach them.{*}{*} The only hand-solder problem on this board is F3.
+
+\textbf{Screwdriver and part-height access.} The terminals are the tallest parts by far and their screws face straight up with nothing over them; nearest neighbour to J1 is C2 at 0.500 mm of courtyard gap, which is body-to-body clearance, not an access path. No tall part shadows either connector (\texttt{bb-ldo\_iso.png}).
+
+\textbf{The hot part's neighbours.} Worked the gradient rather than assuming it: theta\_JA \textasciitilde{}62 C/W decomposes as roughly 15 (junction-tab) + 30 (spreading in 35 um copper, ln(20/1.5)/(2\emph{pi}k{*}t)) + 15 (board to air over 2642 mm2 at h\_eff \textasciitilde{}25 W/m2K), which reproduces the 60-65 C/W estimate. That puts the tab copper near 95 C and, at C1's 8.24 mm and C2's 9.18 mm from the tab, the copper at \textbf{74-78 C} - under the 85 C tantalum derating knee, and both parts run at 21-31 \% of their 16 V rating, so the derated limit (about 10.7 V above 85 C) is never approached. \textbf{Not a finding.}
+
+\textbf{C2's ESR over temperature.} The open P4 item (\texttt{cout-esr-floor-unguaranteed}) gets slightly better at the operating point, not worse: solid MnO2 tantalum ESR \emph{falls} with temperature (roughly 0.85x at 125 C), so 0.8 ohm at 25 C is about 0.68-0.72 ohm at C2's \textasciitilde{}75 C - still 2.3x above the 0.3 ohm floor the record carries. The one thing that follows for the recorded bring-up test: run the ring-count measurement at \textbf{thermal steady state at full load}, not cold, so it lands on the minimum-ESR corner rather than the maximum-ESR one.
+
+\textbf{Copper eaten by routing.} The +5V corridor (0.386 mm track, 0.127 mm each side) runs along the bottom edge and takes about 7.6 mm2 of the 42.64 mm2 lost inside the reach circle. It cannot be moved out - it has to reach U1.3, which is inside. The pour stays one island around it. Nothing else carves the field.
+
+\textbf{IR drop against dropout.} \texttt{check\_irdrop}: +5V path resistance 23.5 mohm, worst drop 12.1 mV at U1, grid converged (Richardson delta 0.037). At the 4.75 V low-line corner that leaves 1.4375 V of headroom against a 1.3 V max dropout spec - the board's own copper spends about 8 \% of the dropout margin. Acceptable, and already inside the P2 analysis.
+
+\textbf{Cross-artifact.} Every \texttt{requirements.md} s.2 interface is on the board (J-in +5V/GND, J-out +3V3/GND, nothing else). Every \texttt{architecture/blocks.md} block is present: B1=J1, B2=U1+C1+C2+the pour, B3=J2. R1's absence is a recorded decision, not drift (fixed-variant minimum load, verified record). The pour delivers 1199 mm2 against the architecture's "\textgreater{}= 1000 mm2 contiguous with the tab". Stackup matches: 2 layers, 0.035 mm copper, 1.6 mm, HASL, \texttt{JLC2313\_1.6}. No mounting holes stated, none present (answer 9). Board size is the earned 50.000 x 26.420 mm. The only drift found is F4 (declared vs built clearance) and F8 (3D model case size).
+
+\textbf{Fiducials.} Not required - JLC economy assembly panelises and carries fiducials on its own rails, and there are four SMT parts. Not reported.
+
+---
+
+\subsubsection*{5. Waivers recommended}
+\begin{itemize}
+\item \textbf{Waiver 1 (`thermal\_area`): uphold}, with the two corrections in section 1
+folded into the record (the "agree within 1 C/W" wording, and bring-up tab
+temperature made an explicit acceptance condition rather than a suggestion).
+\item \textbf{Waiver 2 (`insufficient\_transition\_vias`): uphold} for the ampacity
+question it actually answers. It does not cover F2, and F2 should not be
+closed by pointing at it.
+\item \textbf{F6 (aspect ratio): recommend waiving} for this build - real but small
+(\textasciitilde{}1.4 C/W), and the fix is a full re-placement.
+\item \textbf{F7 (hot-surface legend): waivable} if the owner wants the board bare;
+requirements s.8 already rules the hazard itself out of scope.
+\item F1, F2, F3, F4, F5, F8: recommend fixing. F1+F2 are the same three vias and
+should be one work order; F3 is a one-pad property; F4 is a \texttt{rules\_gen} fix
+plus a re-pour; F5 is a record, not a board change.
+\end{itemize}
+\subsubsection*{6. Open - what I could not settle from the board and renders}
+\begin{itemize}
+\item \textbf{Absolute theta\_JA.} Everything above is model and vendor table. The
+delivered board could be 55 C/W or 70 C/W and no artifact in this workspace
+can tell which. Only a thermocouple on the tab at 1.00 W in still air
+settles it, and the whole 10-15 C margin lives inside that uncertainty.
+\item \textbf{Whether the DRU really outranks the netclass} (F4's mechanism). The
+0.127 mm gap is measured and certain; the attribution to
+\texttt{aiee\_clearance\_floor} is inference from the rule file. A one-line
+experiment (add a conditioned per-net clearance rule, re-fill, re-measure)
+proves it.
+\item \textbf{The WJ500V's true body height.} The 3D model is 14.0 mm tall including
+the screw heads, which is taller than typical for a 5.08 mm block. Height is
+unconstrained here so it changes nothing, but I could not confirm it against
+a vendor drawing (no web access) and it is the same library that got C2's
+case size wrong.
+\item \textbf{Solder-joint outcome of F1.} Whether those three via-in-pad joints
+actually void is a process question. If the fix is declined, it can only be
+settled by X-ray or by a cross-section on the first article.
+\end{itemize}
 \section{DFM and Fabrication}
 \emph{Pending --- produced at P9.}
 \section{Run Record (Appendix)}
@@ -437,31 +657,131 @@ The full schematic PDF follows.
 \begin{quote}\small\ttfamily\raggedright
 \# P4 Schematic - digest\\
 ~\\
-- One flat sheet, 5 parts, 3 nets, 12/12 pins connected. Generator is the\\
-  source (`kicad/gen/main.py`); the .kicad\_sch is build output and rebuilds\\
-  byte-identical from a clean delete.\\
-- {*}{*}Gate erc: 0 errors / 0 warnings{*}{*} (commit 55d7875). netlist\_audit exit 0\\
-  with one expected `power\_no\_consumers` on +3V3 (its only consumer is the\\
-  off-board load through passive J2).\\
+- One flat sheet, 5 parts, 3 nets, 12/12 pins connected. The generator is the\\
+  source; the .kicad\_sch rebuilds byte-identical from a clean delete.\\
+- {*}{*}Gate erc: 0 errors / 0 warnings{*}{*} (commit 55d7875). netlist\_audit exit 0,\\
+  one expected `power\_no\_consumers` on +3V3 (only consumer is off-board).\\
 - `U1 \{1:GND, 2:+3V3, 3:+5V, 4:+3V3\}` - the TAB (pin 4) is on +3V3, read back\\
-  from the netlist, not from source.\\
-- {*}{*}The catch of the run{*}{*}: the readability redraw initially left the tab run\\
-  unnamed. Pins 2 and 4 are one node INSIDE the package but two nodes on the\\
-  sheet, so the run exported as Net-(C2-Pad1) with +3V3 holding only pin 2 -\\
-  the netless-tab thermal failure, arriving through a COSMETIC edit. ERC said\\
-  0/0 (an unnamed 3-pin net is legal). Only `netlist\_audit --compare` saw it.\\
-- Reviewer (fresh context): 1 error, 5 warnings. Circuit itself clean - tab\\
-  net, both tantalum anodes, C2's compensation role, abs-max and dropout all\\
-  verified and NOT reported.\\
-  - ERROR: no +/GND or IN/OUT legend on J1/J2 (same part, identical arrows).\\
-    Deferred to P6 as a silk requirement - board layer, not schematic.\\
-  - Fixed here: constraints min\_vias 12 -\textgreater{} 0 (a +3V3 pour cannot stitch to a\\
-    GND plane); schematic redrawn to real wires; text collisions removed.\\
-  - Accepted: C2's ESR margin is unquantified at the floor -\textgreater{} bring-up ring\\
-    count (\textless{}= 4) settles it.\\
-- 3 library defects repaired idempotently in `kicad/gen/lib\_fixups.py` (C2 pin\\
-  angles, C1 non-polarized graphic, numeral pin names on all 2-pin symbols).\\
-  MUST be re-run after any lib\_pull refresh or they return.
+  from the netlist rather than from source.\\
+- {*}{*}The catch of the run{*}{*}: the readability redraw briefly left the tab run\\
+  unnamed. Pins 2 and 4 are one node INSIDE the package but two on the sheet,\\
+  so it exported as Net-(C2-Pad1) with +3V3 holding only pin 2 - the netless-\\
+  tab thermal failure, arriving through a COSMETIC edit. ERC said 0/0 (an\\
+  unnamed 3-pin net is legal). Only `netlist\_audit --compare` saw it.\\
+- Reviewer (fresh context): 1 error, 5 warnings. The circuit itself was clean.\\
+  ERROR = no +/GND or IN/OUT legend on J1/J2 (same part, identical arrows) -\textgreater{}\\
+  deferred to P6 as a silk requirement. Fixed here: min\_vias 12 -\textgreater{} 0 (a +3V3\\
+  pour cannot stitch to a GND plane), real wires, text collisions.\\
+  Accepted: C2's ESR margin -\textgreater{} settled at bring-up by ring count (\textless{}= 4).\\
+- 3 library defects repaired idempotently by `kicad/gen/lib\_fixups.py` (C2 pin\\
+  angles, C1 non-polarized graphic, numeral pin names). MUST be re-run after\\
+  any lib\_pull refresh or they silently return.
+\end{quote}
+\paragraph*{P5}
+\begin{quote}\small\ttfamily\raggedright
+\# P5 Board Setup - digest\\
+~\\
+- `board\_init --outline auto --margin 15` -\textgreater{} provisional {*}{*}86.29 x 65.82 mm{*}{*}.\\
+  Deliberately generous: geometry is an OUTPUT at this binding, so P5 must not\\
+  guess the size. board\_init read the recorded mode and would have REFUSED a\\
+  fixed WxH here.\\
+- Self-check: parity {*}{*}0{*}{*}, setup\_violations {*}{*}0{*}{*}, unconnected {*}{*}9{*}{*}\\
+  (expected - the board is unrouted). 5 components, 3 nets.\\
+- Stackup JLC2313\_1.6, 2 layers, 1 oz. Fab profile `2layer\_1oz` written into\\
+  the .kicad\_pro at ERROR severity: clearance/track 0.127, via dia 0.6,\\
+  drill 0.3, annular 0.15, hole-to-hole 0.5, copper-to-edge 0.3.\\
+- `rules\_gen`: 11 rules, capability\_class `2layer\_1oz`. Power widths from\\
+  IPC-2152 at dT 10 C - +5V/GND 0.2575 mm, +3V3 0.255 mm - in netclasses\\
+  Pwr\_0p2575mm / Pwr\_0p255mm. No diff pairs, no HV rules (nothing above 5 V).\\
+- Sidecars beside the board: constraints.json, decoupling.json.\\
+- Planes declared: F.Cu = +3V3 (solid connect - the heatsink pour),\\
+  B.Cu = GND (continuous, NO vias through it).\\
+- {*}{*}P6 plan note{*}{*}: `--outline fit` counts courtyards, copper and keepout rule\\
+  areas but NOT zones, and nothing in the toolchain can script a rule area.\\
+  So the size will be earned by DERIVING it from the thermal requirement\\
+  (\textgreater{}=1000 mm2 of contiguous F.Cu +3V3) after placement, then MEASURING the\\
+  delivered pour with check\_thermal's area\_mm2 - not by trusting fit.
+\end{quote}
+\paragraph*{P6}
+\begin{quote}\small\ttfamily\raggedright
+\# P6 Placement - digest\\
+~\\
+- {*}{*}Board size EARNED: 50.000 x 26.420 mm{*}{*} (1321 mm2). Gate place pass, all 5\\
+  checks ran, commit b8d5678. HPWL 173.3 -\textgreater{} 103.4. Route probe 1.00 (planes).\\
+- Anneal cand1 (best HPWL) OVERRULED on a measurement: it fits to\\
+  88.29 x 12.42 mm with only 517 mm2 of pour inside a decay length. HPWL is\\
+  near-fiction here - +3V3 is plane\_fed, so its trunk IS the pour.\\
+- U1 rot 180, tab (pin 4) facing open field; caps on the pin side. Pour =\\
+  {*}{*}1210.78 mm2, ONE island, 0 orphaned{*}{*}; 1071 mm2 within 25 mm of the tab.\\
+- {*}{*}The width was nearly inherited, not earned{*}{*}: placement.edges is graded\\
+  against whatever outline is on the board, so J1/J2 got pinned to\\
+  board\_init's provisional 86.29 mm - the bb-buck defect mirrored (a STATED\\
+  size bound bb-buck; an unearned PROVISIONAL one bound this). Fixed by moving\\
+  the connectors in, then fitting: board -38.7\%, effective copper within\\
+  25 mm -0.8\%, within 20 mm +6.8\%.\\
+- Width derived by sweeping BOTH axes - squarer captures more of the decay\\
+  disc, so 50 x 26.42 beats the 55 x 24.42 first proposed on size AND thermal.\\
+  48 mm clears 1000 mm2 by only 2.0\%, inside the +5V route assumption's error.\\
+- Silk legend added (J1 +5V/GND/IN, J2 +3V3/GND/OUT) + a "+" over C2's anode,\\
+  whose only marks were hidden under its own body.\\
+- {*}{*}Order finding{*}{*}: silk\_place solves against the outline ON the board, so at\\
+  a canonical binding it must run AFTER the fit, or it reports an empty\\
+  residual while leaving labels off the final board.
+\end{quote}
+\paragraph*{P7}
+\begin{quote}\small\ttfamily\raggedright
+\# P7 Routing - digest\\
+~\\
+- {*}{*}Gate drc\_routed: PASS, 0 violations, completion 1.00{*}{*}, commit e0b2d2d.\\
+  Chain: planes\_gen --no-thermal-vias -\textgreater{} route\_critical -\textgreater{} route\_auto -\textgreater{}\\
+  route\_edit (rip) -\textgreater{} stitch\_vias -\textgreater{} plane\_repair --flag-only.\\
+  route\_cleanup SKIPPED (2L pour board, V13 defect).\\
+- {*}{*}planes\_gen would have DRILLED THE LIVE TAB{*}{*}: its exposed-pad heuristic\\
+  grids vias under any netted SMD pad \textgreater{}= 4 mm2 on a plane net (U1's tab is\\
+  8.4 mm2 on +3V3) and does NOT read constraints.thermal.min\_vias. The\\
+  constraint saying "no vias here" and the script that drills them never meet.\\
+- {*}{*}The autorouter paid for connectivity with heatsink copper{*}{*}: FR stalled at\\
+  0.60, and KRT closed GND by daisy-chaining 3 F.Cu GND pads across the +3V3\\
+  pour, slitting it 7 mm from the tab (-2.6\% effective). Ripped; replaced with\\
+  3 pad-stitch vias - the mechanism route\_critical's own report names.\\
+- stitch\_vias: 3 pad vias, {*}{*}0 area vias{*}{*} (63/66 rejected single\_layer\_contact\\
+  - there is no F.Cu GND pour to stitch to). Closest via to the tab 6.9 mm.\\
+- +5V ran the intended BOTTOM edge, slitting the pour rather than crossing it.\\
+- {*}{*}FINAL pour: 1199.221 mm2, 1 island, 0 orphaned, 1085.679 mm2 within 25 mm\\
+  of the tab.{*}{*} Routing cost 0.95\%.\\
+- 3 check\_current `insufficient\_transition\_vias` ACCEPTED: the heuristic\\
+  charges each via 0.515 A, but the load return goes J2 pin -\textgreater{} B.Cu plane -\textgreater{}\\
+  J1 pin, both THROUGH-HOLE. These vias carry quiescent + ripple only.
+\end{quote}
+\paragraph*{P8}
+\begin{quote}\small\ttfamily\raggedright
+\# P8 Verification - digest\\
+~\\
+- {*}{*}Gate verify: PASS{*}{*} with 3 recorded waivers (commit e0e416d); drc\_routed\\
+  re-run 0/0 after every copper edit. All 8 checks ran. Advisory legs clean:\\
+  check\_irdrop 12.1 mV worst on +5V (grid converged), check\_pdn\_z pass.\\
+- Fresh-context reviewer: 1 error, 7 warnings. It upheld both waivers after\\
+  checking the thing that would have voided the thermal one - whether the tab\\
+  was thermal-relieved rather than solidly poured (it is `connect\_pads yes`,\\
+  all 8.424 mm2 merged).\\
+- {*}{*}The error was caused by my own P7 instruction{*}{*}: replacing the KRT traces\\
+  with stitch\_vias put 3 barrels INSIDE SMT pads on an economy PCBA that\\
+  neither fills nor plugs vias. Follow-on: U1's ground was that ONE barrel -\\
+  an open joint leaves the regulator with no ground reference and its output\\
+  rising toward 5 V.\\
+- Fixed: 3 vias relocated 0.55 mm past their pad edges with 4 authored F.Cu\\
+  GND stubs (they were BARE - stitch\_vias emits no stub, and GND has no top\\
+  copper), + redundant 2nd barrels on U1.1 and C2.2. C1.2 left single\\
+  deliberately: its return is input bypass, not a functional failure path.\\
+- Added `HOT SURFACE` silk legend - the whole top face is a radiator.\\
+- {*}{*}NOT fixed, tooling block{*}{*}: J2.1 per-pad thermal relief. No script can set\\
+  a pad zone connection, and planes\_gen refuses the two-zone workaround on a\\
+  poured board. Mitigated by an assembly note (preheat + \textgreater{}= 60 W iron).\\
+- {*}{*}Third tooling gap found by this board.{*}{*} planes\_gen ignores min\_vias;\\
+  stitch\_vias rings from the pad CENTRE and its own via\_check only tests\\
+  FOREIGN copper so it cannot see its own error; no pad\_zone\_connect op.\\
+- Pour through all edits: 1199.221 -\textgreater{} {*}{*}1196.210 mm2{*}{*}, ONE island, 0\\
+  orphaned, {*}{*}1083.167 mm2 within 25 mm{*}{*} (floor 1000).
 \end{quote}
 \subsection*{Gate attempt history}
 {\small
@@ -472,11 +792,42 @@ The full schematic PDF follows.
 \endhead
 2026-08-16T22:42:46 & erc & pass & 0/0 \\
 2026-08-16T23:29:14 & erc & pass & 0/0 \\
+2026-08-17T20:59:52 & place & pass & 0/0 \\
+2026-08-17T21:07:34 & place & pass & 0/0 \\
+2026-08-17T21:09:57 & place & pass & 0/0 \\
+2026-08-17T21:20:07 & place & pass & 0/0 \\
+2026-08-17T21:22:39 & place & pass & 0/0 \\
+2026-08-17T21:24:21 & erc & pass & 0/0 \\
+2026-08-17T21:24:22 & place & pass & 0/0 \\
+2026-08-17T21:38:00 & drc\_routed & pass & 0/0 \\
+2026-08-17T21:41:46 & drc\_routed & pass & 0/0 \\
+2026-08-18T08:39:38 & verify & fail & 1/4 \\
+2026-08-18T08:40:26 & verify & pass & 0/4 \\
+2026-08-19T02:18:35 & drc\_routed & pass & 0/0 \\
+2026-08-19T02:32:38 & drc\_routed & pass & 0/0 \\
+2026-08-19T02:32:45 & verify & pass & 0/4 \\
+2026-08-19T02:35:24 & drc\_routed & pass & 0/0 \\
+2026-08-19T02:35:25 & verify & pass & 0/4 \\
 \bottomrule
 \end{longtable}
 }
 \subsection*{Issues}
-\emph{(no entries)}
+{\small
+\begin{longtable}{llp{5cm}ll}
+\toprule
+\textbf{Id} & \textbf{Phase} & \textbf{Kinds} & \textbf{Severity} & \textbf{Status} \\
+\midrule
+\endhead
+1 &  & single-via-ground-path, via-in-smd-pad & error & open \\
+2 &  & solid-pour-on-handsoldered-pin & warning & open \\
+3 &  & netclass-clearance-overridden-by-dru & warning & open \\
+4 &  & check-suppressed-by-constraint-not-waived & warning & open \\
+5 &  & outline-aspect-not-earned & warning & open \\
+6 &  & no-hot-surface-legend & warning & open \\
+7 &  & wrong-3d-model-case-size & warning & open \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Human checkpoints}
 {\small
 \begin{longtable}{lllp{2.6cm}p{6.4cm}}
@@ -485,8 +836,8 @@ The full schematic PDF follows.
 \midrule
 \endhead
 1 & P2 & approved & 2026-08-16T19:51:53 & Presented as a digest under the owner's 2026-08-16 delegation ('make decisions yourself based on what will give the best learning for the basic system'); no separate owner sign-off was solicited or given, and the run proceeded. Items that still need a GENUINE owner ruling and are NOT covered by this: promotion/approval of the 6 verified records + the linear-regulator checklist into the shared library, the P8 thermal\_area waiver (gate waivers are human artifacts by contract), and any order at P10. \\
-2 & P4 & not reached &  &  \\
-3 & P6 & not reached &  &  \\
+2 & P4 & approved & 2026-08-16T23:29:36 & Presented as a digest under the owner's delegation; ERC 0/0 with the netlist verified identical across the readability redraw. Reviewer's single ERROR (no terminal legend) is deferred to P6 as a silk requirement, not waived. \\
+3 & P6 & approved & 2026-08-17T21:24:30 & H3 (optional, outline\_change hold): board size earned at 50.000 x 26.420 mm. Reviewed the derivation, not just the result - the agent corrected its own 55 mm estimate after finding that sweep had inherited the pinned-width assumption it was meant to test. Renders at reports/place/renders/. \\
 4 & P8 & not reached &  &  \\
 5 & P10 & not reached &  &  \\
 \bottomrule
@@ -499,7 +850,8 @@ The full schematic PDF follows.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 46,774 B &  \\
+\texttt{state.json} & 89,336 B &  \\
+\texttt{kicad/bb-ldo.kicad\_pcb} & 54,568 B &  \\
 \texttt{kicad/bb-ldo.kicad\_sch} & 37,327 B &  \\
 \texttt{brief/brief.md} & 608 B &  \\
 \texttt{requirements.md} & 13,344 B &  \\
@@ -508,10 +860,22 @@ The full schematic PDF follows.
 \texttt{architecture/power\_tree.md} & 8,341 B &  \\
 \texttt{architecture/sheets.md} & 4,242 B &  \\
 \texttt{architecture/stackup.md} & 6,862 B &  \\
-\texttt{reports/gate-erc.json} & 10,065 B &  \\
+\texttt{reports/assembly-notes.md} & 2,573 B &  \\
+\texttt{reports/board\_init.json} & 1,586 B &  \\
+\texttt{reports/check\_irdrop.json} & 3,602 B &  \\
+\texttt{reports/check\_pdn\_z.json} & 2,100 B &  \\
+\texttt{reports/fix-dispatch-P8.json} & 2,256 B &  \\
+\texttt{reports/gate-drc\_routed.json} & 1,072 B &  \\
+\texttt{reports/gate-erc.json} & 871 B &  \\
+\texttt{reports/gate-place.json} & 15,302 B &  \\
+\texttt{reports/gate-verify.json} & 4,781 B &  \\
+\texttt{reports/review-board.json} & 9,785 B &  \\
+\texttt{reports/review-board.md} & 24,617 B &  \\
 \texttt{reports/review-schematic.json} & 3,920 B &  \\
 \texttt{reports/review-schematic.md} & 11,453 B &  \\
+\texttt{reports/rules\_gen.json} & 1,274 B &  \\
 \texttt{reports/schematic.pdf} & 47,921 B &  \\
+\texttt{reports/verify-waivers.json} & 4,743 B &  \\
 \bottomrule
 \end{longtable}
 }

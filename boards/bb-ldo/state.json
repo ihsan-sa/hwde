@@ -3,8 +3,8 @@
  "board": "bb-ldo",
  "workspace": "boards/bb-ldo",
  "created": "2026-08-16T17:24:47",
- "updated": "2026-08-19T02:35:25",
- "phase": "P8",
+ "updated": "2026-08-19T02:37:35",
+ "phase": "P9",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -282,6 +282,46 @@
      }
     }
    ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 2,
+   "last": {
+    "ts": "2026-08-19T02:37:35",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
+     "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
+     "parts": null
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-19T02:37:21",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
+      "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
+      "parts": null
+     }
+    },
+    {
+     "ts": "2026-08-19T02:37:35",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
+      "sch": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
+      "parts": null
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -299,6 +339,11 @@
    "status": "approved",
    "ts": "2026-08-17T21:24:30",
    "note": "H3 (optional, outline_change hold): board size earned at 50.000 x 26.420 mm. Reviewed the derivation, not just the result - the agent corrected its own 55 mm estimate after finding that sweep had inherited the pinned-width assumption it was meant to test. Renders at reports/place/renders/."
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-08-19T02:36:25",
+   "note": "H4 presented as a digest under the owner's delegation. verify PASS with 3 waivers (thermal_area model-limit, transition-vias heuristic, thermal_vias audit entry). 1 reviewer ERROR fixed (vias in pads + single-via ground path). 1 item NOT fixed and accepted as a tooling block with an assembly-note mitigation (J2.1 relief). The 3 waivers and the unfixed relief are exactly what an owner should re-examine before any order."
   }
  },
  "artifacts": {
@@ -306,7 +351,7 @@
    "path": "kicad/bb-ldo.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:51d5aaffc0b97d9cd6799b8ade0dd3b957f0323262b3c2dc504ec15b539188f1",
-   "hashed": "2026-08-19T02:35:24"
+   "hashed": "2026-08-19T02:37:35"
   },
   "pro": {
    "path": "kicad/bb-ldo.kicad_pro",
@@ -318,7 +363,7 @@
    "path": "kicad/bb-ldo.kicad_pcb",
    "kind": "pcb",
    "sha256": "sexpr_no_uuid:d2179c833c2a3e6fc252038411bacbbf749319f2cb4c1b0148a9e2e01e843497",
-   "hashed": "2026-08-19T02:35:25"
+   "hashed": "2026-08-19T02:37:35"
   },
   "constraints": {
    "path": "kicad/constraints.json",
@@ -363,6 +408,12 @@
    "kind": "waivers",
    "sha256": "json_canonical:00aeaf842fe692f696bdcb2f6add4199b06298174d1d8d30aa4a5b47c0b44123",
    "hashed": "2026-08-19T02:35:25"
+  },
+  "parts": {
+   "path": "kicad/parts.json",
+   "kind": "parts",
+   "sha256": null,
+   "hashed": "2026-08-19T02:37:35"
   }
  },
  "open_issues": [
@@ -1761,6 +1812,40 @@
    "gate": "verify",
    "status": "pass",
    "attempt": 4,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-19T02:36:25",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-19T02:36:25",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P8"
+  },
+  {
+   "ts": "2026-08-19T02:36:37",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P9"
+  },
+  {
+   "ts": "2026-08-19T02:37:21",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-19T02:37:35",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 2,
    "failing_count": 0
   }
  ],

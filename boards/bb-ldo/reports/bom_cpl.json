@@ -1,0 +1,166 @@
+{
+ "script": "bom_cpl",
+ "status": "pass",
+ "board": "bb-ldo.kicad_pcb",
+ "n_parts": 5,
+ "n_placed": 3,
+ "bom": "boards\\bb-ldo\\fab\\BOM.csv",
+ "bom_full": "boards\\bb-ldo\\fab\\BOM-full.csv",
+ "cpl": "boards\\bb-ldo\\fab\\CPL.csv",
+ "bom_rows": [
+  {
+   "Comment": "10uF 16V solid tantalum",
+   "Designator": "C1",
+   "Footprint": "CAP-SMD_L3.2-W1.6-RD-C7171",
+   "LCSC": "C7171"
+  },
+  {
+   "Comment": "22uF 16V solid tantalum ESR 0.8ohm",
+   "Designator": "C2",
+   "Footprint": "CAP-SMD_L7.3-W4.3",
+   "LCSC": "C215872"
+  },
+  {
+   "Comment": "AMS1117-3.3",
+   "Designator": "U1",
+   "Footprint": "SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR",
+   "LCSC": "C6186"
+  }
+ ],
+ "bom_full_rows": [
+  {
+   "Comment": "10uF 16V solid tantalum",
+   "Designator": "C1",
+   "Qty Per Board": "1",
+   "Footprint": "CAP-SMD_L3.2-W1.6-RD-C7171",
+   "MPN": "TAJA106K016RNJ",
+   "LCSC": "C7171",
+   "Assembly Class": "smt_placed",
+   "Instructions": ""
+  },
+  {
+   "Comment": "22uF 16V solid tantalum ESR 0.8ohm",
+   "Designator": "C2",
+   "Qty Per Board": "1",
+   "Footprint": "CAP-SMD_L7.3-W4.3",
+   "MPN": "293D226X9016D2TE3",
+   "LCSC": "C215872",
+   "Assembly Class": "smt_placed",
+   "Instructions": ""
+  },
+  {
+   "Comment": "AMS1117-3.3",
+   "Designator": "U1",
+   "Qty Per Board": "1",
+   "Footprint": "SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR",
+   "MPN": "AMS1117-3.3",
+   "LCSC": "C6186",
+   "Assembly Class": "smt_placed",
+   "Instructions": ""
+  },
+  {
+   "Comment": "2P 5.08mm THT screw terminal",
+   "Designator": "J1",
+   "Qty Per Board": "1",
+   "Footprint": "CONN-TH_2P-P5.00_WJ500V-5.08-2P",
+   "MPN": "WJ500V-5.08-2P",
+   "LCSC": "C8465",
+   "Assembly Class": "hand_install",
+   "Instructions": "THT screw terminal, hand-solder after PCBA. GND pin lands in the B.Cu return pour."
+  },
+  {
+   "Comment": "2P 5.08mm THT screw terminal",
+   "Designator": "J2",
+   "Qty Per Board": "1",
+   "Footprint": "CONN-TH_2P-P5.00_WJ500V-5.08-2P",
+   "MPN": "WJ500V-5.08-2P",
+   "LCSC": "C8465",
+   "Assembly Class": "hand_install",
+   "Instructions": "THT screw terminal, hand-solder after PCBA. +3V3 pin lands in the large solid-connected F.Cu heatsink pour (connect: solid, no thermal relief per blocks.md s.9.10) - needs a hot iron with real thermal mass (blocks.md s.5)."
+  }
+ ],
+ "cpl_rows": [
+  {
+   "Designator": "C1",
+   "Mid X": "27.0000",
+   "Mid Y": "-37.3100",
+   "Layer": "Top",
+   "Rotation": "180.0000"
+  },
+  {
+   "Designator": "C2",
+   "Mid X": "21.3775",
+   "Mid Y": "-32.9100",
+   "Layer": "Top",
+   "Rotation": "0.0000"
+  },
+  {
+   "Designator": "U1",
+   "Mid X": "31.0000",
+   "Mid Y": "-32.9100",
+   "Layer": "Top",
+   "Rotation": "0.0000"
+  }
+ ],
+ "assembly_classes": {
+  "C1": "smt_placed",
+  "C2": "smt_placed",
+  "J1": "hand_install",
+  "J2": "hand_install",
+  "U1": "smt_placed"
+ },
+ "class_counts": {
+  "smt_placed": 3,
+  "hand_install": 2
+ },
+ "not_placed": [
+  {
+   "ref": "J1",
+   "class": "hand_install",
+   "source": "parts_line"
+  },
+  {
+   "ref": "J2",
+   "class": "hand_install",
+   "source": "parts_line"
+  }
+ ],
+ "rotation_audit": [
+  {
+   "ref": "C1",
+   "package": "CAP-SMD_L3.2-W1.6-RD-C7171",
+   "base_rot": 180.0,
+   "correction": 0.0,
+   "final_rot": 180.0,
+   "matched": null,
+   "layer": "Top"
+  },
+  {
+   "ref": "C2",
+   "package": "CAP-SMD_L7.3-W4.3",
+   "base_rot": 0.0,
+   "correction": 0.0,
+   "final_rot": 0.0,
+   "matched": null,
+   "layer": "Top"
+  },
+  {
+   "ref": "U1",
+   "package": "SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR",
+   "base_rot": 180.0,
+   "correction": 180.0,
+   "final_rot": 0.0,
+   "matched": "^SOT-223",
+   "layer": "Top"
+  }
+ ],
+ "n_rotation_corrections": 1,
+ "missing_lcsc": [],
+ "missing_lcsc_unplaced": [],
+ "unsourced": [],
+ "off_lcsc": [],
+ "unplaced_smt": [],
+ "qty_mismatch": [],
+ "violations": [],
+ "bom_complete": true
+}
