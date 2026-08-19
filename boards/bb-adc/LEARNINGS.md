@@ -693,3 +693,84 @@ clearance and does NOT close at 0.2 mm - refilled at 0.2 the /AIN_BUF pour drops
 mm2, the entire south leg is culled and the closure test finds ZERO holes. The ring still fills,
 still looks like copper in a render, and is no longer a guard. Any change to the clearance floor
 or fab class must re-run the closure proof.
+
+## 2026-08-19 [P8][footprint][silk][review] `CONN-TH_2P-P5.00_WJ500V-5.08-2P` draws its silk entry arrows on the OPPOSITE face from its own 3D model's openings - a render of a footprint cannot outrank the part geometry it draws
+
+J1 (library footprint **`CONN-TH_2P-P5.00_WJ500V-5.08-2P`**, `lib/aiee.pretty`) shipped rotated 180 degrees: its wire throats faced
+EAST, into the board. A render check had "confirmed" the orientation and passed it. The
+render was not misread - the artifact lied.
+
+The footprint contradicts itself. Its pads sit on local y = 0 and its body is ASYMMETRIC
+about that pad row: F.Fab spans local y -5.64 .. +4.52 and F.CrtYd -5.5 .. +4.5, so the
+**4.50 mm face is local +y** and that is the wire-entry face on the vendor drawing (two
+3.0 mm openings, z 3.0-9.8, centred x = +/-2.54; the -y face is a solid wall). But the
+two `fp_poly` entry ARROWS on F.Silkscreen are drawn on local **-y** - the solid face.
+Arrows and throats point at opposite faces, so any check that reads the silk concludes
+the exact opposite of the truth, and does so confidently.
+
+THE TEST THAT WORKS. Measure the body asymmetry about the pad row from fab/courtyard
+geometry and match it to the vendor number, then apply the footprint transform yourself.
+At rot 90 KiCad maps local +y -> board +x, so the 4.52 face pointed east (into the board);
+at rot -90 it maps local +y -> board -x. After rotating, the courtyard reads x[19.955,
+30.045] about a pad row at x = 24.500 - west face 4.545 mm, east 5.545 mm - so the 4.50
+wire-entry face now points west, out of the board edge. That is a number, not a picture.
+
+CONSEQUENCES BEYOND THE ROTATION. (a) The pads SWAP: a 180-degree rotation of a 2-pin
+connector exchanges the nets at the two positions, so every net on it must be ripped and
+re-routed - here /AIN_RAW moved from y 41.600 to 36.520 and GND took its place. (b)
+place_edit REFUSES a footprint move on a routed board ("rip the affected nets FIRST, then
+move, then route fresh"; --allow-routed to override) - obey it, do not reach for the flag
+first. (c) THE ARROWS ARE PRINTED SILK, not just a library annoyance - they ship in F.SilkS on
+the fabricated board, so a corrected "SIG"/"GND" label and a contradictory arrow end up
+millimetres apart and a user who trusts the arrow is actively misled.
+
+FIXING THE ARROWS ON A BOARD INSTANCE IS UNOWNED. No pipeline writer can touch a
+footprint's `fp_poly`: place_swig's silk ops are TEXT only (add_text / remove_text /
+move_text, and remove_text matches `board.GetDrawings()` - board-frame gr_text - so it
+cannot see footprint children); route_edit does tracks/vias; board_edit does Edge.Cuts;
+fpfix takes `--lib <dir>.pretty` and never a board. Corrected here with a minimal SWIG
+worker following place_edit's own contract (stage a copy beside the board, edit under
+bundled python, re-parse + DRC the copy, os.replace only on success). PIPELINE GAP worth
+closing: a `mirror_fp_graphic` / `remove_fp_graphic` op on place_swig.
+
+THE MIRROR AXIS IS THE BODY, NOT THE PAD ROW. J1's silk body lines sit at x 19.855-20.105
+(west) and 30.015-30.265 (east), so the body's own axis is x = 25.06 - mirroring the arrow
+polys about THAT maps them onto the opposite face preserving their exact 0.015 mm abutment
+to the body outline, and reflecting along the arrow's own axis reverses head and tail, so
+the glyph stays a valid arrow pointing inward. Mirroring about the PAD ROW (x = 24.5)
+instead would have overhung the body by ~1 mm and collided with the new "SIG" label.
+Arrows moved x[27.000, 30.000] -> x[20.120, 23.120]; DRC 0, check_silk 0.
+
+The LIBRARY is still wrong and is deliberately NOT patched from here (a re-pull reverts
+it): anyone reusing `CONN-TH_2P-P5.00_WJ500V-5.08-2P` inherits the same trap.
+
+## 2026-08-19 [P7][guard-ring][silk][drc] Guard-ring leakage is set by what is INSIDE the ring - and the cheapest fix can be re-routing the GUARDED net, not moving the offender
+
+Review priced GND conductors inside the closed /AIN_BUF guard ring at 0.227 / 0.289 /
+0.350 mm from the guarded node - about 1.20 mV at the terminal on blocks.md's 1 Gohm
+model, against 0.78 mV the guard exists to stop. The ring cannot intercept a leakage path
+that STARTS inside it.
+
+U3 pin 2 (V-) is irreducibly inside: the pin2/pin3 channel is 0.350 mm and copper needs
+width + 2 x clearance = 0.381 mm at the 0.127 mm floor, so the ring must encircle pin 2
+together with pin 3. "Move the via out of the ring" is likewise unreachable - the pad it
+serves is inside, so any conductor touching it is inside.
+
+What actually worked was re-routing the GUARDED net. Both sub-0.35 mm paths (0.227 and
+0.289) were to the same thing: the /AIN_DIV stub running down the WEST side of the pocket,
+right past the GND via and pin 2. /AIN_DIV is a 3-pad net (R3.2, R4.1, U3.3) whose
+spanning tree can take the stub off EITHER resistor for the SAME 2.600 mm. Moving it from
+R3.2->U3.3 to R4.1->U3.3 - identical length, requirement "keep /AIN_DIV short" untouched
+at 4.600 mm total - put the stub on the east side and deleted both paths outright. With
+the via also nudged 0.2 mm west, the two GND conductors inside the ring now measure 0.350
+mm (pin 2, the irreducible pin gap) and 0.556 mm (the via). Scaling review's own 1/d model
+that is roughly 1.20 -> 0.52 mV, i.e. under the 0.78 mV the guard stops.
+
+Generalise: before moving the offending conductor, check whether the GUARDED net has a
+degenerate spanning tree. Re-routing the victim can be free where moving the offender is
+blocked.
+
+SILK GOTCHA from the same pass: `add_text` at size 0.7 draws a `text_height` DRC error -
+board setup enforces a 0.8 mm silk minimum. `check_silk` does NOT catch it (it is lenient
+by design and never the oracle); `kicad-cli pcb drc` does. Size every scripted silk string
+at >= the board's own minimum and verify with kc drc.

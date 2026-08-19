@@ -4,7 +4,7 @@
   "phase": "P8",
   "tool": "verify",
   "input": "boards\\bb-adc\\kicad\\bb-adc.kicad_pcb",
-  "input_digest": "sexpr_no_uuid:519baf7635ad4c7294767c50ceba17d3e7d75b9b881be1e30fadb8ab5c87dd6f",
+  "input_digest": "sexpr_no_uuid:a9a4ac5c06279276568fa7ec589a59409ca381b78dd8f6150f4ca3305e948697",
   "status": "pass",
   "criteria": {
     "fail_severities": [
@@ -20,7 +20,7 @@
     },
     "by_source": {
       "check_return_path": 1,
-      "check_pdn": 1
+      "check_silk": 1
     },
     "by_check": {
       "check_return_path": 1,
@@ -29,8 +29,8 @@
       "check_diffpair": 0,
       "check_creepage": 0,
       "check_thermal": 0,
-      "check_silk": 0,
-      "check_pdn": 1
+      "check_silk": 1,
+      "check_pdn": 0
     }
   },
   "failing_count": 0,
@@ -216,31 +216,15 @@
   "record_result": {
     "ok": true,
     "recorded": true,
-    "workspace": "boards/bb-adc",
+    "workspace": "C:/dev/ai-ee3/boards/bb-adc",
     "gate": "verify",
     "status": "pass",
-    "attempts": 5,
+    "attempts": 6,
     "inputs": {
-      "pcb": "sexpr_no_uuid:519baf7635ad4c7294767c50ceba17d3e7d75b9b881be1e30fadb8ab5c87dd6f",
+      "pcb": "sexpr_no_uuid:a9a4ac5c06279276568fa7ec589a59409ca381b78dd8f6150f4ca3305e948697",
       "constraints": "json_canonical:2cacbf7f01ddd424da4cc8c88b4419175b88653a7a5ca8fa7771cd0a02bc0748",
-      "decoupling": "json_canonical:06f48da563fad2f8773a625e97e8ba928ac6b4ecf504051d3c2c673debdb7ac9",
+      "decoupling": "json_canonical:2e5ee6cc6e3924f9c7a00bd43404f5a2439581eaef5e8c4fad6d12935a7a3c6c",
       "waivers": "json_canonical:db109b1df7a5eb96bbd5d3f954a04d48322d657784fde8b553bc9881ff674873"
     }
-  },
-  "commit_result": {
-    "committed": true,
-    "ok": true,
-    "commit": "5c6c692",
-    "scope": "boards/bb-adc",
-    "excluded_dirty": [
-      "LEARNINGS.md",
-      "boards/bb-amp/kicad/bb-amp.kicad_pro",
-      "boards/pd-trigger/reports/design_doc/pd-trigger-design-doc.pdf",
-      "boards/pd-trigger/reports/design_doc/pd-trigger-design-doc.tex",
-      "boards/stm32-blinky/reports/design_doc/stm32-blinky-design-doc.pdf",
-      "boards/stm32-blinky/reports/design_doc/stm32-blinky-design-doc.tex",
-      "NUL",
-      "boards/xhp-driver/state.json"
-    ]
   }
 }

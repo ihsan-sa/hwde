@@ -1,0 +1,124 @@
+{
+  "violations": [
+    {
+      "check": "board-review",
+      "severity": "error",
+      "pos": [29.0, 39.06],
+      "layer": null,
+      "net": "/AIN_RAW",
+      "refs": ["J1"],
+      "msg": "J1's wire-entry throats face EAST, into the board, not outward at the west edge it sits against. Proved from the library: pads at local (+/-2.54,0), body local y -5.64..+4.52, and the vendor 3D model (VRML y = -footprint y) puts two 3.0 mm openings spanning z 3.0..9.8 mm, centred on x=+/-2.54, in the face at footprint y=+4.50; the y=-5.50 face is a solid wall. At (24.500,39.060) rot 90 that face maps to board x=29.0. Violates constraints.json placement.edges J1 'Screw terminal, opening outward', requirements.md s5 'openings facing outward, so the analog input wiring does not have to cross the digital header', and the schematic's 'LEFT edge, opening outward'. Consequence: the field lead must be inserted from the board's interior and laid back across the 1 Mohm divider string, the buffer and the J2 ribbon. Fix: rotate J1 to rot -90 (pads keep x=24.5; /AIN_RAW and GND swap to y=36.520/41.600 and need re-routing); body then spans x 20.0..30.0, so nudge ~1 mm west.",
+      "source": "review.board",
+      "kind": "connector-opening-faces-inward",
+      "domain": "placement"
+    },
+    {
+      "check": "board-review",
+      "severity": "error",
+      "pos": [70.5, 40.0],
+      "layer": "F.Silkscreen",
+      "net": null,
+      "refs": ["J2"],
+      "msg": "J2 has no pin-1 marker or 1..6 legend that survives assembly, and the schematic makes both mandatory (NOTE 6: '180 degree reversal shorts the host's rail to its own ground through the cable ... P6 must silk a pin-1 marker and a 1..6 legend'). The board's only cues are a cell-divider line at y=34.920 and an fp_circle at (69.250,32.380) of radius 0.03 mm stroked 0.15 - a 0.21 mm blob sitting on the corner where two 0.25 mm outline strokes meet. Both lie inside the silk rectangle 69.250..71.750 x 32.380..47.620 (2.50 x 15.24 mm), which is under the header's 2.54 x 15.24 mm plastic body. Nothing is readable from the mating side after assembly; only pad 1's square shape survives, and only from the bottom. Pin order confirms the hazard: 1=+3V3 ... 6=GND, so a reversal shorts host 3V3 to GND. Fix: silk '1' plus the six rail/signal names west of x=69.25 (clear board from x 66.4).",
+      "source": "review.board",
+      "kind": "pin1-mark-hidden-after-assembly",
+      "domain": "silk"
+    },
+    {
+      "check": "board-review",
+      "severity": "error",
+      "pos": [24.5, 39.06],
+      "layer": "F.Silkscreen",
+      "net": null,
+      "refs": ["J1"],
+      "msg": "J1 carries no SIG/GND silkscreen marking, while reports/design_doc/bb-adc-design-doc.tex publishes 'J1 | 2-pole 5.08 mm THT screw terminal, silk-marked SIG and GND' and requirements.md s2/s8 makes that marking the only defence against a wrong connection on a board with no input protection. All 25 silk texts on the board are reference designators. J1's pin-1 dot (fp_circle at (29.000,44.270), radius 0.03) is on the body corner and is covered by the 10.0 x 10.76 mm plastic body, so it does not survive assembly either. Fix: silk 'SIG' at pad 1 (24.500,41.600) and 'GND' at pad 2 (24.500,36.520), outside the body footprint.",
+      "source": "review.board",
+      "kind": "missing-connector-legend",
+      "domain": "silk"
+    },
+    {
+      "check": "board-review",
+      "severity": "error",
+      "pos": null,
+      "layer": "F.Silkscreen",
+      "net": null,
+      "refs": ["J1"],
+      "msg": "The contracted input-impedance numbers are missing from the silkscreen. The P2 orchestrator ruling carried in requirements.md s9, architecture/blocks.md and the design doc reads: 'the contract is now source <= 200 ohm ... and board presents 1.00 Mohm ... Both numbers go on the silkscreen ... the contract belongs on the silk because input impedance is a specification of the instrument'. Neither number appears on F.SilkS or B.SilkS. This ruling NARROWED the owner's answered envelope 5x, so the hardware now accepts a source the silk does not warn against: a 1 kohm source, inside the originally answered spec, produces 5 mV of loading error - the entire 25 C budget. Fix: add 'IN 0-5V  Rs<=200R' and 'Zin 1.00M' near J1.",
+      "source": "review.board",
+      "kind": "missing-contracted-spec-silk",
+      "domain": "silk"
+    },
+    {
+      "check": "board-review",
+      "severity": "error",
+      "pos": [41.85, 39.85],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": ["U3", "R3", "R4"],
+      "msg": "GND copper sits INSIDE the closed guard ring, leaving the largest potential difference near the 240 kohm tap unguarded. Closure itself is fine and was re-proved twice: the /AIN_BUF fill is one island with exactly one interior hole (7.951 mm2, bounds 41.106,38.523-44.494,42.416), a 2.5 um raster flood from /AIN_DIV through all non-guard space (8-connected) never escapes an 8.2 x 8.8 mm box, and the ring stays closed after eroding the guard 200 um. But the enclosure also contains U3 pin 2 (V-) and a 0.6 mm GND via at (41.850,39.850). Measured F.Cu gaps: /AIN_DIV trace to that via 0.227 mm, /AIN_DIV trace to U3.2 0.289 mm, U3.3 to U3.2 0.350 mm - the guard copper (0.1275 mm away) is on the OUTSIDE of all three and intercepts none of them. Priced with blocks.md s3.6's own 1 Gohm no-clean model: the +3V3 path the guard was built to stop drives 1.3 V -> 0.78 mV at the terminal; this GND path drives the full 2.000 V node -> 2.0 nA x 240 kohm / 0.400 = 1.20 mV. Error-budget row 9 carries 0.10 mV, understated ~12x, and it is the table's only +/-3x estimate (RSS 3.23 -> 3.44 mV, still inside the 5.00 mV target). Fix: move the GND via off the pin-3 side of U3.2 (north or west, or outside the ring) to recover 0.227 -> >0.5 mm; the 0.350 mm pin2/pin3 channel is irreducible in SOT-23-5 at the 0.127 mm floor (0.127 + 2 x 0.127 = 0.381 > 0.350) and must be re-stated in row 9 instead.",
+      "source": "review.board",
+      "kind": "gnd-inside-guard-ring",
+      "domain": "router"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [68.0, 34.92],
+      "layer": null,
+      "net": "+3V3",
+      "refs": ["C1"],
+      "msg": "The one verify_all WARNING (check_pdn pdn_no_bulk: '+3V3 has 2 cap(s) but no bulk reservoir') is a FALSE POSITIVE: C1 = 10 uF X5R 0805 is on +3V3/GND at (68.000,34.920), 0.925 mm pad-edge from J2 pin 1, exactly the 'bulk 10 uF at the RAIL ENTRY' constraints.json's entry group specifies. Cause: kicad/decoupling.json lists only C2,C3,C4,C5,C6,C8 and OMITS C1 (C7 is correctly absent - signal-path charge bucket). Consequence beyond the warning: check_decoupling never examined the rail-entry bulk at all; it passed by not being asked. Verdict: waive the warning, fix the metadata - add {cap C1, ic J2, pin 1, rail +3V3, value 10uF 25V X5R} and re-run verify_all.",
+      "source": "review.board",
+      "kind": "decoupling-metadata-omits-bulk",
+      "domain": "review"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [56.0, 25.05],
+      "layer": null,
+      "net": "+3V3",
+      "refs": ["U2"],
+      "msg": "ADR4520 input headroom is 87 mV and the recorded analysis does not subtract the rail noise the requirements themselves specify. blocks.md s8.2: guaranteed VIN floor 3.048 V (2.048 + VDO_max 1.000) against the 3.135 V worst-case rail. The layout does not eat it - J2.1 to U2 is ~18.9 mm of 0.5 mm 1 oz copper = ~19 mohm, 0.05 mV at the 2.7 mA peak. But answered Q7 gives the host rail 'tens of millivolts of noise'; a 40-50 mV negative excursion eats half to all of the margin, and below the floor VOUT has already degraded 0.1 % = 2 mV = 5 mV at the terminal (reference error maps to gain error one-for-one). C1+C4+C5 absorb a short dip, not a sustained low rail, and none of the six sim benches covers input headroom. Recommend a bring-up requirement (VIN at U2 pin 2 >= 3.05 V under the host's worst rail) rather than a board change.",
+      "source": "review.board",
+      "kind": "reference-headroom-unmargined-for-rail-noise",
+      "domain": "review"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [65.0, 48.5],
+      "layer": null,
+      "net": null,
+      "refs": ["H1", "H2", "H3", "H4"],
+      "msg": "The mounting holes form a trapezoid, not a rectangle: H1 (22.450,48.500), H2 (22.450,23.000), H3 (68.300,23.000), H4 (65.000,48.500) - H4 is 7.75 mm in from the east edge where H3 is 4.45 mm. Forced: H4 at (68.3,48.5) would drive its 3.6 mm courtyard into J2's (69.250..71.750 x 32.380..47.620) on a 34.92 mm-tall board whose 15.24 mm header is centred at y=40. Inside the letter of requirements.md s5 ('4 x M3 clearance holes inset from the corners'; two on opposite corners allowed if the outline is too small) and the board still mounts on four points, but any bench plate or standoff set must be drilled to a trapezoid and nothing in the artifacts says so.",
+      "source": "review.board",
+      "kind": "mounting-pattern-not-rectangular",
+      "domain": "placement"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": ["J2"],
+      "msg": "Document drift, no board change: requirements.md s2 / Q6 still says '4 signal pins for SPI, so 6 pins for SPI'. The board fits 6 pins as three signals plus a second ground (+3V3, GND, /CS, /SCLK, /DOUT, GND), which is better and is deliberate and recorded (constraints.json edges J2: 'ground adjacent to the digital group at both ends of it'). Sync the P0 artifact so the set stops disagreeing with itself.",
+      "source": "review.board",
+      "kind": "requirements-stale-pin-description",
+      "domain": "review"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [20.5, 41.56],
+      "layer": "F.Silkscreen",
+      "net": null,
+      "refs": ["J1"],
+      "msg": "The J1 footprint's silk wire-entry arrows are drawn on the wrong face. CONN-TH_2P-P5.00_WJ500V-5.08-2P.kicad_mod has two filled arrow polygons at local x -3.0..-2.0 and +2.08..+3.08 running from local y -5.5 to -2.5 and pointing inward, i.e. on the y=-5.64 face - but the wire throats are in the y=+4.50 face (see the connector-opening finding). On the placed board the arrows land at y ~ 41.56, x 19.0 -> 22.0, pointing the operator at the closed west wall. Independent of how the placement is resolved, the library part is self-contradictory and misinforms whoever wires the terminal. (The footprint name also says P5.00 while the pads are correctly at 5.080 mm pitch - cosmetic, same file.)",
+      "source": "review.board",
+      "kind": "footprint-silk-arrow-wrong-face",
+      "domain": "library"
+    }
+  ]
+}
