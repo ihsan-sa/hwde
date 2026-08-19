@@ -3,8 +3,8 @@
  "board": "bb-adc",
  "workspace": "boards/bb-adc",
  "created": "2026-08-16T17:25:12",
- "updated": "2026-08-19T04:53:50",
- "phase": "P8",
+ "updated": "2026-08-19T04:56:31",
+ "phase": "P9",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -444,6 +444,46 @@
      }
     }
    ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 2,
+   "last": {
+    "ts": "2026-08-19T04:56:31",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:e5017d1236b2ade66104b4e002fa9c53f4d72bd8055906f08565fd3b4c19c5ee",
+     "sch": "sexpr_no_uuid:8e758f7b13b53122e814ab2dae9dcd13a6a5d6b6b657868bdfdbcd2f78bed6b4",
+     "parts": null
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-19T04:56:09",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:e5017d1236b2ade66104b4e002fa9c53f4d72bd8055906f08565fd3b4c19c5ee",
+      "sch": "sexpr_no_uuid:8e758f7b13b53122e814ab2dae9dcd13a6a5d6b6b657868bdfdbcd2f78bed6b4",
+      "parts": null
+     }
+    },
+    {
+     "ts": "2026-08-19T04:56:31",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:e5017d1236b2ade66104b4e002fa9c53f4d72bd8055906f08565fd3b4c19c5ee",
+      "sch": "sexpr_no_uuid:8e758f7b13b53122e814ab2dae9dcd13a6a5d6b6b657868bdfdbcd2f78bed6b4",
+      "parts": null
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -456,6 +496,11 @@
    "status": "approved",
    "ts": "2026-08-18T08:52:52",
    "note": "H2 report-and-proceed per owner delegation. ERC gate PASS (2 attempts, commit d1738e6). Review: 1 error FIXED (E1 Kelvin sense now netlist-enforced via /AGND_SENSE + R8 0R tie), 5 warnings dispositioned in reports/erc-waivers.md. Architecture docs patched to match."
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-08-19T04:54:08",
+   "note": "H4 report-and-proceed per owner delegation. verify PASS (1 waiver: /CS return path, out-of-model on 2L + topologically forced). Review 5 errors: E1 J1 backwards FIXED (rotated, re-routed), E5 guard leakage FIXED (guarded-net reroute, 1.20 -> 0.52 mV), E2/E3/E4 silk FIXED. W1 root cause fixed. Board 54.75x34.92 mm earned. Commits d1738e6 erc, 4331069 sim, 369db07 drc_routed, 5c6c692+e877d11 verify."
   }
  },
  "artifacts": {
@@ -463,7 +508,7 @@
    "path": "kicad/bb-adc.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:8e758f7b13b53122e814ab2dae9dcd13a6a5d6b6b657868bdfdbcd2f78bed6b4",
-   "hashed": "2026-08-19T04:53:50"
+   "hashed": "2026-08-19T04:56:31"
   },
   "pro": {
    "path": "kicad/bb-adc.kicad_pro",
@@ -475,7 +520,7 @@
    "path": "kicad/bb-adc.kicad_pcb",
    "kind": "pcb",
    "sha256": "sexpr_no_uuid:e5017d1236b2ade66104b4e002fa9c53f4d72bd8055906f08565fd3b4c19c5ee",
-   "hashed": "2026-08-19T04:53:50"
+   "hashed": "2026-08-19T04:56:31"
   },
   "constraints": {
    "path": "kicad/constraints.json",
@@ -532,6 +577,12 @@
    "kind": "waivers",
    "sha256": "json_canonical:db109b1df7a5eb96bbd5d3f954a04d48322d657784fde8b553bc9881ff674873",
    "hashed": "2026-08-19T04:53:50"
+  },
+  "parts": {
+   "path": "kicad/parts.json",
+   "kind": "parts",
+   "sha256": null,
+   "hashed": "2026-08-19T04:56:31"
   }
  },
  "open_issues": [
@@ -1176,6 +1227,12 @@
    "why": "The warning was right to fire and wrong about why. A check that passes because an association is missing is worse than one that fails: it reports on copper it never looked at. Fixing the sidecar makes the check examine real copper instead of passing by omission",
    "phase": "P8",
    "ts": "2026-08-19T04:47:43"
+  },
+  {
+   "what": "ACCEPTED, with the deviation disclosed: the J1 silk arrows were corrected on the board instance by a one-off SWIG worker, because NO PIPELINE OP OWNS FOOTPRINT-INSTANCE GRAPHICS. add_text/remove_text/move_text are the only silk ops and remove_text matches board.GetDrawings() - board-frame gr_text - so it cannot see footprint children at all; route_edit does tracks and vias, board_edit does Edge.Cuts, and fpfix takes --lib <dir>.pretty and never a board. The worker followed place_edits own contract: stage a copy beside the board, edit under bundled python, re-parse and DRC the copy, os.replace only after it verified clean",
+   "why": "The alternative was shipping a board whose own silkscreen contradicts its own labels within millimetres - an arrow pointing at a solid plastic wall next to text saying SIG. The agent disclosed the deviation plainly rather than quietly raw-editing, and used the safest available pattern. Recorded as a PIPELINE GAP worth a plan step: a mirror_fp_graphic / remove_fp_graphic op on place_swig. Nice detail found on the way - the correct mirror axis is the BODY axis at x 25.06, not the pad row at 24.5; mirroring about the pad row would have overhung the body by ~1 mm and collided with the new SIG label",
+   "phase": "P8",
+   "ts": "2026-08-19T04:54:08"
   }
  ],
  "edits": [
@@ -2571,6 +2628,39 @@
    "gate": "verify",
    "status": "pass",
    "attempt": 9,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-19T04:54:08",
+   "event": "decision",
+   "what": "ACCEPTED, with the deviation disclosed: the J1 silk arrows were corrected on the board instance by a one-off SWIG worker, because NO PIPELINE OP OWNS FOOTPRINT-INSTANCE GRAPHICS. add_text/remove_text/move_text are the only silk ops and remove_text matches board.GetDrawings() - board-frame gr_text - so it cannot see footprint children at all; route_edit does tracks and vias, board_edit does Edge.Cuts, and fpfix takes --lib <dir>.pretty and never a board. The worker followed place_edits own contract: stage a copy beside the board, edit under bundled python, re-parse and DRC the copy, os.replace only after it verified clean"
+  },
+  {
+   "ts": "2026-08-19T04:54:08",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-19T04:54:08",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P8"
+  },
+  {
+   "ts": "2026-08-19T04:56:09",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-19T04:56:31",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 2,
    "failing_count": 0
   }
  ],

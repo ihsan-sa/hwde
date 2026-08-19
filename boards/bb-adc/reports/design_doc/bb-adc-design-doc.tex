@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries bb-adc --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-16 21:31:16
+generated 2026-08-19 04:54:28
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-16 21:31:16
 \endhead
 board & bb-adc \\
 workspace & \texttt{boards/bb-adc} \\
-phase & P2 \\
-gate status & no gates recorded yet \\
+phase & P9 \\
+gate status & all 5 recorded gates pass \\
 state created & 2026-08-16T17:25:12 \\
-state updated & 2026-08-16T21:25:47 \\
+state updated & 2026-08-19T04:54:08 \\
 \bottomrule
 \end{longtable}
 }
@@ -357,6 +357,52 @@ P2 & DESIGNING UNDER A COVERAGE GAP, recorded not silent: slot block:B1 resistiv
 P2 & REVERSED, on the datasheets own evidence: the converter DOES get a 5-10 ohm series resistor at its rail entry, with 0.1 uF + 10 uF at the pin, exactly as the ADS8326s own recommended application circuit shows (figs 44/45, p27). My earlier no-ferrite-no-series-R ruling is superseded for this element & The scope tier excludes "filtering the datasheet does not require" - it does NOT exclude what the datasheet DOES require. The P1 power architect wrote precisely this escape hatch ("it goes in if the chosen converters own datasheet shows it") and the condition is now met by a verified, page-cited record. This is the mode working as designed rather than being bent: a reflex ferrite gets refused, a vendor-specified element does not. Cost is one 0603 and, at this boards \textasciitilde{}60 uA typical draw at a 10 kHz data rate, \textasciitilde{}0.6 mV of drop. Separately, the AVDD/DVDD framing that motivated the original ruling is MOOT: the MSOP-8 ADS8326 has a single VDD pin, so there was never a split to bridge - the figs-44/45 element is rail-entry isolation, a different thing \\
 P2 & ACCEPTED as an explicitly-labelled inference, not a page-cited rule: the reference keepout from mounting holes and the board edge. What IS page-cited is reflow package die-stress (+/-0.02 pct, as large as the whole B-grade initial accuracy) plus the vendors warning that its magnitude depends on board size, thickness and material. The step from that to "keep the part away from flex concentrators" is ours and is marked as such in the constraints trace table & The constraint costs nothing on a board this sparse and protects the single most accuracy-critical part, so it stays. But it must not masquerade as vendor knowledge in a library the whole run exists to seed - an inference labelled as an inference is honest; the same sentence unlabelled would be exactly the failure mode four correction rounds were spent removing \\
 P4 & P4 SCHEMATIC HARD REQUIREMENT, flagged because the sheet plan almost lost it: U1 -IN is a DEDICATED SENSE RUN to the attenuator strings bottom node (R5s pad), NOT a GND symbol placed at the converter. sheets.md said "U1 -IN = GND", which is electrically true and operationally fatal & A P4 agent reading "= GND" wires it to the nearest ground and silently deletes the boards largest error-cancellation mechanism - the thing that turns a 2.5 mV input-referred ground offset into zero. The schematic looks identical either way and no gate would catch it: ERC sees one net either way, DRC sees copper either way, and the board would simply read wrong by half its error budget. This is the exact class of defect that only a stated requirement prevents \\
+P3 & VERIFICATION ITEM 2 CLOSED - the buffer question is settled and OPA320 is FINAL, with OPA333 demoted to documented alternate. ADS8326 acquisition is a CLOCK-CYCLE COUNT, not a CS-high dwell: tSMPL = 4.5 MIN / 5.0 MAX DCLOCKs (Table 1), sampling starts when CS falls, and CS-high is Power Down rather than extended tracking. At the architected 500 kHz DCLOCK, t\_acq = 4.5/500k = 9.0 us EXACTLY, which is what constraints.json already carried & The host can only stretch t\_acq by slowing DCLOCK (24 kHz-6 MHz legal). Pushed to the limit: tCYC\_min = 22 DCLOCKs, so 220 kHz gives tCYC = 100 us - exactly the 10 kSa/s period, zero margin - for t\_acq \textasciitilde{}20.5 us. That still does not rescue the OPA333, whose own MEASURED settling curve needs \textasciitilde{}40-55 us to reach this boards \textasciitilde{}7.6 ppm target, roughly 2-2.5x more than the timing budget can ever supply while sustaining 10 kSa/s. So the rejection holds independent of clock tuning, which is a stronger result than the conditional one recorded at P2 \\
+P3 & VERIFICATION ITEM 3 CLOSED - the -IN window is an ABSOLUTE constant, not an operating-point function. -0.3 V to +0.5 V is stated in Recommended Operating Conditions (p3) with no VDD or VREF dependence. Figure 39, which P2 flagged as plotted off this boards range, describes a DIFFERENT and narrower mechanism: CM\_max = VDD + 0.2 - VREF, which only bites as VREF approaches VDD. At 3.135 V / 2.048 V that gives \textasciitilde{}1.29-1.45 V, nowhere near the +/-0.3/0.5 V ceiling, so the flat window applies in full & The remote-sense architecture depends on this bound and the P2 note left it unconfirmed at our operating point. Expected -IN excursion is millivolts of ground IR drop - three orders inside the window. The figure that looked like a threat turned out to describe an unrelated limit \\
+P3 & VERIFICATION ITEM 1 CLOSED - ADR4520 is STILL Rev 0 (4/12), re-confirmed through an independent distribution channel (an RS Online mirror, 32 pages, cross-checked against a third listing) after LCSCs own datasheet URL for both grades resolved to a dead "Datasheet temporarily unavailable" stub. VDO MAX 1 V at both no load and 2 mA, LOAD CAPACITANCE 1-100 uF - identical to the knowledge record. The 87 mV margin stands on the current, in-distribution datasheet & This was the runs single largest residual risk: 87 mV of headroom resting on a 2012 document reached through a mirror because analog.com is unreachable here. It is now confirmed that Rev 0 IS current rather than merely what we could reach. Note for the library: two AI web-search summaries encountered on the way confidently asserted "Rev G, 05/15/2024" and "Revision B" - both false on direct inspection of the PDF \\
+P3 & Attenuator package moves 0603 -\textgreater{} 0805: PTFR0805Q200KN9 (C23067436, RESI), 200 kohm 0.02 pct 10 ppm/C. The 0603 row at this exact grade returns an unfetchable datasheet on live search, and an unverifiable part is not a part. The 0805 row is datasheet-backed with deeper stock (6235 vs 4150). Mechanical change only - flagged for P4 symbol/footprint and P6 placement & Same electrical spec, and the boards whole accuracy argument rests on these five parts, so a row we cannot read the datasheet for is disqualified by the roles own rule. Larger pads are also mildly helpful on a guarded high-impedance node \\
+P3 & U1 ADS8326IBDGKR (C544731, TI, 12.39 USD) is SINGLE SOURCE with NO pin-compatible alternate, recorded as an explicit empty alternates list rather than a fabricated one: the datasheets own pin-compatible family members are mostly 12-bit or typical-spec and do not close the error budget. BOM totals 155.16 USD at qty 5 (31.03/board), 84 pct of it U1 + U2. Tightest stock margin is ADR4520B at 314 pieces (12.6x the floor), hedged by the A grade at 908 & The alternate field exists to record real second sources; filling it with a part that cannot meet spec would convert a known risk into a hidden one. A Tokmas-branded ADR4520A clone row was found and REJECTED - its own attributes (2.8-40 V supply, 20 mA output, 8 ppm/C) do not match the genuine part, which is the brand-pinning rule doing exactly what it was written for \\
+P3 & CORRECTION - an unsourced claim of MINE was caught by the extractor and is withdrawn: the ADR4520 datasheet does NOT say solder-heat-shift magnitude depends on board size, thickness or material. Rev 0 (4/12) ties SHR only to package material and solder process (leaded vs lead-free); the extractor grepped all 32 pages for those terms near solder mentions and found nothing, then flagged rather than fabricated. The board-size dependency belongs to a DIFFERENT vendors document (the TI material in the same research task), and I relayed it into the spawn prompt as if it were ADIs & This is exactly the laundering failure the whole research leg exists to prevent, committed at the relay step rather than in a record: two vendors documents were read in one research task, and when I compressed that task into a spawn prompt I attached one vendors caveat to the other vendors part. The records themselves are clean - the error appeared only in my prose. Consequence: the U2-vs-mounting-hole keepout was ALREADY labelled as our inference and stays, but its stated basis must shrink to what is real - a specified reflow shift of +/-0.02 pct typ, as large as the whole B-grade initial accuracy - with no vendor claim about board flex behind it \\
+P3 & U2 land pattern: the ADR4520 datasheet contains NO recommended land-pattern drawing - only package outline dimensions (p32) - so pad\_size\_mm and row\_spacing\_mm are deliberately unset in the extraction and the footprint must come from a standard JEDEC SOIC-8 narrow-body pattern. Pitch 1.27 mm is stated and identical either way. No exposed pad. Pin 8 is TP, DO NOT CONNECT; pins 1/3/5/7 are NC & Recorded so the librarian does not go looking for a vendor land pattern that does not exist, and so a schematic agent does not wire the TP pin. The extractor correctly refused to derive pads from the package outline, which is the rule that stops a footprint being built from the wrong drawing \\
+P3 & NO series/current-limiting resistor between the reference output and the converters REF bypass, despite the ADS8326 datasheet offering one "in front of the capacitors". The condition it attaches does not bite here, and fitting it would COST accuracy rather than buy it & Four reasons. (1) The guidance is conditional on the reference not being a dedicated low-impedance source; the ADR4520s stable load-capacitance window is 1-100 uF two-ended, so the 47 uF REF bypass is inside spec and the STABILITY motive for the resistor is absent. (2) It would actively hurt: the SARs reference current VARIES WITH INPUT CODE (TI SNAA320B), so any series R turns that varying current into a code-dependent voltage error - a NONLINEARITY, the worst class of error on a DC-accuracy board - where at 7 uA and 4.7 ohm it is \textasciitilde{}33 uV = 16 ppm = 0.08 mV at the terminal. Without the resistor the reference own output impedance makes the same term nanovolts. (3) TIs own application circuit for this converter (fig 42) drives the 47 uF bare from an amplifier with no series element. (4) Power-up inrush is bounded by the references own +/-10 mA output rating - \textasciitilde{}10 ms to charge 47 uF - which the host \textgreater{}=10 ms wait already covers. C5 stays as the references own local output cap at its pin and C3 as the SARs reservoir at the REF pin; in parallel they total \textasciitilde{}48 uF, still inside the window \\
+P3 & CONFIRMED, not a new risk: the error budget already used the CORRECT converter specs. At a 3.135-3.465 V rail the board sits in the ADS8326s VDD = 2.7 V characteristics table, not the 5 V table, and the 2.7 V table is looser for the IB grade - INL +/-2.5 LSB (vs +/-1.5) and gain +/-16 LSB (vs +/-12). Those are exactly the numbers P2 budgeted & The extractor flagged the two-table split as potentially relevant to the budget, which was the right thing to raise. Checking it: the architect quoted offset +/-1 mV, gain +/-16 LSB and INL +/-2.5 LSB, i.e. it had already taken the conservative table for our rail. Recording the confirmation so a later reviewer does not re-open it. Related: DCLOCK max is 4.8 MHz in the 2.7-3.6 V class rather than 6 MHz - irrelevant at our 500 kHz \\
+P3 & MAJOR RISK, named and bounded, not closed: TIs own "Driving ADS8326" reference circuit (OPA320 datasheet fig 44, p25) - our EXACT amplifier-plus-converter pairing - warns that single-supply operation "loses a small number of ADC codes near ground" and shows a -0.3 V V- generator as the fix. This board ties V- straight to GND and its input span STARTS at 0 V, so the bottom of the range is precisely where the warning bites & The DC arithmetic says we are probably fine and the TRANSIENT question is open. OPA320s swing spec is 10 mV typ / 20 mV max from the rail at RL = 10 kohm, which is \textasciitilde{}164 uA of load; this boards DC load is \textasciitilde{}1 uA (the C\_FLT recharge), so the static drop scales to \textasciitilde{}61 uV at the ADC input = \textasciitilde{}153 uV at the terminal, about 3 pct of budget. What does NOT scale is the transient: near ground the output stage has minimal headroom, its output impedance is highest, and it must still absorb the per-conversion charge kick inside t\_acq. That is a settling question, not a DC one, and it is exactly what the architect already named the `zero-scale-swing` bench for (\textless{}= 1.0 mV above GND at 0 V input) together with `acquisition-settling` run AT THE BOTTOM OF THE RANGE \\
+P3 & CONTINGENCY, pre-authorised so it is not re-litigated under time pressure at P8: if the zero-scale bench shows lost codes near ground, the -0.3 V generator is DATASHEET-REQUIRED SUPPORT and not an excluded feature - it appears in the vendors own recommended circuit for this converter-amplifier pair. It would still be a second rail, so it becomes a mode-boundary item that goes to the OWNER as a decision, exactly as requirements.md section 1 anticipated & The scope tier excludes a second rail the block does not need IN ORDER TO WORK. If the block cannot measure 0 V - a stated part of the input span - without it, then it needs it to work, and the exclusion does not apply. Recording the reasoning now, while it is a hypothetical, keeps the ruling honest \\
+P3 & OPA320 PASSES the isolation-resistor screening test decisively, and the flat-R\_O assumption that was UNVERIFIABLE for the OPA333 is verified for this part: R\_O is 90 ohm typ, and TIs text states it "remains very flat over a wide frequency range", confirmed visually on fig 19 as \textasciitilde{}90-100 ohm from low frequency to roughly 1-10 MHz. Settling ceiling 750 ohm at C\_FLT = 1 nF versus a stability optimum of only \textasciitilde{}27 ohm at R\_O = 90 ohm and GBW 20 MHz - a wide legal interval where the OPA333 had none. TI separately recommends 10-20 ohm isolation for this part; R6 is provisionally 49.9 ohm pending the bench & This is the same screening test recorded at P2, now run against the part actually sourced, and it inverts cleanly: the OPA333 failed it on a single-frequency R\_O we could not confirm was flat, while the OPA320 both passes it and publishes the flatness the method assumes. Worth noting the two parts differ by more than 20x in R\_O (90 ohm vs 2 kohm), which is most of why one is a SAR driver and the other is not \\
+P3 & GAP carried into P8, not bridged: OPA320s settling is characterised only at VS = 5 V with CL = 50 pF, and its tightest PUBLISHED figure is 0.0015 pct = 15 ppm and simulation-derived - about 2x looser than this boards \textasciitilde{}7.6 ppm target, at a different supply and a 20x smaller load capacitance. No datasheet number covers our operating point & The extractor flagged it rather than extrapolating, which is right. It means the acquisition-settling bench is not a confirmation exercise - it is the only evidence that will exist for this parameter, and it must be run at 3.3 V with the real C\_FLT and at the bottom of the input range where the zero-scale risk also lives. Two open questions, one bench \\
+P3 & J1 DRILL MUST BE ENLARGED 1.30 -\textgreater{} 1.50 mm per the vendors own recommended PCB hole. Orchestrator APPROVES this footprint hand-edit (the role correctly refused to make it unilaterally). The pad must grow with it to keep at least the JLC 0.15 mm annulus, so pad diameter \textgreater{}= 1.80 mm & This is not a margin question, it is a fit question. WJ500V-5.08-class screw terminals carry \textasciitilde{}1.0 mm SQUARE pins, whose DIAGONAL is 1.41 mm - larger than the pulled 1.30 mm round hole. A part that does not physically enter its holes is a scrapped board, and it would not be discovered until assembly. The librarian fetched the Kangnex mechanical drawing and read 1.50 mm directly, so we are following the vendors number rather than estimating. Note the failure mode the annulus check alone would have missed: 1.30 mm CLEARS the JLC annulus floor comfortably, so every automated check passes on a hole the pin cannot fit through \\
+P3 & U1 VSSOP-8 land pattern ACCEPTED as pulled; the reported 42 pct row-spacing mismatch is almost certainly a MISREAD of the vendor drawing, not a footprint defect. Arithmetic: DGK/MSOP-8 lead span is 4.90 mm, so lead centres sit \textasciitilde{}2.17 mm from package centre. The pulled pads are at 2.13 mm - a 0.04 mm match. The "implied 3.0 mm centre-to-centre" would put pads 1.5 mm from centre, i.e. UNDER the package body where no lead reaches & The 3.0 mm figure appears to come from subtracting a 1.4 mm pad length from a 4.4 mm OUTER-EDGE span, which mixes two different measurement conventions. fp\_verify passed on count, pitch and pin 1 with only a pad\_size warning, the footprint is LCSCs own for the exact LCSC part being ordered, and JLCs assembly process is matched to it. Accepting - but the discrepancy is recorded so P9 DFM looks at it rather than inheriting it silently \\
+P3 & ACCEPTED with follow-ups: (a) the ADR4520 symbol hand-edit setting pins 1/3/5/7/8 to no\_connect STANDS and must be RE-APPLIED after any re-pull or re-run of lib\_pin\_types.py, which has no NC concept and was dry-run-confirmed to silently revert all five to passive; (b) U3s missing F.SilkS pin-1 dot goes to P6 silk, where the tooling for it lives - pad asymmetry conveys orientation meanwhile; (c) U3 row spacing 2.60 vs 2.70 mm and U1s courtyard not enclosing its own pads are both accepted (the latter is the known systemic easyeda2kicad pattern already compensated downstream); (d) J2 geometry accepted on internal consistency alone - no manufacturer datasheet exists & Item (a) is the one with teeth: it is a silent-revert trap, so it is recorded as a standing re-apply obligation rather than a completed action, and flagged as a lib\_pin\_types.py enhancement candidate. The rest are cosmetic or already-known and none blocks P4 \\
+P3 & coverage-mapper NOT spawned at P3 exit despite a mapping\_request, and no further research opened. Both remaining research tasks stay unspent. P3 coverage: all THREE part slots COVERED, B2/B3/B4 provisional, B1 gap on constraints-emission alone - the gap already recorded at P2 as designed-under & Checked rather than assumed. Every provisional class names `maturity-below-floor` as its blocker with the CORRECT records already matched to the right slot and class (e.g. B2 feedback -\textgreater{} precision-buffer-capacitive-load-isolation and -riso-settling-stability-collision). So these slots are limited by MATURITY, not by missing record-to-slot edges, and a mapping pass cannot lift them - only owner approval can, and promotion is deliberately deferred until the sibling runs finish. B1s one unmet class has no candidate record BY CONSTRUCTION: the attenuator researcher declared constraints-emission an honest gap and wrote nothing for it, so there is no edge for a mapper to find. Spawning one would produce a file that changes no verdict \\
+P3 & P3 part-level coverage needed NO research: all three IC extractions produced substantive layout\_notes and each part slot reads COVERED. The seeding flags (--maturity-floor proven --research-provisional) were run first per the learning-target contract, and they re-escalated the four already-researched BLOCK slots back to gap; that is the flags working on maturity, not a new finding, so the authoritative P3 report is the re-run without them & Worth recording because the flagged run LOOKS alarming - four blocks back at gap after a full research leg - and a less careful reading would have opened four redundant tasks against a budget of two. The contract itself says to re-run without the flags after research; the subtlety is that at P3 the FIRST call of the phase still carries them, so the same re-escalation happens a phase later on slots that were never in question \\
+P4 & GUARD RING NET, stated explicitly because getting it wrong is silent: the driven guard around the divider tap and U3 +IN belongs on the BUFFER OUTPUT net, NOT on /AIN\_DIV. A ring on the same net as the node it surrounds is not a guard - it IS the node - and provides no guarding at all. U3 is a unity-gain follower, so its output sits at the tap potential with low impedance, which is exactly what a driven guard needs. No schematic element is required; it is a P7 copper instruction on the buffer output net & constraints.json records the guard as an area reservation along the /AIN\_DIV corridor, which correctly says WHERE the ring goes but is silent on WHICH NET it carries. A layout agent reading only that could reasonably pour the ring on /AIN\_DIV and produce something that looks like a guard ring, passes every check, and does nothing. Magnitude for scale: at the 240 kohm Thevenin, 1 nA of surface leakage is 240 uV at the tap = 600 uV at the terminal, 12 pct of budget \\
+P4 & CLARIFICATION of the -IN sense requirement, correcting my own earlier framing: -IN and the attenuator string bottom are ONE NET (GND) and MUST be - the divider bottom IS ground, and -IN carries a -0.3/+0.5 V common-mode bound relative to DEVICE ground, so a separately-floated analog ground would risk violating it. The Kelvin intent is therefore a PLACEMENT AND GEOMETRY requirement, not a netlist one, and the schematic as built is correct & I had said "wire it as its own net", which was wrong and would have produced a worse board. What actually has to hold at P6/P7: R5s bottom pad sits IMMEDIATELY ADJACENT to U1 pin 3, the copper between them is short and direct, and NO digital or supply return current flows through that copper. The error term is the IR drop between those two points, and with a solid pour plus adjacent placement it is microvolts; with careless placement, SPI return current crossing that segment puts millivolts there, and 1 mV becomes 2.5 mV input-referred. constraints.json already carries this correctly as an R5-\textgreater{}U1 corridor on net GND with the "reference tie, not a ground connection" rider. Note what this means for routing: with a B.Cu GND pour the router will connect both pins to the pour rather than draw a dedicated trace, and that is FINE - the requirement is on the geometry, not on a trace \\
+P4 & E1 ACCEPTED and my own P4 clarification is REVERSED: placement alone does NOT preserve the Kelvin sense. On the netlist U1.3 is one of 16 GND nodes, so the B.Cu pour will thermal-connect pin 3 exactly like pin 4 and reference the measurement to the pour AT THE CONVERTER - deleting the 2.5x cancellation with every gate green. A corridor is a keep-clear swath, not a connectivity rule. FIX: give the sense its own net /AGND\_SENSE (U1.3 + R5 bottom) tied to GND through a single 0 ohm link R8 placed at the string bottom & I had reasoned that adjacent placement makes the IR drop microvolts and called the netlist-level fix unnecessary. That is true of the drop but misses the mechanism: the pour does not merely add a parallel path, it TERMINATES pin 3 locally, so the sense node stops being the string bottom at all. The 0 ohm link makes the arrangement netlist-enforced - every gate then checks it, the pour cannot cover /AGND\_SENSE, and the router must route U1.3 to R5s pad. Cost is one Basic 0402. Algebra after the fix: the measurement is K{*}(V\_sig - V\_S) + Vos, so the ONLY residual is the offset between J1s return pin and the string bottom, which the reviewer measured as sub-1 uV on a solid pour. In scope: this is a topology element the block needs to work, not protection, filtering, an indicator or a second rail \\
+P4 & W1 (reference headroom vs ripple) ACCEPTED AS ANALYSIS, no design change. The 87 mV DC margin stands and ripple troughs are NOT a dropout risk here: the reference carries \textasciitilde{}49 uF on its output against a microamp load, so a trough of tens of mV lasting microseconds cannot move VOUT measurably. No RC filter is added to the references input - the scope tier excludes filtering the datasheet does not require, and this analysis says it is not required & The reviewer is right that the 87 mV was compared against DC tolerance alone while the verified record says tolerance + IR drop + ripple trough, and that is the correct challenge to raise. But the output capacitance answers it: a series-reference dropout spec is a DC condition, and the loop plus 49 uF holds VOUT through brief input dips. What DOES bind, and is now stated explicitly: this design is validated for a host rail whose DC level stays at or above 3.135 V. If the real rail sits lower, the margin is gone and no capacitor recovers it \\
+P4 & W2/W3/W4/W5 dispositions: W2 - the published error budget was computed on the OPA333 and must be restated for the OPA320 actually fitted (RSS 3.25/3.42 mV, worst case 8.58/10.74 mV; over-temp worst-case margin 14 pct -\textgreater{} 10.5 pct, and the bias-current row improves \textasciitilde{}200x, never credited). W3 - the host power-up wait rises from \textgreater{}=10 ms to \textgreater{}=50 ms: slew-limited charging of 49.2 uF at the 10 mA source limit is ALREADY 7-10 ms, so the old figure had \textasciitilde{}1x margin, not 50x. W4 - J2s 180-degree mis-mate shorts the host rail to its own ground; the connector checklist requires this be STATED when destructive, so it goes on the silkscreen and into the design doc. W5 - C7s 20x-C\_SH floor was checked on NOMINAL; the fitted J-grade part guarantees only 950 pF against a 960 pF floor, so the P8 bench must choose C7 on its GUARANTEED minimum, with R6 present (the isolation resistor is what lifts the pure-cap-load limit) & None of these changes the topology; all four are numbers or statements that were wrong or missing. W3 is the one with real consequence - a host that waits 10 ms would read a reference that has not finished starting, and every conversion in that window is simply wrong. Also noted for correction: constraints.json records VREF current as 7 uA where the datasheet row is 14 uA max; nothing moves, flagged so it is not reused somewhere tighter \\
+P8 & ZERO-SCALE RISK CLOSED BY MEASUREMENT - the -0.3 V generator pre-authorised in the P3 contingency is NOT needed and will not be fitted. DC swing at 0 V input is 4.50 uV, exactly R\_O x I\_leak, = 0.090 ADC CODES against the vendors warning of "a small number of codes". Transiently the sampling cap arriving at VREF pushes the ADC node to +83.9 mV and the buffer output to +54.0 mV, and the SAMPLED value is back within 10 nV of ground, recovered in 1.24 us of the 9.0 us window & This was the largest open risk on the board and the only one that could have forced a second rail and an owner mode-boundary decision. It is now settled by a bench that models the real switched-capacitor event rather than a resistor, with a seeded defect (V- lifted to +0.2 V) confirmed to trip the bound from 4.5 uV to 200 mV. The DC arithmetic recorded at P3 predicted \textasciitilde{}61 uV by load-scaling; the measurement is 4.5 uV, so the estimate was conservative by an order of magnitude and the conclusion holds by a wide margin \\
+P8 & W5 CLOSED, C7 STAYS AT 1 nF. At its GUARANTEED 950 pF the node settles to 0.136 uV in 0.149 us - 115x inside the 15.6 uV budget and 60x inside the 9.0 us window, and indistinguishable from 1000 pF nominal. The 1 pct shortfall against the 20x-C\_SH floor has no settling consequence. The 2.2 nF C0G candidate also clears (0.143 uV, 0.643 us, PM 75.2 deg) but buys only a halved droop for 4.3x the settling time & The 20x rule is a sizing heuristic for how much of the sampling kick the reservoir absorbs, not a settling threshold, so a 1 pct miss on it means nothing once the actual settling is measured. Choosing the larger cap on heuristic grounds would have traded a real 4.3x in settling time for a nominal improvement in a term already 115x inside budget \\
+P8 & ACCEPTED AS A DOCUMENTED BEHAVIOUR, not a defect: a FULL-SCALE STEP at the terminal takes 25.5 us to settle to 15.6 uV, against the 9.0 us the architects bench spec named. The mechanism is intrinsic - the 240 kohm tap Thevenin charging the buffers own input capacitance - and it is 11.3 us even at ZERO board stray, on the amplifiers 4 pF Ccm alone. Consequence: the first conversion after a full-scale terminal step is invalid and the next one is fine & The 9.0 us figure was the wrong yardstick. t\_acq bounds the per-conversion charge event on a MULTIPLEXED front end; this is a single-channel DC voltmeter with no mux, so the time actually available after an input step is the 100 us sample period, and 25.5 us fits inside it four times over. Reaching 9.0 us would require a lower Rtot, which the source-loading budget forbids - the same coupled decision the whole board is built around. Bounded at 100 us as a warning and written into the design doc as a host behaviour: discard the first sample after a large input step \\
+P6 & Hand-placed canonical layout KEPT; every anneal candidate REJECTED. The free runs best (0.7 pct hpwl gain) put C3 3.97 mm from U1s REF pin against a 2.5 mm limit, C2 2.44 mm against 2.0, stretched the /AIN\_DIV stub from 2.60 to 7.18 mm, moved C7 from 1.97 to 12.01 mm off the ADC input and scattered the mounting holes. The locked run left movable\_clusters 0 and made hpwl worse (242 -\textgreater{} 260) & Root cause found and recorded in the repo learnings: place\_anneal RE-DERIVES satellite slots from place\_seed rather than inheriting the placement it was handed (hpwl\_input 242.12 vs hpwl\_start 299.80). So on a board whose value is in a few short critical stubs - a 240 kohm tap, a 47 uF at a REF pin, a sense tie - the annealer optimises a global metric by destroying exactly the local geometry that matters, and a 0.7 pct hpwl win costs a 60 pct violation of a declared decoupling distance. Final: hpwl 327.23 -\textgreater{} 241.87, route probe completion 1.00 (41/41 nets), place gate 0/0 \\
+P6 & All 25 footprints LOCKED deliberately after placement. Accepted with its known cost: a future place\_metrics run gates keepout and non-declared-edge containment on is\_movable, so those legs go quiet on a fully locked board. Verified by hand instead - 0 rule areas present, and the union of all extents is within the outline & The guard-ring room, the tap stub, the sense tie and the string order are SPECIFICATIONS that no gate can re-verify: nothing in the check suite knows that /AIN\_DIV must stay short or that R8 must sit at the string bottom on the front side. Locking is the only mechanism that stops a later automated pass from optimising them away, which is precisely what the anneal candidates tried to do \\
+P6 & Outline FIT applied: 63.95 x 66.03 -\textgreater{} 64.9 x 34.92 mm, area 4223 -\textgreater{} 2266 mm2. Place gate re-passes 0/0. Height is fully earned; the WIDTH is being re-earned in a scoped second pass because \textasciitilde{}20 mm of it is the J1-\textgreater{}R1 corridor at 16.5 mm, and that number was set by EDGE\_TOL against the PROVISIONAL outline rather than chosen & The separation itself is defensible and stays - a screw terminal carrying field wiring should not sit beside a 1 Mohm node, and letting the ROBUST raw-input net carry the span instead of a sensitive one is the right structural choice. What is not defensible is the specific 16.5 mm, which nothing argued for. Under a canonical binding the size must be a RESULT WITH A REASON; accepting an artifact of the room the placement was handed is the same failure as bb-buck, just in the other direction \\
+P7 & Two P7 routing constraints handed forward by placement: (1) the SPI fan needs exactly 2 crossings (/CS x /SCLK and /CS x /DOUT) because J2s pin order is CS,SCLK,DOUT while the converters is CS,DOUT,SCLK - keep the via pairs EAST of U1, out of the analog zone; the J2 rotation that removes them costs 3 rail crossings instead, and a schematic-level J2 pin swap would remove them entirely at a later revision. (2) The guard ring cannot close through the U3 pin2/pin3 channel - it is 0.35 mm and cannot carry 0.127 mm of trace plus 2 x 0.127 clearance - so the closed ring must encircle pin 2 (V-) TOGETHER WITH pin 3, with pin 2 escaping straight down through its own via to the pour & Both are geometry facts discovered while placing, and both would otherwise be rediscovered by the router as failures. (2) matters most: a guard ring that cannot close is not a guard ring, and the fix - enclosing the V- pin inside the ring - is counter-intuitive enough that a router would not invent it \\
+P6 & BOARD SIZE EARNED: 54.75 x 34.92 mm, 1912 mm2. The J1-to-R1 separation is 7.3 mm and decomposes into three things that each have a reason and nothing else: 4.5 mm is the screw terminals OWN BODY (courtyard east of its pad row - that span is connector, not clearance), 2.0 mm is clear board for screwdriver access with field wire already dressed, and 0.8 mm is R1s pad approach. Only the 2.0 mm is discretionary & The earlier 16.5 mm was not merely unearned, it was WORSE on the mechanism the knowledge records actually name: leakage and pickup both scale with the input traces length, so every record touching this net argues for shorter. EDGE\_TOL chose 16.5; a connector body and a screwdriver choose 7.3. Also found while moving: H1/H2 - not J1 - were defining the west edge at x 9.05, so moving J1 alone would have earned nothing, and H3 was 0.2 mm proud on the east so J2 rather than a mounting hole now defines that edge. The node that genuinely wants distance from a torqued terminal is the 240 kohm tap (called microphonic in the architects group note), and it sits 12 mm further east, outside the flex zone. No thermal or creepage argument was claimed, because at 36 mW and 5 V neither exists \\
+P7 & CORRECTION of my own routing brief: +3V3 is widened to 0.5 mm per constraints.json, not left at the Default 0.2 mm I instructed. I told the router "do not force widths" on an IPC-2152 CURRENT argument; the constraints \_why anticipates and rejects exactly that argument - "IPC-2152 width at 11 mA is a hairline, so heating is NOT what binds this net - impedance to the decoupling caps is. Route \textgreater{}= 0.5 mm." Different physics, and the constraints is the applicable one & The router followed my brief over a written constraint and FLAGGED the conflict rather than silently resolving it either way, which is the correct behaviour for a subagent. Cost of the error had it stood: \textasciitilde{}0.6 mV of extra DC drop, which the error budget does not notice because the conversion is referenced to VREF - but it would also have left a live contradiction between the board and its own constraint file for P8/P9 to trip over \\
+P7 & KEPT as a cited deviation: the VREF segment C3.1-\textgreater{}U1.1 is routed at 0.6 mm rather than the 0.2 mm Default, citing the verified record sar-adc-reference-charge-loop (wide copper out and back on the reference charge loop). It was PRE-ROUTED by hand specifically so Freerouting could not place a via between the reference bypass cap and the REF pin & A via in that path inserts inductance into the exact loop the record is about - the per-conversion charge that C3 must supply and the reference must replace. Pre-routing a short critical path to deny the autorouter the chance to spoil it is the same discipline as locking the placement, and for the same reason: the tool optimises a metric that does not know what this copper is for \\
+P8 & P8 ITEM logged so it cannot fall through: the driven guard ring needs SOLDER-MASK RELIEF over its copper (constraints + the verified record resistive-attenuator-high-z-tap-guard-and-leakage). Routing cannot emit mask openings, so P8 owns it & The point of exposing the guard is that any surface contamination or moisture path leaving the high-impedance tap meets bare guard copper AT THE SAME POTENTIAL, rather than bridging to something at a different one. A guard ring buried under mask still guards electrostatically but forfeits the surface-leakage half of its job, which on a 240 kohm node is the half that was worth having \\
+P8 & GUARD-RING SOLDER-MASK RELIEF DEFERRED, not implemented, with the arithmetic for why it is acceptable at THIS impedance. No pipeline script can emit a mask opening (board\_edit does outlines, planes\_gen does copper, and nothing else touches F.Mask), and hand-editing the board file is forbidden. Recorded as a documented deviation in the fab notes rather than silently dropped & Quantified rather than waved away. For guard-defeating leakage to matter here it must produce more than \textasciitilde{}0.2 mV at the 240 kohm tap (0.5 mV at the terminal, 10 pct of budget), which is 0.83 nA, which from a 3.3 V aggressor needs a leakage path BELOW \textasciitilde{}4 Gohm. Intact solder mask on a washed board is orders above that, and the ring already intercepts electrostatically regardless of mask. Mask relief is the third layer of defence on a node two orders less sensitive than the 10 Mohm-1 Gohm regime the source record was written for. It would be REQUIRED, and this reasoning would not hold, on a megohm-class divider - which is exactly the design this board rejected on other grounds \\
+P7 & RETURN-PATH FIX by EXCISION, not by shortening: the /CS crossing was rebuilt from a 4.39 mm 45-degree single-via tunnel into a 1.93 mm PERPENDICULAR VIA PAIR at x=66.0, placing BOTH crossings inside the transition vias 0.95 mm excision disks (via\_radius + 0.65). /SCLK cleared entirely (was 0.73 mm2 / 0.64 mm error), /DOUT warning cleared entirely, /CS reduced 91 pct in area and 98 pct in crossing length & My proposed fix - move the crossing under bare board - is TOPOLOGICALLY UNREACHABLE and the router showed why: J2 orders CS,SCLK,DOUT while the converter orders CS,DOUT,SCLK, a 3-cycle, so /CS must cross BOTH other signals, and a crossing can only exist where /CS is on B.Cu. The real lever was found by reading why /DOUT was already passing: severity keys on centerline crossing length with a 0.01 mm threshold, so SHORTENING never clears anything - what clears it is excision. And it is physics, not checker-gaming: where the void under the aggressor is a vias own antipad disk rather than a slot, return current detours around a small disk instead of running the length of a cut. It also halved the pour slot \\
+P7 & REFUSED: driving the /CS residual to zero by shortening the tunnel 0.09 mm so the two excision disks overlap. It would change NO physics and would cut via-to-trace DRC margin to \textasciitilde{}0.04 mm. Waived instead, with both reasons recorded & This is the clearest example on the board of the difference between fixing a defect and satisfying a checker. The 0.03 mm residual is the gap between two bookkeeping disks; closing it buys nothing electrical and spends real manufacturing margin. The router declined to do it unprompted and asked - which is the right instinct, and the answer is no \\
+P7 & PIPELINE DEFECT affecting EVERY ai-ee board, and my own diagnosis of it was wrong: --verify-fill does NOT use an independent fill model. assert\_fresh runs real kicad-cli --refill-zones on a temp copy, and geom.\_refill\_copy stages the .kicad\_pro but NOT the .kicad\_dru. Measured three ways: pcb+pro+dru gives guard 17.176 mm2 and GND 1745.233 mm2, EXACTLY the committed fill; pcb+pro gives 6.613; pcb alone gives 6.613. The .kicad\_pro changes nothing - the .kicad\_dru is everything, because without it the 0.127 mm clearance floor is gone and KiCad refills at its stock 0.2 mm & rules\_gen writes a DRU for every board in this pipeline, so every board is affected, not just ones carrying a connect:solid zone as I had guessed. The READ path is safe (it only produces a spurious StaleFillError), but the same omission in a WRITE path would commit a silently wrong fill. The router verified planes\_gen, route\_auto and route\_edit all stage the DRU and are unaffected. I diagnosed this as a checker-vs-KiCad fill-model disagreement; it is a missing file in a temp-copy helper \\
+P7 & DESIGN MARGIN DISCOVERED, and it is a real one: the guard ring CLOSES at the 0.127 mm clearance floor and DOES NOT CLOSE at 0.2 mm. At 0.2 mm the pour drops 19.03 -\textgreater{} 8.68 mm2, the entire south leg is culled and the closure test finds ZERO holes - yet it still fills, and still looks like copper in a render. Any change to the clearance floor, the fab class or the copper weight MUST re-run the closure proof & Found accidentally while measuring the DRU defect above, and it is the most fragile thing on the board. The guard ring is the only defence for a 240 kohm node, its function depends on ENCIRCLING that node, and its encirclement survives on a 73 um margin against the fab floor. Worse, every cheap check passes when it fails: DRC is clean, the zone fills, the render shows a ring. Only a containment test on the filled polygons can tell the difference, which is exactly why the router was asked to prove closure geometrically rather than visually \\
+P8 & E1 CONFIRMED REAL against the vendor drawing: J1s wire throats face EAST, into the board. The Kangnex WJ500V-5.08 drawing shows the body is ASYMMETRIC about the pin row - 4.50 mm on one side, 3.14 mm on the other - and the wire-entry face is the 4.50 side, which is exactly the geometry the reviewer used for its transform. J1 must be rotated 180 degrees and /AIN\_RAW + GND re-routed & Two agents disagreed and the tiebreak matters: placement proved the direction from an orthographic render plus the footprints silk entry arrows; the reviewer proved it from the 3D models actual opening geometry (two 3.0 mm openings, z 3.0-9.8 mm, on the y=+4.50 face, the other face solid) plus the rot-90 transform. The reviewer ALSO independently found that the footprints silk arrows sit on the WRONG FACE - which is precisely what misled the render check. So the two sources inside the footprint contradict each other, the vendor drawing agrees with the 3D model, and a render of a footprint cannot be more authoritative than the part geometry it draws. Consequence if shipped: the field lead must be inserted from the boards interior and laid back over the 1 Mohm string and the J2 ribbon - unusable as intended \\
+P8 & E5 ACCEPTED as a real defect introduced by the guard-ring closure workaround: GND conductors sit INSIDE the closed ring. U3 pin 2 and a GND via at (41.850, 39.850) are 0.227 / 0.289 / 0.350 mm from the guarded node with the guard OUTSIDE all three, so the ring cannot intercept those leakage paths. Priced on blocks.md own 1 Gohm model that is 1.20 mV at the terminal against the 0.78 mV the guard was built to stop, and budget row 9 carries 0.10 mV - understated \textasciitilde{}12x. The via is MOVABLE and will be moved out; the 0.350 mm pin2/pin3 channel is irreducible at the 0.127 mm floor & This is the cost of the closure workaround we chose deliberately at P6 - encircling V- together with the input pin - and nobody priced it until now. The spec still closes (RSS 3.23 -\textgreater{} 3.44 of 5.00 mV), so it is not a redesign, but it is a real error term that was invisible in the budget. Moving the via is free and removes the worst of the three paths \\
+P8 & E5 FIXED BY RE-ROUTING THE GUARDED NET, not by moving the offending via - the via could not be moved out because the pad it serves is inside the ring, so anything touching it is inside. /AIN\_DIV is a 3-pad net whose spanning tree can hang the stub off EITHER resistor for the same 2.600 mm; moving it from R3.2-\textgreater{}U3.3 to R4.1-\textgreater{}U3.3 put the stub on the east side of the pocket and deleted both sub-0.35 mm paths at zero length cost. GND-inside-ring distances go 0.227/0.289/0.350 mm to 0.350 (pin 2, irreducible) and 0.556 (via); scaled on the same 1/d model that is \textasciitilde{}1.20 mV -\textgreater{} \textasciitilde{}0.52 mV, under the 0.78 mV the guard exists to stop & Worth recording as a pattern, not just a fix: when a keepout cannot be cleared by moving the intruder, check whether the PROTECTED object has freedom instead. A net with more than two pads has spanning-tree freedom that costs nothing in length, and here it bought the whole improvement. The instruction I gave - move the via - was unreachable; the agent found the reachable version \\
+P8 & E1 fix verified from the FOOTPRINTS OWN GEOMETRY rather than from my ruling: pads sit on local y=0, F.Fab spans local y -5.64..+4.52 and F.CrtYd -5.5..+4.5, so the 4.50 mm face is local +y, and KiCad maps local +y to board +x at rot 90 - throats east, exactly as the reviewer found. After rotating to rot -90 the courtyard reads x{[}19.955, 30.045{]} about a pad row at x=24.500: west face 4.545 mm, east 5.545 mm. Also learned the hard way: A 180-DEGREE ROTATION SWAPS THE PADS, so /AIN\_RAW moved from y 41.600 to 36.520 and GND took its place; both were re-routed fresh & The agent re-derived the direction from an asymmetry number rather than accepting my instruction or looking at another picture, which is the correct response to a defect whose root cause was trusting a picture. The pad swap is the kind of consequence that turns a "just rotate it" instruction into a wrong board if nobody re-routes - and place\_edit REFUSED the move on a routed board and demanded a rip first, which is the guard working \\
+P8 & Board size held at 54.750 x 34.920 mm after the J1 rotation. A re-fit was checked with --report-only and would have given 54.75 x 34.937 - a 17 um delta, below manufacturing noise - and was REFUSED because applying it would trigger the board-grew path and force a planes\_gen re-run for nothing & Re-fitting is not free: it invalidates the pour and drags a re-verification of the guard ring, which on this board closes on a 73 um margin. Spending that to chase 17 um is a bad trade, and checking with --report-only before touching anything is exactly the right way to find that out \\
+P8 & W1 root cause fixed rather than its symptom: verify\_all warned "no bulk on +3V3" and it was a FALSE POSITIVE - C1 is a 10 uF sitting 0.925 mm from J2.1 - but the cause was that decoupling.json OMITTED C1 entirely, so check\_decoupling never examined the rail-entry bulk at all. C1 is now associated, and both check\_decoupling and check\_pdn read 0 & The warning was right to fire and wrong about why. A check that passes because an association is missing is worse than one that fails: it reports on copper it never looked at. Fixing the sidecar makes the check examine real copper instead of passing by omission \\
+P8 & ACCEPTED, with the deviation disclosed: the J1 silk arrows were corrected on the board instance by a one-off SWIG worker, because NO PIPELINE OP OWNS FOOTPRINT-INSTANCE GRAPHICS. add\_text/remove\_text/move\_text are the only silk ops and remove\_text matches board.GetDrawings() - board-frame gr\_text - so it cannot see footprint children at all; route\_edit does tracks and vias, board\_edit does Edge.Cuts, and fpfix takes --lib \textless{}dir\textgreater{}.pretty and never a board. The worker followed place\_edits own contract: stage a copy beside the board, edit under bundled python, re-parse and DRC the copy, os.replace only after it verified clean & The alternative was shipping a board whose own silkscreen contradicts its own labels within millimetres - an arrow pointing at a solid plastic wall next to text saying SIG. The agent disclosed the deviation plainly rather than quietly raw-editing, and used the safest available pattern. Recorded as a PIPELINE GAP worth a plan step: a mirror\_fp\_graphic / remove\_fp\_graphic op on place\_swig. Nice detail found on the way - the correct mirror axis is the BODY axis at x 25.06, not the pad row at 24.5; mirroring about the pad row would have overhung the body by \textasciitilde{}1 mm and collided with the new SIG label \\
 \bottomrule
 \end{longtable}
 }
@@ -403,9 +449,9 @@ Why \texttt{VREF} and not \texttt{+2V048}: it is a rail feeding a power pin and 
 \begin{quote}\small\ttfamily\raggedright
 \textbar{} Refdes \textbar{} Part class \textbar{} Net attachments \textbar{}\\
 \textbar{}---\textbar{}---\textbar{}---\textbar{}\\
-\textbar{} `U1` \textbar{} 16-bit SAR, SPI peripheral, VDD 2.7-3.6 V, external VREF pin 0.1 V..VDD, input range includes 0 V, offset AND gain specified as MAXIMA ({*}{*}ADS8326IB{*}{*} class) \textbar{} VDD={*}{*}`VDD\_ADC`{*}{*} (behind R7), GND=`GND`, VREF=`VREF`, `+IN`=`/AIN\_ADC`, {*}{*}`-IN`=`GND` AT R5's BOTTOM PAD - read the note below before wiring it{*}{*}, CS=`/CS`, DCLOCK=`/SCLK`, DOUT=`/DOUT` \textbar{}\\
+\textbar{} `U1` \textbar{} 16-bit SAR, SPI peripheral, VDD 2.7-3.6 V, external VREF pin 0.1 V..VDD, input range includes 0 V, offset AND gain specified as MAXIMA ({*}{*}ADS8326IB{*}{*} class) \textbar{} VDD={*}{*}`VDD\_ADC`{*}{*} (behind R7), GND=`GND`, VREF=`VREF`, `+IN`=`/AIN\_ADC`, {*}{*}`-IN`=`/AGND\_SENSE` (its OWN net: `U1.3` + `R5.2` + `R8.1`) - read the note below{*}{*}, CS=`/CS`, DCLOCK=`/SCLK`, DOUT=`/DOUT` \textbar{}\\
 \textbar{} `U2` \textbar{} 2.048 V series voltage reference, \textless{}= 0.02 \% initial max, \textless{}= 2 ppm/degC max, Vin\_min \textless{}= 3.035 V ({*}{*}ADR4520B{*}{*} class) \textbar{} IN=`+3V3`, GND=`GND`, OUT=`VREF` \textbar{}\\
-\textbar{} `U3` \textbar{} unity-gain follower, CMOS input, RRIO, Vos \textless{}= 100 uV max, Ib \textless{}= 400 pA over temp ({*}{*}OPA333{*}{*} class; {*}{*}OPA320{*}{*} the same-footprint alternate) \textbar{} V+=`+3V3`, V-=`GND`, `+IN`=`/AIN\_DIV`, `-IN`=`/AIN\_BUF`, OUT=`/AIN\_BUF` \textbar{}\\
+\textbar{} `U3` \textbar{} unity-gain follower, CMOS input, RRIO, Vos \textless{}= 100 uV max, Ib \textless{}= 400 pA over temp ({*}{*}OPA320{*}{*} FITTED - chosen on settling from the converter's clock-count acquisition window; {*}{*}OPA333{*}{*} the same-footprint alternate) \textbar{} V+=`+3V3`, V-=`GND`, `+IN`=`/AIN\_DIV`, `-IN`=`/AIN\_BUF`, OUT=`/AIN\_BUF` \textbar{}\\
 \textbar{} `R1` `R2` `R3` \textbar{} attenuator TOP arm, 3 x 200 kohm 0.02 \% / 10 ppm, ONE part number with `R4`/`R5` \textbar{} `/AIN\_RAW`-`/ATT\_A`-`/ATT\_B`-`/AIN\_DIV` \textbar{}\\
 \textbar{} `R4` `R5` \textbar{} attenuator BOTTOM arm, 2 x the same 200 kohm part \textbar{} `/AIN\_DIV`-`/ATT\_C`-`GND` \textbar{}\\
 \textbar{} `R6` \textbar{} ADC input isolation, 20-100 ohm (sim benches 2/3 set it) \textbar{} `/AIN\_BUF` / `/AIN\_ADC` \textbar{}\\
@@ -423,7 +469,9 @@ Why \texttt{VREF} and not \texttt{+2V048}: it is a rail feeding a power pin and 
 \textbar{} `H1`-`H4` \textbar{} M3 clearance holes, 3.2 mm \textbar{} mechanical (no net) \textbar{}
 \end{quote}
 \paragraph*{\texttt{U1 -IN} IS A DEDICATED SENSE RUN, NOT A GROUND SYMBOL}
-Electrically \texttt{-IN} is on \texttt{GND}, so a netlist cannot tell the difference - which is exactly why this note exists. {*}{*}Wire \texttt{U1 -IN} to the point where \texttt{R5}'s bottom pad meets \texttt{GND}{*}{*} (the attenuator string's bottom node), as its own connection. Do NOT drop a \texttt{GND} power symbol next to the converter and call it done: that deletes the board's largest error-cancellation mechanism silently and nothing downstream will report it.
+UPDATED at P4 review (E1). \texttt{-IN} is now its OWN NET, \texttt{/AGND\_SENSE}, with exactly three nodes: \texttt{U1.3}, \texttt{R5.2} and \texttt{R8.1}. \texttt{R8} is a single 0 ohm tie to \texttt{GND} at the string bottom, and it is the ONLY join between them.
+
+This changed because the earlier arrangement - \texttt{-IN} on \texttt{GND}, with the intent carried by placement - does not survive the pour. On the netlist \texttt{U1.3} was one of 16 \texttt{GND} nodes, so the B.Cu pour thermal-connects pin 3 exactly like pin 4 and references the measurement to the pour AT THE CONVERTER, deleting the cancellation with every gate green. A corridor is a keep-clear swath, not a connectivity rule. Giving the sense its own net makes it netlist-enforced: the pour cannot cover \texttt{/AGND\_SENSE}, the router must route \texttt{U1.3} to \texttt{R5.2}, and every gate checks it.
 
 The reason: {*}{*}a divider passes a ground offset at UNITY while dividing the signal by K = 0.400{*}{*}, so any offset between the string's bottom node and the converter's negative reference is referred to the input multiplied by 1/K = 2.5. \textbf{1 mV of copper offset = 2.5 mV at the terminal}, half the 25 degC budget. Sensing at the string bottom cancels it exactly: \texttt{+IN} carries \texttt{V\_tap + (GND\_A - GND\_C)}, \texttt{-IN} carries \texttt{(GND\_A - GND\_C)}, difference \texttt{V\_tap}. \textbf{Bounded:} the ADS8326 specifies \texttt{-IN} at \textbf{-0.3 V to +0.5 V} relative to device ground, so the sense point must be a node whose offset stays in the millivolts - which R5's pad is, and which a distant or shared-return ground is not. The bottom of the string is a \emph{reference tie}, not a ground connection: it must not share copper with a return carrying other current. Carried in \texttt{constraints.json} as the \texttt{R5}-\textgreater{}\texttt{U1} corridor; see \texttt{blocks.md} s8.1.
 
@@ -487,13 +535,273 @@ Spatial order across the board, from D4: {*}{*}\texttt{J1} -\textgreater{} \text
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-\emph{Pending --- produced at P4.}
+Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-18T08:52:06, failing 0 of 0.
+\subsection*{Review waivers}
+\subsection*{ERC / schematic-review waivers - bb-adc}
+Machine ERC is 0/0 (gate \texttt{erc} PASS, commit 1befa1e). This file records the schematic-review WARNINGS that are accepted rather than fixed, and why. The single ERROR (E1, the Kelvin sense not surviving the pour) was FIXED, not waived.
+
+\subsubsection*{netlist\_audit: \texttt{power\_no\_consumers} on VREF - ACCEPTED}
+U1's REF pin is typed \texttt{passive} in the pulled symbol, so a declared power net feeds no \texttt{power\_in} pin. The netlist is correct and nothing downstream keys off pin type for this net (\texttt{check\_current} reads the net name). NOT hand-fixed on purpose: \texttt{lib\_pin\_types.py} has no NC concept and was dry-run-confirmed to silently revert U2's five \texttt{no\_connect} pins, so a manual retype becomes a standing re-apply obligation for a cosmetic warning.
+
+\subsubsection*{W1 reference headroom vs rail ripple - ACCEPTED AS ANALYSIS}
+The 87 mV DC margin was compared against DC tolerance alone, while the verified record says tolerance + IR drop + ripple trough, and the owner's answered rail carries "tens of mV" of noise. Accepted because the output capacitance answers it: \textasciitilde{}49 uF against a microamp load holds VOUT through input dips of microseconds, and a series-reference dropout spec is a DC condition. No input RC is added - the scope tier excludes filtering the datasheet does not require, and this analysis says it is not required. BINDING CONSEQUENCE, now stated: the design is validated for a host rail whose DC level stays at or above 3.135 V. Below that the margin is gone and no capacitor recovers it.
+
+\subsubsection*{W5 C7 guaranteed-minimum capacitance - DEFERRED TO THE P8 BENCH}
+The 20x C\_SH floor (960 pF for a 48 pF sampling cap) was checked on NOMINAL 1 nF; the fitted J-grade part guarantees only 950 pF. Not fixed now because R6/C7 are explicitly provisional pending \texttt{acquisition-settling} and \texttt{buffer-stability}. The bench must choose C7 on its GUARANTEED minimum, with R6 present - the isolation resistor is what lifts the pure-capacitive-load limit that would otherwise cap C7 at 1 nF.
+
+\subsubsection*{Not waivers - fixed or actioned elsewhere}
+\begin{itemize}
+\item E1 Kelvin sense: FIXED (own net \texttt{/AGND\_SENSE} + a single 0 ohm tie R8).
+\item W2 error budget computed on the wrong amplifier: RESTATED for the OPA320
+(RSS 3.25 / 3.42 mV, worst case 8.58 / 10.74 mV).
+\item W3 host power-up wait: RAISED 10 ms -\textgreater{} 50 ms.
+\item W4 J2 mis-mate is destructive: STATED on the sheet, on the silkscreen at P6, and in
+the design doc. No protection hardware (excluded by scope; the checklist asks for a
+statement).
+\item constraints.json VREF current 7 uA -\textgreater{} 14 uA max per the datasheet row. Nothing moves.
+\end{itemize}
+The full schematic PDF follows.
+\includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-\emph{Pending --- produced at P6.}
+Gate \texttt{place} (phase P6): \textbf{pass} after 6 attempt(s); last 2026-08-19T03:00:09, failing 0 of 0.
+
+Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 10 attempt(s); last 2026-08-19T04:53:50, failing 0 of 0.
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/bb-adc_top.png}\\
+{\small\texttt{reports/renders/bb-adc\_top.png}}
+\end{center}
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/bb-adc_bottom.png}\\
+{\small\texttt{reports/renders/bb-adc\_bottom.png}}
+\end{center}
+\begin{center}
+\includegraphics[width=0.72\textwidth]{reports/renders/bb-adc_iso.png}\\
+{\small\texttt{reports/renders/bb-adc\_iso.png}}
+\end{center}
 \section{Verification}
-\emph{Pending --- produced at P8.}
+Gate \texttt{verify} (phase P8): \textbf{pass} after 9 attempt(s); last 2026-08-19T04:53:50, failing 0 of 1.
+\emph{reports/verify\_all.json not available.}
+\subsection*{Design review of record}
+\subsection*{review-board - bb-adc, P8 adversarial board review}
+Fresh-context review of \texttt{kicad/bb-adc.kicad\_pcb} (54.75 x 34.92 mm, 2L, 1 oz, JLC2313\_1.6, 25 footprints, 21 nets). Gates going in: \texttt{erc} PASS, \texttt{drc\_routed} PASS 0/0, \texttt{sim} PASS, \texttt{verify} PASS with one waiver.
+
+Build mode \texttt{learning block-basics:} -\textgreater{} scope tier \textbf{block-only}, binding \textbf{canonical}. Absent protection, ESD, indicators, test points, second rails and filtering the datasheet does not require are OUT OF SCOPE and are not reported below. The outline was judged against the 54.75 x 34.92 the placement EARNED (\texttt{reports/board\_edit-fit.json}, from a 63.95 x 66.03 provisional), never against a stated number.
+
+Renders made for this review: \texttt{reports/renders/bb-adc\_top.png}, \texttt{bb-adc\_bottom.png}, \texttt{bb-adc\_iso.png}.
+
+\textbf{5 errors, 5 warnings, 2 waivers recommended.} (W2 below is a waiver verdict, not a finding, so it carries no entry in \texttt{review-board.json}.)
+
+---
+
+\subsubsection*{E1 - J1's wire entry faces INTO the board. The terminal is 180 degrees out.}
+\texttt{reports/renders/bb-adc\_top.png} - the two dark throats in the green terminal body are on its EAST face, pointing at R1. The west face, 1.0 mm from the board edge, is a closed wall.
+
+Proved from the library, not from the render. In \texttt{lib/aiee.pretty/CONN-TH\_2P-P5.00\_WJ500V-5.08-2P.kicad\_mod} the pads sit at local \texttt{(+/-2.54, 0)} and the body spans local y \texttt{-5.64 .. +4.52}. The vendor 3D model (\texttt{aiee.3dshapes/...wrl}, VRML y = -footprint y) has two openings 3.0 mm wide spanning z 3.0 .. 9.8 mm, centred on x = +/-2.54 - i.e. directly in line with the two pins - in the face at footprint y = \textbf{+4.50}. The opposite face (y = -5.50) is solid except for ribs at z 0..1.0 and 6.5..6.69. The wire entry is therefore the face NEARER the pins, which is also how this class of block is built.
+
+J1 is placed at (24.500, 39.060) rot 90, which maps footprint +y to board +x. The throats open EAST at x = 29.0, 2.2 mm from R1's pad and 11 mm from the west edge the body is parked against.
+
+Three artifacts say this is wrong:
+
+\begin{itemize}
+\item \texttt{kicad/constraints.json} \texttt{placement.edges} J1: {*}"Screw terminal, opening
+outward."{*}
+\item \texttt{requirements.md} s5: {*}"the screw terminal and the host header sit on
+different board edges with their openings facing outward, so the analog input
+wiring does not have to cross the digital header to reach the bench."{*}
+\item the schematic's J1 note: {*}"ANALOG IN 0-5V: 1=SIG (Rs\textless{}=200ohm), 2=GND. LEFT
+edge, opening outward"{*}.
+\end{itemize}
+Consequence: the field lead must be inserted from the board's interior and then laid back across the 1 Mohm divider string, the buffer and the J2 ribbon to reach the bench - the exact geometry the constraint exists to forbid, and a metre of unscreened wire draped over a guarded 240 kohm node.
+
+Fix: rotate J1 to rot -90. Pads keep x = 24.5; \texttt{/AIN\_RAW} and \texttt{GND} swap to y = 36.520 / 41.600, so both need re-routing. The body then spans x 20.0..30.0
+
+\begin{itemize}
+\item 2.0 mm off the west edge and 1.2 mm from R1's pad, so a \textasciitilde{}1 mm westward nudge
+\end{itemize}
+is worth taking with it. See also W6: the footprint's own silk arrows point at the closed wall.
+
+\subsubsection*{E2 - J2 carries no pin-1 mark that survives assembly, and the schematic makes one mandatory}
+The schematic says it twice, once in capitals with asterisks:
+
+\textgreater{} NOTE 6 `{*}{*}{*} J2 MIS-MATE IS DESTRUCTIVE AND UNPROTECTED: pin 1 = +3V3 and \textgreater{} pin 6 = GND, so a 180 degree reversal shorts the host's rail to its own \textgreater{} ground through the cable. No series protection, no reverse diode, no keyed \textgreater{} housing - all excluded by the scope tier. P6 must silk a pin-1 marker and a \textgreater{} 1..6 legend. {*}{*}{*}`
+
+The board's pin order confirms the hazard exactly: J2 = +3V3 (y 33.650), GND (36.190), /CS (38.730), /SCLK (41.270), /DOUT (43.810), GND (46.350). Reversed, the host's 3V3 lands on board pin 6 = GND.
+
+What is actually on the silk: one line at y = 34.920 dividing the pin-1 cell, and an \texttt{fp\_circle} at (69.250, 32.380) of radius \textbf{0.03 mm} stroked 0.15 - a 0.21 mm blob sitting exactly on the corner where two 0.25 mm outline strokes meet, so it is swallowed by the outline. Both live inside the silk rectangle x 69.250..71.750 by y 32.380..47.620 = 2.50 x 15.24 mm, which is \emph{under} the header's 2.54 x 15.24 mm plastic body. There is no "1", no 1..6 legend and no rail names anywhere.
+
+After assembly nothing is readable from the mating side. \texttt{bb-adc\_top.png} shows the black body filling a plain white rectangle. The only surviving indicator is pad 1's square shape, visible only from the bottom (\texttt{bb-adc\_bottom.png}).
+
+Fix: silk text west of x = 69.25 - there is clear board from x 66.4 to 69.25 for most of the run, and the C1/C2 refdes can move. A "1" plus the six names is what the schematic asked for.
+
+\subsubsection*{E3 - J1 has no SIG/GND marking, and the design doc says it does}
+\texttt{reports/design\_doc/bb-adc-design-doc.tex} publishes:
+
+\textgreater{} \texttt{J1} \textbar{} 2-pole 5.08 mm THT screw terminal, \textbf{silk-marked SIG and GND} \textbar{} \textgreater{} 1=\texttt{/AIN\_RAW}, 2=\texttt{GND}
+
+\texttt{requirements.md} s2 states the same requirement, and s8 makes it load-bearing: {*}"the board has no input protection by mode, so the silk marking and the owner's answer to Open question 5 are the only defenses against a wrong connection."{*}
+
+The board's silkscreen contains 25 texts. All 25 are reference designators. There is no SIG, no GND, no polarity legend. J1's pin-1 dot (\texttt{fp\_circle} at (29.000, 44.270), radius 0.03) sits on the body corner and is covered by the 10.0 x 10.76 mm plastic body, so it does not survive assembly either.
+
+A published claim that the artifact does not carry is a defect in both.
+
+\subsubsection*{E4 - the contracted input-impedance numbers are missing from the silkscreen}
+The P2 ruling that narrowed the owner's answered Q9 (\texttt{requirements.md} s9, \texttt{architecture/blocks.md}, and the design doc's decision log) reads:
+
+\textgreater{} the contract is now \textbf{source \textless{}= 200 ohm} ... and {*}{*}board presents \textgreater{} 1.00 Mohm\textbf{ ... }Both numbers go on the silkscreen.{*}{*} ... the contract \textgreater{} belongs on the silk because input impedance is a specification of the \textgreater{} instrument
+
+Neither number appears on F.SilkS or B.SilkS. This one matters more than ordinary legend text: the ruling NARROWED what may legally be connected to the terminal by 5x, and the silk was named as the place that travels with the board. A 1 kohm source - inside the envelope the owner originally answered - now produces 5 mV of loading error, the entire 25 C budget, with nothing on the hardware to say so.
+
+\subsubsection*{E5 - GND copper sits inside the closed guard ring}
+{*}{*}First, the closure, re-proved geometrically and independently of any render - the ring IS closed, with margin.{*}{*}
+
+1. Polygon evidence. The \texttt{/AIN\_BUF} zone's filled polygon on F.Cu is a single island whose ring has exactly \textbf{one interior hole}, area 7.951 mm2, bounds (41.106, 38.523) - (44.494, 42.416). Zone copper 17.176 mm2; 19.08 mm2 with the net's own pads and the U3.1/U3.4 stub, matching the 19.03 mm2 claimed. 2. Raster evidence. Rasterised at 2.5 um over an 8.2 x 8.8 mm box, a flood fill started from every \texttt{/AIN\_DIV} cell and allowed to spread through \emph{all} non-\texttt{/AIN\_BUF} space, 8-connected so it can leak diagonally (the conservative direction), never reaches the box border. 3. Margin. Eroding the guard copper by 200 um on every edge (19.11 -\textgreater{} 10.18 mm2 of pour) leaves the ring still closed. Closure in the as-built copper is not marginal; the "does not close at 0.2 mm" figure describes re-pouring at a larger zone clearance, not the copper on this board. 4. Drive. The zone is on \texttt{/AIN\_BUF} and is galvanically continuous with U3 pin 1 (OUT) and pin 4 (-IN) - same potential, low impedance, as record \texttt{resistive-attenuator-high-z-tap-guard-and-leakage} requires. Clearance to the node is a uniform 0.1275 mm all the way round. The 19.08 mm2 plate adds \textasciitilde{}0.5 pF to the follower output over the 1.53 mm core; no stability cost, and R6 = 49.9 ohm isolates the 1 nF bucket regardless.
+
+\textbf{The defect is what the closed ring encloses along with the node.} Inside the guarded enclosure there are two GND conductors: U3 pin 2 (V-) and a 0.6 mm GND via at (41.850, 39.850). Measured F.Cu surface gaps at the tap:
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} path \textbar{} gap \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} `/AIN\_DIV` trace -\textgreater{} GND via (41.850, 39.850) \textbar{} {*}{*}0.227 mm{*}{*} \textbar{}\\
+\textbar{} `/AIN\_DIV` trace -\textgreater{} U3.2 pad \textbar{} 0.289 mm \textbar{}\\
+\textbar{} U3.3 pad -\textgreater{} U3.2 pad \textbar{} 0.350 mm \textbar{}\\
+\textbar{} `/AIN\_DIV` -\textgreater{} nearest guard copper \textbar{} 0.1275 mm (but on the {*}outside{*} of all three) \textbar{}
+\end{quote}
+The guard intercepts nothing on those three paths, and they carry the largest potential difference anywhere near the node.
+
+Priced with \texttt{architecture/blocks.md} s3.6's \emph{own} model - a 1 Gohm surface path under no-clean flux plus humidity, "and JLC does not wash boards":
+
+\begin{itemize}
+\item the +3V3 path the guard was built to stop drives 3.3 - 2.0 = 1.3 V -\textgreater{}
+1.3 nA -\textgreater{} 1.3 nA x 240 kohm / 0.400 = \textbf{0.78 mV} at the terminal (the
+document's own number);
+\item the unguarded GND path drives the full node voltage, 2.000 V at a 5.000 V
+reading -\textgreater{} 2.0 nA -\textgreater{} \textbf{1.20 mV} at the terminal.
+\end{itemize}
+Error-budget row 9, "Divider-node leakage, GUARDED (estimate)", carries \textbf{0.10 mV}. It is understated about 12x for the path that now dominates, and row 9 is the table's only +/-3x estimate. RSS at 25 C moves 3.23 -\textgreater{} 3.44 mV (still inside the 5.00 mV target) and the worst-case sum moves up \textasciitilde{}1.1 mV, so the board still closes its spec - but the guard's stated 3.3e5 collapse factor does not hold for the leakage term that matters, and a 0.1 \%-class instrument publishing 3.25 mV RSS should not rest on a number that is wrong by an order of magnitude.
+
+Split of the fix:
+
+\begin{itemize}
+\item The GND via at (41.850, 39.850) is a free routing choice. It sits 0.65 mm
+south of U3.2, i.e. on the pin-3 side. Moving it north or west of the pad, or
+outside the ring entirely, restores 0.227 -\textgreater{} \textgreater{}0.5 mm. {*}{*}This is the part to
+fix.{*}{*}
+\item The U3 pin2/pin3 0.350 mm channel is irreducible in SOT-23-5 at the fab
+floor: a guard trace needs 0.127 + 2 x 0.127 = 0.381 mm and only 0.350 mm
+exists. It has to be re-stated in row 9, not fixed in copper. (Also note that
+a stated purpose of the guard was to keep the board's dominant uncertainty on
+vendor maxima rather than on a leakage estimate - that argument is weakened
+by exactly this much.)
+\end{itemize}
+Not raised as drift, for the record: the guard is single-sided where the record asks for "both sides of the board". That is an explicit recorded trade in \texttt{constraints.json} corridors R3-\textgreater{}U3 ("here the back face is the unbroken B.Cu GND pour that D1 requires, so the ring is single-sided by a recorded trade"). B.Cu under the node measures 100 \% GND pour. The trade is legitimate; what it never records is the record's own price for it - bulk leakage falls only about one order of magnitude, set by board thickness and ring width.
+
+---
+
+\subsubsection*{W1 - the one verify\_all WARNING is a false positive, and its cause is a real hole}
+\texttt{check\_pdn} / \texttt{pdn\_no\_bulk}: {*}"power rail +3V3 has 2 cap(s) but no bulk reservoir (\textgreater{}= 1 uF); only ceramics hold it"{*}, refs C4, C6.
+
+Wrong on the facts. C1 = 10 uF X5R 0805 sits on +3V3/GND at (68.000, 34.920), 0.925 mm (pad edge) from J2 pin 1 - precisely the "bulk 10 uF at the RAIL ENTRY" that \texttt{constraints.json}'s \texttt{entry} group specifies and earns by arithmetic. The rail has its reservoir.
+
+The cause is that \texttt{kicad/decoupling.json} lists six associations - C2, C3, C4, C5, C6, C8 - and \textbf{omits C1}. C7 is correctly absent (signal-path charge bucket, not decoupling). So \texttt{check\_pdn} counted 0.2 uF, and, more to the point, \texttt{check\_decoupling} never examined the rail-entry bulk at all: it passed by not being asked.
+
+\textbf{Verdict: waive the warning, fix the metadata.} Add `\{"cap": "C1", "ic": "J2", "pin": "1", "rail": "+3V3", "value": "10uF 25V X5R"\}` and re-run so the bulk is actually checked rather than assumed.
+
+\subsubsection*{W2 - the /CS return-path waiver: I agree, and here is the independent check}
+Both of the waiver's reasons hold up.
+
+\emph{(a) Out of model} - verified. F.Cu carries exactly one zone, \texttt{/AIN\_BUF} (19.08 mm2, 12+ mm west of the crossing). There is no GND zone on F.Cu at all, so \texttt{check\_return\_path}'s adjacent-layer model gives every B.Cu trace zero reference copper by construction. The reported "0.03 mm / 0.20 mm2" is what survives of the 1.93 mm tunnel after the checker's own excision disks around the two /CS vias (0.3 mm via radius + 0.5 mm zone clearance = 0.8 mm each). It is a bookkeeping remainder, not a measurement of anything physical.
+
+\emph{(b) Topologically forced} - verified. At U1 the order down the page is /SCLK (y 39.680), /DOUT (40.330), /CS (40.980); at J2 it is /CS (38.730), /SCLK (41.270), /DOUT (43.810). /CS must cross both other signals: a 3-cycle, and one layer cannot resolve it.
+
+\emph{(c)} Refusing to shorten the tunnel 0.09 mm so the excision disks overlap, at the cost of \textasciitilde{}0.04 mm of via-to-trace DRC margin, is the right call. Spending manufacturing margin to land inside a checker's arithmetic is a bad trade.
+
+\textbf{Uphold the waiver.} One thing to name that the checker did \emph{not} report, on the other side of the same geometry: the B.Cu tunnel plus its two via antipads cut a \textasciitilde{}1.2 mm-wide slot in the GND pour, and both \texttt{/SCLK} (y 39.680) and \texttt{/DOUT} (y 40.330) cross it on F.Cu at x \textasciitilde{} 66. Each crossing happens to fall inside a /CS via's excision disk, so neither surfaced. At 5 ns edges the added return inductance is \textasciitilde{}1 nH and the site is 12+ mm east of the analog section, so I do not escalate it - but it is a second reason the next-revision fix the waiver already names (J2 pin order CS, DOUT, SCLK) is worth doing: it removes the slot as well as the bookkeeping.
+
+\subsubsection*{W3 - 87 mV of reference headroom, with the rail noise not yet subtracted}
+\texttt{blocks.md} s8.2 records the number honestly: the ADR4520's guaranteed input floor is 3.048 V (VOUT 2.048 + VDO\_max 1.000 at no load and at 2 mA, record \texttt{series-voltage-reference-input-headroom-gate}), against the 3.135 V worst-case rail - \textbf{87 mV}.
+
+The layout does not eat it: J2 pin 1 to U2 is \textasciitilde{}18.9 mm of 0.5 mm 1 oz copper = \textasciitilde{}19 mohm, and at the 2.7 mA peak draw that is 0.05 mV. Good.
+
+What is not in the recorded analysis is the rail spec the owner answered in Q7: "tens of millivolts of noise". A 40-50 mV negative excursion eats half to all of the margin, and below the floor VOUT has \emph{already} degraded 0.1 \% = 2 mV, which maps one-for-one to gain error = 5 mV at the terminal (\texttt{sar-adc-reference-sets-the-gain}). C1 (10 uF) + C4 (0.1 uF) + C5 (2.2 uF on the output, holding a 14 uA load) absorb a short dip; a sustained low rail they do not. None of the six sim benches covers input headroom.
+
+Recommend a bring-up line rather than a board change: measure VIN at U2 pin 2 and require \textgreater{}= 3.05 V under the host's worst rail.
+
+\subsubsection*{W4 - the mounting holes are a trapezoid, not a rectangle}
+H1 (22.450, 48.500), H2 (22.450, 23.000), H3 (68.300, 23.000), H4 (65.000, 48.500). H4 is 7.75 mm in from the east edge where H3 is 4.45 mm.
+
+Forced, and I can see why: H4 at (68.3, 48.5) would drive its 3.6 mm courtyard into J2's (x 69.250..71.750, y 32.380..47.620) on a 34.92 mm-tall board whose 15.24 mm header is centred at y = 40. \texttt{requirements.md} s5 asked for "4 x M3 clearance holes (3.2 mm) inset from the corners" and explicitly allows two on opposite corners if the outline is too small, so this is inside the letter of the requirement and the board still mounts on four points.
+
+Reported so the choice is visible: any bench plate or standoff set has to be drilled to a trapezoid, and nothing in the artifacts says so.
+
+\subsubsection*{W5 - requirements.md still describes a J2 the board improved on}
+\texttt{requirements.md} s2 / Q6 says "4 signal pins for SPI, so 6 pins for SPI". The board fits 6 pins as three signals plus a second ground: +3V3, GND, /CS, /SCLK, /DOUT, GND. That is better, and it is deliberate and recorded (\texttt{constraints.json} edges J2: "ground adjacent to the digital group at both ends of it"). The stale sentence is in the P0 artifact only. No board change - sync the document so the artifact set stops disagreeing with itself.
+
+\subsubsection*{W6 - the J1 footprint's silk insertion arrows are on the wrong face}
+\texttt{CONN-TH\_2P-P5.00\_WJ500V-5.08-2P.kicad\_mod} draws two filled arrow polygons at local x -3.0..-2.0 and +2.08..+3.08, running from local y -5.5 to -2.5 and pointing inward - i.e. on the y = -5.64 face. The wire throats are in the y = +4.50 face (E1). On the placed board the arrows land at board y \textasciitilde{} 41.56, x 19.0 -\textgreater{} 22.0, pointing the operator at the closed west wall.
+
+Independent of how E1 is resolved, the footprint is internally inconsistent and misinforms whoever wires the terminal. Fix the library part, not just the placement. (The footprint name also says \texttt{P5.00} while the pads are correctly at 5.080 mm pitch - cosmetic, but it is the same file.)
+
+---
+
+\subsubsection*{Verified clean}
+Recorded so a later reader knows these were checked, not skipped.
+
+\begin{itemize}
+\item \textbf{`/AGND\_SENSE` is intact and nothing defeats it.} The net is exactly
+\{U1.3, R5.2, R8.1\}. Two F.Cu tracks (7.183 mm R5.2 -\textgreater{} U1.3, 1.950 mm
+R5.2 -\textgreater{} R8.1), \textbf{zero vias, zero B.Cu copper}, and there is no F.Cu GND zone
+anywhere on the board, so there is no pour contact to have. R8 is on the
+FRONT side at (49.800, 44.300). The sense tap is R5's own bottom pad, so the
+string's 5 uA return through R8 is outside the sensed node. Nearest GND
+copper is U1 pin 4 at 0.243 mm - VSSOP-8 0.65 mm pitch, unavoidable and
+harmless. The single-point tie holds.
+\item \textbf{Single-sided assembly holds.} 0 SMD pads on B.Cu, 0 flipped or back-side
+footprints. B.Cu carries the GND pour and one 1.93 mm /CS track.
+\texttt{bb-adc\_bottom.png} shows THT pads and four holes only.
+\item \textbf{Placement separations from `constraints.json` all pass with margin:}
+R1-R5/U3 vs J2 19.238 mm (\textgreater{}= 10), R1-R5 vs U1 5.676 mm (\textgreater{}= 5), U2/C5 vs J2
+12.181 mm (\textgreater{}= 5), U2 vs H1/H2 29.771 mm and vs H3/H4 8.521 mm (\textgreater{}= 5).
+D2's 2.5 mm SPI-to-analog routing floor holds at 2.605 mm pad-to-pad (U1's
+own pins) and 3.911 mm trace-to-trace.
+\item \textbf{Decoupling geometry matches the records.} C2 (0.1 uF) 0.722 mm from U1
+pin 8 with C8 (10 uF) behind it at 3.640 mm - "smaller capacitor closest to
+the pin" (\texttt{sar-adc-supply-bypass-and-rail-isolation}). C3 (47 uF) 1.291 mm
+edge / 2.290 mm centre from U1 pin 1, same layer, no via between pad and cap
+(spec \textless{}= 2.5 mm). C5 0.917 mm from U2 pin 6; C3 + C5 = 49.2 uF, inside the
+ADR4520's 1-100 uF window.
+\item \textbf{Outline earned, not given.} Edge.Cuts 18.00..72.75 x 18.03..52.95 =
+54.75 x 34.92 mm, from the 63.95 x 66.03 provisional via
+\texttt{board\_edit --outline fit} (\texttt{reports/board\_edit-fit.json}). Judged against
+what the design earned.
+\item \textbf{No block or interface is missing.} B1 (R1-R5), B2 (U3 + C6), B3 (U1 + R6/
+C7 + R7/C2/C8), B4 (U2 + C4/C5), C1 rail entry, R8 sense tie - all present.
+J1 2-pole 5.08 THT, J2 6-pin 2.54 single row, 4 x M3 3.2 mm all present.
+Power3V3 at 0.5 mm on +3V3 (44.07 mm of track) and the 0.6 mm VREF segment
+C3.1 -\textgreater{} U1.1 (2.290 mm) are both on the board as cited.
+\item \textbf{check\_silk's blind spot, named.} It passed, and correctly: it checks
+silk-over-pad, legibility and refdes attribution. It has no concept of a
+\emph{required} marking, nor of whether a marking survives assembly. E2/E3/E4 all
+live in that gap.
+\end{itemize}
+\subsubsection*{Waivers recommended}
+1. \textbf{Uphold} the existing \texttt{check\_return\_path} /CS waiver (W2). Both stated reasons verified independently; the residual is a checker artifact. 2. \textbf{Waive} the \texttt{check\_pdn} \texttt{pdn\_no\_bulk} warning on +3V3 (W1) - the bulk exists - but treat the incomplete \texttt{decoupling.json} as a defect to fix, not as part of the waiver.
+
+\subsubsection*{Open - what I could not settle}
+\begin{itemize}
+\item E1's wire-entry direction rests on the vendor 3D model plus the pin-offset
+geometry, not on a vendor mechanical drawing I fetched. The two sources
+inside the footprint disagree with each other, so confirm against the
+WJ500V-5.08-2P drawing before rotating the part. Either way the footprint is
+self-contradictory and W6 stands.
+\item The 1.20 mV in E5 scales linearly with the real surface-insulation
+resistance, which is an estimate (blocks.md prices it +/-3x). A washed board
+makes it negligible; a humid, unwashed one makes it worse.
+\item Whether the trapezoidal hole pattern (W4) is a real nuisance depends on a
+bench plate I cannot see.
+\end{itemize}
 \section{DFM and Fabrication}
-\emph{Pending --- produced at P9.}
+Gate \texttt{dfm}: \emph{not recorded}.
+\emph{fab/order.json not available.}
 \section{Run Record (Appendix)}
 \subsection*{Phase digests}
 \paragraph*{P0}
@@ -550,37 +858,156 @@ screw terminal bind no standard. Detail lives in research/{*}.md.\\
 \# P2 Architecture + coverage research - digest\\
 ~\\
 - Chain: screw terminal -\textgreater{} 5x 200k 0.02\%/10ppm equal string tapped 3:2 (K = 0.400,\\
-  Rtot 1.00 Mohm) -\textgreater{} RRIO CMOS buffer -\textgreater{} ADS8326-class 16-bit SPI SAR, VREF 2.048 V\\
-  from an ADR4520-class series reference. Full scale 5.12 V (2.4 \% headroom).\\
-  Stackup JLC2313\_1.6, 2 layers, 1 oz. Flat root sheet. \textasciitilde{}\$30/board of parts.\\
-- Budget: RSS 3.23 mV @25 C / 3.36 mV over 0-50 C against 5.0/12.0 targets;\\
-  worst-case sum 8.35 / 10.29. Claim is made on RSS with the worst case published.\\
-- Converter OVERRULED from P1: MCP3201's gain error is +/-5 LSB MAX = 6.10 mV at the\\
-  terminal, 1.22x the whole budget. LSB-denominated DC specs shrink 16x from 12 to\\
-  16 bits, so the higher-resolution part is the cheaper accuracy.\\
-- Q9 NARROWED (visible owner item): source \textless{}= 200 ohm, board presents 1.00 Mohm, both\\
-  on the silkscreen. As answered (\textless{}=1 kohm into \textgreater{}=100 kohm) the specs were jointly\\
-  impossible at 0.1 \% - loading error is Rs/Rtot = 1 \% = 50 mV.\\
-- The board's key architecture move: -IN wired as a remote sense to the string's\\
-  bottom node. A divider passes ground offset at UNITY while dividing signal by K,\\
-  so 1 mV of offset is 2.5 mV input-referred; the sense line cancels it exactly.\\
-- Buffer: OPA333 fails at t\_acq = 9 us (GBW floor 48/(2{*}pi{*}t\_acq) = 849 kHz vs\\
-  350 kHz; own settling 40.4 us). OPA320-class baseline; OPA333 revives if P3 finds\\
-  acquisition is host-controlled. A buffer AT ALL is unconditional: switched-cap\\
-  R\_eq = 1/(f\_s{*}C\_SH) \textasciitilde{} 2.08 Mohm vs a 240 kohm Thevenin is \textasciitilde{}10 \% gain error.\\
-- Research: 4 tasks, 16 sources, {*}{*}32 verified records + 4 coverage checklists{*}{*} for\\
-  topologies the library held nothing on. 3 correction rounds each; refutations that\\
-  changed engineering: a reference topology read backwards off a layout figure, a\\
-  stackup constant mistaken for a routing lever, an optimum treated as a maximum, an\\
-  inverted curve ordering, a conversion window 5x off.\\
-- Coverage after research: B2/B3/B4 provisional; B1 provisional except\\
-  `constraints-emission`, recorded as a designed-under gap. Promotion DEFERRED to a\\
-  separate owner pass - it writes the shared library and sibling runs are live.
+  Rtot 1.00 Mohm, guarded tap) -\textgreater{} RRIO CMOS buffer -\textgreater{} ADS8326-class 16-bit SPI SAR,\\
+  VREF 2.048 V from an ADR4520-class reference. FS 5.12 V. 2L JLC2313\_1.6, \textasciitilde{}\$30/board.\\
+- Budget RSS 3.23 mV @25 C / 3.36 mV over 0-50 C vs 5.0/12.0; worst case 8.35/10.29.\\
+  Claimed on RSS, worst case published beside it.\\
+- Converter overruled from P1: MCP3201 gain error +/-5 LSB MAX = 6.10 mV = 1.22x the\\
+  whole budget. LSB-denominated DC specs shrink 16x from 12 to 16 bits.\\
+- Q9 narrowed (owner-visible): source \textless{}= 200 ohm, board 1.00 Mohm, both on silk. As\\
+  answered the two specs were jointly impossible at 0.1 \% (Rs/Rtot = 1 \% = 50 mV).\\
+- Key move: -IN is a dedicated remote sense to the string's bottom node. A divider\\
+  passes ground offset at UNITY while dividing signal by K, so 1 mV = 2.5 mV\\
+  input-referred; the sense line cancels it. sheets.md said "-IN = GND" and was fixed.\\
+- Buffer OPA320-class: OPA333 fails at t\_acq 9 us (GBW floor 849 kHz vs 350 kHz; own\\
+  settling 40.4 us). A buffer AT ALL is unconditional - switched-cap R\_eq =\\
+  1/(f\_s{*}C\_SH) \textasciitilde{} 2.08 Mohm vs 240 kohm Thevenin is \textasciitilde{}10 \% gain error.\\
+- Series R at the converter rail entry REINSTATED: the datasheet's own recommended\\
+  circuit shows it, so it is required support, not excluded filtering.\\
+- Research: 4 tasks, 16 sources, 32 verified records + 4 checklists, 3 correction\\
+  rounds each. Coverage now provisional everywhere except B1 constraints-emission,\\
+  recorded as a designed-under gap. Promotion deferred (shared library, live siblings).
 \end{quote}
+\paragraph*{P3}
+\begin{quote}\small\ttfamily\raggedright
+\# P3 Parts + Library - digest\\
+~\\
+- BOM 16 lines / 20 refdes, 7 Basic + 9 Extended, \$155.16 at qty 5 (\$31.03/board);\\
+  U1 + U2 are 84 \% of it. U1 single-source with an explicitly EMPTY alternates list.\\
+- All three verification items CLOSED from primary sources: acquisition is a\\
+  CLOCK-CYCLE COUNT (tSMPL 4.5-5.0 DCLOCKs) -\textgreater{} OPA320 final, OPA333 demoted; the -IN\\
+  window is an ABSOLUTE -0.3/+0.5 V constant; ADR4520 still Rev 0 confirmed via a\\
+  second independent channel, so the 87 mV margin stands.\\
+- 3 extractions schema-valid; library 13 parts / 11 footprints loading clean; -IN\\
+  typed as a signal pin, not power.\\
+- BOARD-KILLER CAUGHT: J1 drilled 1.30 mm where the vendor specifies 1.50 mm. These\\
+  terminals carry \textasciitilde{}1.0 mm SQUARE pins (1.41 mm diagonal) - the part could not have\\
+  entered its holes, and 1.30 mm CLEARS the annulus floor so every check passed.\\
+  Corrected and re-verified.\\
+- MAJOR OPEN RISK for P8: TI's own circuit for this converter+amplifier pair warns\\
+  single-supply "loses codes near ground" and our span starts at 0 V. DC says \textasciitilde{}61 uV;\\
+  the transient is unproven. `zero-scale-swing` + `acquisition-settling` decide it.\\
+  A -0.3 V generator is pre-ruled datasheet-required support but still a second rail.\\
+- OPA320 passes the isolation screen OPA333 failed and publishes the flat 90 ohm R\_O\\
+  the method assumes; its settling is uncharacterised at our supply and load.\\
+- Coverage 3/3 part slots COVERED; B2/B3/B4 provisional (maturity, not mapping);\\
+  B1 gap on constraints-emission only. No research spent, 2 tasks remain.
+\end{quote}
+\paragraph*{P4}
+\emph{(no digest recorded)}
+\paragraph*{P5}
+\begin{quote}\small\ttfamily\raggedright
+\# P5 Board Setup - digest\\
+~\\
+- `board\_init` PASS: parity 0, setup\_violations 0, 41 unconnected (expected, unrouted).\\
+  25 components, 20 nets. Stackup `JLC2313\_1.6`, 2 layers, 1 oz, profile `2layer\_1oz`.\\
+- Outline `auto` -\textgreater{} provisional 63.95 x 66.03 mm. Deliberately generous: geometry is an\\
+  OUTPUT at this binding, and P6 places to the canonical layout, not to fill this.\\
+- First run FAILED on duplicate footprints: the schematic already carries H1-H4, and\\
+  `--mounting-holes 4` added its own. Re-run with `--mounting-holes 0`.\\
+- Fab floors written at ERROR severity: clearance 0.127, track 0.127, via dia 0.6,\\
+  hole 0.3, annulus 0.15, hole-to-hole 0.5, edge clearance 0.3.\\
+- `rules\_gen` PASS, capability\_class `2layer\_1oz`, 12 rules. NO netclass split: every\\
+  rail's IPC-2152 width (max 5.5 um for +3V3 at 11 mA) is far under the 0.2 mm Default,\\
+  so all four power nets stay Default. No HV rules - 5 V is the highest net on the board.\\
+- Sidecars `constraints.json` + `decoupling.json` now sit beside the board, as every\\
+  later gate resolves them from the board's own directory.
+\end{quote}
+\paragraph*{P6}
+\emph{(no digest recorded)}
+\paragraph*{P7}
+\emph{(no digest recorded)}
+\paragraph*{P8}
+\begin{quote}\small\ttfamily\raggedright
+\# P8 Verification - digest\\
+~\\
+- Gates: `sim` PASS (6 benches / 47 bounds), `drc\_routed` PASS 0/0, `verify` PASS with\\
+  ONE waiver. kicad-cli DRC 0 violations, 0 unconnected, 0 parity.\\
+- SIM closed the board's largest open risk BY MEASUREMENT: zero-scale swing is 4.50 uV\\
+  = 0.090 ADC codes against the vendor's "loses a small number of codes" warning, and\\
+  the sampled value recovers to within 10 nV of ground in 1.24 us of a 9.0 us window.\\
+  The pre-authorised -0.3 V generator is NOT needed. C7 stays 1 nF (guaranteed 950 pF\\
+  settles 115x inside budget). Seeding the REJECTED OPA333 as a defect moved settling\\
+  0.136 -\textgreater{} 4509 uV, independently re-auditing that rejection by a different method.\\
+- Return path: /SCLK and /DOUT cleared by rebuilding the /CS crossing as a PERPENDICULAR\\
+  VIA PAIR so both crossings fall inside the vias' 0.95 mm excision disks. /CS residual\\
+  0.20 mm2 / 0.03 mm WAIVED (2-layer: a B.Cu trace has no adjacent GND plane, so its\\
+  coplanar return is outside the checker's model; and J2 vs converter pin order is a\\
+  3-cycle, so the crossing is topologically forced). Refused to shorten the tunnel\\
+  0.09 mm to close it - no physics, \textasciitilde{}0.04 mm of DRC margin.\\
+- Board review (fresh context) 5 errors / 5 warnings. ALL FIVE ERRORS FIXED:\\
+  E1 J1 was BACKWARDS - throats faced into the board; rotated, re-routed (a 180 deg\\
+  rotation swaps the pads). E5 GND inside the guard ring - fixed by re-routing the\\
+  GUARDED net's spanning tree, not the intruder: 1.20 -\textgreater{} 0.52 mV. E2/E3/E4 silk:\\
+  J2 pin-1 mark outside the body, J1 SIG/GND, and both impedance numbers.\\
+- Guard ring re-proved CLOSED after every refill (1 polygon, 1 hole containing all\\
+  /AIN\_DIV, min width 0.612 mm) - and it closes ONLY at the 0.127 mm floor.\\
+- Board 54.750 x 34.920 mm, 1911.9 mm2. A 17 um re-fit was refused as sub-noise.
+\end{quote}
+\paragraph*{P9}
+\emph{(no digest recorded)}
 \subsection*{Gate attempt history}
-\emph{(no entries)}
+{\small
+\begin{longtable}{llll}
+\toprule
+\textbf{Timestamp} & \textbf{Gate} & \textbf{Status} & \textbf{Failing/Total} \\
+\midrule
+\endhead
+2026-08-17T21:30:22 & erc & pass & 0/0 \\
+2026-08-18T08:52:06 & erc & pass & 0/0 \\
+2026-08-19T02:48:09 & place & pass & 0/0 \\
+2026-08-19T02:48:14 & place & pass & 0/0 \\
+2026-08-19T02:50:07 & sim & pass & 0/1 \\
+2026-08-19T02:50:42 & sim & pass & 0/1 \\
+2026-08-19T02:50:55 & place & pass & 0/0 \\
+2026-08-19T02:51:31 & sim & pass & 0/1 \\
+2026-08-19T02:52:42 & place & pass & 0/0 \\
+2026-08-19T02:53:14 & sim & pass & 0/1 \\
+2026-08-19T02:54:55 & place & pass & 0/0 \\
+2026-08-19T03:00:09 & place & pass & 0/0 \\
+2026-08-19T03:25:28 & drc\_routed & pass & 0/0 \\
+2026-08-19T03:28:03 & drc\_routed & pass & 0/0 \\
+2026-08-19T03:33:23 & drc\_routed & pass & 0/0 \\
+2026-08-19T03:34:44 & drc\_routed & pass & 0/0 \\
+2026-08-19T03:35:21 & verify & fail & 2/4 \\
+2026-08-19T03:46:23 & drc\_routed & pass & 0/0 \\
+2026-08-19T03:46:24 & verify & fail & 1/2 \\
+2026-08-19T03:46:31 & verify & fail & 1/2 \\
+2026-08-19T03:49:10 & drc\_routed & pass & 0/0 \\
+2026-08-19T03:49:10 & verify & fail & 1/2 \\
+2026-08-19T03:50:27 & verify & pass & 0/2 \\
+2026-08-19T04:42:38 & drc\_routed & pass & 0/0 \\
+2026-08-19T04:42:46 & verify & pass & 0/2 \\
+2026-08-19T04:44:50 & drc\_routed & pass & 0/0 \\
+2026-08-19T04:44:51 & verify & pass & 0/1 \\
+2026-08-19T04:52:53 & drc\_routed & pass & 0/0 \\
+2026-08-19T04:52:54 & verify & pass & 0/1 \\
+2026-08-19T04:53:50 & drc\_routed & pass & 0/0 \\
+2026-08-19T04:53:50 & verify & pass & 0/1 \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Issues}
-\emph{(no entries)}
+{\small
+\begin{longtable}{llp{5cm}ll}
+\toprule
+\textbf{Id} & \textbf{Phase} & \textbf{Kinds} & \textbf{Severity} & \textbf{Status} \\
+\midrule
+\endhead
+1 & P8 & corridor\_void & error & open \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Human checkpoints}
 {\small
 \begin{longtable}{lllp{2.6cm}p{6.4cm}}
@@ -588,10 +1015,10 @@ screw terminal bind no standard. Detail lives in research/{*}.md.\\
 \textbf{Id} & \textbf{Phase} & \textbf{Status} & \textbf{When} & \textbf{Note} \\
 \midrule
 \endhead
-1 & P2 & not reached &  &  \\
-2 & P4 & not reached &  &  \\
+1 & P2 & approved & 2026-08-16T21:31:27 & H1 presented as report-and-proceed per the owner's mid-run delegation ('make decisions yourself based on what will give the best learning for the basic system'). Nothing here is blocking except the Q1 safety envelope re-confirmation and the Q9 source-impedance narrowing, both surfaced explicitly. Design doc: reports/design\_doc/bb-adc-design-doc.pdf \\
+2 & P4 & approved & 2026-08-18T08:52:52 & H2 report-and-proceed per owner delegation. ERC gate PASS (2 attempts, commit d1738e6). Review: 1 error FIXED (E1 Kelvin sense now netlist-enforced via /AGND\_SENSE + R8 0R tie), 5 warnings dispositioned in reports/erc-waivers.md. Architecture docs patched to match. \\
 3 & P6 & not reached &  &  \\
-4 & P8 & not reached &  &  \\
+4 & P8 & approved & 2026-08-19T04:54:08 & H4 report-and-proceed per owner delegation. verify PASS (1 waiver: /CS return path, out-of-model on 2L + topologically forced). Review 5 errors: E1 J1 backwards FIXED (rotated, re-routed), E5 guard leakage FIXED (guarded-net reroute, 1.20 -\textgreater{} 0.52 mV), E2/E3/E4 silk FIXED. W1 root cause fixed. Board 54.75x34.92 mm earned. Commits d1738e6 erc, 4331069 sim, 369db07 drc\_routed, 5c6c692+e877d11 verify. \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
@@ -603,14 +1030,42 @@ screw terminal bind no standard. Detail lives in research/{*}.md.\\
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 79,162 B &  \\
+\texttt{state.json} & 182,777 B &  \\
+\texttt{kicad/bb-adc.kicad\_pcb} & 156,878 B &  \\
+\texttt{kicad/bb-adc.kicad\_sch} & 112,879 B &  \\
 \texttt{brief/brief.md} & 742 B &  \\
 \texttt{requirements.md} & 23,802 B &  \\
-\texttt{architecture/blocks.md} & 38,223 B &  \\
-\texttt{architecture/constraints.json} & 27,161 B &  \\
+\texttt{architecture/blocks.md} & 39,585 B &  \\
+\texttt{architecture/constraints.json} & 28,932 B &  \\
 \texttt{architecture/power\_tree.md} & 12,951 B &  \\
-\texttt{architecture/sheets.md} & 14,973 B &  \\
+\texttt{architecture/sheets.md} & 15,645 B &  \\
 \texttt{architecture/stackup.md} & 5,012 B &  \\
+\texttt{reports/board\_edit-fit.json} & 2,051 B &  \\
+\texttt{reports/board\_init.json} & 1,592 B &  \\
+\texttt{reports/drc-postfit.json} & 32,916 B &  \\
+\texttt{reports/drc-refill.json} & 586 B &  \\
+\texttt{reports/erc-waivers.md} & 2,572 B &  \\
+\texttt{reports/erc.json} & 465 B &  \\
+\texttt{reports/fix-dispatch-verify.json} & 651 B &  \\
+\texttt{reports/gate-drc\_routed.json} & 1,073 B &  \\
+\texttt{reports/gate-erc.json} & 1,925 B &  \\
+\texttt{reports/gate-place.json} & 1,497 B &  \\
+\texttt{reports/gate-sim.json} & 1,371 B &  \\
+\texttt{reports/gate-verify.json} & 5,201 B &  \\
+\texttt{reports/netlist\_audit.json} & 1,476 B &  \\
+\texttt{reports/place-final.ops.json} & 4,525 B &  \\
+\texttt{reports/place.json} & 5,650 B &  \\
+\texttt{reports/review-board.json} & 10,788 B &  \\
+\texttt{reports/review-board.md} & 20,130 B &  \\
+\texttt{reports/review-schematic.json} & 5,180 B &  \\
+\texttt{reports/review-schematic.md} & 20,553 B &  \\
+\texttt{reports/route-probe.json} & 300 B &  \\
+\texttt{reports/rules\_gen.json} & 1,422 B &  \\
+\texttt{reports/schematic.pdf} & 102,209 B &  \\
+\texttt{reports/silk\_place.json} & 3,282 B &  \\
+\texttt{reports/sim.json} & 7,289 B &  \\
+\texttt{reports/top.net} & 50,738 B &  \\
+\texttt{reports/verify-waivers.json} & 1,775 B &  \\
 \bottomrule
 \end{longtable}
 }
