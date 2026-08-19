@@ -1,0 +1,19 @@
+[
+ {"measure": "k_ratio", "min": 0.399904, "max": 0.400096, "severity": "error",
+  "msg": "attenuator ratio K from the ideal-source replica. Design promise: K = 0.400 exactly, tapped 3:2 on five equal 200 kohm elements (blocks.md s3.4, state.json decision 'ATTENUATOR'). Window = worst-case element band (1-K)*2t = 0.6*2*0.02% = 2.4e-4 relative, t from parts.json R1-R5 = 200K 0.02%. A 4:1 build reads 0.200, a 2:3 build 0.600, a 10x wrong element tens of percent off."},
+
+ {"measure": "v_tap_loaded", "min": 1.99912, "max": 2.00008, "severity": "error",
+  "msg": "V(/AIN_DIV) with 5.000 V behind the contracted Rs = 200 ohm. Nominal K*Vsrc*Rtot/(Rs+Rtot) = 5.000*400000/1000200 = 1.999600 V; window = the same 2.4e-4 worst-case element band (+/-0.480 mV at the tap). NOTE: blocks.md s7 item 1 states 1.99920 +/- 0.00055 V - both halves are terminal-referred figures applied at the tap; see the .cir header for the re-derivation."},
+
+ {"measure": "load_err_mv", "min": 0.95, "max": 1.05, "severity": "error",
+  "msg": "source-loading error referred to the terminal, measured as the difference between the as-built string and an ideal-source replica of the same string, so it is orthogonal to ratio error. Design promise: blocks.md s5 row 1 = 1.00 mV, which is Rs/Rtot = 200 ohm / 1.00 Mohm. Catches a wrong Rtot at constant ratio: 5 x 100k reads 2.0 mV, 5 x 1M reads 0.2 mV."},
+
+ {"measure": "leak_uv_per_na", "min": 570, "max": 630, "severity": "error",
+  "msg": "terminal-referred error per nA of leakage at the tap = Rthev/K = 240 kohm / 0.400 = 600 uV/nA. This is the number that justifies the guard ring (blocks.md s5 row 9, s7 item 6, state.json 'GUARD RING NET'). blocks.md s7 item 6 asks for 0.78 mV; the correct figure from these five elements is 0.600 mV - see the run report."},
+
+ {"measure": "rthev_kohm", "min": 237, "max": 243, "severity": "warning",
+  "msg": "Thevenin resistance seen at /AIN_DIV = (R1+R2+R3) || (R4+R5) = 600k || 400k = 240 kohm. Layout-facing (guard ring area, tap run length, D2/D4 separation) and the buffer's Ib*Rthev budget row 8 depend on it."},
+
+ {"measure": "lin_err_uv", "max": 1.0, "severity": "warning",
+  "msg": "deviation from exact proportionality between the 2.500 V and 5.000 V terminal points. A passive resistor string is exactly linear, so anything above the solver floor means a nonlinear element has appeared on the tap (a clamp diode, an ESD part, a leaky footprint model)."}
+]

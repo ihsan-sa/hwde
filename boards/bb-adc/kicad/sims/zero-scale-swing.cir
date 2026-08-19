@@ -1,0 +1,185 @@
+* bb-adc zero-scale-swing - DC transfer of the WHOLE chain, terminal to
+* converter, answering the question this board's largest open risk asks: on a
+* single supply whose V- is tied to GND, can the OPA320's output actually
+* reach the bottom of a span that STARTS at 0 V?
+*
+* THE RISK, from state.json decision 63: TI's own "Driving ADS8326" reference
+* circuit - OPA320 datasheet Fig 44 p.25, our EXACT amplifier-plus-converter
+* pairing - warns that single-supply operation "loses a small number of ADC
+* codes near ground" and shows a -0.3 V V- generator as the fix. This board
+* ties V- straight to GND. Decision 64 pre-authorises that generator as
+* datasheet-required support IF this bench shows lost codes.
+* This deck answers the DC half, and answers it in CODES (lost_codes below).
+* The TRANSIENT half - can the output stage absorb the per-conversion charge
+* kick with no headroom below it - is instance D of acquisition-settling.cir,
+* which measures 0.0099 uV of sampled error and a 1.24 us recovery from a
+* +83.9 mV kick.
+*
+* SOURCE NETLIST: boards/bb-adc/kicad/bb-adc.net. Topology and every element
+* value synthesized via
+*   sim_run.py --fragment --net kicad/bb-adc.net --refs R1,R2,R3,R4,R5,R6,R8,C7
+* RENAME MAP: /AIN_RAW->N_AIN_RAW /ATT_A->N_ATT_A /ATT_B->N_ATT_B
+*   /AIN_DIV->N_AIN_DIV /ATT_C->N_ATT_C /AGND_SENSE->N_AGND_SENSE
+*   /AIN_BUF->N_AIN_BUF /AIN_ADC->N_AIN_ADC GND->0
+* ELEMENTS (verbatim): R1..R5 = 200K, R6 = 49.9, R8 = 0 ohm link, C7 = 1nF.
+* J1.1 -> /AIN_RAW -R1- -R2- -R3- /AIN_DIV -R4- -R5- /AGND_SENSE -R8- GND;
+* /AIN_DIV -> U3.3 (IN+), U3.1 (OUT) = U3.4 (IN-) = /AIN_BUF -R6- /AIN_ADC.
+* The full five-element string is entered here rather than its Thevenin,
+* because s7 item 4 asks for a sweep of J1 and the transfer's linearity is
+* part of the answer.
+*
+* ============================ MODEL PROVENANCE ============================
+* .subckt OPA320 - agent-authored Tier-B BOUNDARY model, identical to the one
+* in buffer-stability.cir / buffer-step.cir / acquisition-settling.cir. No
+* vendor file, no IC internals. TI SBOS513F rows for OPA320AIDBVR
+* (parts/C92494.json): AOL 130 dB [Sec 7.3.7 p.18], GBP 20 MHz [p.8 abs_max
+* 43], RO 90 ohm [p.8 abs_max 50], SR 10 V/us [p.8 abs_max 44], Cdif 5 pF /
+* Ccm 4 pF [p.8 abs_max 56/57]; f2 = 56 MHz fitted, pinned by pm_ds_deg.
+* WHAT MATTERS FOR THIS BENCH is the output stage: an ideal driver hard-
+* clamped to [V-,V+] behind RO. Below the clamp the output cannot go, so at
+* zero scale Vout = RO * Isink exactly - the model of "rail-to-rail output
+* does not mean rail-to-rail at load". That behaviour is CALIBRATED here, not
+* assumed: swing_10k_mv runs the same model at TI's own swing test condition
+* and checks it against TI's own rows.
+* NOT MODELLED, on purpose: input offset voltage. Vos (150 uV max, 5 uV/degC)
+* is an error-BUDGET term - blocks.md s5 row 7 - not a swing term, and putting
+* it in would make this bench report an offset it was not built to measure.
+* The number below is headroom, and headroom alone.
+*
+* THE SAR's DC LOAD is entered two ways, both cited:
+*   Req = 1/(fs*C_SH) = 1/(10 kSa/s * 48 pF) = 2.0833 Mohm to GND. This is the
+*   switched-capacitor input's equivalent average resistance - the model
+*   state.json decision 46 rests on, and the DC cross-check that the explicit
+*   switching model in acquisition-settling.cir is reconciled against. It
+*   draws NOTHING at zero scale, which is itself the point: the zero-scale
+*   load is not the sampling load.
+*   Ileak = 50 nA injected INTO /AIN_ADC = ADS8326 input leakage current max
+*   [C544731.json abs_max 47], sign chosen as the worst case for this bench -
+*   into the node, so the buffer must SINK it with its output already at the
+*   bottom of its range. This is what sets the zero-scale number.
+*
+* V- IS PARAMETRIZED (vminus) rather than wired to 0, so TI's contingency is
+* measured rather than argued. Three runs of this one deck:
+*   vminus =  0.000 : the board as built. Shipped value, gated below.
+*   vminus = -0.300 : decision 64's pre-authorised -0.3 V generator. PROBED
+*                     and DELIBERATELY NOT PUBLISHED AS A NUMBER: with the
+*                     rail below ground the output stage is no longer against
+*                     its clamp, the DC operating point falls back through
+*                     gmin/source stepping, and the values it returns are not
+*                     reproducible (-8 uV isolated, -1.6 mV in this deck).
+*                     No contingency figure is claimed. It is not needed for
+*                     the ruling either: the as-built swing is 0.09 LSB, and
+*                     a second rail cannot improve on a tenth of a code.
+*   vminus = +0.200 : the SEEDED DEFECT - an output stage that cannot reach
+*                     its own negative rail, or a V- pin sitting 200 mV off
+*                     ground. Reads 200000 uV and trips the bound by 200x.
+* SOLVER HAZARD, machine-verified here and the reason instances with
+* DIFFERENT vminus are not placed in one deck: mixing a clamped output stage
+* (V- = GND, so the DC solution sits ON the min/max discontinuity) with an
+* unclamped one (V- = -0.3 V) in the same matrix makes the operating point
+* fall back through dynamic-gmin and source stepping, and those fallbacks
+* return SILENTLY WRONG values for the OTHER instances - the as-built buffer
+* read a flat 5 uV across the whole bottom decade of the sweep instead of
+* tracking the tap. Each instance converges cleanly on its own. So vminus is
+* swept between RUNS, never between instances.
+* ==========================================================================
+*
+* SOURCES for the bounds: blocks.md s7 item 4 (buffer output <= 1.0 mV above
+* GND at V(J1) = 0, transfer within 0.5 mV of the ideal 0.400 slope across
+* 0-5.12 V); blocks.md s5 row 1 (source loading 1.00 mV = Rs/Rtot);
+* C92494.json abs_max 35/36 (output swing from rail at RL = 10 kohm);
+* C544731.json abs_max 47 (input leakage 50 nA), abs_max 46 (C_SAMPLE 48 pF);
+* 1 LSB at the ADC node = 5.120 V full scale / 65536 = 78.1 uV.
+
+* ENGINE NOTE (machine-verified, ngspice 46): rshunt is set explicitly at
+* 1e13. sim_run.py's default injection of 1e9 is NOT benign on this board -
+* 1 Gohm from every node to ground shunts the 400 kohm bottom arm and pulls
+* the tap 1.2 mV low referred to the terminal, larger than every window here.
+* Also: {braces} are a syntax error inside `.meas ... param='...'` and the
+* measure is silently dropped; bare .param names work, braces work in AT=.
+.options rshunt=1e13
+
+.param vminus=0.0
+.param rel=200e3
+.param rs=200
+.param r6=49.9
+.param c7=1e-9
+.param req=2.0833e6
+.param ileak=50e-9
+.param rl10k=10e3
+.param vmid=1.65
+
+.subckt OPA320 inp inn out vpos vneg aoldc=3.16228e6 gbw=20e6 ro=90 sr=10e6 f2=56e6
+.param rp1={aoldc}
+.param cp1={1/(6.283185307*gbw)}
+.param imax={sr*cp1}
+.param cq1={1/(6.283185307*f2*1e3)}
+Ccm1 inp vneg 4p
+Ccm2 inn vneg 4p
+Cdif inp inn 5p
+Gm   0 pol cur='min(max((v(inp)-v(inn))*1.0,-{imax}),{imax})'
+Rp   pol vneg {rp1}
+Cp   pol vneg {cp1}
+Rq   pol q 1e3
+Cq   q vneg {cq1}
+Bdrv drv 0 V={min(max(v(q),v(vneg)),v(vpos))}
+Ro   drv out {ro}
+.ends
+
+Vpos vp 0 DC 3.3
+Vneg vn 0 DC {vminus}
+
+* ---- the attenuator exactly as fitted, swept at J1
+Vsrc term 0 DC 0
+Rsc  term raw  {rs}
+R1   raw  atta {rel}
+R2   atta attb {rel}
+R3   attb div  {rel}
+R4   div  attc {rel}
+R5   attc gsen {rel}
+R8   gsen 0    1e-9
+
+* ---- (A) THE BOARD AS BUILT: real SAR DC load at /AIN_ADC
+XuA  div oA oA vp vn OPA320
+R6A  oA adcA {r6}
+C7A  adcA 0 {c7}
+ReqA adcA 0 {req}
+IlkA 0 adcA DC {ileak}
+
+* ---- (B) CALIBRATION of the output stage against TI's OWN swing rows: the
+* same model at RL = 10 kohm returned to VS/2, which on this 3.3 V rail is
+* 165 uA of sink at zero scale. TI publishes 10 mV typ / 20 mV max from the
+* rail at RL = 10 kohm (abs_max 35/36) at VS = 5 V, i.e. 250 uA; scaled to our
+* 165 uA that is 6.6 mV typ / 13.2 mV max. The model must land at or ABOVE
+* the scaled max - it is required to be no kinder than the datasheet.
+XuB  div oB oB vp vn OPA320
+RlB  oB vmidn {rl10k}
+VmB  vmidn 0 DC {vmid}
+
+.dc Vsrc 0 5.2 0.005
+
+* ===== ZERO SCALE: how far above GND the chain sits at V(J1) = 0
+.meas dc vz0        FIND v(oA) AT=0
+.meas dc swing_uv     param='vz0*1e6'
+.meas dc vz0_adc    FIND v(adcA) AT=0
+.meas dc swing_adc_uv param='vz0_adc*1e6'
+* the same number in the unit TI's warning is written in: ADC codes
+.meas dc lost_codes   param='vz0_adc/78.125e-6'
+.meas dc vz0_b      FIND v(oB) AT=0
+.meas dc swing_10k_mv param='vz0_b*1e3'
+
+* ===== TRANSFER: endpoint-referred linearity, both referred to the TERMINAL
+* by dividing by K = 0.400, which is the unit blocks.md s7 item 4 states
+.meas dc vt512      FIND v(oA) AT=5.12
+.meas dc vt256      FIND v(oA) AT=2.56
+.meas dc vt010      FIND v(oA) AT=0.010
+.meas dc inl_mid_uv   param='abs(vt256-0.5*(vt512+vz0))/0.4*1e6'
+.meas dc inl_lo_uv    param='abs(vt010-vz0-0.0019531*(vt512-vz0))/0.4*1e6'
+* ===== the loading term this chain shows end to end, at the terminal, in mV.
+* Cross-check against divider-ratio's own load_err_mv = 0.9998 at 5.000 V,
+* which scales to 1.0236 at 5.120 V. Two benches, two topologies, one number.
+.meas dc gain_err_mv  param='abs(vt512/0.4-5.12)*1e3'
+* ===== the SAR's average DC load at full scale, in uA. state.json decision 63
+* calls it "~1 uA"; this is that claim measured on Req = 1/(fs*C_SH).
+.meas dc load_ua      param='vt512/2.0833e6*1e6'
+.end

@@ -1,0 +1,97 @@
+* bb-adc divider-ratio - DC transfer of the 5 x 200k attenuator, tapped 3:2
+*
+* SOURCE NETLIST: boards/bb-adc/kicad/bb-adc.net (post-E1-fix). Topology and
+* every element value synthesized from it via
+*   sim_run.py --fragment --net kicad/bb-adc.net --refs R1,R2,R3,R4,R5,R8
+* RENAME MAP (kicad net -> spice node, from that fragment payload):
+*   /AIN_RAW->N_AIN_RAW  /ATT_A->N_ATT_A  /ATT_B->N_ATT_B
+*   /AIN_DIV->N_AIN_DIV  /ATT_C->N_ATT_C  /AGND_SENSE->N_AGND_SENSE  GND->0
+* Nodes below are the subckt-local short forms of the same net names.
+*
+* ELEMENTS (verbatim from the netlist): R1..R5 = 200K, R8 = 0 ohm link
+*   J1.1 -> /AIN_RAW -R1- /ATT_A -R2- /ATT_B -R3- /AIN_DIV -R4- /ATT_C
+*        -R5- /AGND_SENSE -R8- GND ; tap /AIN_DIV = 3 elements above, 2 below.
+* MODELS: none. This bench is passive resistors only - no active device, no
+* vendor model, nothing fitted. The buffer is deliberately absent: OPA320 Ib
+* is 0.9 pA max at 25 C (C92494.json abs_max[29]) which is 0.22 uV across the
+* 240 kohm tap Thevenin, i.e. 3 orders below the smallest window here. The
+* end-to-end chain including the buffer is bench zero-scale-swing.
+*
+* DESIGN INTENT / what this bench proves and what it catches:
+*  (1) The tap is 3:2 -> K = 0.400 exactly. A 4:1 build reads 1.000 V, a 2:3
+*      build reads 3.000 V, a wrong element value shifts K - all far outside
+*      the window. This is the silent-ratio-error catcher.
+*  (2) The source-loading term the error budget (blocks.md s5 row 1) claims is
+*      1.00 mV at the terminal. Measured against an ideal-source replica of
+*      the SAME string, so the loading number is orthogonal to the ratio: it
+*      moves only with Rtot / contracted Rs, and a 5 x 100k or 5 x 1M string
+*      (same ratio, wrong Rtot) trips it at 2.0 / 0.2 mV.
+*  (3) The tap's leakage sensitivity, which is the guard ring's entire
+*      justification (blocks.md s5 row 9, s7 item 6). 1 nA into the tap moves
+*      the terminal reading by Rthev/K = 240 kohm / 0.400 = 600 uV.
+*
+* CORRECTION vs blocks.md s7 item 1 (recorded, window re-derived here):
+*   s7 states the pass window as V(/AIN_DIV) = 1.99920 +/- 0.00055 V. Both
+*   halves are terminal-referred numbers applied at the TAP. The loaded tap is
+*   K*Vsrc*Rtot/(Rs+Rtot) = 5.000*400000/1000200 = 1.9996001 V; the 1.00 mV of
+*   s5 row 1 is the error AT THE TERMINAL, which is 0.400 mV at the tap. The
+*   half-width is likewise s5 row 2's 0.55 mV terminal figure; at the tap the
+*   worst-case element band is (1-K)*2t = 0.6*2*0.02% = 2.4e-4 -> 0.480 mV.
+*   Windows below use the re-derived numbers.
+* SOURCES for the bounds: blocks.md s3.4 (K=0.400, Rtot 1.00 Mohm), s3.5
+*   (contracted Rs <= 200 ohm), s5 rows 1/2/9, parts.json R1-R5 = 200 kohm
+*   0.02% 10 ppm/C (PTFR0805Q200KN9, C23067436).
+
+* ENGINE NOTE (machine-verified on this host, ngspice 46): sim_run.py's
+* prepare_circuit auto-injects `.options rshunt=1e9` unless the bench sets
+* rshunt itself. On THIS board that default is not benign: 1 Gohm from every
+* node to ground shunts the 400 kohm bottom arm and pulls the tap 2.4e-4 low
+* (1.99952 V instead of 1.99960) - 1.2 mV at the terminal, larger than the
+* entire loading term this bench exists to measure. Every high-impedance
+* bench here therefore sets rshunt explicitly. At 1e13 the residual is
+* 4e-8 relative = 0.08 uV at the tap, 6000x below the tightest window.
+.options rshunt=1e13
+
+.param vsrc=5.000
+.param rs=200
+.param rel=200e3
+.param ileak=1e-9
+
+.subckt DIVSTR term tap rsrc=200 rel=200e3 ileak=0
+Rs   term raw   {rsrc}
+R1   raw  atta  {rel}
+R2   atta attb  {rel}
+R3   attb tap   {rel}
+R4   tap  attc  {rel}
+R5   attc gsen  {rel}
+R8   gsen 0     1e-9
+Ilk  0    tap   DC {ileak}
+.ends
+
+Vsrc term 0 DC {vsrc}
+
+* XA - the board as built: 200 ohm contracted source, no leakage
+XA term tapa DIVSTR rsrc={rs}   rel={rel} ileak=0
+* XB - same string from an ideal source: isolates the loading term
+XB term tapb DIVSTR rsrc=1e-9   rel={rel} ileak=0
+* XC - as built plus 1 nA of leakage into the tap: guard-ring sensitivity
+XC term tapc DIVSTR rsrc={rs}   rel={rel} ileak={ileak}
+
+.dc Vsrc 0 5.2 0.005
+
+.meas dc v_tap_loaded  FIND v(tapa) AT=5
+.meas dc v_tap_ideal   FIND v(tapb) AT=5
+.meas dc v_tap_leak    FIND v(tapc) AT=5
+* ratio from the ideal-source replica - pure divider ratio, no loading term
+.meas dc k_ratio       param='v_tap_ideal/5.000'
+* source-loading error referred to the TERMINAL, in mV
+.meas dc load_err_mv   param='(v_tap_ideal-v_tap_loaded)/k_ratio*1e3'
+* tap leakage sensitivity referred to the TERMINAL, in uV per nA
+.meas dc leak_uv_per_na param='abs(v_tap_leak-v_tap_loaded)/k_ratio*1e6'
+* the tap Thevenin resistance the guard ring has to defend, in kohm
+.meas dc rthev_kohm    param='abs(v_tap_leak-v_tap_loaded)/1e-9/1e3'
+* linearity: the string is passive, so this must be exact - catches a
+* nonlinear element sneaking in (a diode/clamp part fitted at the tap)
+.meas dc v_tap_half    FIND v(tapa) AT=2.5
+.meas dc lin_err_uv    param='abs(v_tap_half-v_tap_loaded/2)*1e6'
+.end

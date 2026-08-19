@@ -1,0 +1,265 @@
+* bb-adc acquisition-settling - the ADS8326's REAL switched-capacitor
+* acquisition event, driven by the OPA320 follower through R6 + C7, at the top
+* AND at the bottom of the input range. This is blocks.md s7 item 2, and it is
+* the ONLY evidence that will exist for this parameter: state.json decision 66
+* records that OPA320's settling is characterised only at VS = 5 V with
+* CL = 50 pF and to 0.0015 % = 15 ppm, roughly 2x looser than this board's
+* ~7.6 ppm target, at a different supply and a 20x smaller load capacitance.
+*
+* TWO OPEN QUESTIONS RIDE ON THIS DECK
+*  (a) C7 SIZING ON THE GUARANTEED MINIMUM. state.json decision 76 item W5:
+*      the 20x-C_SH floor (C7 >= 20 * 48 pF = 960 pF) was checked on NOMINAL,
+*      but the fitted 1 nF J-grade (+/-5 %) guarantees only 950 pF - 1 % UNDER
+*      the floor. C0G/NP0 has no voltage coefficient, so tolerance is the whole
+*      spread. Instances A/B/C run 950 pF (guaranteed min), 1000 pF (nominal)
+*      and 2090 pF (the 2.2 nF C0G headroom candidate at ITS guaranteed min),
+*      all with R6 fitted - the isolation resistor is what lifts the pure-
+*      capacitive-load limit, so the floor must be re-asked with it present.
+*  (b) THE BOTTOM OF THE RANGE. Instance D runs the same event at a 0 V
+*      terminal, where state.json decision 63's warning bites - see
+*      zero-scale-swing.cir for the DC half of that question.
+*
+* SOURCE NETLIST: boards/bb-adc/kicad/bb-adc.net. Element values synthesized via
+*   sim_run.py --fragment --net kicad/bb-adc.net --refs R1,R2,R3,R4,R5,R6,C7
+* RENAME MAP: /AIN_DIV->N_AIN_DIV  /AIN_BUF->N_AIN_BUF  /AIN_ADC->N_AIN_ADC
+*             /AGND_SENSE->N_AGND_SENSE  GND->0
+* returning verbatim:  R6 N_AIN_BUF N_AIN_ADC 49.9  /  C7 N_AIN_ADC 0 1nF  /
+*                      R1..R5 200K
+* The attenuator is entered as its THEVENIN equivalent rather than five
+* elements, because this deck asks a settling question and the ratio question
+* is already answered by divider-ratio.cir on the full string: Rth = 240.032
+* kohm and Vth = 1.999600 V at a 5.000 V terminal are that bench's own MEASURED
+* outputs (rthev_kohm, v_tap_loaded), not re-derived numbers.
+*
+* ============================ MODEL PROVENANCE ============================
+* .subckt OPA320 - agent-authored Tier-B BOUNDARY model, identical to the one
+* in buffer-stability.cir / buffer-step.cir. No vendor file, no IC internals.
+* TI SBOS513F rows for OPA320AIDBVR (parts/C92494.json): AOL 130 dB [Sec 7.3.7
+* p.18], GBP 20 MHz [p.8 abs_max 43], RO 90 ohm open-loop and FLAT with
+* frequency [p.8 abs_max 50, Sec 7.3.7, Fig 19], SR 10 V/us [p.8 abs_max 44],
+* Cdif 5 pF / Ccm 4 pF [p.8 abs_max 56/57]. f2 = 56 MHz is the ONE fitted
+* parameter, pinned by the pm_ds_deg calibration bound in buffer-stability
+* (TI's own PM = 47 deg at CL = 50 pF) and cross-checked by the sr_v_per_us
+* bound in buffer-step (9.996 V/us against a datasheet 10). The output stage
+* is an ideal driver clamped to [V-,V+] behind RO, so at saturation
+* Vout = RO * Iload - conservative against TI's own swing rows (14.7 mV at
+* RL = 10 kohm on this 3.3 V rail, versus 6.6 mV typ / 13.2 mV max scaled).
+* KNOWN MODEL LIMIT (state.json decision 66): GBP/SR/PM are characterised at
+* VS = 5 V only; this board runs 3.3 V and no 3.3 V row exists.
+*
+* THE SAR INPUT IS MODELLED AS THE REAL SWITCHED-CAPACITOR EVENT, not as a
+* resistor. C_SAMPLE = 48 pF [C544731.json abs_max 46] is disconnected from
+* the signal during conversion and reconnected through RON at the start of
+* acquisition. Two voltage-controlled switches per instance do exactly that:
+* S2 holds C_SAMPLE at the arrival voltage Vpre during conversion, opens; then
+* S1 closes for t_acq and opens again at the sample instant. What the
+* converter digitizes is the voltage ON C_SAMPLE when S1 opens - so that is
+* the node every error bound below is written on, not the node in front of it.
+*   RON = 150 ohm = the 2.7 V-class MAX [abs_max 45]. This board's VDD_ADC is
+*   3.3 V, which is the low-voltage class (2.7-3.6 V, abs_max 25/26), and the
+*   max column is the conservative choice for a settling question. buffer-
+*   stability/-step use the 50 ohm 5 V-class typ instead, because there the
+*   conservative direction is the opposite one (least isolation of C_SAMPLE).
+*   Vpre = the ARRIVAL voltage of C_SAMPLE, a deliberate worst-case boundary
+*   assumption and NOT a datasheet number: 0 V for a positive input (which
+*   also makes this deck consistent with the average-current model
+*   R_eq = 1/(fs*C_SH) = 2.08 Mohm that state.json decision 46 rests on - that
+*   equivalent resistance is exactly the statement that C_SAMPLE arrives
+*   discharged every cycle), and VREF = 2.048 V at a 0 V terminal, which is
+*   the largest kick the array can deliver into the node that has the least
+*   headroom to absorb it.
+* cstray = 5 pF at the buffer input is an ESTIMATE, flagged as such: guarded
+* high-Z tap copper plus the SOT-23-5 pad. It is load-bearing ONLY for
+* instance E (the terminal-step tail) and is parametrized so its weight is
+* visible; every switched-capacitor result below is independent of it.
+* ==========================================================================
+*
+* SOURCES for the bounds: blocks.md s7 item 2 (within 15.6 uV of final inside
+* 9.0 us); 1/2 LSB at the ADC node = 15.6 uV (5.120 V full scale / 65536 =
+* 78.1 uV per LSB at the ADC, 195 uV at the terminal); t_acq = 9.0 us EXACTLY
+* and host-immovable - tSMPL 4.5 DCLOCK MIN at fDCLOCK 500 kHz is a CLOCK-
+* CYCLE COUNT, not a CS dwell (state.json decision 54, C544731 abs_max
+* 109/110); C_SAMPLE 48 pF and RON [abs_max 45/46]; VREF 2.048 V (ADR4520B).
+
+* ENGINE NOTES (machine-verified here, ngspice 46):
+*  - rshunt set explicitly: sim_run.py otherwise injects 1e9, which is NOT
+*    benign on this board's high-impedance nodes.
+*  - tolerances tightened far below the 15.6 uV these measures resolve;
+*    ngspice's default reltol 1e-3 cannot see them.
+*  - {braces} are a SYNTAX ERROR inside `.meas ... param='...'` and the
+*    measure is silently dropped while the run still reports ok. Bare .param
+*    names work there; braces are fine in AT=/WHEN=. A measure RESULT can
+*    never appear in a braced clause, so WHEN= thresholds below are written
+*    against the .param target voltage, and the binding error bounds are
+*    difference measures that do not depend on that target being exact.
+.options rshunt=1e12 reltol=1e-6 vntol=1e-11 abstol=1e-14 chgtol=1e-17
+
+* amplifier parameters are hoisted to top-level .param so the OPA333 that
+* state.json decisions 29/44 reject can be SUBSTITUTED as a seeded defect
+* (gbwx 350e3, srx 0.16e6, rox 2000 - TI SBOS351 rows quoted in decision 34)
+.param aolx=3.16228e6
+.param gbwx=20e6
+.param rox=90
+.param srx=10e6
+.param f2x=56e6
+.param r6=49.9
+.param csh=48e-12
+.param ron=150
+.param cstray=5e-12
+.param c7min=950e-12
+.param c7nom=1000e-12
+.param c7big=2090e-12
+.param rth=240032
+.param vtop=1.999600
+.param vbot=0.0
+.param vref=2.048
+.param t_pre_off=9.9e-6
+.param t_acq0=10.0e-6
+.param tacq=9.0e-6
+.param t_samp={t_acq0+tacq}
+.param t_estep=1.0e-6
+
+.subckt OPA320 inp inn out vpos vneg aoldc=3.16228e6 gbw=20e6 ro=90 sr=10e6 f2=56e6
+.param rp1={aoldc}
+.param cp1={1/(6.283185307*gbw)}
+.param imax={sr*cp1}
+.param cq1={1/(6.283185307*f2*1e3)}
+Ccm1 inp vneg 4p
+Ccm2 inn vneg 4p
+Cdif inp inn 5p
+Gm   0 pol cur='min(max((v(inp)-v(inn))*1.0,-{imax}),{imax})'
+Rp   pol vneg {rp1}
+Cp   pol vneg {cp1}
+Rq   pol q 1e3
+Cq   q vneg {cq1}
+Bdrv drv 0 V={min(max(v(q),v(vneg)),v(vpos))}
+Ro   drv out {ro}
+.ends
+
+.model SWSAR SW(ron={ron} roff=1e12 vt=1.65 vh=0.05)
+
+Vpos vp 0 DC 3.3
+* shared switch gates: S2 (precharge/conversion phase) is ON from t=0 and
+* opens at 9.9 us; S1 (acquisition) closes at 10.0 us and opens at 19.0 us,
+* exactly t_acq later. The 100 ns gap is break-before-make.
+Vg1 g1 0 PULSE(0 3.3 {t_acq0} 1n 1n {tacq} 500u)
+Vg2 g2 0 PULSE(3.3 0 {t_pre_off} 1n 1n 400u 800u)
+
+* ---- (A) TOP of range, C7 at its GUARANTEED MINIMUM 950 pF. The primary
+* instance: this is the configuration state.json decision 76 W5 asks about.
+VthA thA 0 DC {vtop}
+RthA thA inA {rth}
+CstA inA 0 {cstray}
+XuA  inA oA oA vp 0 OPA320 aoldc={aolx} gbw={gbwx} ro={rox} sr={srx} f2={f2x}
+R6A  oA adcA {r6}
+C7A  adcA 0 {c7min}
+S1A  adcA shA g1 0 SWSAR
+CshA shA 0 {csh}
+S2A  shA preA g2 0 SWSAR
+VpA  preA 0 DC 0
+
+* ---- (B) TOP of range, C7 NOMINAL 1000 pF - the delta against A is the whole
+* size of the question W5 raises.
+VthB thB 0 DC {vtop}
+RthB thB inB {rth}
+CstB inB 0 {cstray}
+XuB  inB oB oB vp 0 OPA320 aoldc={aolx} gbw={gbwx} ro={rox} sr={srx} f2={f2x}
+R6B  oB adcB {r6}
+C7B  adcB 0 {c7nom}
+S1B  adcB shB g1 0 SWSAR
+CshB shB 0 {csh}
+S2B  shB preB g2 0 SWSAR
+VpB  preB 0 DC 0
+
+* ---- (C) TOP of range, the 2.2 nF C0G headroom candidate at ITS guaranteed
+* minimum 2090 pF. Its phase margin is already cleared by pm_c22_deg.
+VthC thC 0 DC {vtop}
+RthC thC inC {rth}
+CstC inC 0 {cstray}
+XuC  inC oC oC vp 0 OPA320 aoldc={aolx} gbw={gbwx} ro={rox} sr={srx} f2={f2x}
+R6C  oC adcC {r6}
+C7C  adcC 0 {c7big}
+S1C  adcC shC g1 0 SWSAR
+CshC shC 0 {csh}
+S2C  shC preC g2 0 SWSAR
+VpC  preC 0 DC 0
+
+* ---- (D) BOTTOM of range: 0 V terminal, C7 at guaranteed minimum, and
+* C_SAMPLE arriving at VREF - the worst kick the array can deliver, into the
+* node with the least headroom. The buffer must SINK this charge with its
+* output already at ground on a single supply.
+VthD thD 0 DC {vbot}
+RthD thD inD {rth}
+CstD inD 0 {cstray}
+XuD  inD oD oD vp 0 OPA320 aoldc={aolx} gbw={gbwx} ro={rox} sr={srx} f2={f2x}
+R6D  oD adcD {r6}
+C7D  adcD 0 {c7min}
+S1D  adcD shD g1 0 SWSAR
+CshD shD 0 {csh}
+S2D  shD preD g2 0 SWSAR
+VpD  preD 0 DC {vref}
+
+* ---- (E) the OTHER step blocks.md s7 item 2 names: a full-scale step at the
+* TERMINAL, not at the converter. Sampling network held connected. This one is
+* not a switched-capacitor question at all - it is the 240 kohm tap Thevenin
+* charging the buffer's own input capacitance, and cstray is load-bearing here.
+VthE thE 0 PULSE(0 {vtop} {t_estep} 1n 1n 400u 800u)
+RthE thE inE {rth}
+CstE inE 0 {cstray}
+XuE  inE oE oE vp 0 OPA320 aoldc={aolx} gbw={gbwx} ro={rox} sr={srx} f2={f2x}
+R6E  oE adcE {r6}
+C7E  adcE 0 {c7min}
+RonE adcE shE {ron}
+CshE shE 0 {csh}
+
+* tstop 60 us: instance E's tail is the slowest thing in the deck (25.5 us at
+* the modelled cstray, and it scales as 240k*(4 pF + cstray)), so the window
+* is left long enough that a raised stray estimate still resolves instead of
+* silently dropping the measure.
+.tran 2n 60u
+
+* ===== what the converter digitizes: v(C_SAMPLE) at the instant S1 opens,
+* against the settled buffer output sampled just before the event begins.
+.meas tran vdc_a   FIND v(oA)  AT=9.5u
+.meas tran vsmp_a  FIND v(shA) AT={t_samp}
+.meas tran err_a_uv  param='abs(vsmp_a-vdc_a)*1e6'
+.meas tran vdc_b   FIND v(oB)  AT=9.5u
+.meas tran vsmp_b  FIND v(shB) AT={t_samp}
+.meas tran err_b_uv  param='abs(vsmp_b-vdc_b)*1e6'
+.meas tran vdc_c   FIND v(oC)  AT=9.5u
+.meas tran vsmp_c  FIND v(shC) AT={t_samp}
+.meas tran err_c_uv  param='abs(vsmp_c-vdc_c)*1e6'
+.meas tran vdc_d   FIND v(oD)  AT=9.5u
+.meas tran vsmp_d  FIND v(shD) AT={t_samp}
+.meas tran err_d_uv  param='abs(vsmp_d-vdc_d)*1e6'
+
+* ===== how much of the 9.0 us window each configuration actually spends
+.meas tran t_a     WHEN v(shA)={vtop-15.6e-6} RISE=1
+.meas tran tset_a_us param='(t_a-t_acq0)*1e6'
+.meas tran t_c     WHEN v(shC)={vtop-15.6e-6} RISE=1
+.meas tran tset_c_us param='(t_c-t_acq0)*1e6'
+.meas tran t_d     WHEN v(shD)={vbot+15.6e-6} FALL=1
+.meas tran tset_d_us param='(t_d-t_acq0)*1e6'
+
+* ===== the size of the disturbance each configuration has to recover from -
+* the droop at /AIN_ADC when C_SAMPLE lands on it. This is what the 20x-C_SH
+* rule of thumb is really about, expressed in mV instead of as a ratio.
+.meas tran adcmin_a MIN v(adcA) FROM={t_acq0} TO={t_acq0+1e-6}
+.meas tran droop_a_mv param='(vdc_a-adcmin_a)*1e3'
+.meas tran adcmin_c MIN v(adcC) FROM={t_acq0} TO={t_acq0+1e-6}
+.meas tran droop_c_mv param='(vdc_c-adcmin_c)*1e3'
+
+* ===== the bottom of the range: how far ABOVE ground the kick pushes the
+* buffer output, and where it ends up. Near ground the output stage has
+* minimal headroom and must sink, not source (state.json decision 63).
+.meas tran obuf_d_pk  MAX v(oD)  FROM={t_acq0} TO={t_acq0+2e-6}
+.meas tran obuf_d_mv  param='obuf_d_pk*1e3'
+.meas tran adc_d_pk   MAX v(adcD) FROM={t_acq0} TO={t_acq0+2e-6}
+.meas tran kick_d_mv  param='adc_d_pk*1e3'
+
+* ===== instance E: settling after a full-scale step at the TERMINAL. Not a
+* converter question - the 240 kohm tap Thevenin against the buffer's input
+* capacitance. Reported in us against the 100 us sample period at 10 kSa/s.
+.meas tran t_e     WHEN v(oE)={vtop-15.6e-6} RISE=1
+.meas tran tstep_us  param='(t_e-t_estep)*1e6'
+.end

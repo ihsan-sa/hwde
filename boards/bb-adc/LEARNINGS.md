@@ -481,3 +481,45 @@ afterwards: the new symbol reads `passive`/`passive`, `ADR4520BRZ-R7` still read
 already-corrected library, diff the pin types of the NEW symbol only, and repair it
 scoped. `--overwrite` would have been worse - it re-pulls the parts whose types are the
 hand-corrected ones.
+
+## 2026-08-19 [P8][sim][ngspice] `.meas ... param='...'` rejects {braces} - and the measure vanishes with the run still reporting ok
+
+Machine-verified on ngspice 46 through `sim_run.py`. Inside a measure's `param='...'`
+expression, `{param_name}` is a hard syntax error - stderr carries `Syntax error:
+letter [{]`, `Expression err: ...`, `Cannot compute substitute` - and the measure is
+simply ABSENT from the returned dict. `run_circuit()` still returns `status: ok`, so a
+deck can lose a third of its measures and look healthy; only counting the measures you
+expected catches it. The rules, all probed:
+
+- `param='(vpk-vfin)/vstep*100'` with BARE `.param` names: WORKS.
+- `param='(vpk-vfin)/{vstep}*100'`: dropped.
+- `AT={t0+tacq}` and `WHEN v(x)={vhi-15.6e-6}`: braces WORK in these clauses.
+- a measure RESULT inside a braced clause, e.g. `WHEN v(o1)={vhi+0.5*(vpk1-vfin1)}`:
+  rejects the whole circuit (`NameError` from the parser) - braced clauses are resolved
+  at parse time, before any measure has a value.
+
+So: braces in `AT=`/`WHEN=`, bare names in `param=`, never a measure result in braces.
+The useful corollary is that `param=` over bare `.param` names lets a bounds sidecar gate
+a FITTED VALUE directly (`cbulk_uf param='(c5+c3)*1e6'` against the ADR4520's two-ended
+1-100 uF window) or a closed-form limit (`qdyn/cbulk*1e6`), with no solver in the path.
+
+## 2026-08-19 [P8][sim][ngspice][opamp] Mixing clamped and unclamped output stages in ONE .dc deck silently corrupts the OTHER instances
+
+`zero-scale-swing` put three copies of the same op-amp boundary model in one `.dc` sweep:
+two with `V- = GND` (so at zero scale the output sits exactly ON the `min(max(...))`
+rail clamp, where the derivative is zero) and one with `V- = -0.3 V` (TI's contingency
+generator, never clamped). The operating point then falls back through `Dynamic gmin
+stepping failed` / `True gmin stepping failed` / `source stepping failed` - 63 to 99 of
+them across the sweep - and ngspice returns `status: ok` with values that are WRONG FOR
+THE INSTANCES THAT WERE FINE ON THEIR OWN: the as-built buffer read a flat ~5 uV across
+the whole bottom decade instead of tracking its input, which reads exactly like a real
+zero-scale failure. Each instance converges cleanly in isolation.
+
+Two rules. (1) A rail-clamped behavioural output stage and an unclamped one do not share
+a DC matrix - sweep the rail between RUNS (it is a `.param`, and that is also how the
+seeded defect is applied) rather than between instances. (2) `Warning: ... stepping
+failed` on stderr is not cosmetic in a DC bench; treat any of them as invalidating the
+whole sweep, because the wrong numbers arrive silently and plausibly. The cheap check
+that caught it: run the deck at three `reltol` settings decades apart - real physics is
+identical to 5 digits (verified so for every settling number in `acquisition-settling`),
+a fallback-corrupted solve is not.

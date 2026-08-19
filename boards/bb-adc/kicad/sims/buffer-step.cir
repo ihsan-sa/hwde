@@ -1,0 +1,183 @@
+* bb-adc buffer-step - OPA320 unity-gain follower driving R6 + C7 + the
+* ADS8326 sampling network. TIME-DOMAIN half of blocks.md s7 item 3: step
+* OVERSHOOT and RINGBACK at the sample instant, plus the slew-rate calibration
+* of the boundary model. The frequency-domain half (phase margin) is
+* buffer-stability.cir.
+* WHY TWO FILES: ngspice 46 through sim_run.py silently DROPS the .meas of the
+* first analysis when one deck carries both .ac and .tran - the ac measures
+* vanish with no `failed!` line and no error. One analysis type per deck.
+*
+* SOURCE NETLIST: boards/bb-adc/kicad/bb-adc.net. Load topology synthesized via
+*   sim_run.py --fragment --net kicad/bb-adc.net --refs R6,C7
+* returning verbatim:  R6 N_AIN_BUF N_AIN_ADC 49.9  /  C7 N_AIN_ADC 0 1nF
+* RENAME MAP:  /AIN_BUF->N_AIN_BUF  /AIN_ADC->N_AIN_ADC  GND->0
+* U3 (OPA320) and U1 (ADS8326) come back in the fragment `unresolved` table -
+* no generic SPICE primitive - and are wired here as BOUNDARY models.
+*
+* ============================ MODEL PROVENANCE ============================
+* .subckt OPA320 - agent-authored Tier-B BOUNDARY model, identical to the one
+* in buffer-stability.cir. No vendor file, no IC internals. Every parameter is
+* a TI SBOS513F number for OPA320AIDBVR (parts/C92494.json) except f2:
+*   aoldc = 3.16228e6 = 130 dB AOL typ      [Sec 7.3.7 p.18, layout_notes[5]]
+*   gbw   = 20 MHz    = GBP typ, G=+1, VS=5V, CL=50pF   [p.8, abs_max 43]
+*   ro    = 90 ohm    = RO open-loop, IO=0mA, f=1MHz    [p.8, abs_max 50];
+*                       TI Sec 7.3.7 states it "remains very flat over a wide
+*                       frequency range", Fig 19 confirms ~90-100 ohm to
+*                       1-10 MHz - that flatness is what makes the isolation-
+*                       resistor method valid here (state.json decision 65).
+*   sr    = 10 V/us   = SR typ, G=+1, VS=5V, CL=50pF    [p.8, abs_max 44]
+*   Cdif  = 5 pF, Ccm = 4 pF                            [p.8, abs_max 56/57]
+*   f2    = 56 MHz    = the ONE FITTED parameter: the single internal second
+*                       pole that makes the model reproduce TI's own PM = 47
+*                       deg typ at CL = 50 pF [p.8, abs_max 45]. Pinned by the
+*                       pm_ds_deg calibration bound in buffer-stability.
+* Slew limiting is a hard min/max clamp on the input transconductance current
+* at SR*Cp. min/max was chosen over limit() and over a tanh soft limiter:
+* machine-verified on ngspice 46, limit() linearizes to ZERO ac gain and
+* silently kills .ac, and tanh read 6.53 V/us against a datasheet 10.
+* ADS8326 sampling path: RON in series with C_SAMPLE = 48 pF [C544731.json
+* abs_max 46, and pinout +IN "Equivalent Analog Input Circuit: RON 50 ohm,
+* C(SAMPLE)=48pF"]. The switch is held CLOSED throughout this bench - the
+* worst case for the loop, most capacitance presented. RON = 50 ohm is the
+* 5 V-class typ [abs_max 42]; the LOW value is the conservative choice for
+* stability (least isolation of C_SAMPLE), where the 150 ohm 2.7 V-class max
+* [abs_max 45] is conservative for settling - see acquisition-settling.cir.
+* KNOWN MODEL LIMIT (state.json decision 66): TI characterises GBP/SR/PM at
+* VS = 5 V only. This board runs 3.3 V and no 3.3 V row exists.
+* ==========================================================================
+*
+* DESIGN INTENT: R6 = 49.9 ohm is an ISOLATION resistor, not a filter element.
+* Without it the 90 ohm open-loop RO works against C7 = 1 nF inside the loop
+* and the follower rings. SEEDED DEFECT for this deck: R6 -> 0, which takes
+* os_adc_pct from 0.14 % to 73.4 % and adds 54 % of ringback.
+*
+* WHICH NODE THE OVERSHOOT BOUND IS WRITTEN ON, and why it is not the buffer
+* output. Measured on a 1 ns edge, the BUFFER OUTPUT o1 shows an 11.7 % peak
+* while the ADC node shows 0.14 % and the ringback below final is 0.00013 %.
+* That asymmetry is the signature of a FEEDFORWARD SPIKE, not a marginal loop:
+* Cdif = 5 pF sits between the amplifier's two inputs, and in a follower the
+* inverting input IS the output node, so a fast edge at +IN capacitively
+* injects straight onto the output. It scales with edge rate exactly as a
+* differentiator must - 11.7 % at 1-10 ns, 8.2 % at 100 ns, 3.1 % at 300 ns,
+* 0.94 % at 1 us - and it does not ring back. On this board the buffer input
+* CANNOT step fast: the tap drives it from a 240 kohm Thevenin into ~9 pF, so
+* the fastest physical edge is ~2 us, where the same peak is under 1 %. The
+* stability-bearing bound is therefore os_adc_pct, taken past R6 at the node
+* the converter actually samples, and the raw buffer-output peak is carried as
+* a warning with a wide ceiling so a genuine loop failure still shows there.
+* SOURCES for the bounds: blocks.md s7 item 3 (overshoot <= 5 %, no ringing
+* above 1/2 LSB at the sample instant); 1/2 LSB at the ADC node = 15.6 uV
+* (1 LSB = 5.120 V full scale / 65536 = 78.1 uV at the ADC, 195 uV at the
+* terminal); t_acq = 9.0 us EXACTLY - tSMPL 4.5 DCLOCK min at fDCLOCK
+* 500 kHz, a CLOCK-CYCLE COUNT and not a CS dwell (state.json decision 54,
+* C544731 abs_max 109/110).
+
+* ENGINE NOTES (machine-verified here, ngspice 46):
+*  - rshunt is set explicitly; sim_run.py would otherwise inject 1e9, which on
+*    this board's high-impedance nodes is not benign.
+*  - solver tolerances are tightened far below the 15.6 uV these measures
+*    resolve; ngspice's default reltol 1e-3 cannot see them.
+*  - inside a `.meas ... param='...'` expression, {braces} are a SYNTAX ERROR
+*    ("Syntax error: letter [{]" / "Cannot compute substitute") and the
+*    measure is dropped from the result set with the run still reporting ok.
+*    Bare .param NAMES work there; braces ARE accepted in AT=/WHEN= clauses.
+*    A measure RESULT may not appear in a braced clause at all (parse time).
+.options rshunt=1e12 reltol=1e-6 vntol=1e-11 abstol=1e-14 chgtol=1e-17
+
+.param r6=49.9
+.param c7=1e-9
+.param csh=48e-12
+.param ronsh=50
+.param clds=50e-12
+.param tr=1n
+.param vlo=1.000
+.param vstep=0.020
+.param vhi={vlo+vstep}
+.param t0=5e-6
+.param tacq=9.0e-6
+.param slo=0.500
+.param shi=2.500
+
+.subckt OPA320 inp inn out vpos vneg aoldc=3.16228e6 gbw=20e6 ro=90 sr=10e6 f2=56e6
+.param rp1={aoldc}
+.param cp1={1/(6.283185307*gbw)}
+.param imax={sr*cp1}
+.param cq1={1/(6.283185307*f2*1e3)}
+Ccm1 inp vneg 4p
+Ccm2 inn vneg 4p
+Cdif inp inn 5p
+Gm   0 pol cur='min(max((v(inp)-v(inn))*1.0,-{imax}),{imax})'
+Rp   pol vneg {rp1}
+Cp   pol vneg {cp1}
+Rq   pol q 1e3
+Cq   q vneg {cq1}
+Bdrv drv 0 V={min(max(v(q),v(vneg)),v(vpos))}
+Ro   drv out {ro}
+.ends
+
+Vpos vp 0 DC 3.3
+
+* ---- (1) SMALL-SIGNAL step, 20 mV with a 1 ns edge, into the board load.
+* 20 mV keeps the input stage linear (the transconductance clamps above
+* 79.6 mV of differential), so this is the LINEAR ringing that the 68.2 deg
+* phase margin from buffer-stability.cir predicts. The edge is deliberately
+* 1000x faster than anything the board can produce: an aggressive probe.
+Vin1 in1 0 PULSE({vlo} {vhi} {t0} {tr} {tr} 100u 200u)
+Xu1  in1 o1 o1 vp 0 OPA320
+R6a  o1 adc1 {r6}
+C7a  adc1 0 {c7}
+Rsh1 adc1 sh1 {ronsh}
+Csh1 sh1 0 {csh}
+
+* ---- (2) LARGE step 0.5 -> 2.5 V at TI's OWN slew-rate test load, CL = 50 pF
+* and nothing else. This is the model calibration instance: it must reproduce
+* SR = 10 V/us. It carries no board component on purpose.
+Vin2 in2 0 PULSE({slo} {shi} {t0} {tr} {tr} 100u 200u)
+Xu2  in2 o2 o2 vp 0 OPA320
+Cds2 o2 0 {clds}
+
+* ---- (3) the same large step into the BOARD load. Separated from (2) because
+* the two answers differ and the difference is a real board fact, not a model
+* error: slewing 1 nF at 10 V/us asks 10 mA through the 90 ohm open-loop RO,
+* which is ~0.9 V of headroom the 3.3 V rail does not have at the top of this
+* step, so the achievable rate is lower. Carried as a warning, not a promise.
+Vin3 in3 0 PULSE({slo} {shi} {t0} {tr} {tr} 100u 200u)
+Xu3  in3 o3 o3 vp 0 OPA320
+R6c  o3 adc3 {r6}
+C7c  adc3 0 {c7}
+Rsh3 adc3 sh3 {ronsh}
+Csh3 sh3 0 {csh}
+
+.tran 2n 40u
+
+* --- overshoot at the ADC node: the stability-bearing bound (see header)
+.meas tran vfin1     FIND v(o1)   AT=35u
+.meas tran vadcpk    MAX  v(adc1) FROM={t0} TO={t0+2e-6}
+.meas tran os_adc_pct  param='(vadcpk-vfin1)/vstep*100'
+* ringback BELOW final, window opened at t0+0.5 us so it starts after the
+* rise itself is over (settle_ns = 197 ns): a stability failure rings for
+* microseconds, a healthy edge is flat here
+.meas tran vadctr    MIN  v(adc1) FROM={t0+0.5e-6} TO={t0+4e-6}
+.meas tran us_adc_pct  param='(vfin1-vadctr)/vstep*100'
+* --- raw peak at the buffer output, feedforward spike included
+.meas tran vpk1      MAX  v(o1)   FROM={t0} TO={t0+2e-6}
+.meas tran os_buf_pct  param='(vpk1-vfin1)/vstep*100'
+* --- ringback at the SAMPLE INSTANT, measured on C_SAMPLE itself: that is the
+* charge the converter actually digitizes, not the node in front of it
+.meas tran vsh_fin   FIND v(sh1)  AT=35u
+.meas tran vsh_samp  FIND v(sh1)  AT={t0+tacq}
+.meas tran ring_uv     param='abs(vsh_samp-vsh_fin)*1e6'
+* --- how long the small step really takes to get inside 1/2 LSB, in ns
+.meas tran t_15u6    WHEN v(sh1)={vhi-15.6e-6} RISE=1
+.meas tran settle_ns   param='(t_15u6-t0)*1e9'
+* --- slew calibration at TI's own condition (CL = 50 pF), 30-70 % of the step
+* so both ends stay inside the slew-limited region (the amp leaves slew only
+* when the input error falls under 79.6 mV, i.e. above 2.42 V here)
+.meas tran t30d      WHEN v(o2)={slo+0.3*(shi-slo)} RISE=1
+.meas tran t70d      WHEN v(o2)={slo+0.7*(shi-slo)} RISE=1
+.meas tran sr_v_per_us       param='0.4*(shi-slo)/((t70d-t30d)*1e6)'
+* --- and the rate actually achieved into the board load
+.meas tran t30b      WHEN v(o3)={slo+0.3*(shi-slo)} RISE=1
+.meas tran t70b      WHEN v(o3)={slo+0.7*(shi-slo)} RISE=1
+.meas tran sr_board_v_per_us param='0.4*(shi-slo)/((t70b-t30b)*1e6)'
+.end

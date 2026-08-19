@@ -1,0 +1,25 @@
+[
+ {"measure": "pm_board_deg", "min": 45.0, "severity": "error",
+  "msg": "PHASE MARGIN of the U3 follower loaded by the board as fitted: R6 = 49.9 ohm into C7 = 1 nF plus the ADS8326 acquisition path (RON in series with C_SAMPLE 48 pF). Design promise: blocks.md s7 item 3 and state.json decision 48 ('the OPA333-vs-OPA320 choice is formally handed to the SIM LEG'), PM >= 45 deg, the figure TI sboa418 p9 names as generally stable and the one it says only SPICE can supply. Measured 68.2 deg. SEEDED DEFECT: R6 -> 0 (the isolation resistor omitted or shorted by a routing error) reads 11.0 deg - the classic op-amp-into-capacitive-load marginality that no DC check can see."},
+
+ {"measure": "pm_c22_deg", "min": 45.0, "severity": "error",
+  "msg": "PHASE MARGIN with C7 raised to 2.2 nF - the headroom candidate the acquisition-settling bench evaluates for state.json decision 76 item W5 (C7's 20x-C_SH floor was checked on NOMINAL; the fitted 1 nF J-grade guarantees only 950 pF against a 960 pF floor). This bound pre-clears that change: raising C7 is only available as a remedy if the loop survives it. Measured 75.2 deg - a bigger C7 is MORE stable behind R6, not less, because R6 isolates it. Under the R6 -> 0 defect it reads 7.4 deg."},
+
+ {"measure": "gain_hi_db", "max": -6.0, "severity": "error",
+  "msg": "maximum loop gain in the decade above crossover (40 MHz - 1 GHz), board-loaded instance. The loop must cross 0 dB ONCE and stay buried afterwards; a second crossing would make the follower only conditionally stable, which a phase-margin number alone does not exclude. Measured -16.8 dB, i.e. 10.8 dB below the bound. No datasheet number - this is a topological requirement on the loop."},
+
+ {"measure": "pm_ds_deg", "min": 44.0, "max": 50.0, "severity": "error",
+  "msg": "MODEL CALIBRATION, not a board bound. The same OPA320 boundary model driven at TI's own phase-margin test condition (CL = 50 pF, G = +1) must reproduce TI's own answer: PM = 47 deg typ, SBOS513F p.8 (parts/C92494.json abs_max 45). Measured 47.02 deg. The model's second pole f2 = 56 MHz is the ONE fitted parameter in the deck and this bound is what pins it: edit the model away from the datasheet and this fails before any board bound is believed. Every other model parameter is a verbatim datasheet row."},
+
+ {"measure": "gbw_hz", "min": 17.0e6, "max": 21.0e6, "severity": "error",
+  "msg": "MODEL CALIBRATION: unloaded 0 dB crossover of the same model vs GBP = 20 MHz typ (G = +1, VS = 5 V, CL = 50 pF), SBOS513F p.8 / C92494.json abs_max 43. Measured 18.92 MHz - below 20 MHz because the fitted 56 MHz second pole pulls the crossover in, which is the physically right direction. KNOWN MODEL LIMIT carried from state.json decision 66: TI characterises GBP/SR/PM at VS = 5 V only and this board runs 3.3 V; no 3.3 V row exists, so this bench inherits the 5 V characterisation."},
+
+ {"measure": "gdc_1k_db", "min": 84.0, "max": 88.0, "severity": "warning",
+  "msg": "MODEL CALIBRATION of the dominant pole: with AOL = 130 dB (3.16e6, SBOS513F Sec 7.3.7) and GBW = 20 MHz the single-pole gain at 1 kHz is 20e6/1e3 = 20000 = 86.0 dB. Measured 86.02 dB. Warning rather than error because it is implied by the two error bounds above; it localises a model edit to the DC gain instead of the pole."},
+
+ {"measure": "pm_noload_deg", "min": 60.0, "severity": "warning",
+  "msg": "phase margin of the unloaded follower - the model's intrinsic margin before any board component is added. Measured 68.9 deg. Functional nicety: it isolates 'the model is marginal' from 'the board load makes it marginal', so a pm_board_deg failure can be attributed."},
+
+ {"measure": "fx_rl_hz", "min": 4.0e6, "max": 12.0e6, "severity": "warning",
+  "msg": "closed-loop crossover with the board load, 7.54 MHz (pulled down from 18.9 MHz by R6/C7/C_SAMPLE). Functional: it is the bandwidth the acquisition-settling bench spends, and a large move here means the load network changed value even if the margin still passes."}
+]

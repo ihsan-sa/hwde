@@ -1,0 +1,37 @@
+[
+ {"measure": "err_a_uv", "max": 15.6, "severity": "error",
+  "msg": "THE PRIMARY BOUND OF THIS BOARD. Error on C_SAMPLE at the instant the sampling switch opens - the charge the ADS8326 actually digitizes - at a 5.000 V terminal with C7 at its GUARANTEED MINIMUM 950 pF and RON at its 150 ohm max. Design promise: blocks.md s7 item 2, within 15.6 uV (1/2 LSB at the ADC node; 5.120 V FS / 65536 = 78.1 uV per LSB) inside t_acq = 9.0 us. Measured 0.136 uV - 115x inside. THIS SETTLES state.json decision 76 item W5: the fitted 1 nF J-grade guarantees 950 pF against a 20x-C_SH floor of 960 pF, and that 1 % shortfall has NO settling consequence; C7 as fitted clears the requirement and needs no change. SEEDED DEFECTS: R6 -> 10 kohm reads 39088 uV; substituting OPA333-class parameters (GBW 350 kHz, SR 0.16 V/us, RO 2 kohm) reads 4509 uV, which is this leg independently confirming the rejection state.json decision 48 handed to it."},
+
+ {"measure": "err_b_uv", "max": 15.6, "severity": "error",
+  "msg": "same measure with C7 at its NOMINAL 1000 pF. Measured 0.136 uV - indistinguishable from the 950 pF instance to three digits, which is the direct evidence that the nominal-versus-guaranteed distinction W5 raises does not matter here. Carried as its own bound so the comparison stays live in the gate rather than in a comment."},
+
+ {"measure": "err_c_uv", "max": 15.6, "severity": "error",
+  "msg": "same measure with the 2.2 nF C0G HEADROOM CANDIDATE at its own guaranteed minimum 2090 pF. Measured 0.143 uV. The candidate is therefore viable - it also clears pm_c22_deg at 75.2 deg in buffer-stability - but on this evidence it is NOT REQUIRED: it buys a halved droop (40.0 mV against 79.6 mV) and costs 4.3x the settling time (0.643 us against 0.149 us), against a budget neither comes close to spending. Recommendation to the architect is to leave C7 at 1 nF."},
+
+ {"measure": "err_d_uv", "max": 15.6, "severity": "error",
+  "msg": "THE BOTTOM OF THE RANGE, and the transient half of state.json decision 63's major risk. Same event at a 0 V terminal with C_SAMPLE arriving at VREF = 2.048 V - the largest kick the array can deliver, aimed at the node with the least headroom, where the output stage must SINK rather than source on a single supply tied to GND. Measured 0.0099 uV, i.e. the sampled value sits 10 nV above ground. TI's 'loses a small number of ADC codes near ground' warning (OPA320 datasheet Fig 44, our exact amplifier-plus-converter pairing) does NOT bite on this board's transient: the kick pushes /AIN_ADC to +83.9 mV and the buffer output to +54.0 mV, and both are back inside 1/2 LSB of ground 1.24 us later, well within the 9.0 us window. The -0.3 V generator pre-authorised as a contingency in state.json decision 64 is NOT needed on this evidence."},
+
+ {"measure": "tset_a_us", "max": 9.0, "severity": "error",
+  "msg": "time from the acquisition switch closing to C_SAMPLE first coming within 15.6 uV of the settled tap voltage, in us, at C7 = 950 pF. Design promise: t_acq = 9.0 us EXACTLY and host-immovable - tSMPL = 4.5 DCLOCK MIN at fDCLOCK 500 kHz is a CLOCK-CYCLE COUNT, not a CS dwell (state.json decision 54, C544731 abs_max 109/110). Measured 0.149 us - the board spends 1.7 % of its acquisition window. Under the OPA333 substitution this rises to 1.59 us and the error bound above fails outright."},
+
+ {"measure": "tset_c_us", "max": 9.0, "severity": "error",
+  "msg": "the same settling time with the 2.2 nF candidate: 0.643 us, 4.3x slower than at 1 nF and still 14x inside the window. This is the cost side of the headroom candidate, quantified."},
+
+ {"measure": "tset_d_us", "max": 9.0, "severity": "error",
+  "msg": "settling time at the BOTTOM of the range - time for C_SAMPLE to come back within 15.6 uV of GROUND after taking the full VREF-arrival kick. Measured 1.24 us, 8.4x slower than the same event at the top of the range because the recovery is partly a saturated one (the output stage sits against its own V- clamp while it sinks the charge), and still 7.2x inside the 9.0 us window. This number is the answer to 'what does NOT scale is the transient' in state.json decision 63."},
+
+ {"measure": "droop_a_mv", "max": 150.0, "severity": "warning",
+  "msg": "the disturbance the loop actually has to recover from: how far /AIN_ADC is pulled down when C_SAMPLE lands on it, in mV, at C7 = 950 pF. Measured 79.6 mV. This is what the 20x-C_SH rule of thumb is really about, expressed physically instead of as a ratio - and it is the measure that still notices a grossly undersized C7 after the settling bounds have stopped caring: at C7 = 100 pF the settling error is still only 2.6 uV (passing) while the droop is 376 mV. Warning, not error: no cited source gives a droop limit, and 79.6 mV is comfortably inside the amplifier's linear range."},
+
+ {"measure": "droop_c_mv", "max": 150.0, "severity": "warning",
+  "msg": "the same droop with the 2.2 nF candidate: 40.0 mV, halved as the charge-sharing ratio predicts. The single quantified benefit of the larger capacitor."},
+
+ {"measure": "kick_d_mv", "max": 300.0, "severity": "warning",
+  "msg": "peak excursion of /AIN_ADC ABOVE ground at a 0 V terminal, 83.9 mV, when C_SAMPLE arrives at VREF. Bounded well away from the ADS8326's own +IN recommended floor of -0.3 V and from its -IN window of -0.3 V to +0.5 V (C544731.json abs_max 32/34/35, state.json decision 55) - the excursion is in the SAFE direction, upward. Warning: it is a transient excursion, not the DC swing promise; the 1.0 mV DC figure of blocks.md s7 item 4 lives in zero-scale-swing.cir."},
+
+ {"measure": "obuf_d_mv", "max": 300.0, "severity": "warning",
+  "msg": "peak excursion of the BUFFER OUTPUT above ground while it absorbs the zero-scale kick, 54.0 mV. The output stage is briefly against its own V- clamp here and this is the model's saturated behaviour (Vout = RO * Isink) doing the work, which the model calibrates conservatively: 90 ohm gives 14.7 mV at TI's own RL = 10 kohm swing condition on this 3.3 V rail, against 6.6 mV typ / 13.2 mV max scaled from the datasheet rows. Warning for the same reason as kick_d_mv - transient, not the DC swing promise."},
+
+ {"measure": "tstep_us", "max": 100.0, "severity": "warning",
+  "msg": "REPORTED AS A FINDING, NOT A PASS. Settling of the buffer output to 15.6 uV after a FULL-SCALE STEP AT THE TERMINAL - the other worst case blocks.md s7 item 2 names. Measured 25.5 us, which EXCEEDS the 9.0 us the same item states as its pass window. The mechanism is not the converter at all: it is the attenuator's 240 kohm Thevenin charging the buffer's own input capacitance, and it is INTRINSIC rather than a layout artifact - at zero board stray, on the amplifier's 4 pF Ccm alone, it is still 11.3 us (16.9 us at 2 pF, 25.5 us at the 5 pF modelled here, 39.7 us at 10 pF; it scales as 240k*(4 pF + cstray) exactly). The bound is written against 100 us, the sample period at 10 kSa/s, because that is the time actually available: this is a single-channel DC front end with no multiplexer, so a step can only arrive from the external source, and the consequence is that the FIRST conversion after a full-scale terminal step is not valid while the next one is. A 9.0 us reading of this item would require either a lower Rtot (which the source-loading budget forbids) or a settled-input assumption. Handed to the architect."}
+]

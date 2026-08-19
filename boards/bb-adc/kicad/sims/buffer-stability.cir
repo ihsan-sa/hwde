@@ -1,0 +1,153 @@
+* bb-adc buffer-stability - OPA320 unity-gain follower driving R6 + C7 + the
+* ADS8326 sampling network. LOOP-GAIN PHASE MARGIN (.ac) + model calibration.
+* The time-domain half of the same question - step overshoot, ringback at the
+* sample instant, slew-rate calibration - is buffer-step.cir. They are two
+* files because ngspice 46 through sim_run.py silently DROPS the .meas of the
+* first analysis when a deck carries both .ac and .tran: the ac measures
+* vanish with no `failed!` line and no error. One analysis type per deck.
+*
+* SOURCE NETLIST: boards/bb-adc/kicad/bb-adc.net. Load topology synthesized via
+*   sim_run.py --fragment --net kicad/bb-adc.net --refs R6,C7
+* returning verbatim:  R6 N_AIN_BUF N_AIN_ADC 49.9  /  C7 N_AIN_ADC 0 1nF
+* RENAME MAP:  /AIN_BUF->N_AIN_BUF  /AIN_ADC->N_AIN_ADC  GND->0
+* U3 (OPA320) and U1 (ADS8326) come back in the fragment `unresolved` table -
+* no generic SPICE primitive - and are wired here as BOUNDARY models below.
+*
+* ============================ MODEL PROVENANCE ============================
+* .subckt OPA320 - agent-authored Tier-B BOUNDARY model. No vendor file, no
+* IC internals. Every parameter is a TI SBOS513F number for OPA320AIDBVR
+* (parts/C92494.json), except f2 which is FITTED to a datasheet number:
+*   aoldc = 3.16228e6  = 130 dB open-loop gain typ   [Sec 7.3.7 p.18,
+*                        C92494.json layout_notes[5], verbatim]
+*   gbw   = 20 MHz     = GBP typ, unity gain, VS=5V, CL=50pF [p.8, abs_max 43]
+*   ro    = 90 ohm     = RO open-loop output resistance typ, IO=0mA, f=1MHz
+*                        [p.8, abs_max 50]. TI states it "remains very flat
+*                        over a wide frequency range" [Sec 7.3.7] and Fig 19
+*                        confirms ~90-100 ohm to roughly 1-10 MHz - that
+*                        flatness is what makes the isolation-resistor method
+*                        valid for this part (state.json decision "OPA320
+*                        PASSES the isolation-resistor screening test").
+*   sr    = 10 V/us    = SR typ, G=+1, VS=5V, CL=50pF [p.8, abs_max 44]
+*   Cdif  = 5 pF, Ccm = 4 pF  [p.8, abs_max 56 / 57]
+*   f2    = 56 MHz     = FITTED, not a datasheet row. It is the single internal
+*                        second pole that makes this model reproduce the
+*                        datasheet own phase margin - PM = 47 deg typ at
+*                        CL = 50 pF [p.8, abs_max 45] - see the pm_ds_deg
+*                        bound, which is a CALIBRATION bound: it fails if
+*                        anyone edits the model away from the datasheet.
+* Output stage: an ideal driver clamped to [V-,V+] behind ro. At saturation the
+* model gives Vout = ro * Iload, which reproduces the datasheet output-swing
+* rows conservatively: at RL=10k to VS/2 on this 3.3 V rail it gives 14.7 mV
+* where the datasheet 25 C rows scale to 6.6 mV typ / 13.2 mV max [p.7-8,
+* abs_max 35 / 36]. The model is therefore no kinder than the max column.
+* Slew limiting is a hard min/max clamp on the input transconductance current
+* at SR*Cp, so the large-signal slew rate is exactly the datasheet SR (proved
+* by the sr_v_per_us calibration bound in buffer-step). min/max linearizes to
+* gm for .ac; limit() was NOT used - machine-verified on ngspice 46, a limit()
+* expression linearizes to ZERO AC gain and silently kills .ac. A tanh soft
+* limiter was tried first and read 6.53 V/us against the datasheet 10.
+* KNOWN MODEL LIMIT: TI characterizes GBP/SR/PM at VS = 5 V only; this board
+* runs 3.3 V. No 3.3 V row exists (state.json "GAP carried into P8").
+* ==========================================================================
+*
+* DESIGN INTENT: R6 = 49.9 ohm is an isolation resistor, not a filter element.
+* Without it the OPA320 90 ohm open-loop RO works against C7 = 1 nF inside the
+* loop and the follower goes marginal. This bench proves the loop is stable
+* with the network actually fitted; its seeded defect is R6 -> 0.
+* SOURCES for the bounds: blocks.md s7 item 3 (PM >= 45 deg, overshoot <= 5%),
+* C92494.json as cited above, C544731.json abs_max input_capacitance_sampling
+* C_SAMPLE = 48 pF and pinout +IN "Equivalent Analog Input Circuit: RON 50
+* ohm, C(SAMPLE)=48pF".
+
+.options rshunt=1e12
+.param aoldc=3.16228e6
+.param gbwx=20e6
+.param rox=90
+.param srx=10e6
+.param f2x=56e6
+.param vbias=1.024
+.param vdoff={vbias/aoldc}
+.param r6=49.9
+.param c7=1e-9
+.param c7big=2.2e-9
+.param csh=48e-12
+.param ronsh=50
+
+.subckt OPA320 inp inn out vpos vneg aoldc=3.16228e6 gbw=20e6 ro=90 sr=10e6 f2=56e6
+.param rp1={aoldc}
+.param cp1={1/(6.283185307*gbw)}
+.param imax={sr*cp1}
+.param cq1={1/(6.283185307*f2*1e3)}
+Ccm1 inp vneg 4p
+Ccm2 inn vneg 4p
+Cdif inp inn 5p
+Gm   0 pol cur='min(max((v(inp)-v(inn))*1.0,-{imax}),{imax})'
+Rp   pol vneg {rp1}
+Cp   pol vneg {cp1}
+Rq   pol q 1e3
+Cq   q vneg {cq1}
+Bdrv drv 0 V={min(max(v(q),v(vneg)),v(vpos))}
+Ro   drv out {ro}
+.ends
+
+* ---- open-loop loop-gain instances. The loop of a unity-gain follower has
+* beta = 1 exactly (the feedback is a wire), so the loop gain IS the loaded
+* open-loop gain. Each instance is driven DIFFERENTIALLY by two ideal 0.5 V AC
+* sources so the input capacitances cannot form a divider, plus a DC offset of
+* vbias/aoldc that puts the open-loop output at vbias - away from the output
+* clamp corner, where min/max has no defined derivative. The 4 pF that the
+* follower inverting input would put on the output node is added explicitly.
+Vpos vp 0 DC 3.3
+Vcm  cm 0 DC {vbias}
+
+* (a) unloaded - checks GBW and the DC gain against the datasheet
+Vap ap cm DC {vdoff/2} AC 0.5
+Van cm an DC {vdoff/2} AC 0.5
+Xnl ap an onl vp 0 OPA320 aoldc={aoldc} gbw={gbwx} ro={rox} sr={srx} f2={f2x}
+Cnl onl 0 4p
+
+* (b) the datasheet own PM condition: CL = 50 pF -> must read 47 deg
+Vbp bp cm DC {vdoff/2} AC 0.5
+Vbn cm bn DC {vdoff/2} AC 0.5
+Xds bp bn ods vp 0 OPA320 aoldc={aoldc} gbw={gbwx} ro={rox} sr={srx} f2={f2x}
+Cds ods 0 50p
+
+* (c) THE BOARD: R6 + C7 + the ADS8326 input during acquisition (RON 50 ohm
+*     in series with C_SAMPLE 48 pF - the worst case, most capacitance)
+Vcp cp3 cm DC {vdoff/2} AC 0.5
+Vcn cm cn3 DC {vdoff/2} AC 0.5
+Xrl cp3 cn3 orl vp 0 OPA320 aoldc={aoldc} gbw={gbwx} ro={rox} sr={srx} f2={f2x}
+Crl orl 0 4p
+R6a orl adc1 {r6}
+C7a adc1 0 {c7}
+Rsh1 adc1 sh1 {ronsh}
+Csh1 sh1 0 {csh}
+
+* (d) the C7 = 2.2 nF headroom candidate from acquisition-settling
+Vdp dp cm DC {vdoff/2} AC 0.5
+Vdn cm dn DC {vdoff/2} AC 0.5
+Xbg dp dn obg vp 0 OPA320 aoldc={aoldc} gbw={gbwx} ro={rox} sr={srx} f2={f2x}
+Cbg obg 0 4p
+R6b obg adc2 {r6}
+C7b adc2 0 {c7big}
+Rsh2 adc2 sh2 {ronsh}
+Csh2 sh2 0 {csh}
+
+.ac dec 400 1e3 1e9
+.meas ac gbw_hz     WHEN vdb(onl)=0
+.meas ac pnl_r      FIND vp(onl) WHEN vdb(onl)=0
+.meas ac pm_noload_deg  param='180+pnl_r*57.29577951'
+.meas ac gdc_1k_db  FIND vdb(onl) AT=1e3
+.meas ac fds_hz     WHEN vdb(ods)=0
+.meas ac pds_r      FIND vp(ods) WHEN vdb(ods)=0
+.meas ac pm_ds_deg  param='180+pds_r*57.29577951'
+.meas ac fx_rl_hz   WHEN vdb(orl)=0
+.meas ac prl_r      FIND vp(orl) WHEN vdb(orl)=0
+.meas ac pm_board_deg   param='180+prl_r*57.29577951'
+.meas ac fx_bg_hz   WHEN vdb(obg)=0
+.meas ac pbg_r      FIND vp(obg) WHEN vdb(obg)=0
+.meas ac pm_c22_deg param='180+pbg_r*57.29577951'
+* no second 0 dB crossing above the measured one: the loop gain must stay
+* buried in the decade above crossover
+.meas ac gain_hi_db MAX vdb(orl) FROM=40e6 TO=1e9
+.end

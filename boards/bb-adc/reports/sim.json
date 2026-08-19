@@ -1,0 +1,205 @@
+{
+ "script": "sim_run",
+ "status": "violations",
+ "board": "sims",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "sim.ngspice": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "sim",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": null,
+   "refs": [],
+   "msg": "reference-kickback.cir: first_droop_uv = 16.3522 outside <= 15.6 - FINDING, EXPECTED TO FIRE, AND HANDED TO THE ARCHITECT. VREF droop across the FIRST conversion after an idle period - the one case where the node starts fully recovered, so the whole per-conversion charge comes out of the bulk. Measured 16.35 uV against blocks.md s7 item 5's 15.6 uV figure: 1.05x over, i.e. 1.05 LSB-halves. It is a WARNING and not an error because s7 item 5 states its 15.6 uV as a RECOVERY criterion (ref_recov_uv, which passes at 0.0014 uV), and intra-conversion droop is a different quantity that no cited source bounds on this board. Three things the architect needs with it: (1) it applies to the first conversion after idle only - repetitive operation sees 4.75 uV; (2) the droop is monotonic across the bit trials, so the code error is a fraction of the raw droop (the MSB decisions happen before the droop develops) - that fraction is NOT quantified here; (3) the remedy is bounded, because more bulk is the only lever and the ADR4520 ceiling is 100 uF total, so the best available is 49.2 -> ~100 uF, which halves it to ~8.5 uV. Not sensitive to the unpublished reference output impedance: 16.35 uV at 5 ohm, 17.33 uV at 50 ohm, saturating at droop_caplimit_uv.",
+   "source": "sim.ngspice",
+   "items": [
+    {
+     "msg": "reference-kickback.cir: first_droop_uv = 16.3522 outside <= 15.6 - FINDING, EXPECTED TO FIRE, AND HANDED TO THE ARCHITECT. VREF droop across the FIRST conversion after an idle period - the one case where the node starts fully recovered, so the whole per-conversion charge comes out of the bulk. Measured 16.35 uV against blocks.md s7 item 5's 15.6 uV figure: 1.05x over, i.e. 1.05 LSB-halves. It is a WARNING and not an error because s7 item 5 states its 15.6 uV as a RECOVERY criterion (ref_recov_uv, which passes at 0.0014 uV), and intra-conversion droop is a different quantity that no cited source bounds on this board. Three things the architect needs with it: (1) it applies to the first conversion after idle only - repetitive operation sees 4.75 uV; (2) the droop is monotonic across the bit trials, so the code error is a fraction of the raw droop (the MSB decisions happen before the droop develops) - that fraction is NOT quantified here; (3) the remedy is bounded, because more bulk is the only lever and the ADR4520 ceiling is 100 uF total, so the best available is 49.2 -> ~100 uF, which halves it to ~8.5 uV. Not sensitive to the unpublished reference output impedance: 16.35 uV at 5 ohm, 17.33 uV at 50 ohm, saturating at droop_caplimit_uv.",
+     "pos": null
+    }
+   ],
+   "kind": "sim_bound_fail",
+   "measure": "first_droop_uv",
+   "testbench": "reference-kickback.cir",
+   "bound": {
+    "min": null,
+    "max": 15.6
+   },
+   "value": 16.3522
+  }
+ ],
+ "input": "boards\\bb-adc\\kicad\\sims",
+ "engine": {
+  "dll": "C:\\Program Files\\KiCad\\10.0\\bin\\ngspice.dll",
+  "ngspice_version": 46
+ },
+ "timeout_s": 60.0,
+ "testbenches": [
+  {
+   "name": "acquisition-settling",
+   "cir": "boards\\bb-adc\\kicad\\sims\\acquisition-settling.cir",
+   "bounds": 12,
+   "elapsed_s": 1.013,
+   "measures": {
+    "vdc_a": 1.9996,
+    "vsmp_a": 1.9996,
+    "err_a_uv": 0.135593,
+    "vdc_b": 1.9996,
+    "vsmp_b": 1.9996,
+    "err_b_uv": 0.13591,
+    "vdc_c": 1.9996,
+    "vsmp_c": 1.9996,
+    "err_c_uv": 0.143105,
+    "vdc_d": 1.8432e-10,
+    "vsmp_d": 1.00543e-08,
+    "err_d_uv": 0.00986996,
+    "t_a": 1.01487e-05,
+    "tset_a_us": 0.148703,
+    "t_c": 1.0643e-05,
+    "tset_c_us": 0.643038,
+    "t_d": 1.12435e-05,
+    "tset_d_us": 1.24353,
+    "adcmin_a": 1.91997,
+    "droop_a_mv": 79.6272,
+    "adcmin_c": 1.95956,
+    "droop_c_mv": 40.0367,
+    "obuf_d_pk": 0.0539841,
+    "obuf_d_mv": 53.9841,
+    "adc_d_pk": 0.0839153,
+    "kick_d_mv": 83.9153,
+    "t_e": 2.65292e-05,
+    "tstep_us": 25.5292
+   },
+   "status": "pass"
+  },
+  {
+   "name": "buffer-stability",
+   "cir": "boards\\bb-adc\\kicad\\sims\\buffer-stability.cir",
+   "bounds": 8,
+   "elapsed_s": 0.616,
+   "measures": {
+    "gbw_hz": 18924000.0,
+    "pnl_r": -1.93935,
+    "pm_noload_deg": 68.8836,
+    "gdc_1k_db": 86.0173,
+    "fds_hz": 17190300.0,
+    "pds_r": -2.32095,
+    "pm_ds_deg": 47.0191,
+    "fx_rl_hz": 7540270.0,
+    "prl_r": -1.95104,
+    "pm_board_deg": 68.2139,
+    "fx_bg_hz": 7188450.0,
+    "pbg_r": -1.82881,
+    "pm_c22_deg": 75.2171,
+    "gain_hi_db": -16.7664
+   },
+   "status": "pass"
+  },
+  {
+   "name": "buffer-step",
+   "cir": "boards\\bb-adc\\kicad\\sims\\buffer-step.cir",
+   "bounds": 7,
+   "elapsed_s": 0.753,
+   "measures": {
+    "vfin1": 1.02,
+    "vadcpk": 1.02003,
+    "os_adc_pct": 0.140813,
+    "vadctr": 1.02,
+    "us_adc_pct": 0.000127703,
+    "vpk1": 1.02234,
+    "os_buf_pct": 11.7206,
+    "vsh_fin": 1.02,
+    "vsh_samp": 1.02,
+    "ring_uv": 0.0,
+    "t_15u6": 5.19746e-06,
+    "settle_ns": 197.459,
+    "t30d": 5.06819e-06,
+    "t70d": 5.14822e-06,
+    "sr_v_per_us": 9.99636,
+    "t30b": 5.11279e-06,
+    "t70b": 5.21555e-06,
+    "sr_board_v_per_us": 7.78547
+   },
+   "status": "pass"
+  },
+  {
+   "name": "divider-ratio",
+   "cir": "boards\\bb-adc\\kicad\\sims\\divider-ratio.cir",
+   "bounds": 6,
+   "elapsed_s": 0.598,
+   "measures": {
+    "v_tap_loaded": 1.9996,
+    "v_tap_ideal": 2.0,
+    "v_tap_leak": 1.99984,
+    "k_ratio": 0.4,
+    "load_err_mv": 0.9998,
+    "leak_uv_per_na": 600.08,
+    "rthev_kohm": 240.032,
+    "v_tap_half": 0.9998,
+    "lin_err_uv": 0.0
+   },
+   "status": "pass"
+  },
+  {
+   "name": "reference-kickback",
+   "cir": "boards\\bb-adc\\kicad\\sims\\reference-kickback.cir",
+   "bounds": 7,
+   "elapsed_s": 0.636,
+   "measures": {
+    "vq": 2.04797,
+    "vs0": 2.04788,
+    "vs1": 2.04787,
+    "vs2": 2.04788,
+    "vmx": 2.04788,
+    "vmn": 2.04787,
+    "ref_droop_uv": 4.754,
+    "ref_recov_uv": 0.00142271,
+    "ref_ripple_uv": 4.75428,
+    "ref_dc_sag_uv": 95.0857,
+    "vf0": 2.04797,
+    "vf1": 2.04796,
+    "first_droop_uv": 16.3522,
+    "droop_caplimit_uv": 17.439,
+    "droop_pesslimit_uv": 28.4553,
+    "cbulk_uf": 49.2
+   },
+   "status": "violations"
+  },
+  {
+   "name": "zero-scale-swing",
+   "cir": "boards\\bb-adc\\kicad\\sims\\zero-scale-swing.cir",
+   "bounds": 7,
+   "elapsed_s": 0.602,
+   "measures": {
+    "vz0": 4.4997e-06,
+    "swing_uv": 4.4997,
+    "vz0_adc": 6.99453e-06,
+    "swing_adc_uv": 6.99453,
+    "lost_codes": 0.08953,
+    "vz0_b": 0.0147175,
+    "swing_10k_mv": 14.7175,
+    "vt512": 2.04759,
+    "vt256": 1.02379,
+    "vt010": 0.0039992,
+    "inl_mid_uv": 5.62462,
+    "inl_lo_uv": 11.0993,
+    "gain_err_mv": 1.02577,
+    "load_ua": 0.982859
+   },
+   "status": "pass"
+  }
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-19T09:51:26+00:00",
+ "input_digest": "dir_text:226881296665ec615f98bc9d260c5a07fd8944ddc4f21953c479a90e74178651"
+}

@@ -73,9 +73,9 @@ A net spelled differently in the schematic surfaces as `missing_net` (error).
 
 | Refdes | Part class | Net attachments |
 |---|---|---|
-| `U1` | 16-bit SAR, SPI peripheral, VDD 2.7-3.6 V, external VREF pin 0.1 V..VDD, input range includes 0 V, offset AND gain specified as MAXIMA (**ADS8326IB** class) | VDD=**`VDD_ADC`** (behind R7), GND=`GND`, VREF=`VREF`, `+IN`=`/AIN_ADC`, **`-IN`=`GND` AT R5's BOTTOM PAD - read the note below before wiring it**, CS=`/CS`, DCLOCK=`/SCLK`, DOUT=`/DOUT` |
+| `U1` | 16-bit SAR, SPI peripheral, VDD 2.7-3.6 V, external VREF pin 0.1 V..VDD, input range includes 0 V, offset AND gain specified as MAXIMA (**ADS8326IB** class) | VDD=**`VDD_ADC`** (behind R7), GND=`GND`, VREF=`VREF`, `+IN`=`/AIN_ADC`, **`-IN`=`/AGND_SENSE` (its OWN net: `U1.3` + `R5.2` + `R8.1`) - read the note below**, CS=`/CS`, DCLOCK=`/SCLK`, DOUT=`/DOUT` |
 | `U2` | 2.048 V series voltage reference, <= 0.02 % initial max, <= 2 ppm/degC max, Vin_min <= 3.035 V (**ADR4520B** class) | IN=`+3V3`, GND=`GND`, OUT=`VREF` |
-| `U3` | unity-gain follower, CMOS input, RRIO, Vos <= 100 uV max, Ib <= 400 pA over temp (**OPA333** class; **OPA320** the same-footprint alternate) | V+=`+3V3`, V-=`GND`, `+IN`=`/AIN_DIV`, `-IN`=`/AIN_BUF`, OUT=`/AIN_BUF` |
+| `U3` | unity-gain follower, CMOS input, RRIO, Vos <= 100 uV max, Ib <= 400 pA over temp (**OPA320** FITTED - chosen on settling from the converter's clock-count acquisition window; **OPA333** the same-footprint alternate) | V+=`+3V3`, V-=`GND`, `+IN`=`/AIN_DIV`, `-IN`=`/AIN_BUF`, OUT=`/AIN_BUF` |
 | `R1` `R2` `R3` | attenuator TOP arm, 3 x 200 kohm 0.02 % / 10 ppm, ONE part number with `R4`/`R5` | `/AIN_RAW`-`/ATT_A`-`/ATT_B`-`/AIN_DIV` |
 | `R4` `R5` | attenuator BOTTOM arm, 2 x the same 200 kohm part | `/AIN_DIV`-`/ATT_C`-`GND` |
 | `R6` | ADC input isolation, 20-100 ohm (sim benches 2/3 set it) | `/AIN_BUF` / `/AIN_ADC` |
@@ -94,12 +94,17 @@ A net spelled differently in the schematic surfaces as `missing_net` (error).
 
 ### `U1 -IN` IS A DEDICATED SENSE RUN, NOT A GROUND SYMBOL
 
-Electrically `-IN` is on `GND`, so a netlist cannot tell the difference - which
-is exactly why this note exists. **Wire `U1 -IN` to the point where `R5`'s
-bottom pad meets `GND`** (the attenuator string's bottom node), as its own
-connection. Do NOT drop a `GND` power symbol next to the converter and call it
-done: that deletes the board's largest error-cancellation mechanism silently
-and nothing downstream will report it.
+UPDATED at P4 review (E1). `-IN` is now its OWN NET, `/AGND_SENSE`, with exactly
+three nodes: `U1.3`, `R5.2` and `R8.1`. `R8` is a single 0 ohm tie to `GND` at the
+string bottom, and it is the ONLY join between them.
+
+This changed because the earlier arrangement - `-IN` on `GND`, with the intent
+carried by placement - does not survive the pour. On the netlist `U1.3` was one of
+16 `GND` nodes, so the B.Cu pour thermal-connects pin 3 exactly like pin 4 and
+references the measurement to the pour AT THE CONVERTER, deleting the cancellation
+with every gate green. A corridor is a keep-clear swath, not a connectivity rule.
+Giving the sense its own net makes it netlist-enforced: the pour cannot cover
+`/AGND_SENSE`, the router must route `U1.3` to `R5.2`, and every gate checks it.
 
 The reason: **a divider passes a ground offset at UNITY while dividing the
 signal by K = 0.400**, so any offset between the string's bottom node and the

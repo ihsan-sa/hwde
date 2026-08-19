@@ -478,6 +478,16 @@ costs the budget nothing.
 
 ### 8.1 The `-IN` remote sense - a new architecture item, not a layout detail
 
+> **UPDATED at P4 review (E1).** `-IN` is its OWN NET `/AGND_SENSE` (`U1.3`,
+> `R5.2`, `R8.1`), tied to `GND` by a single 0 ohm link `R8` at the string bottom.
+> The original single-net-plus-placement form was shown NOT to survive the ground
+> pour: with `U1.3` on `GND`, the pour terminates pin 3 locally and the sense node
+> stops being the string bottom at all - silently, with every gate green. The
+> mechanism and arithmetic below are unchanged; only the enforcement moved from
+> geometry to the netlist. Residual after the fix: the J1-return-to-string-bottom
+> pour offset, input-referred at unity, carrying only the string's own 5 uA -
+> sub-1 uV. `R8` itself adds 5 uA x tens of mohm ~ 0.25 uV.
+
 **`U1 -IN` is wired to the attenuator string's BOTTOM NODE (`R5`'s grounded
 pad), not to a ground point at the converter.** It is a schematic requirement
 at P4 and a routing constraint at P7.

@@ -1,0 +1,163 @@
+* bb-adc reference-kickback - the ADS8326's per-conversion reference charge
+* demand against the ADR4520 and its bypass, and the two-ended stability
+* window that bypass has to live inside. blocks.md s7 item 5.
+*
+* SOURCE NETLIST: boards/bb-adc/kicad/bb-adc.net, net VREF (code 15) =
+*   { C3.1, C5.1, U1.1 (REF), U2.6 (VOUT) }  - synthesized via
+*   sim_run.py --fragment --net kicad/bb-adc.net --refs C3,C5
+* RENAME MAP: VREF->N_VREF  GND->0
+* returning verbatim: C3 = 47uF 16V X7R, C5 = 2.2uF 10V X7R, both to GND.
+* There is NO series resistor between U2.6 and the bypass - state.json
+* decision 61 refuses one, because the SAR's reference current VARIES WITH
+* INPUT CODE (TI SNAA320B) and any series R would turn that varying current
+* into a code-dependent voltage error, i.e. a NONLINEARITY, the worst error
+* class on a DC-accuracy board. U1 and U2 come back in the fragment
+* `unresolved` table and are wired here as BOUNDARY models.
+*
+* ===================== HOW THE REFERENCE CURRENT IS SPLIT =================
+* The ADS8326 publishes its reference input current at TWO throughputs:
+*   14 uA MAX at 10 kHz    [C544731.json abs_max 84]
+*   220 uA MAX at 250 kHz  [C544731.json abs_max 83]
+* (The 14 uA row CORRECTS constraints.json, which records 7 uA - the error
+* state.json decision 76 flags. Both rows are the MAX column.)
+* Two rows, two unknowns, so the split is derived rather than guessed:
+*   I(f) = Istatic + Qdyn * f
+*   220u - 14u = Qdyn * (250k - 10k)  ->  Qdyn  = 0.858 nC per conversion
+*                                       Istatic = 5.42 uA
+* Only Qdyn causes intra-conversion droop; Istatic is a steady load and shows
+* up as a DC sag, which is a gain term the error budget already carries, not a
+* settling term. Attributing the WHOLE 10 kHz row to dynamic charge instead
+* (1.4 nC) is the pessimistic reading and is carried as its own measure.
+*
+* ============================ MODEL PROVENANCE ============================
+* U2 ADR4520B - agent-authored boundary model: an ideal 2.048 V source behind
+* a series output resistance rref. NO vendor file, no internals.
+*   rref = 5 ohm is NOT A DATASHEET NUMBER and is not presented as one. The
+*   extracted record (parts/C579305.json) carries NO output-impedance and NO
+*   load-regulation row. The one published dynamic figure is TURN-ON SETTLING
+*   TIME tR = 90 us typ at CL = 1 uF / IL = 0 mA [Table 3 p.3], which read as
+*   a first-order settling implies an impedance of order 10 ohm; 5 ohm is that
+*   order, chosen as an engineering estimate of the OPEN-LOOP output impedance
+*   the part presents to a 32 us burst (a series reference's loop has no gain
+*   left at ~30 kHz). rref is deliberately NOT used for any DC accuracy claim
+*   - the reference's DC error lives in blocks.md s5 rows 4/5/6.
+*   HOW MUCH THE ANSWER DEPENDS ON IT was measured rather than assumed, by
+*   sweeping rref over two decades:
+*     rref ohm      0.5     5.0     20      50
+*     ripple uV     4.52    4.75    5.97    9.72   (repetitive operation)
+*     1st-shot uV   9.76   16.35   17.16   17.33   (first conversion, idle)
+*   Both quantities SATURATE at the estimate-free limit Qdyn/Cbulk = 17.44 uV,
+*   which this deck emits as droop_caplimit_uv, and neither is sensitive to
+*   rref anywhere in the plausible 0.5-20 ohm range. So the unpublished
+*   parameter does not carry the conclusion - the bulk capacitance does.
+* U1 ADS8326 reference port - boundary model, three elements:
+*   Cin = 24 pF static  [abs_max 82, reference_input_capacitance]
+*   Istat = 5.42 uA DC  (derived above)
+*   Iburst = a rectangular draw of Qdyn coulombs spread across the 16-DCLOCK
+*   conversion window, zero during acquisition. The fine structure (16
+*   individual bit-trial redistributions) is deliberately not modelled: the
+*   droop is set by total charge into the bulk capacitance, and spreading the
+*   same charge over the same window as one rectangle rather than 16 spikes
+*   gives the same envelope.
+* TIMING is the worst case the 500 kHz DCLOCK allows, not the nominal rate:
+*   t_CONV = 16 DCLOCKs = 32.0 us  [abs_max 111]
+*   t_CYC  = 22 DCLOCKs = 44.0 us  [abs_max 112, tCYC_min] -> 22.7 kSa/s, the
+*   fastest this board can run and where the reference gets least recovery
+*   time. blocks.md s7 item 5 names exactly this figure.
+* ==========================================================================
+*
+* THE OTHER HALF OF THIS BENCH, and the failure mode blocks.md s7 item 5
+* actually names - "a habitual 1 uF fitted outside the reference's stability
+* window". The ADR4520's LOAD CAPACITANCE spec is a TWO-ENDED MANDATORY
+* window, 1 uF MIN and 100 uF MAX [Table 3 p.3; Table 12 'Minimum COUT Value'
+* cross-confirms 1.0 uF for this member; Applications Information p.31 'An
+* output capacitor is required for stability'] - exceeding 100 uF is as
+* out-of-spec as going under 1 uF, because the output capacitor is a
+* compensation element inside the reference's own loop. C3 + C5 = 49.2 uF
+* nominal sits 49x above the floor and 2x below the ceiling, so no X7R
+* tolerance or DC-bias derating can walk it out of the window from either end.
+*
+* SEEDED DEFECTS: (1) c3 -> 0, c5 -> 0.1 uF, the habitual 100 nF left behind
+* when the bulk is value-engineered away: cbulk_uf reads 0.1 and trips the
+* floor, and droop_caplimit_uv rises 492x to 8580 uV. (2) c3 -> 150 uF, "more
+* bulk must be safer": cbulk_uf reads 152.2 and trips the ceiling that only a
+* two-ended reading of the datasheet catches.
+* SOURCES for the bounds: blocks.md s7 item 5 (VREF back within 15.6 uV
+* before the next conversion begins, bypass inside the reference's own stable
+* range); 1/2 LSB at the ADC node = 15.6 uV (5.120 V FS / 65536 = 78.1 uV per
+* code); C579305.json decoupling[VOUT] + layout_notes[4]; C544731.json
+* abs_max 82/83/84/111/112.
+
+* ENGINE NOTES (machine-verified, ngspice 46): rshunt explicit; tolerances
+* tightened to resolve sub-uV on a 2.048 V node, which ngspice's default
+* reltol 1e-3 (2 mV here) is three orders away from doing. {braces} are a
+* syntax error inside `.meas ... param='...'`; bare .param names work there,
+* which is what lets cbulk_uf and droop_caplimit_uv gate the fitted values
+* and the closed-form limit directly.
+.options rshunt=1e12 reltol=1e-9 vntol=1e-13 abstol=1e-16 chgtol=1e-20
+
+.param vrefv=2.048
+.param rref=5.0
+.param c5=2.2e-6
+.param c3=47e-6
+.param cbulk={c5+c3}
+.param cin=24e-12
+.param qdyn=0.858e-9
+.param istat=5.42e-6
+.param qpess=1.4e-9
+.param tconv=32.0e-6
+.param tcyc=44.0e-6
+.param ipk={qdyn/tconv}
+.param t0=10e-6
+.param tmeas={t0+52*tcyc}
+
+* ---- U2 ADR4520B boundary model + the bypass as fitted
+Vr2  refi 0 DC {vrefv}
+Rr2  refi vrefn {rref}
+C5x  vrefn 0 {c5}
+C3x  vrefn 0 {c3}
+
+* ---- U1 ADS8326 reference port boundary model
+Cinx  vrefn 0 {cin}
+Istatx vrefn 0 DC {istat}
+Iburst vrefn 0 PULSE(0 {ipk} {t0} 1n 1n {tconv} {tcyc})
+
+.tran 200n 2600u
+
+* ===== the quiescent reference, before any conversion has run
+.meas tran vq  FIND v(vrefn) AT=9u
+* ===== one STEADY-STATE cycle, 52 conversions in
+.meas tran vs0 FIND v(vrefn) AT={tmeas}
+.meas tran vs1 FIND v(vrefn) AT={tmeas+tconv}
+.meas tran vs2 FIND v(vrefn) AT={tmeas+tcyc}
+.meas tran vmx MAX  v(vrefn) FROM={tmeas} TO={tmeas+tcyc}
+.meas tran vmn MIN  v(vrefn) FROM={tmeas} TO={tmeas+tcyc}
+* intra-conversion droop: how far VREF falls while the bit trials run
+.meas tran ref_droop_uv  param='(vs0-vs1)*1e6'
+* recovery: VREF at the start of the NEXT conversion against this one
+.meas tran ref_recov_uv  param='abs(vs2-vs0)*1e6'
+* the whole excursion inside one cycle - what a conversion actually sees
+.meas tran ref_ripple_uv param='(vmx-vmn)*1e6'
+* the steady DC sag Istatic plus the average burst current costs. A gain
+* term, carried by blocks.md s5 rows 4-6, reported here only for scale.
+.meas tran ref_dc_sag_uv param='(vq-vs0)*1e6'
+* ===== THE FIRST CONVERSION AFTER AN IDLE PERIOD, which is the only case
+* where Q/C applies: the node starts fully recovered instead of sitting at
+* its cycle-average level. In repetitive operation rref*Cbulk = 246 us is
+* much longer than t_CYC = 44 us, so VREF never returns to quiescent between
+* conversions - it settles to a cycle-average DC sag with a small ripple on
+* top, and the ripple is what a conversion actually sees. The single-shot
+* droop is therefore the LARGER number and is measured separately.
+.meas tran vf0 FIND v(vrefn) AT={t0-0.5e-6}
+.meas tran vf1 FIND v(vrefn) AT={t0+tconv}
+.meas tran first_droop_uv param='(vf0-vf1)*1e6'
+* ===== ESTIMATE-FREE upper bound on the droop: the limit in which the
+* reference contributes NOTHING during the conversion and the bulk supplies
+* every coulomb. Independent of rref, and the number to rule on.
+.meas tran droop_caplimit_uv  param='qdyn/cbulk*1e6'
+* ===== the same limit on the pessimistic reading of the current split, where
+* the whole 14 uA / 10 kHz row is charged to dynamic redistribution
+.meas tran droop_pesslimit_uv param='qpess/cbulk*1e6'
+* ===== the bypass value the ADR4520's two-ended stability window gates
+.meas tran cbulk_uf           param='cbulk*1e6'
+.end
