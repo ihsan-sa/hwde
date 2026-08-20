@@ -671,6 +671,14 @@ promote approved records into `reference/knowledge/records/` (maturity
 `approved`, approval note = the ruling); resolve every queue entry
 promoted/declined with a reason; root LEARNINGS + triage rows for the
 promotions.
+**Prep mode (unattended, owner away):** everything EXCEPT approval may run
+without the owner: dedupe/merge proposals, level + scales-with sanity,
+contradiction list, and the batched ruling packet written to
+`design/u22-ruling-packet.md` (U14's question-set form, recommendations
+marked). Staged merged records land as maturity `verified` at most - setting
+`approved` without the owner is forbidden. The owner session then rules the
+packet and flips approvals; acceptance below applies to THAT session.
+
 **Accept:** zero `pending` entries across all five workspaces;
 `knowledge.py --validate --strict` green; dedupe stats reported (in ->
 out); coverage at the DEFAULT floor on synthetic ldo/adc/inamp/mcu
