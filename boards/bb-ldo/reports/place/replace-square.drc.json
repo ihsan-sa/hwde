@@ -1,0 +1,199 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "boards\\bb-ldo\\kicad\\bb-ldo.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.3",
+  "options": {
+    "parity": false,
+    "all_track_errors": false,
+    "refill": false,
+    "save_board": false
+  },
+  "counts": {
+    "total": 5,
+    "by_severity": {
+      "error": 5
+    },
+    "by_source": {
+      "unconnected": 5
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        19.1515,
+        30.045
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "C1",
+        "U1"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [GND] of C1 on F.Cu",
+          "pos": [
+            19.1515,
+            30.045
+          ],
+          "uuid": "b52289a0-5712-4b00-a1e0-90acb431e264"
+        },
+        {
+          "msg": "Pad 1 [GND] of U1 on F.Cu",
+          "pos": [
+            25.8515,
+            32.605
+          ],
+          "uuid": "c695a758-57d9-4acd-915f-c471b2d87c22"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        19.1515,
+        30.045
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "C1",
+        "J1"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [GND] of C1 on F.Cu",
+          "pos": [
+            19.1515,
+            30.045
+          ],
+          "uuid": "b52289a0-5712-4b00-a1e0-90acb431e264"
+        },
+        {
+          "msg": "PTH pad 2 [GND] of J1",
+          "pos": [
+            11.625,
+            34.4875
+          ],
+          "uuid": "364f8fe5-9f82-452b-9d00-4ddb87c905f1"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        23.5515,
+        22.5425
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "C1",
+        "C2"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [GND] of C2 on F.Cu",
+          "pos": [
+            23.5515,
+            22.5425
+          ],
+          "uuid": "a7667b23-74a1-4864-bf29-d83a20c1ac35"
+        },
+        {
+          "msg": "Pad 2 [GND] of C1 on F.Cu",
+          "pos": [
+            19.1515,
+            30.045
+          ],
+          "uuid": "b52289a0-5712-4b00-a1e0-90acb431e264"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        19.1515,
+        33.105
+      ],
+      "layer": "F.Cu",
+      "net": "+5V",
+      "refs": [
+        "C1",
+        "J1"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [+5V] of C1 on F.Cu",
+          "pos": [
+            19.1515,
+            33.105
+          ],
+          "uuid": "3c58e8b3-8f86-4f5f-8e77-8a772ccf245f"
+        },
+        {
+          "msg": "PTH pad 1 [+5V] of J1",
+          "pos": [
+            11.625,
+            39.5675
+          ],
+          "uuid": "10da86e9-d6f6-4a59-925c-18b0a66a8274"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        21.2515,
+        32.605
+      ],
+      "layer": "F.Cu",
+      "net": "+5V",
+      "refs": [
+        "C1",
+        "U1"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 3 [+5V] of U1 on F.Cu",
+          "pos": [
+            21.2515,
+            32.605
+          ],
+          "uuid": "c2c97f4f-16e4-4f88-8ec1-e6aea4b2264c"
+        },
+        {
+          "msg": "Pad 1 [+5V] of C1 on F.Cu",
+          "pos": [
+            19.1515,
+            33.105
+          ],
+          "uuid": "3c58e8b3-8f86-4f5f-8e77-8a772ccf245f"
+        }
+      ]
+    }
+  ],
+  "report_schema": 1,
+  "checker_version": 1,
+  "generated_at": "2026-08-20T09:00:02+00:00",
+  "input_digest": "sexpr_no_uuid:8edccf35bc24cd3de051d16adf7943eb7d68f161d4fa1ee818513b6df50ea940"
+}

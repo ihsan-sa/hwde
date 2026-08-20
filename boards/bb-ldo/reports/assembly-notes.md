@@ -1,6 +1,7 @@
 # bb-ldo - assembly notes
 
 Build: JLCPCB PCBA, **single-sided SMT** (U1, C1, C2 on F.Cu), qty 5.
+Board: **34.655 x 34.655 mm square**, 2 layer, 1 oz, JLC2313_1.6.
 
 ## Hand-install after PCBA
 
@@ -49,3 +50,14 @@ backwards into J1 destroys the board and reverse-biases C1.
    measurement. A thermocouple on the tab at 500 mA settles it.
 3. Inspect the three GND stitch vias near C1/C2/U1 for solder wicking; they
    were relocated clear of the pads at P8 precisely to prevent it.
+
+## Known documentation defect - C2's 3D model
+
+C2's footprint references a **CASE-E** 3D model (EIA 7343-43, 4.1 mm modelled
+height) but the ordered part is **case D** (EIA 7343-31, ~3.1 mm max). The land
+pattern is correct and unaffected - the two case codes share the same
+7.3 x 4.3 mm body and the same copper footprint, differing only in height.
+Nothing manufactured is wrong. **If you run a mechanical or clearance study off
+the 3D model, subtract ~1 mm from C2's height.** No correct CASE-D model exists
+in this workspace, and inventing a plausible-looking one would be worse than a
+documented wrong one.

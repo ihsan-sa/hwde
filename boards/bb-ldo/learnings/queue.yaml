@@ -1,7 +1,7 @@
 version: 1
 board: bb-ldo
 source: LEARNINGS.md
-compiled: '2026-08-19'
+compiled: '2026-08-20'
 entries:
 - entry: 2026-08-16-research-task-block-linear-regulator-1-6
   line: 8
@@ -190,6 +190,107 @@ entries:
   - build-modes
   - thermal
   stage: P0
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-20-planes-gen-has-no-re-pour-path
+  line: 204
+  date: '2026-08-20'
+  title: 'planes_gen has no re-pour path: on a board that already has zones and whose outline GREW, it
+    ADDS a duplicate zone - and nothing in the skill can delete a zone'
+  tags:
+  - P6
+  - planes_gen
+  - board_edit
+  - scripts
+  stage: P6
+  proposed_level: null
+  targets:
+  - scripts/state.py
+  status: pending
+- entry: 2026-08-20-centring-both-edge-connectors-on-a-small
+  line: 236
+  date: '2026-08-20'
+  title: Centring both edge connectors on a small square leaves no room for pin-adjacent silk - and the
+    binding obstacle is a neighbour's own polarity marker
+  tags:
+  - P6
+  - silk
+  - placement
+  stage: P6
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-20-freerouting-cannot-read-this-board-at-all
+  line: 255
+  date: '2026-08-20'
+  title: Freerouting cannot read this board at all - route_auto has nothing to contribute, so its KRT
+    fallback is the ONLY thing it can do
+  tags:
+  - P7
+  - route_auto
+  - freerouting
+  stage: P7
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-20-the-in-pad-defect-reproduces-on-new
+  line: 270
+  date: '2026-08-20'
+  title: The in-pad defect reproduces on new geometry - all THREE proposals landed inside their pads
+  tags:
+  - P7
+  - stitch_vias
+  - dfm
+  stage: P7
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-20-via-redundancy-and-check-current-s-clustering
+  line: 282
+  date: '2026-08-20'
+  title: Via-redundancy and check_current's clustering pull in opposite directions
+  tags:
+  - P7
+  - check_current
+  - plane
+  stage: P7
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-20-moving-the-edge-parts-in-fixes-the
+  line: 294
+  date: '2026-08-20'
+  title: Moving the edge parts in fixes the WIDTH; the SHAPE stays inherited
+  tags:
+  - P6
+  - build-modes
+  - canonical
+  stage: P6
+  proposed_level: null
+  targets: []
+  status: pending
+- entry: 2026-08-20-silk-can-pass-check-silk-and-real
+  line: 326
+  date: '2026-08-20'
+  title: Silk can pass check_silk AND real DRC while being invisible
+  tags:
+  - P8
+  - silk
+  - render
+  stage: P8
+  proposed_level: null
+  targets:
+  - scripts/kc.py
+  status: pending
+- entry: 2026-08-20-freerouting-2-2-4-cannot-parse-this
+  line: 343
+  date: '2026-08-20'
+  title: Freerouting 2.2.4 cannot parse this board at all
+  tags:
+  - P7
+  - freerouting
+  stage: P7
   proposed_level: null
   targets: []
   status: pending

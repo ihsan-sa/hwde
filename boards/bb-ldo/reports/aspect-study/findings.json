@@ -1,0 +1,116 @@
+{
+ "_what": "bb-ldo P8 finding outline-aspect-not-earned: MEASURED answer to what the placement would have earned with the aspect free. Every number below is measured on a built copy (place_edit -> board_edit --outline WxH --anchor topleft -> planes_gen --no-thermal-vias -> KiCad zone fill), never modelled, except the two entries flagged _analytic. Per-case detail: results.json and cases/<name>/measure.json.",
+
+ "method": {
+  "base_board": "state_snapshots/pre-P7-routing/kicad/bb-ldo.kicad_pcb - the P6 placement with NO tracks or zones, so every candidate is measured on the same unrouted footing. The delivered routed board is measured too (case 'delivered') and the two routed candidates (a121r, s1201r) close the loop.",
+  "outline": "board_edit --outline WxH --anchor topleft, NOT --outline fit. The P8 finding is that AREA was earned and ASPECT was not, so area is held at 1321 mm2 (or swept deliberately) and the aspect is the variable. --outline fit would have made the outline a function of wherever the parts happened to land, which is the defect under study.",
+  "placement": "U1+C1+C2 kept RIGID in the exact relative arrangement the P6 annealer earned, translated and rotated about U1's tab; the two screw terminals seated independently. Tab position grid-searched at 0.125 mm over every legal site (courtyards >= 1.0 mm inside the outline, >= 0.4 mm apart, a legal terminal seat existing on each declared edge). Legality re-verified by place_metrics on the built board.",
+  "terminal_orientation": "wire entry = footprint-local y = -5.5 (the .kicad_mod's two solid silk entry arrows start on that face), so deg 0/90/180/270 = entry up/left/down/right. Every pinned candidate uses J1 deg 90 (entry left) and J2 deg 270 (entry right) - the delivered board's own rotations. Confirmed on the recommended candidate by orthographic left and right renders (renders/bb-ldo_left.png, bb-ldo_right.png): both apertures face off their edge.",
+  "planes_gen": "--no-thermal-vias, matching the P7 chain. WITHOUT it planes_gen grids 3 vias into U1's live +3V3 tab (it does not read constraints.thermal.min_vias) - a short to the B.Cu GND plane. Reproduced here on the first base run.",
+  "measures": {
+   "a_eff": "check_thermal's OWN metric: +3V3 copper summed over layers inside a R=14.3286 mm disc (area A_SAT 645 mm2) about U1's PAD CENTROID, clamped at 645. measure.py uses a 256-segment circle; check_thermal's default 16-segment buffer reads ~0.7 mm2 lower - both quoted where it matters.",
+   "r15_r20_r25": "the P6 effective-copper metric: F.Cu +3V3 within r mm of the TAB centre (a different centre, 4.455 mm away from the pad centroid - this is why the two measures can disagree)."
+  }
+ },
+
+ "hard_ceiling": {
+  "_what": "the gate metric cannot be fixed by geometry",
+  "theta_ja_at_A_SAT_c_per_w": 73.847,
+  "rise_at_1W_c": 73.847,
+  "dt_allowed_c": 65.0,
+  "conclusion": "a mathematically perfect, hole-free 645 mm2 of copper still gives a 73.85 C rise against a 65 C target. check_thermal stays red at EVERY aspect and every area; the P8 waiver stands either way. Re-placing buys degrees, not a green gate."
+ },
+
+ "q1_free_aspect_optimum": {
+  "_what": "capture vs aspect at fixed 1321 mm2, unrouted, best legal placement per aspect",
+  "rows_r25_objective": [
+   {"case": "a255", "aspect": 2.55, "wh": [58.0, 22.776], "a_eff": 534.46, "theta_ja": 80.84, "r15": 576.6, "r20": 795.86, "r25": 1022.51},
+   {"case": "base", "aspect": 1.89, "wh": [50.0, 26.42], "a_eff": 593.32, "theta_ja": 76.84, "r15": 642.5, "r20": 916.67, "r25": 1097.73, "note": "the DELIVERED placement, re-measured unrouted"},
+   {"case": "a189", "aspect": 1.89, "wh": [50.0, 26.42], "a_eff": 579.31, "theta_ja": 77.74, "r15": 633.3, "r20": 908.41, "r25": 1168.77, "note": "best r25 reachable at the delivered aspect WITH the edge pin"},
+   {"case": "a160", "aspect": 1.60, "wh": [46.0, 28.717], "a_eff": 610.58, "theta_ja": 75.79, "r15": 673.7, "r20": 978.53, "r25": 1202.47},
+   {"case": "a147", "aspect": 1.47, "wh": [44.0, 30.023], "a_eff": 618.21, "theta_ja": 75.34, "r15": 687.8, "r20": 1014.42, "r25": 1209.31},
+   {"case": "a121", "aspect": 1.21, "wh": [40.0, 33.025], "a_eff": 617.70, "theta_ja": 75.37, "r15": 687.6, "r20": 1085.69, "r25": 1213.96},
+   {"case": "a109", "aspect": 1.09, "wh": [38.0, 34.763], "a_eff": 616.06, "theta_ja": 75.47, "r15": 686.1, "r20": 1100.53, "r25": 1214.42},
+   {"case": "a100", "aspect": 1.00, "wh": [36.346, 36.346], "a_eff": 607.64, "theta_ja": 75.97, "r15": 681.2, "r20": 1104.11, "r25": 1214.52},
+   {"case": "a100e", "aspect": 1.00, "wh": [36.346, 36.346], "a_eff": 618.21, "theta_ja": 75.34, "r15": 689.3, "r20": 1099.33, "r25": 1213.24, "note": "same square, tab picked for a_eff instead of r25 - it gets both"}
+  ],
+  "optimum": "aspect 1.0-1.2 on r25 (1213.2-1214.5) and on r20 (1085.7-1104.1); a_eff peaks at 618.21 (reachable at 1.47 AND at 1.00). The plateau 1.00-1.47 is flat: r25 within 5.2 mm2 (0.4%), a_eff within 0.5 mm2. Anything squarer than 1.5:1 is equivalent; 1.89 and 2.55 are not.",
+  "why_1_5_is_the_boundary": "check_thermal's reach disc (R 14.3286 mm) plus planes_gen's 0.5 mm pour inset fits wholly on the board only when the SHORT dimension >= 2*(14.3286+0.5) = 29.66 mm. At 1321 mm2 that caps the aspect at 1.50:1. The delivered 26.42 mm height spills 28.2 mm2 of the disc off the two long edges (closed form, pour at y 20.2-45.62 vs R 14.3286 about y 32.91); the rest of the delivered board's 62.3 mm2 a_eff shortfall against the 645 clamp is pads, clearances and the +5V carve. Measured confirmation: base 593.32 vs a147 618.21 (no spill) = 24.9 mm2.",
+  "measures_disagree_above_1_5": "at aspect 1.89 the r25-optimal tab costs 14.0 mm2 of a_eff (a189 579.31 vs base 593.32) and the a_eff-optimal tab costs 71.0 mm2 of r25 (base 1097.73 vs a189 1168.77). At 1.47 and squarer a single tab maximises both (a147 == a147e; a100e gets 618.21 AND 1213.24). The disagreement is an artefact of the aspect, not of the metrics."
+ },
+
+ "q2_cost_of_placement_edges": {
+  "_what": "J1-left / J2-right, at equal area and equal aspect",
+  "measured": [
+   {"aspect": 1.00, "pinned": "a100", "free": "f100", "free_minus_pinned_a_eff": 0.0, "free_minus_pinned_r20": 0.0, "free_minus_pinned_r25": 0.0,
+    "note": "identical to 0.01 mm2 on every measure - the free search picks left/right anyway"},
+   {"aspect": 1.47, "pinned": "a147", "free": "f147", "free_minus_pinned_a_eff": -0.86, "free_minus_pinned_r20": 2.12, "free_minus_pinned_r25": 0.0,
+    "note": "free puts both terminals on the top edge and lands on the SAME r25; the sub-mm2 a_eff/r20 differences are terminal-pad positions, not capture"},
+   {"aspect": 1.89, "pinned": "a189b", "free": "f189", "pinned_a_eff": 591.52, "free_a_eff": 593.32,
+    "pinned_r25": 1140.67, "free_r25": 1172.45, "cost_r25_mm2": 31.78, "cost_r25_pct": 2.7,
+    "note": "at ~equal a_eff the pin costs 31.8 mm2 of r25. a189b is the best pinned compromise, taken from the analytic Pareto front"}
+  ],
+  "_analytic_pareto_at_1_89": {
+   "file": "pareto_50x26.42.json",
+   "free": "ONE Pareto point maximising both: a_eff 616.11, r25 1207.24",
+   "pinned": "a genuine trade curve: max-a_eff 616.11 -> r25 only 1132.00 (this IS the delivered tab); max-r25 1203.56 -> a_eff 602.18",
+   "at_1_47": "pin and free have the SAME single Pareto point (645.00, 1244.09) - cost exactly zero"
+  },
+  "verdict": "placement.edges costs ZERO at any aspect <= 1.47 and ~32 mm2 (2.7%) of r25 at the delivered 1.89. It is NOT what forced 50 mm. The pin's real width floor is ~32.3 mm (2 x 10.0 terminal depth + 9.5 core with C2 stacked over U1 + 2 x 0.4 clearance + 2 x 1.0 margin), and a 36.35 mm SQUARE satisfies it with both terminals CENTRED on their edges - i.e. at the pos 0.5 constraints.json actually declares, which the delivered 50 mm board does not honour (its terminals sit ~7 mm off-centre). What forced 50.000 x 26.420 was the placer solving against the provisional 86.29 mm width and --outline fit then wrapping wherever the parts ended up."
+ },
+
+ "q3_area_could_shrink": {
+  "_what": "square boards swept down in area, unrouted unless marked routed",
+  "rows": [
+   {"case": "s1201", "area": 1201.0, "side": 34.655, "a_eff": 609.64, "r20": 1031.46, "r25": 1097.86},
+   {"case": "s1150", "area": 1150.0, "side": 33.912, "a_eff": 606.92, "r20": 994.50, "r25": 1048.40},
+   {"case": "s1100", "area": 1100.0, "side": 33.166, "a_eff": 615.31, "r20": 946.46, "r25": 999.85},
+   {"case": "s1050", "area": 1050.0, "side": 32.404, "a_eff": 612.59, "r20": 903.73, "r25": 951.41},
+   {"case": "s1000", "area": 1000.0, "side": 31.623, "a_eff": 611.72, "r20": 860.46, "r25": 902.97}
+  ],
+  "break_even_vs_delivered_unrouted_base": {
+   "r25_1097.73": {"area_mm2": 1201.0, "saved_mm2": 120.0, "saved_pct": 9.1},
+   "r20_916.67": {"area_mm2": 1065, "saved_mm2": 256, "saved_pct": 19.4, "_note": "interpolated between s1050 903.73 and s1100 946.46"},
+   "a_eff_593.32": {"area_mm2": "< 1000", "saved_mm2": "> 321", "saved_pct": "> 24",
+                    "_note": "s1000 still reads 611.72 - on check_thermal's OWN metric a 1000 mm2 square beats the 1321 mm2 landscape board outright"}
+  },
+  "routed_confirmation": {
+   "delivered_1321": {"pour": 1196.21, "islands": 1, "orphan": 0.0, "a_eff": 582.66,
+                      "check_thermal_area": 581.96, "rise_c": 77.56, "r15": 635.46, "r20": 904.45, "r25": 1083.17},
+   "s1201r_1201": {"pour": 1087.98, "islands": 1, "orphan": 0.0, "a_eff": 599.77,
+                   "check_thermal_area": 598.88, "rise_c": 76.50, "r15": 675.3, "r20": 1021.58, "r25": 1087.98,
+                   "route": "route_auto completion 1.0, 0 copper DRC errors (silk warnings only, from silk labels this study did not move)"},
+   "verdict": "a 34.655 mm square at 1201 mm2 - 120 mm2 / 9.1% LESS board - beats the delivered board on all three radii AND on check_thermal's own metric, with real routed copper."
+  },
+  "design_floor_note": "the >= 1000 mm2 effective floor is met by the delivered board only on r25 (1083.17); its r20 is 904.45, BELOW the floor. s1201r clears 1000 mm2 on BOTH (r20 1021.58, r25 1087.98)."
+ },
+
+ "q4_best_1321_candidate_routed": {
+  "case": "a121r", "wh": [40.0, 33.025], "aspect": 1.21, "area_mm2": 1321.0,
+  "pour": 1204.38, "islands": 1, "orphan_mm2": 0.0, "gnd_islands": 1, "gnd_coverage_under_tab": 1.0,
+  "vias": "3, all GND - no via into the +3V3 pour",
+  "a_eff": 607.91, "check_thermal_area": 606.89, "theta_ja": 76.01, "rise_c": 76.01,
+  "r15": 678.5, "r20": 1075.90, "r25": 1204.17,
+  "route": "route_auto completion 1.0, 0 copper DRC errors (silk warnings only)",
+  "delta_vs_delivered_routed": {
+   "check_thermal_area_mm2": 24.93, "rise_c": -1.55,
+   "r15_mm2": 43.0, "r15_pct": 6.8,
+   "r20_mm2": 171.45, "r20_pct": 19.0,
+   "r25_mm2": 121.00, "r25_pct": 11.2
+  }
+ },
+
+ "recommendation": {
+  "ruling": "RE-PLACE",
+  "target": "34.655 x 34.655 mm (1201 mm2, aspect 1.00) if the artifact should teach that AREA is earned too; 40.000 x 33.025 mm (1321 mm2, aspect 1.21) if the earned area is treated as settled and only the aspect is in scope. Both are legal under placement.edges as written, with the terminals CENTRED on their edges.",
+  "tradeoff_one_line": "Re-placing buys 1.55 C of junction rise and +19% r20 / +11% r25 effective copper (or the same copper in 9.1% less board) and makes the aspect an actual output - at the cost of a full P6->P8 re-run (place, drc, drc_routed, verify, dfm) plus the design doc's board dimensions; the check_thermal gate stays red and waived either way.",
+  "if_kept_instead": "the waiver must be widened: it currently covers 'copper cannot reach 65 C/W'. It would also have to cover 'the aspect was not earned and costs 1.55 C / 171 mm2 of r20 copper against the free-aspect optimum', with these measured numbers as the evidence."
+ },
+
+ "null_results_worth_stating": [
+  "No aspect passes check_thermal. The A_SAT clamp puts the floor at 73.85 C rise vs 65 C allowed; the best measured candidate reads 76.01 C, the delivered board 77.56 C. The waiver is untouched by this study.",
+  "placement.edges is exonerated: 0 mm2 at aspect <= 1.47, 32 mm2 (2.7%) at 1.89. The finding's stated mechanism ('the 50 mm width is forced by placement.edges') is not what the measurement shows - the pin needs only ~32 mm of width and is satisfied by a square.",
+  "The delivered placement is NOT sloppy for its own aspect: its tab sits exactly on the a_eff-optimal site for a 50 x 26.42 board (analytic optimum 28.845, 13.225 board-relative; delivered 28.845, 13.210). The P6 anneal solved the right problem inside the wrong rectangle.",
+  "The aspect plateau is broad: 1.00 to 1.47 differ by < 0.4% on r25. There is no sharp optimum to chase - only a boundary at 1.5:1 to stay under."
+ ]
+}

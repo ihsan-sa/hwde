@@ -1,16 +1,14 @@
-# P9 DFM - digest
+# P9 DFM - digest (re-run after the square re-place)
 
-- **Gate dfm: PASS, 0 violations** (gerbers re-exported to scratch from the
-  board and graded there, per the gate contract).
-- Fab package: 9 gerber layers + drill + job file, zipped
-  (`fab/bb-ldo_gerbers.zip`, sha bb7d6fab...), plus `bb-ldo-pos.csv`.
-- BOM/CPL split correct by assembly_class, not by what the position export
-  happened to contain: BOM.csv + CPL.csv carry the 3 SMT parts (U1, C1, C2);
-  both screw terminals appear in BOM-full.csv ONLY, marked `hand_install`
-  with instructions - including the J2 preheat warning.
-- No `cpl_polarity` finding: the two polarized tantalums' rotations survive
-  the jlc_rotations correction, which is the mounted-backwards oracle.
-- Assembly notes written (`reports/assembly-notes.md`): preheat for J2.1,
-  tantalum polarity, the HOT SURFACE hazard, and the two first-article
-  measurements (C2 ring count, tab temperature).
-- JLCDFM (the fab's own 30+ checks) remains a human browser step at ordering.
+- **Gate dfm: PASS, 0 violations.** Fab package re-exported for the new
+  34.655 x 34.655 mm outline: 9 gerber layers + drill + job, zipped, plus
+  the position file. BOM/CPL regenerated.
+- BOM/CPL split unchanged and still correct by assembly_class: BOM.csv +
+  CPL.csv carry the 3 SMT parts; both screw terminals appear in BOM-full.csv
+  ONLY, `hand_install`, with the J2 preheat instruction.
+- No `cpl_polarity` finding - the two polarized tantalums' rotations survive
+  the jlc_rotations correction after the cluster's 270 deg rotation.
+- Assembly notes updated with the new dimensions and C2's 3D-model caveat.
+- **release_disposition: engineering-validated** (was `blocked`): all five
+  gates fresh and passing, all seven issues terminal, no human holds.
+- JLCDFM remains a human browser step at ordering.

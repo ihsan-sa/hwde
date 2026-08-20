@@ -1,0 +1,158 @@
+{
+ "script": "board_edit",
+ "status": "pass",
+ "board": "C:/dev/ai-ee3/boards/bb-ldo/reports/aspect-study/cases/a255/kicad/bb-ldo.kicad_pcb",
+ "mode": "fixed",
+ "applied": true,
+ "outline": {
+  "before": {
+   "bbox": [
+    5.125,
+    19.7,
+    55.125,
+    46.12
+   ],
+   "w": 50.0,
+   "h": 26.42,
+   "corner_radius": 0.0,
+   "faces": 1,
+   "arcs": 0,
+   "items": {
+    "gr_rect": 1
+   },
+   "area_mm2": 1321.0,
+   "ideal": true,
+   "deviation_mm": 0.0
+  },
+  "after": {
+   "bbox": [
+    5.125,
+    19.7,
+    63.125,
+    42.476
+   ],
+   "w": 58.0,
+   "h": 22.776,
+   "corner_radius": 0.0,
+   "cutouts": [],
+   "area_mm2": 1321.008,
+   "anchor": "topleft"
+  }
+ },
+ "fab_floors": {
+  "profile": "2layer_1oz",
+  "layers": 2,
+  "copper_oz": 1.0,
+  "copper_oz_source": "stackup",
+  "min_copper_to_edge_mm": 0.3,
+  "min_hole_to_edge_mm": 0.5
+ },
+ "blocking": [],
+ "preexisting": [
+  {
+   "kind": "copper_to_edge",
+   "key": "pad:J2.1",
+   "msg": "pad J2.1 (+3V3) is 0.000 mm from the board edge, floor 0.3 mm",
+   "metric": 0.0,
+   "worse_when": "lower",
+   "refs": [
+    "J2"
+   ],
+   "pos": [
+    56.625,
+    28.548
+   ]
+  },
+  {
+   "kind": "hole_to_edge",
+   "key": "paddrill:J2.1",
+   "msg": "pad J2.1 drill is 0.000 mm from the board edge, floor 0.5 mm",
+   "metric": 0.0,
+   "worse_when": "lower",
+   "refs": [
+    "J2"
+   ],
+   "pos": [
+    56.625,
+    28.548
+   ]
+  },
+  {
+   "kind": "copper_to_edge",
+   "key": "pad:J2.2",
+   "msg": "pad J2.2 (GND) is 0.000 mm from the board edge, floor 0.3 mm",
+   "metric": 0.0,
+   "worse_when": "lower",
+   "refs": [
+    "J2"
+   ],
+   "pos": [
+    56.625,
+    33.628
+   ]
+  },
+  {
+   "kind": "hole_to_edge",
+   "key": "paddrill:J2.2",
+   "msg": "pad J2.2 drill is 0.000 mm from the board edge, floor 0.5 mm",
+   "metric": 0.0,
+   "worse_when": "lower",
+   "refs": [
+    "J2"
+   ],
+   "pos": [
+    56.625,
+    33.628
+   ]
+  }
+ ],
+ "warnings": [],
+ "edit_class": "outline_change",
+ "gates_to_rerun": [
+  "dfm",
+  "drc",
+  "drc_routed",
+  "place",
+  "verify"
+ ],
+ "human_hold": 2,
+ "worker": {
+  "removed_edge_items": 1,
+  "bbox": [
+   5.125,
+   19.7,
+   63.125,
+   42.476
+  ],
+  "corner_radius": 0.0,
+  "cutouts": [],
+  "notes": []
+ },
+ "refilled": false,
+ "drc": {
+  "before": {
+   "total": 16,
+   "by_severity": {
+    "warning": 7,
+    "error": 9
+   },
+   "by_source": {
+    "drc": 7,
+    "unconnected": 9
+   }
+  },
+  "after": {
+   "total": 15,
+   "by_severity": {
+    "warning": 6,
+    "error": 9
+   },
+   "by_source": {
+    "drc": 6,
+    "unconnected": 9
+   }
+  },
+  "errors_before": 0,
+  "errors_after": 0
+ }
+}

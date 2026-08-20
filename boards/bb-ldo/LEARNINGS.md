@@ -200,3 +200,155 @@ rejected because its only theta_JA figure is a JEDEC 4-layer number that a
 2-layer board cannot reach and its datasheet gives no curve to design against.
 Choosing it would have meant sizing the copper with no applicable data - the
 exact error the board exists to teach against.
+
+## 2026-08-20 [P6][planes_gen][board_edit][scripts] planes_gen has no re-pour path: on a board that already has zones and whose outline GREW, it ADDS a duplicate zone - and nothing in the skill can delete a zone
+
+`board_edit --outline WxH` re-clips the existing fills but says plainly that
+zone OUTLINES do not follow the edge, so the pour has to be regenerated. Run
+`planes_gen` on that board and its idempotency guard - "an existing same-net
+fill covering >= 80% of the planned region means skip" (`EXISTING_COVER`) -
+reads only 73% here, because the old zone's rectangle stops at the old
+boundary. So it ADDS a second `+3V3` F.Cu zone and a second `GND` B.Cu zone,
+same nets, same layers, both at priority 0, on top of the two already there.
+The fill union is correct (measured 1097.86 mm2 either way) but KiCad DRC
+returns two hard `zones_intersect` errors: "intersecting zones must have
+distinct priorities".
+
+There is no way out with the sanctioned editors. `route_edit`'s `remove
+{uuid}` indexes `board.GetTracks()` only, so a zone uuid comes back "absent"
+and then fails the driver's own verify (the uuid is still in the file);
+`place_edit` is footprints + text; `board_edit` only removes Edge.Cuts items;
+`plane_repair` bridges splits. Nothing exposes `SetAssignedPriority` on an
+existing zone either, which would have been the other legal fix.
+
+The recovery that works is `state.py restore --label <a zone-free snapshot>`
+and re-running the whole chain (place -> board_edit -> planes_gen -> silk) on
+a board that has no zones. On bb-ldo `pre-P7-routing` was exactly that, and
+diffing it against the delivered board (ignoring uuids, tracks, vias, zones)
+showed a single line of difference - the `HOT SURFACE` legend - which
+`place_edit add_text` puts back. So: **before re-pouring a board whose outline
+changed, get it to a zero-zone state first**; discovering it afterwards costs
+a full rebuild.
+
+Wanted: `planes_gen --repour` (drop the same-net/layer zones it is about to
+replace), or a `zone` op on route_edit.
+
+## 2026-08-20 [P6][silk][placement] Centring both edge connectors on a small square leaves no room for pin-adjacent silk - and the binding obstacle is a neighbour's own polarity marker
+
+Honouring `placement.edges pos 0.5` on the 34.655 mm square puts J1 and J2
+courtyards 12.655 mm apart, and the U1+C1+C2 cluster only fits that corridor
+turned 90 deg. Measured silk-to-silk (centreline + stroke/2, NOT courtyards),
+the left channel is 16.270 -> 17.026 = 0.756 mm and the right is 26.957 ->
+28.635 = 1.678 mm. A 1.2 mm silk label is 1.4 mm tall, so neither takes one -
+and the left channel is narrow not because of a courtyard but because C1's
+FOOTPRINT prints a 0.25 mm-stroke `+` polarity cross 3.1 mm out from its
+centre, 1.1 mm beyond its own courtyard. Turning the labels 90 deg into the
+channels was tried and real DRC rejected it (2 hits on that `+`, 1 on U1's
+body line at 0.024 mm).
+
+Two things to carry: courtyard extents are the wrong model for silk clearance
+(footprint silk routinely exceeds the courtyard), and when the corridor loses,
+the answer is to move the legends OUT - net name above the connector for the
+upper pin, below for the lower, function label as the header. That keeps a
+3.9 mm / 9.0 mm = 2.3:1 adjacency to the right pad and clears real DRC at 0.
+
+## 2026-08-20 [P7][route_auto][freerouting] Freerouting cannot read this board at all - route_auto has nothing to contribute, so its KRT fallback is the ONLY thing it can do
+
+Re-routing the 34.655 mm square: `route_critical` lays the +5V trunk with KRT,
+and Freerouting 2.2.4 then dies with `StackOverflowError` at
+`PolylineTrace.combine` while READING the DSN - ZERO pass lines, rung1.log is
+75 KB of one repeated frame. That is the documented KRT-guide-wire wedge
+(repo LEARNINGS 2026-07-23), and every rung parses the same DSN, so the whole
+ladder is dead. `route_auto` therefore has exactly two outcomes on bb-ldo:
+`--no-krt-finish` -> exit 2, "board untouched"; or the KRT finish, which is
+the pass that daisy-chains the F.Cu GND SMD pads with traces across the
+thermal pour (2026-08-17 entry). Running it to then rip what it laid buys
+nothing: the deliberate `route_edit` via+stub pairs are the same end state.
+Set `--timeout-s` low (120) - the default 600 makes the wedge cost 10 minutes
+per rung for a result that is knowable from the first log line.
+
+## 2026-08-20 [P7][stitch_vias][dfm] The in-pad defect reproduces on new geometry - all THREE proposals landed inside their pads
+
+`stitch_vias --dry-run` on the re-placed board proposed (19.151, 29.395),
+(23.552, 21.893) and (26.398, 32.252): inside C1.2 by 0.115 mm, inside C2.2 by
+0.443 mm and inside U1.1 by 0.0035 mm respectively - measured centre-to-pad-
+edge, so with a 0.3 mm land every barrel is wholly within pad copper and paste.
+`--dry-run` is the way to see it: the report's `ops` list is the proposal, and
+a two-line shapely `pad.poly.contains(Point(at))` test settles it before any
+copper moves. The replacement is 5 authored via+stub pairs at 0.55 mm past the
+pad edge (0.25 mm copper gap, 0.25 mm mask dam; vias are tented front+back and
+`pad_to_mask_clearance` is 0, so the dam is real).
+
+## 2026-08-20 [P7][check_current][plane] Via-redundancy and check_current's clustering pull in opposite directions
+
+U1.1's two barrels sit 1.99 mm apart (N + E of the pad) and check_current reads
+them as ONE transition with 2 vias - no warning. C2.2's two sit 4.88 mm apart
+(W + E, the point being that one solder void cannot take both) and it reads
+them as TWO transitions of 1 via each, warning on both, plus C1.2's single one:
+3 advisory warnings. Moving C2.2's pair closer would silence the check and
+destroy the redundancy it was placed for. The message carries its own
+qualifier ("plane-fed rail, per-cluster current unattributed (each via is a
+leaf tap off the plane)") and `drc_routed` does not gate on it - the same
+ruling as 2026-08-18. Redundancy wins; the warnings stand.
+
+## 2026-08-20 [P6][build-modes][canonical] Moving the edge parts in fixes the WIDTH; the SHAPE stays inherited
+
+At P6 this board was found to have inherited its width from `board_init
+--outline auto`'s provisional 86.29 mm, via `placement.edges` pinning the
+connectors to whatever outline was on the board. The fix - move the connectors
+inward, then `--outline fit` - corrected the width and was verified. It was
+still only half a fix: `fit` wraps wherever the parts ended up, so the ASPECT
+remained a property of the provisional rectangle. The board shipped at
+50.000 x 26.420 (1.89:1) when the design wanted a square.
+
+A 22-candidate measured study (build each candidate, pour it, measure the real
+fill) found:
+
+- The free-aspect optimum is a broad **plateau from 1.00 to 1.47**; r25 varies
+  0.4% across it. There is no peak to chase, only a boundary to stay under.
+- That boundary is **derivable, not empirical**: check_thermal's reach disc
+  plus the pour inset fits wholly on the board only when the short dimension is
+  >= 2 x (14.329 + 0.5) = 29.66 mm. At 1321 mm2 that caps aspect at 1.50:1.
+  The delivered 26.42 mm height spilled 28.2 mm2 of the disc off both edges.
+- `placement.edges` cost **0.00 mm2** at aspect <= 1.47 and only 31.8 mm2 at
+  1.89. Its real width floor is ~32.3 mm. **The constraint the finding blamed
+  was not the cause** - a 36.35 mm square satisfies J1-left/J2-right with the
+  terminals CENTRED at the `pos: 0.5` the constraint actually declares, which
+  the delivered board did not honour.
+- The square at 1201 mm2 beat the 1321 mm2 rectangle on **all four** measures
+  in 9.1% less board, and the rectangle met its own >= 1000 mm2 effective floor
+  only on r25 - its r20 was 904 mm2, below it.
+
+Lesson: at a canonical binding, verify the outline's ASPECT is derived, not
+just its area. And when a review names a mechanism, measure the mechanism -
+this one was wrong while its conclusion was right.
+
+## 2026-08-20 [P8][silk][render] Silk can pass check_silk AND real DRC while being invisible
+
+A relocated refdes was placed in an open pocket that passed `check_silk` (0
+violations) and `kc.py drc` (0 violations) - and was completely invisible in
+the render, hidden under the through-hole connector's own body, because the
+pocket sat inside the footprint's envelope. Both checkers reason about
+geometric collision in 2D; neither has a concept of "underneath the part".
+
+Only the render caught it. On any board with tall through-hole parts, a silk
+placement is not verified until it has been LOOKED at.
+
+Related, same board: `silk_place --refs J2` reported an EMPTY residual list
+while leaving a refdes 0.33 mm from a neighbouring part's pads, reading as that
+part's label. Its collision-only scoring treats "close to the wrong part but
+not touching" as good enough - `check_silk`'s `silk_misattributed` is the check
+that catches it, and it is not what `silk_place` optimises for.
+
+## 2026-08-20 [P7][freerouting] Freerouting 2.2.4 cannot parse this board at all
+
+`StackOverflowError` in `PolylineTrace.combine` while reading the DSN, zero
+pass lines, on EVERY rung - they all parse the same DSN, so the ladder is dead
+rather than slow. `route_auto`'s only remaining contribution was its KRT
+finish, which on a thermal-pour board is the very GND daisy-chain across the
+pour that has to be ripped afterwards. Running it with `--no-krt-finish`
+reached the same end state without laying and ripping copper.
+
+Consequence worth stating: every trace and via on this board is deliberately
+authored, not autorouted. That is fine for five parts and three nets; it would
+not scale.

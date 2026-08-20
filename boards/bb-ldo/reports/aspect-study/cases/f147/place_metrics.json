@@ -1,0 +1,279 @@
+{
+ "script": "place_metrics",
+ "status": "violations",
+ "board": "bb-ldo.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "error": 1
+  },
+  "by_source": {
+   "check.place": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    27.125,
+    25.7
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J2"
+   ],
+   "msg": "J2 declared on edge 'right' but is 16.8 mm away",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "J2 declared on edge 'right' but is 16.8 mm away",
+     "pos": [
+      27.125,
+      25.7
+     ]
+    }
+   ],
+   "kind": "edge_violation",
+   "edge": "right",
+   "dist_mm": 16.79
+  }
+ ],
+ "metrics": {
+  "counts": {
+   "footprints": 5,
+   "movable": 5,
+   "nets": 3
+  },
+  "hpwl": {
+   "total_mm": 74.84,
+   "by_net": {
+    "+3V3": 17.6575,
+    "+5V": 25.735,
+    "GND": 31.4475
+   }
+  },
+  "crossings": {
+   "count": 5,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+5V",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "+5V"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "crossings_signal": {
+   "count": 1,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "+5V"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 22,
+   "rows": 16,
+   "max": 2,
+   "mean_nonzero": 1.3333,
+   "hotspots": [
+    {
+     "cell": [
+      2,
+      7
+     ],
+     "center": [
+      10.125,
+      34.7
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      3,
+      4
+     ],
+     "center": [
+      12.125,
+      28.7
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      3,
+      7
+     ],
+     "center": [
+      12.125,
+      34.7
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      6,
+      7
+     ],
+     "center": [
+      18.125,
+      34.7
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      6,
+      9
+     ],
+     "center": [
+      18.125,
+      38.7
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      7,
+      7
+     ],
+     "center": [
+      20.125,
+      34.7
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      7,
+      8
+     ],
+     "center": [
+      20.125,
+      36.7
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      8,
+      6
+     ],
+     "center": [
+      22.125,
+      32.7
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      8,
+      7
+     ],
+     "center": [
+      22.125,
+      34.7
+     ],
+     "demand": 2
+    },
+    {
+     "cell": [
+      8,
+      8
+     ],
+     "center": [
+      22.125,
+      36.7
+     ],
+     "demand": 2
+    }
+   ]
+  },
+  "congestion_signal_max": 2,
+  "decoupling": [
+   {
+    "cap": "C1",
+    "pin": "U1.3",
+    "rail": "+5V",
+    "class": "bulk",
+    "manhattan_mm": 2.6,
+    "euclid_mm": 2.1587,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.82
+   },
+   {
+    "cap": "C2",
+    "pin": "U1.2",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 3.2425,
+    "euclid_mm": 3.2425,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 1,
+    "loop_nh": 3.2697
+   }
+  ],
+  "utilization": {
+   "component_mm2": 313.155,
+   "board_mm2": 1321.012,
+   "ratio": 0.237
+  }
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-20T08:16:13+00:00",
+ "input": "C:\\dev\\ai-ee3\\boards\\bb-ldo\\reports\\aspect-study\\cases\\f147\\kicad\\bb-ldo.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:5d809a146cadd2aa02cf87a7735dba6f7bd0ff1cb2f031f82115490cda073819",
+ "coverage": {
+  "strict": false,
+  "required": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "ran": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "passed": [
+   "courtyard",
+   "outline",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "failed": [
+   "edges"
+  ],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ }
+}

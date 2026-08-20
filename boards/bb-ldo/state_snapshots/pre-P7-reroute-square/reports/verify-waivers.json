@@ -1,0 +1,31 @@
+{
+  "waivers": [
+    {
+      "check": "check_thermal",
+      "kind": "thermal_area",
+      "refs": [
+        "U1"
+      ],
+      "net": "+3V3",
+      "reason": "MODEL LIMITATION, not a board defect. check_thermal models theta_JA(A) = 55 + (174-55)*exp(-A/350) for 1oz/2-layer and CLAMPS credited copper at A_SAT = 645 mm2, so its 2-layer floor is 73.8 C/W - it CANNOT report better than that for any layout, and the board's target is 65 C/W. Verified in the checker source, not inferred. The board delivers 1199.221 mm2 of contiguous F.Cu +3V3 pour on the tab (ONE island, 0 mm2 orphaned, 1085.679 mm2 within 25 mm of the tab), measured post-routing. Two independent vendor sweeps keep improving exactly where the model stops crediting copper: AMS1117 datasheet Table 1 (p5, 1/16in FR-4, 1 oz - the same board class) gives 65 C/W at 1000 mm2 top-side and 55 C/W at 2500 mm2, and TI's LM1117 Table 9-2 (p18-19) gives 66 C/W at 645 mm2 top-only, agreeing within ~1 C/W where they overlap. AMS p5 also states the spreading copper need not be electrically connected to the tab, so the continuous B.Cu GND plane beneath contributes dielectrically (~5 C/W at this area) even though it cannot be via-stitched to a live VOUT tab. Both sources carry their own hedges and they are stated rather than mined: LM1117 section 9 opens (p14) with TI's note that these application sections are 'not part of the TI component specification, and TI does not warrant its accuracy or completeness', and AMS Table 1 describes itself as 'a rough guideline... some experimentation will be necessary'. The honest reading is therefore theta_JA ~60-65 C/W, Tj ~110-115 C at 1.00 W and Ta 50 C, against a 125 C steady-state limit. Bring-up measurement is what settles it; the thermal target was deliberately NOT softened to 75 C/W to recolor this gate, because 75 would state Tj <= 125 C, i.e. zero margin. Evidence: reports/place/thermal_area.json, route/check_thermal_final.json, records linear-regulator-tab-copper-area-theta-ja and linear-regulator-live-tab-thermal-vias (both second-reader verified).",
+      "approved": "orchestrator under owner delegation 2026-08-16 ('make decisions yourself based on what will give the best learning for the basic system'); flagged to the owner at H1 and H4 as a known-red gate requiring their ruling before any order"
+    },
+    {
+      "check": "check_current",
+      "kind": "insufficient_transition_vias",
+      "net": "GND",
+      "reason": "Heuristic mis-attribution, confirmed against the board topology. check_current charges every transition via the whole net's 0.515 A and wants >=1 via per 0.5 A, giving 2 per stitch; the board has 1 per F.Cu GND SMD pad. The load return does not flow through these vias at all: it goes J2's GND pin -> B.Cu GND plane -> J1's GND pin, and BOTH are through-hole screw terminals whose pins penetrate every layer directly. These three vias carry only U1's quiescent current and the two capacitors' ripple - milliamps. Independently, a 0.3 mm barrel at 20 um plating is ~0.019 mm2 of copper against 0.0090 mm2 for the 0.2575 mm track in 1 oz that feeds the same node, so one via already exceeds its own trace. Doubling them would spend ~2 mm2 of heatsink pour to silence an advisory; check_current's own message labels it advisory for a plane-fed rail with per-cluster current unattributed.",
+      "approved": "orchestrator under owner delegation 2026-08-16; advisory severity, does not fail the gate - waived so it is an explicit ruling rather than recurring noise"
+    },
+    {
+      "check": "check_thermal",
+      "kind": "thermal_vias",
+      "refs": [
+        "U1"
+      ],
+      "net": "+3V3",
+      "reason": "AUDIT-TRAIL entry, raised by the P8 board reviewer. check_thermal computes need_vias = (dt/power) < theta_ja(A_SAT) -> 65 < 73.85 -> True, and would emit a thermal_vias warning for len(vias) < min_vias; constraints.json sets thermal[0].min_vias = 0, so the test becomes 0 < 0 and NOTHING is emitted. The engineering is correct and must not change - U1's tab pour is +3V3 while B.Cu is a continuous GND plane, so a stitching via there is a short, not a heat path (verified record linear-regulator-live-tab-thermal-vias); the far-side copper works dielectrically instead (AMS1117 p5). The defect is only that a deliberate engineering decision was SILENCED by a constraint value rather than recorded as a waiver, making it invisible in the gate record. This entry makes it visible, and would catch the violation if min_vias were ever raised without revisiting the reasoning.",
+      "approved": "orchestrator under owner delegation 2026-08-16; documentation of an existing recorded decision (P4: min_vias 12 -> 0), not a new grant"
+    }
+  ]
+}

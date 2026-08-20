@@ -1,0 +1,58 @@
+{
+ "script": "check_silk",
+ "status": "violations",
+ "board": "bb-ldo.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check_silk": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    27.605,
+    38.5275
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "J2"
+   ],
+   "msg": "refdes \"J2\" sits 3.80 mm beyond its own pads and 0.33 mm from U1 - reads as U1's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"J2\" sits 3.80 mm beyond its own pads and 0.33 mm from U1 - reads as U1's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      27.605,
+      38.5275
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "J2",
+   "offset_mm": 3.8,
+   "nearest_ref": "U1",
+   "nearest_mm": 0.3285
+  }
+ ],
+ "checked": [
+  {
+   "silk_items": 59,
+   "texts": 13,
+   "graphics": 46,
+   "refdes_checked": 5
+  }
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-20T09:36:02+00:00",
+ "input": "boards\\bb-ldo\\kicad\\bb-ldo.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:ab94786e993b2a6e87cbed3bbaf3afe504aa8a11e645f156f10448768cfca615"
+}

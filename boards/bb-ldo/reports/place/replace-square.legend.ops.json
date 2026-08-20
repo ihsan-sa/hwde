@@ -1,0 +1,27 @@
+{
+ "version": 1,
+ "_why": "Rev 3 of legend.ops.json - relocate the four legend groups for the replace-square re-place. Rev 2 solved against the 50 x 26.42 board. With both screw terminals CENTRED on their edges (constraints.json placement.edges pos 0.5) the U1+C1+C2 cluster only fits the 12.655 mm corridor between the two terminal courtyards turned 90 deg, and the corridor is then too narrow for the delivered 'net label beside its own pad' geometry: measured silk-to-silk, J1's silk edge is at x 16.270 and C1's footprint '+' polarity marker reaches x 17.026, leaving 0.756 mm - a 1.2 mm label needs 1.4 mm plus clearance. Turning the labels 90 deg into the channel was tried and DRC-rejected (C1 '+' x2, U1 body x1). So the six terminal legends move OUT of the corridor into the free blocks above and below their own connector, in pin order: the net name printed ABOVE the connector is the UPPER pin's net and the one BELOW is the LOWER pin's, with the IN/OUT function label as the header. Each net label is 3.9 mm from its own pad and 9.0 mm from the other - a 2.3:1 adjacency, and the two names bracket the connector in the same order as the pads.",
+ "_pins": "J1 deg 90: pad 1 (+5V) at y 39.5675, pad 2 (GND) at y 34.4875. J2 deg 270: pad 1 (+3V3) at y 34.4875, pad 2 (GND) at y 39.5675. Both terminals are pure translations of their delivered pose, so pin 1 stays on the same side of each connector as it was.",
+ "_clearances": "Measured against real silk geometry (centreline + stroke/2), not courtyards. J1/J2 silk band y 31.8225..42.2325. Above: GND / +3V3 at y 30.6 (box 29.9..31.3) clear the connector by 0.52; IN / OUT at y 28.3 (box 27.375..29.225) clear those by 0.675. Below: +5V / GND at y 43.5 (box 42.8..44.2) clear the connector by 0.57. HOT SURFACE at y 45.6 (box 44.675..46.525, x 13.64..31.26) clears both by 0.475 and sits in the only free strip wide enough for it, 7.5 mm under U1's tab. C2's '+' is the delivered mark carried through the cluster's own 270 deg rotation, so it still sits on the anode pad's axis: box x 26.345..27.779, y 28.550..30.200 - 0.43 mm off C2's body silk (was 0.42) and 1.84 mm under U1's pin-1 dot. Everything inside the new outline [5.125, 19.7, 39.78, 54.355].",
+ "ops": [
+  {"op": "remove_text", "text": "+5V",         "x": 19.0,  "y": 42.45, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "GND",         "x": 19.0,  "y": 37.37, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "IN",          "x": 19.0,  "y": 39.91, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "+3V3",        "x": 41.0,  "y": 23.37, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "GND",         "x": 41.0,  "y": 28.45, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "OUT",         "x": 41.0,  "y": 25.91, "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "+",           "x": 24.8,  "y": 29.4,  "layer": "F.SilkS"},
+  {"op": "remove_text", "text": "HOT SURFACE", "x": 36.5,  "y": 42.2,  "layer": "F.SilkS"},
+
+  {"op": "add_text", "text": "IN",          "x": 11.625,  "y": 28.3,    "layer": "F.SilkS", "deg": 0, "size": 1.6, "thickness": 0.25},
+  {"op": "add_text", "text": "GND",         "x": 11.625,  "y": 30.6,    "layer": "F.SilkS", "deg": 0, "size": 1.2, "thickness": 0.2},
+  {"op": "add_text", "text": "+5V",         "x": 11.625,  "y": 43.5,    "layer": "F.SilkS", "deg": 0, "size": 1.2, "thickness": 0.2},
+
+  {"op": "add_text", "text": "OUT",         "x": 33.28,   "y": 28.3,    "layer": "F.SilkS", "deg": 0, "size": 1.6, "thickness": 0.25},
+  {"op": "add_text", "text": "+3V3",        "x": 33.28,   "y": 30.6,    "layer": "F.SilkS", "deg": 0, "size": 1.2, "thickness": 0.2},
+  {"op": "add_text", "text": "GND",         "x": 33.28,   "y": 43.5,    "layer": "F.SilkS", "deg": 0, "size": 1.2, "thickness": 0.2},
+
+  {"op": "add_text", "text": "+",           "x": 27.0615, "y": 29.3755, "layer": "F.SilkS", "deg": 0, "size": 1.4, "thickness": 0.25},
+  {"op": "add_text", "text": "HOT SURFACE", "x": 22.4525, "y": 45.6,    "layer": "F.SilkS", "deg": 0, "size": 1.6, "thickness": 0.25}
+ ]
+}

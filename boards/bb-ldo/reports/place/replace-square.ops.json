@@ -1,0 +1,14 @@
+{
+ "version": 1,
+ "_why": "P8 ruling replace-square: the delivered 50.000 x 26.420 outline's ASPECT was inherited from board_init --outline auto's provisional 86.29 mm width, not earned (reports/aspect-study/findings.json). Re-placed for a 34.655 mm SQUARE (1201 mm2) with BOTH screw terminals CENTRED on their left/right edges, which is the pos 0.5 constraints.json placement.edges actually declares.",
+ "_geometry": "Board frame origin (5.125, 19.7) kept (board_edit --anchor topleft). Terminals seated 1.0 mm inside their edge at along = H/2 = 17.3275 board-relative -> abs y 37.0275 for both. That leaves a 12.655 mm corridor between the two terminal courtyards, and the U1+C1+C2 cluster (18.765 x 8.398 at its earned orientation) only fits it turned 90 deg, so the rigid cluster is rotated theta=270 about U1's tab. Measured consequence (aspect-study measure.py, unrouted): theta 0/180 forces the cluster into the 10.7 mm band above or below the terminals and reads a_eff 540 mm2; theta 90/270 read 607-613. Cluster CENTRED in the corridor (gaps 2.129 / 2.128 mm) so both silk channels are equal and the pin legends fit beside their own pads.",
+ "_tab": "board-relative (18.4265, 18.845) -> abs (23.5515, 38.545). Chosen at the knee of the measured a_eff/r20 trade for this square: tab_y 18.345 -> a_eff 607.03 / r20 1028.80; 18.845 -> 611.28 / 1024.75; 19.345 -> 613.35 / 1018.95. The first step buys 4.25 mm2 of check_thermal a_eff for 4.05 mm2 of r20, the second only 2.07 for 5.80. Keeps ~25 mm2 of margin over the 1000 mm2 effective-copper floor for the routing penalty (s1201 lost 9.9 mm2 of a_eff and 9.9 of r20 to routing).",
+ "_rotations": "J1 deg 90 / J2 deg 270 are the delivered board's own rotations, unchanged: the footprint's wire entry is local y = -5.5, so 90 = entry left and 270 = entry right. Both terminals are pure translations of their delivered pose (pin 1 stays on the same side), so the pin legends translate with them.",
+ "ops": [
+  {"op": "place", "ref": "U1", "x": 23.5515, "y": 35.575,  "deg": 90.0,  "side": "front"},
+  {"op": "place", "ref": "C1", "x": 19.1515, "y": 31.575,  "deg": 90.0,  "side": "front"},
+  {"op": "place", "ref": "C2", "x": 23.5515, "y": 25.9525, "deg": 270.0, "side": "front"},
+  {"op": "place", "ref": "J1", "x": 11.625,  "y": 37.0275, "deg": 90.0,  "side": "front"},
+  {"op": "place", "ref": "J2", "x": 33.28,   "y": 37.0275, "deg": 270.0, "side": "front"}
+ ]
+}

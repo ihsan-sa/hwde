@@ -1,0 +1,64 @@
+{
+ "script": "check_thermal",
+ "status": "violations",
+ "board": "bb-ldo.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "error": 1
+  },
+  "by_source": {
+   "check_thermal": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "check_thermal",
+   "severity": "error",
+   "pos": [
+    26.625,
+    37.873
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "U1"
+   ],
+   "msg": "U1 dissipates 1.00 W into 617 mm2 of +3V3 copper: ~75 C rise (theta_JA ~75 C/W) > 65 C allowed; add thermal vias to an inner/back plane",
+   "source": "check_thermal",
+   "items": [
+    {
+     "msg": "U1 dissipates 1.00 W into 617 mm2 of +3V3 copper: ~75 C rise (theta_JA ~75 C/W) > 65 C allowed; add thermal vias to an inner/back plane",
+     "pos": [
+      26.625,
+      37.873
+     ]
+    }
+   ],
+   "kind": "thermal_area",
+   "power_w": 1.0,
+   "area_mm2": 617.1809,
+   "theta_ja": 75.4044,
+   "rise_c": 75.4044,
+   "dt_allowed_c": 65.0
+  }
+ ],
+ "checked": [
+  {
+   "ref": "U1",
+   "net": "+3V3",
+   "power_w": 1.0,
+   "area_mm2": 617.1809,
+   "theta_ja": 75.4044,
+   "rise_c": 75.4044,
+   "dt_allowed_c": 65.0,
+   "vias_near_part": 0,
+   "multilayer": false
+  }
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-20T08:14:04+00:00",
+ "input": "C:\\dev\\ai-ee3\\boards\\bb-ldo\\reports\\aspect-study\\cases\\a100e\\kicad\\bb-ldo.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:d2cc934a06460680a98d15ab51577c06e546b44db12cf8227686084d3e447a75"
+}
