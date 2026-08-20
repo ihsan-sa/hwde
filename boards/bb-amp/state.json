@@ -3,7 +3,7 @@
  "board": "bb-amp",
  "workspace": "boards/bb-amp",
  "created": "2026-08-16T17:25:38",
- "updated": "2026-08-20T00:46:53",
+ "updated": "2026-08-20T01:01:59",
  "phase": "P9",
  "gates": {
   "erc": {
@@ -899,6 +899,30 @@
    "why": "block-only scope default: 'Stop at P9 (fab package + DFM). Ordering is a separate owner decision.' The order recipe is deliberately not entered - the creation latch and H5 payment step stay untouched, and the release attestation is not built. Everything needed to order exists in boards/bb-amp/fab/ whenever the owner decides to",
    "phase": "P9",
    "ts": "2026-08-17T23:01:34"
+  },
+  {
+   "what": "inamp-gain-pin-and-input-node-parasitics RE-READ and REFUTED again by a fresh blind reader, on the envelope. envelope f_signal_hz max 5000 rests on envelope_note's claim that 5 kHz is the highest frequency at which the part specifies CMRR at all - false of the record's OWN pdf, whose Figures 27 and 28 (PDF p.14, printed 13) plot CMRR vs frequency to 100 kHz, Fig.28 at a deliberate 1 kohm source imbalance, i.e. this record's exact mechanism. Only the two spec TABLES stop at 5 kHz",
+   "why": "the reader also caught two things the 2026-08-16 pass did not: (a) under the U14 ruling an envelope must bound where the rule stops being TRUE, never the numbers the rule happens to carry - this cap IS the Table 3 rows, and it contradicts the record's own 'grows with frequency' mechanism, so envelope_contains returns outside for exactly the designs where the effect is worst, this board's 41 kHz chain included; (b) rule.gain_pin_layout asserts 'the same copper on both pins' which a full-text scan of all 29 pages shows appears nowhere, unflagged as derived",
+   "phase": "P9",
+   "ts": "2026-08-20T00:57:40"
+  },
+  {
+   "what": "All SIX draft records re-read by fresh blind readers and REFUTED, 0 verified of 6. Independent replication: both readers reached the same verdicts as the 2026-08-16 pass without being told them, and each added findings that pass did not have",
+   "why": "the point of the re-read was to test whether the original refutations were right or merely harsh. They were right. But the value is in the new detail: a NEW concrete error in in-path-symmetry-sets-cmrr (the 40 dB worked case is quoted without its Gain=1 V/V condition from sboa582 Fig.3-2 - at this board's G~150 the same formula gives 77.5 dB, so the number is off by 37 dB in the direction that flatters the record), and a witness REFINEMENT on in-bias-return-sizing (the round-1 reader said the sizing does not transfer at all; this reader says the LAW Ib*R vs budget does transfer off the INA333 and only the 47k/10k NUMBERS do not, which is the more precise line)",
+   "phase": "P9",
+   "ts": "2026-08-20T01:01:59"
+  },
+  {
+   "what": "PATTERN across the six refutations: THREE of them turn on the ENVELOPE, and all three envelopes run BACKWARDS - they exclude exactly the regime the rule was written for. inamp-gain-pin-and-input-node-parasitics caps f_signal_hz at 5000 for an error that GROWS with frequency; in-leakage-symmetry-and-guarding caps at 1 Mohm when its own guard regime STARTS at 1 Mohm; in-bias-return-sizing caps rsource at 10 kohm while its own rule prescribes the bleeder pair for HIGHER source impedance",
+   "why": "envelope authoring is the systematic weak point of this research leg, not citation accuracy - transcription was near word-perfect across all six, and page numbers were right in four. The U14 ruling is the test that catches it: an envelope must bound where the rule stops being TRUE, never the numbers the rule happens to carry. All three of these bound the numbers. Worth a line in the researcher role prompt",
+   "phase": "P9",
+   "ts": "2026-08-20T01:01:59"
+  },
+  {
+   "what": "Repairability triaged by the readers: FIVE of six are repairable from sources ALREADY in their ledgers, no fetch needed. Only in-aggressor-separation's rule.reference (unbroken reference copper under a signal pair) needs a source nobody has - the reader checked 01258b p15 and p18 as well as the cited pages, and the app note's own reference design deliberately splits its plane",
+   "why": "recorded so the promotion pass can see the cost of each. Two caveats on repair: inamp-gain-pin-and-input-node-parasitics would be largely SUPERSEDED by its own sibling inamp-cmrr-over-frequency-and-source-imbalance, which is already active/verified and carries the correct {0, 100000} envelope over the same mechanism; and in-path-symmetry-sets-cmrr survives repair only as a materially NARROWER record, since its core (G+1)/(4t) law is a topology transplant from a four-discrete-resistor difference amp onto a monolithic in-amp with an internally trimmed network",
+   "phase": "P9",
+   "ts": "2026-08-20T01:01:59"
   }
  ],
  "edits": [],
@@ -1088,6 +1112,22 @@
    "effort": "medium",
    "phase": "P8",
    "note": "silk legends for J1/J2/J3 poles - verify-reviewer error 1"
+  },
+  {
+   "ts": "2026-08-20T00:49:01",
+   "role": "research-second-reader",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P9",
+   "note": "re-read pass, task interface-in-1, 5 draft records; blind to prior verdicts"
+  },
+  {
+   "ts": "2026-08-20T00:49:01",
+   "role": "research-second-reader",
+   "model": "opus",
+   "effort": "xhigh",
+   "phase": "P9",
+   "note": "re-read pass, task block-inamp-1, 1 draft record; blind to prior verdicts"
   }
  ],
  "history": [
@@ -2134,6 +2174,46 @@
    "status": "pass",
    "attempt": 3,
    "failing_count": 0
+  },
+  {
+   "ts": "2026-08-20T00:49:01",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-20T00:49:01",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus"
+  },
+  {
+   "ts": "2026-08-20T00:57:40",
+   "event": "decision",
+   "what": "inamp-gain-pin-and-input-node-parasitics RE-READ and REFUTED again by a fresh blind reader, on the envelope. envelope f_signal_hz max 5000 rests on envelope_note's claim that 5 kHz is the highest frequency at which the part specifies CMRR at all - false of the record's OWN pdf, whose Figures 27 and 28 (PDF p.14, printed 13) plot CMRR vs frequency to 100 kHz, Fig.28 at a deliberate 1 kohm source imbalance, i.e. this record's exact mechanism. Only the two spec TABLES stop at 5 kHz"
+  },
+  {
+   "ts": "2026-08-20T00:57:40",
+   "event": "ledger_defect",
+   "task": "block-inamp-1",
+   "confirmed_independently": true,
+   "issue": "ledger sources n=1 and n=2 are the IDENTICAL LCSC stub file - same sha256 ea42b3f3..., 7438 bytes, one for the AD8226 entry and one for the AD8227 entry - and both are tiered vendor-layout despite carrying no vendor content",
+   "action": "cited by no record, so nothing rests on them; flagged for the promote pass to demote or drop"
+  },
+  {
+   "ts": "2026-08-20T01:01:59",
+   "event": "decision",
+   "what": "All SIX draft records re-read by fresh blind readers and REFUTED, 0 verified of 6. Independent replication: both readers reached the same verdicts as the 2026-08-16 pass without being told them, and each added findings that pass did not have"
+  },
+  {
+   "ts": "2026-08-20T01:01:59",
+   "event": "decision",
+   "what": "PATTERN across the six refutations: THREE of them turn on the ENVELOPE, and all three envelopes run BACKWARDS - they exclude exactly the regime the rule was written for. inamp-gain-pin-and-input-node-parasitics caps f_signal_hz at 5000 for an error that GROWS with frequency; in-leakage-symmetry-and-guarding caps at 1 Mohm when its own guard regime STARTS at 1 Mohm; in-bias-return-sizing caps rsource at 10 kohm while its own rule prescribes the bleeder pair for HIGHER source impedance"
+  },
+  {
+   "ts": "2026-08-20T01:01:59",
+   "event": "decision",
+   "what": "Repairability triaged by the readers: FIVE of six are repairable from sources ALREADY in their ledgers, no fetch needed. Only in-aggressor-separation's rule.reference (unbroken reference copper under a signal pair) needs a source nobody has - the reader checked 01258b p15 and p18 as well as the cited pages, and the app note's own reference design deliberately splits its plane"
   }
  ],
  "mode": {

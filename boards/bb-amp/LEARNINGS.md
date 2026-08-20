@@ -307,3 +307,51 @@ graphics.
 Both times it was caught only by measuring the rendered line pitch off the plotted PDF
 (~1.45x font size per line) and re-reading the render. **Any generated schematic text
 needs a render check, not a gate run.**
+
+## 2026-08-20 [P9][research][knowledge][second-reader] Envelope authoring, not citation accuracy, is where research records fail - and a bad envelope runs BACKWARDS
+
+Six draft records were re-read blind by fresh readers on 2026-08-20. All six refuted, and
+the failure was concentrated: **transcription was near word-perfect in all six** and page
+numbers were right in four. What broke them was the `envelope`, in three of the six - and
+each of those three excluded **exactly the regime the rule was written for**:
+
+- `inamp-gain-pin-and-input-node-parasitics` - `f_signal_hz max 5000` on an error the
+  record's own mechanism says GROWS with frequency. `envelope_contains` therefore returns
+  `outside` for precisely the designs where the effect is worst.
+- `in-leakage-symmetry-and-guarding` - capped at `1 Mohm` while the record's own guard
+  regime STARTS at 1 Mohm.
+- `in-bias-return-sizing` - capped `rsource_ohm` at 10 k while its own rule prescribes the
+  balanced bleeder pair for HIGHER source impedance.
+
+**The test that catches all three** is the U14 ruling already in `knowledgelib`: an
+envelope bounds *where the rule stops being TRUE*, never *the numbers the rule happens to
+carry*. All three had silently bounded the numbers - two of them the rows of a spec table,
+one an example value. A useful second question: **does the envelope's edge sit where the
+mechanism is weakest or strongest?** If the cap is where the effect is strongest, it is
+backwards.
+
+Corollary found the same day: a worked number quoted out of its stated test condition is
+the other recurring defect. `in-path-symmetry-sets-cmrr` quotes SBOA582's 40 dB case
+without its `Gain = 1 V/V` condition from Fig 3-2 - at the board's own G ~ 150 the same
+formula gives 77.5 dB. Same family as the Figure-15 unity-gain error from P4: **a vendor
+number carries its test condition, and dropping the condition always flatters the claim.**
+
+## 2026-08-20 [P9][research][knowledge][process] A blind re-read is worth running even when you expect it to confirm - it prices the repair
+
+Re-reading six already-refuted records looked like it could only reproduce a known answer.
+It did reproduce it (0 verified of 6, matching the earlier pass on every record, reached
+without being told the prior verdicts) - but the run paid for itself three ways:
+
+1. **A new concrete error** nobody had: the 40 dB / Gain = 1 V/V condition above.
+2. **A sharper witness line.** The first pass ruled that INA333-based bias-return SIZING
+   does not transfer to an AD8226 board at all. The re-read split it properly: the LAW
+   (Ib x R against the error budget) transfers as a general in-amp principle; only the
+   47k/10k NUMBERS, which are 70 pA CMOS values, do not. That distinction is what makes
+   the record repairable instead of dead.
+3. **A repair price per record.** Five of six are fixable from sources already in their
+   ledgers with no fetch; one (`in-aggressor-separation`'s unbroken-reference rule) needs a
+   plane-continuity source nobody has, and the reader proved that by checking the
+   uncited pages too - the app note's own reference design splits its plane.
+
+Blind matters: a reader told the prior verdict tends to re-derive it. A reader told only
+"both outcomes are expected" produces evidence you can actually compare.
