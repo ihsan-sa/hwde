@@ -73,6 +73,27 @@ QUEUE_SCHEMA: dict = {
         "board": {"type": "string", "minLength": 1},
         "source": {"type": "string", "minLength": 1},
         "compiled": {"type": "string"},
+        # U21: run close records unverified research here so the promote pass
+        # sees it. Absent on a workspace whose research all cleared review.
+        "research_drafts": {
+            "type": "object", "additionalProperties": False,
+            "properties": {k: {"type": "integer", "minimum": 0} for k in
+                           ("drafts", "stalled", "unruled", "refuted",
+                            "orphaned")},
+        },
+        "research_draft_records": {
+            "type": "array",
+            "items": {
+                "type": "object", "additionalProperties": False,
+                "required": ["id", "task", "state", "stalled"],
+                "properties": {
+                    "id": {"type": "string", "minLength": 1},
+                    "task": {"type": "string", "minLength": 1},
+                    "state": {"enum": ["unruled", "refuted", "orphaned"]},
+                    "stalled": {"type": "boolean"},
+                },
+            },
+        },
         "entries": {"type": "array", "items": {
             "type": "object",
             "required": ["entry", "line", "title", "tags", "stage",

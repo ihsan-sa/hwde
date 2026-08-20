@@ -933,3 +933,88 @@ def test_interface_slots_are_honest_gaps_with_research_specs(tmp_path):
     inrush = next(c for c in s["classes"] if c["class"] == "inrush")
     assert inrush["verdict"] == "provisional"
     assert [e["id"] for e in inrush["records"]] == ["buck-upstream-inrush-limit"]
+
+
+# ------------------------------------------------- U21: draft_unverified
+# Unverified workspace research must never read as coverage, and must not
+# hide inside `provisional` either. bb-amp is the case: its six refuted
+# input-stage records sat on classes that VERIFIED siblings already covered,
+# so the loss of the hard knowledge showed up in no report at all.
+
+def ws_draft_record(ws: Path, rid: str, **over) -> Path:
+    """A workspace research record (research/records/), draft by default."""
+    d = ws / "research" / "records"
+    over.setdefault("origin", "research:block-buck-1")
+    over.setdefault("status", "draft")
+    over.setdefault("maturity", "draft")
+    over.setdefault("applies", {"topologies": ["buck"], "packages": [],
+                                "interfaces": [], "parts": []})
+    for k in ("approval",):
+        over.setdefault(k, ...)
+    return write_record(d, rid, **over)
+
+
+def test_a_draft_research_record_never_satisfies_and_gets_its_own_bucket(
+        tmp_path, lib):
+    ws = buck_ws(tmp_path)
+    ws_draft_record(ws, "ws-draft-rule", classes=["power-loop"],
+                    envelope={"edge_ns": {"max": 20},
+                              "switching_kind": {"in": ["hard"]}})
+    payload, code = cov(tmp_path, ws, lib)
+    assert code == 0, payload
+    bucket = payload["draft_unverified"]
+    assert [r for d in bucket for r in d["records"]] == ["ws-draft-rule"]
+    assert payload["summary"]["draft_unverified"] == 1
+    assert any("never verified" in w for w in payload["warnings"])
+    evals = [e for s in payload["slots"] for c in s["classes"]
+             for e in c["records"] if e["id"] == "ws-draft-rule"]
+    assert evals and all(e["blocker"] == "draft-unverified"
+                         and not e["satisfies"] for e in evals)
+
+
+def test_the_bucket_reports_even_when_a_verified_sibling_covers_the_class(
+        tmp_path, lib):
+    """bb-amp exactly: the class reads covered off the easier record, and the
+    refuted one still has to be named."""
+    ws = buck_ws(tmp_path)
+    ws_draft_record(ws, "ws-draft-rule", classes=["power-loop"],
+                    envelope={"edge_ns": {"max": 20},
+                              "switching_kind": {"in": ["hard"]}})
+    payload, code = cov(tmp_path, ws, lib)
+    assert code == 0, payload
+    s = slot(payload, "block:B3")
+    pl = next(c for c in s["classes"] if c["class"] == "power-loop")
+    assert pl["verdict"] == "covered"                 # r-hot-loop covers it
+    assert [r for d in payload["draft_unverified"] for r in d["records"]] \
+        == ["ws-draft-rule"]
+
+
+def test_a_verified_workspace_record_is_not_in_the_draft_bucket(tmp_path, lib):
+    ws = buck_ws(tmp_path)
+    ws_draft_record(ws, "ws-verified-rule", classes=["power-loop"],
+                    status="active", maturity="verified",
+                    verification={"by": "second-reader", "date": "2026-08-20",
+                                  "note": "re-read p4, holds"},
+                    envelope={"edge_ns": {"max": 20},
+                              "switching_kind": {"in": ["hard"]}})
+    payload, code = cov(tmp_path, ws, lib)
+    assert code == 0, payload
+    assert payload["draft_unverified"] == []
+    assert payload["summary"]["draft_unverified"] == 0
+
+
+def test_a_draft_LIBRARY_record_keeps_maturity_below_floor(tmp_path, lib):
+    """The new blocker is scoped to workspace research output - a library
+    record that is merely under-mature still reads `maturity-below-floor`."""
+    recs, cls = lib
+    write_record(recs, "r-draft-lib", classes=["power-loop"],
+                 maturity="draft", approval=...,
+                 envelope={"edge_ns": {"max": 20},
+                           "switching_kind": {"in": ["hard"]}})
+    ws = buck_ws(tmp_path)
+    payload, code = cov(tmp_path, ws, (recs, cls))
+    assert code == 0, payload
+    assert payload["draft_unverified"] == []
+    ev = [e for s in payload["slots"] for c in s["classes"]
+          for e in c["records"] if e["id"] == "r-draft-lib"]
+    assert ev and all(e["blocker"] == "maturity-below-floor" for e in ev)

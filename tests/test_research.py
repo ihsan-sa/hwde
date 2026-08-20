@@ -658,9 +658,17 @@ def test_refuted_record_stays_draft_never_injects_and_can_be_re_read(opened, tmp
     assert sel["count"] == 0
     task = researchlib.load_task(root, tid)
     assert task["verdicts"]["llc-resonant-tank-loop"]["verdict"] == "refuted"
+    # U21: a verdict is not enough. Refuted leaves the record draft and draft
+    # never injects, so closing here would design the board without it.
     cl, code = run(research, tmp_path, ["close", "--workspace", str(ws),
                                         "--task", tid])
+    assert code == 1 and cl["drafts"] == ["llc-resonant-tank-loop"]
+    assert cl["refuted"] == ["llc-resonant-tank-loop"] and cl["unruled"] == []
+    assert "never injects" in cl["error"]
+    cl, code = run(research, tmp_path, ["close", "--workspace", str(ws),
+                                        "--task", tid, "--accept-drafts"])
     assert code == 0 and cl["summary"]["refuted"] == 1
+    assert cl["outcome"] == "verified_with_drafts"
     assert "Refuted" in (ws / "LEARNINGS.md").read_text(encoding="utf-8")
 
 
@@ -1019,3 +1027,166 @@ def test_committed_p1_fixture_is_the_mechanism_seed():
         payload, _ = bench.run(["--stage", "P1", "--fixture", fid, "--compare"])
         assert payload["status"] == "pass", payload.get("baseline")
         assert payload["baseline"]["delta"] == 0
+
+
+# --------------------------------------------------------------- U21: drafts
+# Unverified research is loud, never silent. bb-amp closed P9 holding six
+# draft input-stage records (bias return, CMRR symmetry, guarding) that never
+# injected: the board was designed without its hardest knowledge and nothing
+# said so anywhere. The per-task close check could not catch it - it is a
+# snapshot of one task's own records, blind to anything that lands after that
+# task closes.
+
+def test_close_refuses_while_a_record_is_still_draft(opened, tmp_path):
+    ws, tid = opened["ws"], opened["tid"]
+    write_record(ws, base_record(tid))
+    cl, code = run(research, tmp_path, ["close", "--workspace", str(ws),
+                                        "--task", tid])
+    assert code == 1
+    assert cl["drafts"] == ["llc-resonant-tank-loop"]
+    assert cl["unruled"] == ["llc-resonant-tank-loop"]
+    assert "still draft" in cl["error"]
+    assert "research.py verify" in cl["remedy"]
+
+
+def test_accept_drafts_closes_but_leaves_an_explicit_state_decision(opened,
+                                                                   tmp_path):
+    ws, tid = opened["ws"], opened["tid"]
+    write_record(ws, base_record(tid))
+    cl, code = run(research, tmp_path, ["close", "--workspace", str(ws),
+                                        "--task", tid, "--accept-drafts"])
+    assert code == 0, cl
+    assert cl["accepted_drafts"] == ["llc-resonant-tank-loop"]
+    assert cl["outcome"] == "verified_with_drafts"
+    st = json.loads((ws / "state.json").read_text(encoding="utf-8"))
+    dec = [d for d in st["decisions"]
+           if "unverified draft record" in d["what"]]
+    assert len(dec) == 1 and "llc-resonant-tank-loop" in dec[0]["what"]
+    assert any(h["event"] == "research_drafts_accepted" for h in st["history"])
+    task = researchlib.load_task(researchlib.root_of(ws), tid)
+    assert task["accepted_drafts"] == ["llc-resonant-tank-loop"]
+
+
+def test_draft_sweep_names_a_record_stalled_behind_a_closed_task(opened,
+                                                                 tmp_path):
+    """bb-amp's mechanism: the task closes clean, THEN a draft record bound to
+    it appears. No open task owns it, so no close check can ever see it."""
+    ws, tid = opened["ws"], opened["tid"]
+    write_record(ws, base_record(tid))
+    v, code = run(research, tmp_path, [
+        "verify", "--workspace", str(ws), "--task", tid,
+        "--record", "llc-resonant-tank-loop", "--verdict", "verified",
+        "--note", "p2 fig 3 re-read, holds"])
+    assert code == 0, v
+    cl, code = run(research, tmp_path, ["close", "--workspace", str(ws),
+                                        "--task", tid])
+    assert code == 0, cl
+    sweep = researchlib.draft_sweep(ws)
+    assert sweep["counts"]["drafts"] == 0
+    # ... and now the straggler lands against the closed task
+    write_record(ws, base_record(tid, rid="llc-transformer-shield",
+                                 classes=["emi"]))
+    sweep = researchlib.draft_sweep(ws)
+    assert sweep["counts"] == {"drafts": 1, "stalled": 1, "unruled": 1,
+                               "refuted": 0, "orphaned": 0}
+    row = sweep["stalled"][0]
+    assert row["id"] == "llc-transformer-shield" and row["task"] == tid
+    assert row["task_status"] == "closed" and row["state"] == "unruled"
+
+
+def test_draft_sweep_names_an_orphan_no_task_claims(opened, tmp_path):
+    ws = opened["ws"]
+    write_record(ws, base_record("block-llc-99", rid="llc-orphan-rule"))
+    sweep = researchlib.draft_sweep(ws)
+    assert sweep["counts"]["orphaned"] == 1
+    assert sweep["stalled"][0]["state"] == "orphaned"
+    assert sweep["stalled"][0]["task_status"] is None
+
+
+def test_status_counts_verified_vs_draft_and_flags_the_stall(opened, tmp_path):
+    ws, tid = opened["ws"], opened["tid"]
+    write_record(ws, base_record(tid))
+    write_record(ws, base_record(tid, rid="llc-transformer-shield",
+                                 classes=["emi"]))
+    v, code = run(research, tmp_path, [
+        "verify", "--workspace", str(ws), "--task", tid,
+        "--record", "llc-resonant-tank-loop", "--verdict", "verified",
+        "--note", "p2 fig 3 re-read, holds"])
+    assert code == 0, v
+    stat, code = run(research, tmp_path, ["status", "--workspace", str(ws)])
+    # the task is still OPEN, so nothing is stalled yet
+    assert code == 0, stat
+    assert stat["tasks"][0]["counts"] == {"records": 2, "verified": 1,
+                                          "refuted": 0, "unruled": 1,
+                                          "draft": 1}
+    assert stat["draft_counts"]["stalled"] == 0
+    cl, code = run(research, tmp_path, ["close", "--workspace", str(ws),
+                                        "--task", tid, "--accept-drafts"])
+    assert code == 0, cl
+    stat, code = run(research, tmp_path, ["status", "--workspace", str(ws)])
+    assert code == 1 and stat["status"] == "violations"
+    assert [r["id"] for r in stat["stalled"]] == ["llc-transformer-shield"]
+    assert "never injects" in stat["error"]
+
+
+def test_run_close_surfaces_unverified_research(opened, tmp_path):
+    """learnings.py compile is the run-close step: it must name the loss into
+    the payload the digest is written from, a state decision, and the queue."""
+    ws, tid = opened["ws"], opened["tid"]
+    write_record(ws, base_record(tid))
+    cl, code = run(research, tmp_path, ["close", "--workspace", str(ws),
+                                        "--task", tid, "--accept-drafts"])
+    assert code == 0, cl
+    comp, code = run(learnings, tmp_path, ["compile", "--workspace", str(ws)])
+    assert code == 1 and comp["status"] == "problems"
+    assert comp["research_drafts"]["stalled"] == 1
+    assert "llc-resonant-tank-loop" in comp["error"]
+    assert [r["id"] for r in comp["draft_unverified"]] == \
+        ["llc-resonant-tank-loop"]
+    queue = yaml.safe_load((ws / "learnings" / "queue.yaml")
+                           .read_text(encoding="utf-8"))
+    assert queue["research_drafts"]["stalled"] == 1
+    assert queue["research_draft_records"][0]["id"] == "llc-resonant-tank-loop"
+    # the queue it just wrote must still validate (QUEUE_SCHEMA is
+    # additionalProperties:false - the sweep's keys have to be declared)
+    val, code = run(learnings, tmp_path, ["validate", "--workspace", str(ws)])
+    assert code == 0, val
+    st = json.loads((ws / "state.json").read_text(encoding="utf-8"))
+    assert any("run closed over 1 unverified research record" in d["what"]
+               for d in st["decisions"])
+    assert any(h["event"] == "research_drafts_unverified"
+               for h in st["history"])
+    # idempotent: compiling twice does not stack duplicate decisions
+    comp2, code = run(learnings, tmp_path, ["compile", "--workspace", str(ws)])
+    assert code == 1
+    st2 = json.loads((ws / "state.json").read_text(encoding="utf-8"))
+    assert len([d for d in st2["decisions"]
+                if "run closed over" in d["what"]]) == 1
+
+
+def test_run_close_is_quiet_when_every_record_verified(opened, tmp_path):
+    ws, tid = opened["ws"], opened["tid"]
+    write_record(ws, base_record(tid))
+    v, code = run(research, tmp_path, [
+        "verify", "--workspace", str(ws), "--task", tid,
+        "--record", "llc-resonant-tank-loop", "--verdict", "verified",
+        "--note", "p2 fig 3 re-read, holds"])
+    assert code == 0, v
+    cl, code = run(research, tmp_path, ["close", "--workspace", str(ws),
+                                        "--task", tid])
+    assert code == 0, cl
+    comp, code = run(learnings, tmp_path, ["compile", "--workspace", str(ws)])
+    assert code == 0 and comp["status"] == "pass"
+    assert comp["research_drafts"]["drafts"] == 0
+    queue = yaml.safe_load((ws / "learnings" / "queue.yaml")
+                           .read_text(encoding="utf-8"))
+    assert "research_drafts" not in queue
+
+
+def test_run_close_on_a_workspace_without_research_is_unchanged(tmp_path):
+    ws = make_ws(tmp_path, name="noresearch")
+    (ws / "LEARNINGS.md").write_text(
+        "# LEARNINGS - noresearch\n\n## 2026-08-20 [P6][place] A thing\n"
+        "Body text.\n", encoding="utf-8", newline="\n")
+    comp, code = run(learnings, tmp_path, ["compile", "--workspace", str(ws)])
+    assert code == 0 and comp["research_drafts"]["drafts"] == 0

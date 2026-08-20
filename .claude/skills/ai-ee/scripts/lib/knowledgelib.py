@@ -975,6 +975,16 @@ def workspace_checklists(ws: Path | str) -> list[dict]:
     return out
 
 
+def record_draft_unverified(record: dict) -> bool:
+    """A WORKSPACE research record that the second reader has not verified
+    (U21). Library records are untouched by this - only research output that
+    never cleared review, which never injects and must never read as
+    coverage."""
+    return (bool(record.get("_workspace"))
+            and str(record.get("origin") or "").startswith("research:")
+            and record_maturity(record) != "verified")
+
+
 def merge_workspace(items: list[dict], ws_items: list[dict]) -> list[dict]:
     """Library items + the workspace's, deduped by id - the LIBRARY wins (a
     promoted record still sitting in the workspace must not shadow it)."""
@@ -1156,6 +1166,13 @@ def _evaluate(record: dict, op: dict, min_level: str | None,
            "satisfies": False, "blocker": None}
     if env["verdict"] == "outside":
         out["blocker"] = "outside"
+    elif record_draft_unverified(record):
+        # U21: a workspace research record the second reader never verified
+        # (never ruled, or ruled refuted). It is NOT knowledge-in-waiting the
+        # way an unapproved verified record is - it failed review or stalled,
+        # and folding it into `provisional` is what made bb-amp's six lost
+        # input-stage rules invisible. Its own blocker, its own bucket.
+        out["blocker"] = "draft-unverified"
     elif lv is None:
         out["blocker"] = "level-unknown"
     elif min_level and LEVEL_RANK[lv] < LEVEL_RANK[min_level]:
@@ -1207,6 +1224,7 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
     slot_ids = {s["id"] for s in slots}
     warnings = list(ws_info["warnings"])
 
+    draft_unverified: list[dict] = []      # U21: stalled research, by class
     edges: dict[str, list[tuple[dict, str]]] = {}   # slot -> [(record, class)]
     if mapping is not None:
         probs = mapping_problems(mapping, records, slot_ids)
@@ -1218,6 +1236,16 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
                 (by_id[m["record"]], norm_token(m["class"])))
 
     active = [r for r in records if r.get("status") == "active"]
+    # U21: unverified workspace research is status `draft`, so the filter
+    # above dropped it before any slot ever saw it - that is exactly why
+    # bb-amp's six refuted input-stage rules showed up nowhere. Evaluate them
+    # alongside the active set (they can never SATISFY - _evaluate blocks them
+    # as `draft-unverified`), so the report can name the stall. They stay out
+    # of `active`, so they are never offered as principle parents or mapping
+    # candidates.
+    stalled_drafts = [dict(r, status="active") for r in records
+                      if record_draft_unverified(r)]
+    evaluable = active + stalled_drafts
     principle_by_class: dict[str, list[str]] = {}
     for r in active:
         if record_level(r) == "principle":
@@ -1236,9 +1264,9 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
         if s["kind"] in ("block", "interface"):
             token = s["topology"] if s["kind"] == "block" else s["interface"]
             if s["kind"] == "block":
-                matched = select(active, topologies=[token])
+                matched = select(evaluable, topologies=[token])
             else:
-                matched = select(active, interfaces=[token])
+                matched = select(evaluable, interfaces=[token])
             cl = find_checklist(checklists, s["kind"], token)
             entry["checklist"] = None
             required: list[tuple[str, str | None]] = []
@@ -1267,6 +1295,8 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
                           if c == cls and r["id"] not in seen]
                 evals = [_evaluate(r, op, min_level, floor, via)
                          for r, via in cands]
+                stalled = [e for e in evals
+                           if e["blocker"] == "draft-unverified"]
                 if any(e["satisfies"] for e in evals):
                     v = "covered"
                 elif any(e["blocker"] in ("level-unknown", "level-below-min",
@@ -1275,7 +1305,20 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
                          for e in evals):
                     v = "provisional"
                 else:
+                    # U21: unverified drafts are the only candidates -> the
+                    # class is a GAP (nothing usable is held), and it lands in
+                    # the draft_unverified bucket so the stall is named, not
+                    # inferred from a silent `provisional`.
                     v = "gap"
+                if stalled:
+                    # Reported even when the class reads `covered` off a
+                    # VERIFIED sibling - that is bb-amp exactly: six refuted
+                    # input-stage rules whose classes were covered by easier
+                    # records, so the loss of the hard knowledge showed
+                    # nowhere. `verdict` says which case this is.
+                    draft_unverified.append(
+                        {"slot": s["id"], "class": cls, "verdict": v,
+                         "records": [e["id"] for e in stalled]})
                 # Seeding runs (any build-modes learning target): under-mature
                 # or unproven class is a research TARGET, not an acceptable
                 # pass, and it must reach `missing` so the task names it. Use
@@ -1336,7 +1379,8 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
             ext = s["extraction"]
             keys_pkg = [s["package"]] if s.get("package") else []
             keys_parts = [k for k in (s.get("mpn"), s.get("lcsc")) if k]
-            matched = select(active, packages=keys_pkg, parts=keys_parts)
+            matched = select(evaluable, packages=keys_pkg,
+                             parts=keys_parts)
             cands = [(r, "keys") for r in matched]
             seen = {r["id"] for r, _ in cands}
             cands += [(r, "mapping") for r, _c in edges.get(s["id"], [])
@@ -1361,6 +1405,12 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
                 verdict = "gap"
             entry["classes"][0]["verdict"] = verdict
             entry["verdict"] = verdict
+            stalled = [e for e in evals if e["blocker"] == "draft-unverified"]
+            if stalled:                       # U21: same bucket for part slots
+                draft_unverified.append(
+                    {"slot": s["id"], "class": "datasheet-layout",
+                     "verdict": verdict,
+                     "records": [e["id"] for e in stalled]})
             if verdict == "gap":
                 why = ("no P3 datasheet extraction on disk"
                        if ext["file"] is None else
@@ -1386,6 +1436,14 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
     counts = {"slots": len(out_slots)}
     for v in ("covered", "provisional", "gap"):
         counts[v] = sum(1 for s in out_slots if s.get("verdict") == v)
+    counts["draft_unverified"] = len({d["slot"] for d in draft_unverified})
+    if draft_unverified:
+        n = len({r for d in draft_unverified for r in d["records"]})
+        warnings.append(
+            f"{n} research record(s) never verified - unverified research "
+            "never injects, so these classes are NOT covered by them: "
+            + ", ".join(sorted({r for d in draft_unverified
+                                for r in d["records"]})))
 
     mapping_request = None
     if request_slots:
@@ -1416,6 +1474,7 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
         "warnings": warnings,
         "workspace_records": sorted(r.get("id") or "" for r in ws_recs),
         "workspace_checklists": sorted(c.get("id") or "" for c in ws_cls),
+        "draft_unverified": draft_unverified,
         "mapping_applied": ({"file": mapping_file,
                              "edges": sum(len(v) for v in edges.values())}
                             if mapping is not None else None),

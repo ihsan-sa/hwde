@@ -775,6 +775,102 @@ def task_records(root: Path, task: dict) -> list[tuple[Path, dict | None]]:
     return out
 
 
+def record_is_draft(data: dict) -> bool:
+    """A research record that is NOT usable knowledge: the second reader has
+    not verified it (never ruled, or ruled refuted - both leave it draft).
+    Checklists are excluded by the caller: a DRAFT checklist is a normal,
+    promotable research output, an unverified record is not.
+
+    Keyed on MATURITY alone, the same bar `close_task` and
+    `knowledgelib.record_draft_unverified` use - `verify` sets maturity and
+    status together and `validate` refuses them apart, so a record that
+    carries one without the other is hand-edited damage and the sweep is
+    exactly where it should surface, not slip through."""
+    return knowledgelib.record_maturity(data) != "verified"
+
+
+def draft_sweep(ws: Path | str) -> dict:
+    """Every research RECORD in the workspace that is still draft, with the
+    task that owns it and that task's status (U21).
+
+    The per-task close barrier is a snapshot of one task's own records; it
+    cannot see a record that lands after that task closed, or one whose
+    `origin` names a task that closed already (bb-amp's miss: five records
+    bound to `interface-in-1`, which had closed 20:23:47 holding a single
+    verdict). This sweep is workspace-wide and status-blind, so a draft can
+    never be hidden behind a closed task again.
+
+    Rows carry `state`:
+      unruled   the owning task holds no verdict for it
+      refuted   the second reader read it and refuted it
+      orphaned  no task file with that id exists at all
+    and `stalled` = True when the owning task is closed/missing (nobody is
+    coming back for it) - that is the silent-failure set."""
+    ws = Path(ws)
+    root = root_of(ws)
+    tasks = {t["id"]: t for t in list_tasks(root)}
+    rows = []
+    d = records_dir(root)
+    for p in sorted(d.glob("*.yaml")) if d.is_dir() else []:
+        try:
+            data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        except yaml.YAMLError:
+            continue
+        if not isinstance(data, dict):
+            continue
+        origin = str(data.get("origin") or "")
+        if not origin.startswith("research:"):
+            continue
+        if not record_is_draft(data):
+            continue
+        tid = origin.split(":", 1)[1]
+        task = tasks.get(tid)
+        verdict = ((task or {}).get("verdicts") or {}).get(
+            str(data.get("id") or p.stem), {}).get("verdict")
+        if task is None:
+            state, tstatus = "orphaned", None
+        elif verdict == "refuted":
+            state, tstatus = "refuted", task.get("status")
+        else:
+            state, tstatus = "unruled", task.get("status")
+        rows.append({
+            "id": str(data.get("id") or p.stem),
+            "file": f"{knowledgelib.WS_RECORDS}/{p.name}",
+            "task": tid, "task_status": tstatus, "state": state,
+            "classes": sorted({knowledgelib.norm_token(c)
+                               for c in data.get("classes") or []}),
+            "applies": data.get("applies") or {},
+            "stalled": task is None or task.get("status") != "open",
+        })
+    stalled = [r for r in rows if r["stalled"]]
+    return {"workspace": ws.as_posix(), "drafts": rows, "stalled": stalled,
+            "counts": {"drafts": len(rows), "stalled": len(stalled),
+                       "unruled": sum(1 for r in rows if r["state"] == "unruled"),
+                       "refuted": sum(1 for r in rows if r["state"] == "refuted"),
+                       "orphaned": sum(1 for r in rows if r["state"] == "orphaned")}}
+
+
+def task_record_counts(root: Path, task: dict) -> dict:
+    """verified / refuted / unruled / draft for ONE task's own records."""
+    verdicts = task.get("verdicts") or {}
+    out = {"records": 0, "verified": 0, "refuted": 0, "unruled": 0, "draft": 0}
+    for p, data in task_records(root, task):
+        if data is None:
+            continue
+        out["records"] += 1
+        rid = str(data.get("id") or p.stem)
+        v = verdicts.get(rid, {}).get("verdict")
+        if v == "verified":
+            out["verified"] += 1
+        elif v == "refuted":
+            out["refuted"] += 1
+        else:
+            out["unruled"] += 1
+        if record_is_draft(data):
+            out["draft"] += 1
+    return out
+
+
 def task_checklists(root: Path, task: dict) -> list[tuple[Path, dict | None]]:
     out = []
     d = checklists_dir(root)
@@ -1144,9 +1240,13 @@ def learnings_entry(task: dict, ws: Path, report: dict) -> str:
 
 def close_task(root: Path, task: dict, abandon: bool = False,
                reason: str | None = None,
-               library_ids: set[str] | None = None) -> tuple[dict, int]:
-    """Close a task. Normal close requires validate clean + a verdict on
-    every record; it appends the LEARNINGS entry and compiles the queue.
+               library_ids: set[str] | None = None,
+               accept_drafts: bool = False) -> tuple[dict, int]:
+    """Close a task. Normal close requires validate clean + every record
+    VERIFIED (U21 - a verdict is not enough: refuted leaves the record draft
+    and draft never injects); it appends the LEARNINGS entry and compiles the
+    queue. `accept_drafts` closes over the drafts anyway and names them in the
+    payload so the caller can record the decision.
     --abandon closes with a reason and no queue entry (a cap-hit task the
     owner chose not to extend, a slot that turned out not to need
     research)."""
@@ -1170,11 +1270,26 @@ def close_task(root: Path, task: dict, abandon: bool = False,
         return {"status": "violations", "task": task["id"],
                 "error": "validate is not clean - fix before closing",
                 **report}, 1
+    # U21: the barrier is the record's STATE, not the presence of a verdict.
+    # A refuted record stays draft and never injects, so closing over one
+    # ships a board designed without that knowledge and says nothing. Drafts
+    # in the CHECKLISTS dir are fine - a draft checklist is promotable.
     unruled = [r["id"] for r in report["records"] if not r.get("verdict")]
-    if unruled:
+    refuted = [r["id"] for r in report["records"]
+               if r.get("verdict") == "refuted"]
+    drafts = [r["id"] for r in report["records"] if r.get("maturity") != "verified"]
+    if drafts and not accept_drafts:
         return {"status": "violations", "task": task["id"],
-                "error": "the second reader has not ruled on every record",
-                "unruled": unruled, **report}, 1
+                "error": (f"{len(drafts)} record(s) are still draft - "
+                          "unverified research never injects, so closing here "
+                          "designs the board without them: "
+                          + ", ".join(drafts)),
+                "drafts": drafts, "unruled": unruled, "refuted": refuted,
+                "remedy": ("re-read and rule each with research.py verify, "
+                           "rewrite and re-read a refuted one, or accept the "
+                           "loss explicitly with --accept-drafts (recorded as "
+                           "a state decision)"),
+                **report}, 1
     if not report["records"] and not report["checklists"]:
         return {"status": "violations", "task": task["id"],
                 "error": "nothing to close - no records and no checklist "
@@ -1198,8 +1313,10 @@ def close_task(root: Path, task: dict, abandon: bool = False,
     slug = f"{m.group(1)}-{learnlib.slug(m.group(3))}" if m else None
     qid = next((e["entry"] for e in reversed(queue["entries"])
                 if slug and e["entry"].startswith(slug)), slug)
-    task.update({"status": "closed", "outcome": "verified",
+    task.update({"status": "closed",
+                 "outcome": "verified_with_drafts" if drafts else "verified",
                  "closed": now(), "queue_entry": qid,
+                 "accepted_drafts": drafts or None,
                  "summary": {"verified": sum(1 for r in report["records"]
                                              if r.get("verdict") == "verified"),
                              "refuted": sum(1 for r in report["records"]
@@ -1207,7 +1324,8 @@ def close_task(root: Path, task: dict, abandon: bool = False,
                              "checklists": len(report["checklists"]),
                              "sources": len(task.get("sources") or [])}})
     write_task(root, task)
-    return {"status": "pass", "task": task["id"], "outcome": "verified",
+    return {"status": "pass", "task": task["id"],
+            "outcome": task["outcome"], "accepted_drafts": drafts,
             "queue_entry": qid, "learnings": lp.as_posix(),
             "queue": learnlib.queue_path(ws).as_posix(),
             "compile": qrep, "summary": task["summary"],

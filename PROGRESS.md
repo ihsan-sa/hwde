@@ -76,7 +76,7 @@ U18; hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16 + U18 land.
 | U18 | Learning mode: target outcome drives scope + binding | **done** | 2026-08-16 |
 | U19 | Bottom-side placement the annealer can discover | **done** | 2026-08-16 |
 | U20 | place_anneal must not degrade declared decoupling | **done** | 2026-08-20 |
-| U21 | Unverified research is loud, never silent | pending | - |
+| U21 | Unverified research is loud, never silent | **done** | 2026-08-20 |
 | U22 | Cross-run promotion + approval pass (owner present) | pending | - |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
@@ -5264,3 +5264,138 @@ made with no concurrent edits.
 - `bounded`'s +30% cap is arithmetic in `geometry_plan` that no stage calls
   automatically yet - the orchestrator applies it after the fit. A live
   `block-integration` run is what will show whether that wants to be a step.
+
+## U21 - Unverified research is loud, never silent (2026-08-20) - DONE
+
+**Built** (harvest leg, unattended; bb-amp is the motivating fixture):
+- `research.py close`'s barrier moved from "every record has a VERDICT" to
+  "every record is VERIFIED". A refuted record stays draft and draft never
+  injects, so the old bar let a task close over knowledge the board would then
+  be designed without. Refusal is exit 1 naming the records and splitting
+  `drafts` / `unruled` / `refuted`, with a `remedy` line. `--accept-drafts`
+  closes anyway and is a RULING, not a flag: a `state.add_decision` naming
+  every record + a `research_drafts_accepted` event, task outcome
+  `verified_with_drafts`, `accepted_drafts` on the ledger. CHECKLISTS are
+  deliberately exempt - a draft checklist is a normal promotable output.
+- `researchlib.draft_sweep(ws)` - the workspace-wide, status-blind sweep. Per
+  record: owning task, that task's status, `state` (unruled | refuted |
+  orphaned) and `stalled` (the owning task is closed or missing, so nobody is
+  coming back for it). This is the half the per-task check structurally cannot
+  do - see deviation 1. `researchlib.record_is_draft` keys on MATURITY alone,
+  the same bar close and knowledgelib use.
+- `researchlib.task_record_counts` + `research.py status`: verified / refuted /
+  unruled / draft per task plus the workspace roll-up; status EXITS 1 while any
+  record is draft behind a closed task, naming them.
+- Coverage (`knowledgelib`): a `draft-unverified` blocker, a top-level
+  `draft_unverified` bucket (block, interface AND part slots),
+  `summary.draft_unverified` = slots affected, and a warnings line. The actual
+  mechanism of coverage's silence was upstream of any bucket: drafts were
+  filtered out by `status == "active"` before a slot ever saw them, so they
+  were invisible rather than mis-bucketed. They are now evaluated (a
+  `stalled_drafts` clone list feeds `matched` only) and can never SATISFY;
+  they stay out of `active`, so they are never offered as principle parents or
+  mapping candidates.
+- Run close: `learnings.py compile` sweeps and refuses quietly-lost research -
+  exit 1, `research_drafts` counts + `draft_unverified` rows in the payload the
+  digest is written from, an idempotent state decision +
+  `research_drafts_unverified` event, and `research_drafts` /
+  `research_draft_records` on the queue the promote pass reads. A workspace
+  with no research root is untouched.
+- `learnlib.QUEUE_SCHEMA` declares those two keys. It is
+  `additionalProperties: false`, so without this `learnings.py validate` would
+  have rejected the queue `compile` had just written - a real defect caught
+  before commit and now pinned by a test (confirmed load-bearing: disabling the
+  schema key fails it).
+- `recipes/research.md` steps 7-8 and `recipes/full-run.md`'s run-close
+  paragraph rewritten. full-run.md sat exactly AT its 120-line budget
+  (tests/test_task_router.py:79), so the section was tightened to pay for the
+  new sentence - no fact dropped, doc back to 120.
+- Tests: 8 new in `tests/test_research.py` (71 in file), 4 new in
+  `tests/test_coverage.py` (78 in file).
+
+**Deviations from plan (with reasons):**
+1. THE PLAN'S EVIDENCE LINE IS WRONG IN A LOAD-BEARING WAY, and building to it
+   literally would have shipped a fix that misses its own motivating case. The
+   plan says the six bb-amp records are ones "the second reader never cleared".
+   Measured: all six DO carry verdicts - refuted - timestamped
+   2026-08-20T00:56-01:00, four days AFTER their tasks closed
+   (`interface-in-1` 2026-08-16T20:23:47 holding exactly ONE verdict;
+   `block-inamp-1` 20:37:59 holding six of seven). They were re-read by the
+   08-19 sibling session (commit 1efa92b). AND `close_task` already refused
+   unruled records (U15's check). So the refusal the plan asks for EXISTED and
+   did not fire: at close time those records were not visible to a per-task
+   snapshot - written afterwards, or bound to that origin afterwards; records
+   and ledger landed in one commit (2b4463f), so git cannot separate the
+   ordering. What was built instead: the close-time check tightened to VERIFIED
+   as the plan intends, PLUS `draft_sweep` as the actual barrier, because a
+   snapshot of one task's own records can never see a record that lands after
+   that task closes, and a closed task owns its records forever after.
+   Verified on the real workspace (read-only): `research.py status --workspace
+   boards/bb-amp` exits 1 naming exactly the six, all `stalled` behind closed
+   tasks.
+2. The plan's "coverage gets a distinct `draft_unverified` bucket (not folded
+   into provisional)" is built as a bucket + blocker + warning, NOT a fourth
+   slot-verdict value. The covered/provisional/gap enum is keyed on by ~18
+   files (board_init, knowledge.py, agent prose, build-modes, tasks.yaml, three
+   test modules); a fourth value ripples through all of them for no added
+   detection. What matters is that the stall is NAMED, and it is.
+3. The bucket reports a stalled draft EVEN WHEN the class reads `covered` off a
+   verified sibling. That is bb-amp exactly: all six refuted records sit on
+   classes (`return-path`, `diff-pair`, `emi`) that easier verified records
+   already cover, so a verdict-only or coverage-only view shows nothing wrong.
+   Suppressing the row on `covered` would have reproduced the original silence.
+4. Existing test `test_refuted_record_stays_draft_never_injects_and_can_be_re_
+   read` asserted close == 0 over a refuted record - the contract U21
+   deliberately changes. It now asserts the refusal, then the `--accept-drafts`
+   path.
+5. One LEARNINGS entry (314: `learnings.py compile` WRITES - smoke-testing a
+   run-close verb straight at `boards/bb-amp` mutated it; reverted with `git
+   checkout`) + triage row 314 at L0 -> L2, open. The heredoc-byte trap of
+   entry 2026-08-15 bit again while authoring edit scripts (`\\` continuations
+   collapsed to spaces inside a quoted heredoc) - a re-affirmation of that
+   entry, not a new one; the rest were authored with the Write tool as it
+   prescribes.
+
+**Suite:** full run at session close from bash (`pytest -q` + `check_env.py
+--quiet`, the check.cmd pair): **1987 passed, exit 0** - no failures, no
+errors; `check_env --quiet` exit 0. Targeted suites green throughout
+(test_research 71, test_coverage 78, test_learnings, test_knowledge,
+test_task_router, test_build_modes). Ran concurrently with the U20 sibling
+session in the same worktree; the final run is clean and post-dates every edit
+in this step. Standing caveat unchanged: a full run re-dirties the pd-trigger
+and stm32-blinky design docs (timestamp-only regens, the usual ride-along -
+the sibling committed one as 9a679d3 and this run re-dirtied them).
+Real-workspace smoke, READ-ONLY: `research.py status --workspace boards/bb-amp`
+-> exit 1, 6 stalled records; `knowledgelib.coverage("boards/bb-amp")` ->
+`summary.draft_unverified` 2 slots, bucket naming all six across
+`block:B1` / `interface:in`; `git status -- boards/` clean after.
+
+**Interface notes for later steps:**
+- U22 (promotion pass, owner): `research.py status --workspace boards/bb-amp`
+  exits 1 today naming six stalled records. Rule on them BEFORE promoting, or
+  the queue carries entries whose records never injected. The remediation that
+  WRITES is `learnings.py compile --workspace boards/bb-amp` (state decision +
+  queue keys); it mutates a committed board, so it is the owner's call when to
+  run it, never a side effect of the promotion pass.
+- Coverage report consumers: new keys `draft_unverified` (list of {slot, class,
+  verdict, records}) and `summary.draft_unverified` (slots affected); new
+  blocker value `draft-unverified`. A draft WORKSPACE research record no longer
+  reads `maturity-below-floor` - that value now means only what it says, an
+  under-mature LIBRARY record.
+- `research.py close` gained `--accept-drafts`; the task ledger gained
+  `accepted_drafts` and the outcome `verified_with_drafts` (was: always
+  `verified`). Anything reading `outcome == "verified"` must accept both.
+- `learnings.py compile` can now exit 1 for a reason that is NOT malformed or
+  orphan entries. Callers treating exit 1 as "the queue is broken" should read
+  `research_drafts.stalled`. The queue file gained optional `research_drafts` /
+  `research_draft_records` (absent when the workspace is clean); both are
+  declared in QUEUE_SCHEMA.
+- U10 (first live run): the P2/P3 auto-trigger now has a hard close barrier. A
+  researcher that cannot get a record verified BLOCKS the phase rather than
+  closing quietly - budget for the re-read, or spend `--accept-drafts`
+  deliberately and let the decision ride into the digest.
+
+**New verify-later items:**
+- V22: the run-close hook's state decision + queue keys are exercised against
+  synthetic workspaces only - the real-board smoke was reverted (LEARNINGS
+  314). First live exercise is the next full run / U10.

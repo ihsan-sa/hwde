@@ -56,11 +56,21 @@ ruling); the caps are what bound it, and a cap hit is a VISIBLE checkpoint.
    - verified = status active + maturity verified + `verification` block;
    refuted = stays draft (the researcher may fix and a later pass re-reads).
 7. `research.py close --workspace <ws> --task <t>` - validate clean + every
-   record ruled -> appends the workspace LEARNINGS.md entry and runs the
-   queue compile (U6): the entry is `pending` for the promote pass. A task
-   with nothing usable: `--abandon --reason "<why>"` (recorded as a decision).
+   record VERIFIED -> appends the workspace LEARNINGS.md entry and runs the
+   queue compile (U6): the entry is `pending` for the promote pass. A ruling
+   is NOT enough: refuted leaves the record draft, draft never injects, so
+   close REFUSES (exit 1, naming them) while any record is still draft.
+   Re-read and rule it, rewrite the refuted one and have it re-read, or
+   `--accept-drafts` to ship the slot without that knowledge - which records
+   a state decision naming every record you gave up on. A task with nothing
+   usable: `--abandon --reason "<why>"` (recorded as a decision).
 8. Re-run coverage. Verified records inject into P3/P6/P7 spawns through the
    normal `knowledge.py --select --workspace <ws>` path (drafts never do).
+   The report's `draft_unverified` bucket is its own bucket, NOT folded into
+   `provisional`: it names every unverified record even when a verified
+   sibling covers the same class. `research.py status` counts verified vs
+   draft per task and exits 1 while any record is draft behind a CLOSED task
+   - the failure no per-task check can see.
 
 ## Promotion (the promote verb's pass, owner ruling)
 

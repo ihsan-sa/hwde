@@ -102,19 +102,19 @@ boards may use ONE schematic agent (record it).
 
 ## Run close, resuming, and what not to do
 
-Before the run is declared finished: append what this board taught to
+Before the run is finished: append what this board taught to
 `boards/<b>/LEARNINGS.md` (dated, stage-tagged, one claim per heading), then
-`learnings.py compile --workspace boards/<b>`. Compiling is not promoting: the
-entries stay `pending` until a `promote` pass rules on each one (that recipe
-carries the ladder). Do it at the END of the run - an entry's value is often
-only clear two phases later. Bring-up close (T11): `state.py log --event
-bringup_passed`, then `knowledge.py --prove --workspace boards/<b>` (`--dry-run`
-first) - every record that APPLIED becomes `proven` with its evidence entry.
+`learnings.py compile --workspace boards/<b>` - at the END, an entry's value is
+often only clear two phases later. Compiling is not promoting: entries stay
+`pending` for the `promote` pass. `compile` also exits 1 naming research the
+second reader never cleared: drafts never inject, so the board shipped without
+it. Bring-up close (T11): `state.py log --event bringup_passed`, then
+`knowledge.py --prove --workspace boards/<b>` (`--dry-run` first) - every record
+that APPLIED becomes `proven` with its evidence entry.
 
 A killed run resumes through `resume-phase`. A change of mind after P5 is not a
 rewind: `add-part` / `swap-part` / `remove-part` preserve placement and routing;
-get decoupling and protection into the schematic before P5 anyway. Do NOT re-run
-a phase you have gate evidence for - `resume-phase` reads freshness, and a fresh
-pass is not re-run. Do NOT let a report gate the run: `report_gen.py` is
-non-blocking, so on exit 1/2 log `report_gen_degraded`, point at the .tex or the
-last good PDF, and continue.
+get decoupling and protection in before P5 anyway. Do NOT re-run a phase you
+have gate evidence for - `resume-phase` reads freshness. Do NOT let a report
+gate the run: `report_gen.py` is non-blocking, so on exit 1/2 log
+`report_gen_degraded`, point at the .tex or last good PDF, and continue.

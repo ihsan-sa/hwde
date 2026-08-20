@@ -64,10 +64,75 @@ def do_init(args) -> tuple[dict, int]:
 def do_compile(args) -> tuple[dict, int]:
     ws = Path(args.workspace)
     queue, report = learnlib.compile_queue(ws, args.board)
+    # U21: run close is the last moment anyone looks. Research that never
+    # cleared the second reader never injects, so a board can close having
+    # been designed WITHOUT its hardest knowledge (bb-amp: six input-stage
+    # rules) and nothing says so. Sweep here, name it, and rule on it.
+    drafts = _research_drafts(ws)
+    if drafts["counts"]["drafts"]:
+        queue["research_drafts"] = drafts["counts"]
+        queue["research_draft_records"] = [
+            {"id": r["id"], "task": r["task"], "state": r["state"],
+             "stalled": r["stalled"]} for r in drafts["drafts"]]
     path = learnlib.save_queue(ws, queue)
     bad = bool(report["malformed"] or report["orphans"])
-    return ({"script": SCRIPT, "status": "problems" if bad else "pass",
-             "queue": path.as_posix(), **report}, 1 if bad else 0)
+    stalled = drafts["stalled"]
+    if stalled:
+        _record_draft_decision(ws, stalled)
+    payload = {"script": SCRIPT,
+               "status": "problems" if (bad or stalled) else "pass",
+               "queue": path.as_posix(), **report,
+               "research_drafts": drafts["counts"],
+               "draft_unverified": drafts["drafts"]}
+    if stalled:
+        payload["error"] = (
+            f"{len(stalled)} research record(s) never verified - the design "
+            "does not hold that knowledge: "
+            + ", ".join(r["id"] for r in stalled))
+    return payload, 1 if (bad or stalled) else 0
+
+
+def _research_drafts(ws: Path) -> dict:
+    """The workspace's unverified research (empty shape when it has none)."""
+    try:
+        import researchlib
+    except ImportError:
+        researchlib = None
+    if researchlib is None or not researchlib.root_of(ws).is_dir():
+        return {"drafts": [], "stalled": [],
+                "counts": {"drafts": 0, "stalled": 0, "unruled": 0,
+                           "refuted": 0, "orphaned": 0}}
+    return researchlib.draft_sweep(ws)
+
+
+def _record_draft_decision(ws: Path, stalled: list) -> None:
+    """One state decision naming every stalled record - so the miss reads
+    back off state.json long after the run, not just off a payload."""
+    try:
+        import state as state_mod
+    except ImportError:
+        return
+    sp = Path(ws) / "state.json"
+    if not sp.is_file():
+        return
+    try:
+        st = state_mod.State.load(sp)
+    except Exception:
+        return
+    ids = ", ".join(r["id"] for r in stalled)
+    if any(d.get("what", "").startswith("run closed over ") and ids in
+           d.get("what", "") for d in (st.data.get("decisions") or [])):
+        return          # idempotent: compile runs more than once
+    st.add_decision(
+        what=(f"run closed over {len(stalled)} unverified research record(s): "
+              f"{ids}"),
+        why=("the second reader never verified them, so they never injected - "
+             "this board was designed without that knowledge"),
+        phase=st.data.get("phase"))
+    st._log("research_drafts_unverified",
+            records=[r["id"] for r in stalled],
+            tasks=sorted({r["task"] for r in stalled}))
+    st.save()
 
 
 def do_queue(args) -> tuple[dict, int]:

@@ -278,7 +278,8 @@ def do_close(args) -> tuple[dict, int]:
     root = researchlib.root_of(ws)
     task = _load_task(root, args.task)
     payload, code = researchlib.close_task(root, task, abandon=args.abandon,
-                                          reason=args.reason)
+                                          reason=args.reason,
+                                          accept_drafts=args.accept_drafts)
     payload = {"script": SCRIPT, **payload}
     if code == 0:
         st = _state(ws, required=False)
@@ -289,6 +290,19 @@ def do_close(args) -> tuple[dict, int]:
             if payload.get("outcome") == "abandoned":
                 st.add_decision(what=f"research task {task['id']} abandoned",
                                 why=args.reason or "", phase=task.get("phase"))
+            drafts = payload.get("accepted_drafts") or []
+            if drafts:
+                # U21: closing over unverified research is a RULING, never a
+                # side effect - it must read back off state.json.
+                st.add_decision(
+                    what=(f"research task {task['id']} closed over "
+                          f"{len(drafts)} unverified draft record(s): "
+                          + ", ".join(drafts)),
+                    why=(args.reason or "--accept-drafts: the slot ships "
+                         "without this knowledge"),
+                    phase=task.get("phase"))
+                st._log("research_drafts_accepted", task=task["id"],
+                        slot=task["slot"], records=drafts)
             st.save()
     return payload, code
 
@@ -326,10 +340,25 @@ def do_status(args) -> tuple[dict, int]:
                      "sources": len(t.get("sources") or []),
                      "attempts": len(t.get("attempts") or []),
                      "depth": researchlib.depth_state(t),
+                     "counts": researchlib.task_record_counts(root, t),
                      "verdicts": t.get("verdicts") or {},
+                     "accepted_drafts": t.get("accepted_drafts"),
                      "queue_entry": t.get("queue_entry")})
-    return {"script": SCRIPT, "status": "pass", "workspace": ws.as_posix(),
-            "caps": _caps(st), "tasks": rows}, 0
+    # U21: the workspace-wide sweep - a draft hidden behind a CLOSED task is
+    # the failure the per-task counts above cannot see.
+    sweep = researchlib.draft_sweep(ws)
+    payload = {"script": SCRIPT,
+               "status": "violations" if sweep["stalled"] else "pass",
+               "workspace": ws.as_posix(), "caps": _caps(st), "tasks": rows,
+               "draft_unverified": sweep["drafts"],
+               "stalled": sweep["stalled"], "draft_counts": sweep["counts"]}
+    if sweep["stalled"]:
+        payload["error"] = (
+            f"{len(sweep['stalled'])} research record(s) are still draft "
+            "behind a closed task - unverified research never injects, so "
+            "this design does not hold that knowledge: "
+            + ", ".join(r["id"] for r in sweep["stalled"]))
+    return payload, 1 if sweep["stalled"] else 0
 
 
 # -------------------------------------------------------------------- parts
@@ -401,6 +430,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--task", required=True)
 
     p = common(sub.add_parser("close", help="close a task -> queue entry"))
+    p.add_argument("--accept-drafts", action="store_true",
+                   help="close even though records are still draft "
+                        "(unverified research never injects) - names them in "
+                        "a state decision")
     p.add_argument("--task", required=True)
     p.add_argument("--abandon", action="store_true",
                    help="close without outputs (needs --reason)")

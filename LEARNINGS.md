@@ -4632,3 +4632,16 @@ refining the placement you handed it. (c) With the analog + converter + referenc
 locked, `movable_clusters` fell to 0 and the one candidate emitted moved only C1 - from beside
 J2's +3V3/GND pins (2.8 mm) to 10 mm past its south end, hpwl 242 -> 260. Both runs were
 rejected on structure; the hand placement also won on HPWL.
+
+## 2026-08-20 [research][process][tools] `learnings.py compile` WRITES - smoke-testing a run-close verb straight at a real board mutated it
+U21 wired the unverified-research sweep into `learnings.py compile` (the run-close step) and
+smoke-tested it by pointing it at `boards/bb-amp`, the workspace whose six stalled records are
+the whole motivating case. It worked - and wrote `learnings/queue.yaml` plus a state decision
+and a `research_drafts_unverified` event into a committed board. `git checkout -- boards/bb-amp/`
+reverted it cleanly, but nothing in the tooling stopped it or warned: the read-only board rule
+(U15's note) is prose, and the run-close verbs mutate BY DESIGN - `compile` writes the queue,
+`close` writes LEARNINGS + the task, `open` consumes budget. The read-only probes are the ones
+safe to aim at a real board: `researchlib.draft_sweep`, `knowledgelib.coverage`, `research.py
+status`. Rule for smoking a mutating verb: copy the workspace into the scratchpad first, or use
+a synthetic tmp_path workspace, and run `git status -- boards/` after ANY script smoke - the
+mutation is silent and a board's state.json is the one file a later run trusts absolutely.
