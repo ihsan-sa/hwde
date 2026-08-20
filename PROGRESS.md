@@ -75,6 +75,9 @@ U18; hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16 + U18 land.
 | U17 | Editable board outline (board_edit.py --outline) | **done** | 2026-08-16 |
 | U18 | Learning mode: target outcome drives scope + binding | **done** | 2026-08-16 |
 | U19 | Bottom-side placement the annealer can discover | **done** | 2026-08-16 |
+| U20 | place_anneal must not degrade declared decoupling | pending | - |
+| U21 | Unverified research is loud, never silent | pending | - |
+| U22 | Cross-run promotion + approval pass (owner present) | pending | - |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
 {S5, S7, S8, S11} -> S12 -> S13 -> S14. S4-S7 may run in parallel with S8-S10 (separate sessions/terminals).

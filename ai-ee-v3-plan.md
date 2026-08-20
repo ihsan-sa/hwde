@@ -108,6 +108,11 @@ v3 board tracks state; session end = suite green (modulo the standing AP63203
       (needs U17). Hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16+U18
       land, or each inherits bb-buck's unrecorded gates and its
       correct-but-not-canonical geometry.
+    harvest leg (added 2026-08-20 from the four-run batch): U20 || U21
+      (after the bb close-out resumes settle) -> U22 (owner) -> U8 (owner;
+      U20 is a hard prerequisite, U22 strongly preferred first). Optional
+      after U8: re-run the bb-ldo brief as an A/B against the taught scorer.
+      Hold further learning-target board runs until U8 lands.
     T11 (v2 plan): as soon as boards arrive; any wave except during U8.
 
 ## Session setup
@@ -134,6 +139,9 @@ v3 board tracks state; session end = suite green (modulo the standing AP63203
 | U17 | Opus 5 | xhigh | - | no |
 | U18 | Opus 5 | max | - | optional (rule the target table) |
 | U19 | Opus 5 | high | - | optional (rule the assembly-cost weight) |
+| U20 | Fable | high | - | no |
+| U21 | Opus 5 | high | - | no |
+| U22 | Fable | high | - | YES (batch rulings on ~86 records) |
 
 ---
 
@@ -326,7 +334,12 @@ scripted stand-in critique produces a classed edit + exit checklist.
 
 **Read:** `design/stage-evals/P6.md` deferred specs (hot-loop template,
 corridor primitive, blocker eviction); sbuck-5v3a final placement;
-carrier U21 region (known-bad, defect R1); owner-supplied app notes.
+carrier U21 region (known-bad, defect R1); owner-supplied app notes;
+the FIVE bb-* boards' renders as the grading corpus (bb-buck
+constrained vs the four canonical boards - aspect-ratio and
+connector-placement craft terms come from grading these), plus
+bb-ldo's reports/aspect-study/ sweep. Prerequisite: U20 (do not
+teach against a known annealer defect).
 **Build (via the U7 loop, owner grading):** buck hot-loop template shipped;
 scorer terms the owner rules (candidates: hot-loop area, input-cap-to-VIN
 distance by class, thermal-via fit per package, FB-node keepouts); >= 2
@@ -588,6 +601,80 @@ satellites with it, and DRC no worse; side-pinned parts never move; with the
 assembly term at its default a board that does not need two sides stays
 single-sided (no gratuitous flipping); existing P6 bench fixtures do not
 regress.
+
+### U20 - place_anneal must not degrade declared decoupling
+
+Evidence: root LEARNINGS 2026-08-19 - `place_anneal` RE-DERIVES every
+satellite slot from `place_seed`, cannot preserve a hand-placed decoupler,
+and on bb-adc the re-derived slots FAIL the board's own declared cap
+distances while the place gate still passed (the gate's decoupler leg reads
+class defaults, not the board's declared per-association limits). The
+highest-value placement output is silently degraded on every board.
+
+**Read:** that LEARNINGS entry + its triage row; `place_anneal.py` (bodies /
+satellite slotting), `place_seed.py` satellite derivation, `placelib`,
+`decoupling.json` association contract (max_dist_mm / max_loop_nh),
+`check_decoupling` distance model, `place_metrics` + the place gate's
+decoupler leg, bb-adc's frozen board + sidecars (the live fixture).
+**Build:** (1) a satellite whose EXISTING placement satisfies its declared
+limits is preserved relative to its anchor - anneal moves the cluster, never
+re-slots the member; re-derivation only when the existing slot is illegal or
+colliding. (2) Hand-placed / locked satellites never re-slot. (3) Candidate
+REJECTION, not scoring: any candidate violating a declared per-association
+distance is discarded before ranking. (4) The place gate + place_metrics
+read declared per-association limits FIRST, class defaults only as fallback
+- bb-adc's escape closes. Bench: re-baseline only what legitimately moves.
+**Accept:** a bb-adc-derived fixture reproduces the violation pre-fix and is
+clean post-fix; a hand-placed decoupler survives an anneal run unmoved
+relative to its anchor; place gate fails a board violating its own declared
+distances; existing P6 fixtures no regression; suite green.
+
+### U21 - unverified research is loud, never silent
+
+Evidence: bb-amp closed P9 with SIX draft records (the inamp input-stage
+rules - bias return, CMRR symmetry, guarding) that the second reader never
+cleared. Drafts never inject, so the board was designed WITHOUT its hardest
+knowledge - and nothing flagged the stall anywhere.
+
+**Read:** `research.py` (verify / close / status), `researchlib` task
+ledger, `knowledgelib` workspace-record folding + coverage buckets,
+`recipes/research.md` + `recipes/full-run.md` run-close, bb-amp's research
+dir (the fixture).
+**Build:** `research.py close` refuses (exit 1, naming the records) while
+any task record is still draft, unless `--accept-drafts` records an explicit
+state decision; the run-close step surfaces "N draft records never verified"
+into the digest, a state decision and the promotion queue; the coverage
+report gets a distinct `draft_unverified` bucket (not folded into
+provisional); `research.py status` counts verified vs draft per task.
+**Accept:** a synthetic task with a lingering draft refuses close and the
+override leaves a decision; bb-amp's history reproduces the miss pre-fix;
+coverage on a workspace with draft-stalled records names them in their own
+bucket; suite green.
+
+### U22 - cross-run promotion + approval pass (OWNER PRESENT)
+
+Input: the five bb-* workspaces' harvest - ~86 research records and ~78
+workspace learnings with every queue entry `pending`. This step is
+LOAD-BEARING, not housekeeping: records satisfy coverage at the default
+floor only once APPROVED, so until this pass runs, every future board in
+these domains re-researches what the batch already learned.
+
+**Read:** `recipes/promote.md` + `learnings.py`, `knowledgelib` validate
+--strict + envelope grammar, the U14 batching pattern (4 batched question
+sets, owner takes/overrides recommendations), all five `learnings/queue.yaml`
++ `research/records/`.
+**Do:** cross-workspace dedupe FIRST (same rule from multiple boards -> one
+record, sources accumulate, envelopes union only where the mechanism is
+identical; contradictions surfaced to the owner, never averaged); level +
+"what does it scale with" sanity per U14 discipline; batch the owner rulings;
+promote approved records into `reference/knowledge/records/` (maturity
+`approved`, approval note = the ruling); resolve every queue entry
+promoted/declined with a reason; root LEARNINGS + triage rows for the
+promotions.
+**Accept:** zero `pending` entries across all five workspaces;
+`knowledge.py --validate --strict` green; dedupe stats reported (in ->
+out); coverage at the DEFAULT floor on synthetic ldo/adc/inamp/mcu
+workspaces shows the new domains covered by approved records.
 
 ## Not in this plan
 
