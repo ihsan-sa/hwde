@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries pd-trigger --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-15 03:19:12
+generated 2026-08-19 11:29:22
 \end{center}
 \tableofcontents
 
@@ -32,7 +32,7 @@ workspace & \texttt{boards/pd-trigger} \\
 phase & P10 \\
 gate status & all 5 recorded gates pass \\
 state created & 2026-07-28T05:57:45 \\
-state updated & 2026-08-14T01:21:02 \\
+state updated & 2026-08-15T16:35:03 \\
 \bottomrule
 \end{longtable}
 }
@@ -211,6 +211,8 @@ P4 & Retroactive approval: P4 edited architecture/constraints.json (R2-\textgrea
 P7 & VBUS fan-in = F.Cu pour (measured: no 1.75mm track can touch J1 VBUS pads, max 1.465mm); trunk 3.0mm track; 0 VBUS vias; C1B bulk tap via 2 pour channels 1.11+1.25mm (disclosed - no checker measures viasless pour channels); netclass split in .kicad\_pro only (rules\_gen one-class defect) & Router-measured geometry falsified the placement premise; zones are not width-rule-bound; DRU authority untouched \\
 P8 & Outline 48x30 vs D9 ceiling 48x28: DEVIATION ACCEPTED (2mm on soft axis; P0 literal +20\% of 25 = 30; no outline-edit op exists at v1) & Reviewer-caught undisclosed drift, now disclosed; re-initing P5 for 2mm not warranted \\
 P8 & C1B pour channels 1.11+1.25mm = STANDING WAIVER (dead-end bulk stub, 0.3A transient vs 3.49A capacity) & Reviewer accepted with numbers \\
+P10 & Hand-assembly BOM for 10 boards: ONE sheet (BOM-hand-assembly-10x.csv) covering all 30 designators, MPN-primary. 21 lines Digi-Key, U1 CH224K + F1 PPTC not carried by DK/Mouser (verified), SW1 kept on LCSC (DK MOQ-1 parts exist but body 9.09mm vs footprint 7.6mm, fit unverified) & Owner did not have JLC assemble; prior two-file split made SW1 look missing and carried two invalid DK part numbers plus an overstated 10uF stock claim \\
+P10 & LCSC dropped from the hand-assembly sourcing at owner request: 22 lines Digi-Key + 2 Amazon (U1 CH224K 10-pack, SW1 generic 3P SMD DIP 10-pack). F1 SUBSTITUTED to Bourns MF-NSHT035KX-2 (350mA hold @30V) - the 1A@30V 1206 rating exists only at LCSC and is not physically offered by Littelfuse/Bourns/Bel or the Amazon generics; AUX header J3 is thereby limited to \textasciitilde{}0.35A and the 'AUX 1A MAX' silk over-promises & Owner will not wait on LCSC shipping; F1 substitution surfaced as an explicit spec change rather than applied silently \\
 \bottomrule
 \end{longtable}
 }
@@ -721,7 +723,7 @@ corrections from ground truth.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 23,483 B &  \\
+\texttt{state.json} & 25,484 B &  \\
 \texttt{kicad/pd-trigger.kicad\_pcb} & 234,842 B &  \\
 \texttt{kicad/pd-trigger.kicad\_sch} & 150,179 B &  \\
 \texttt{fab/pd-trigger\_gerbers.zip} & 38,673 B & sha256 ac8e03ac89de8d2b... \\
