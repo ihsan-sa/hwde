@@ -1,10 +1,14 @@
 """place_anneal - simulated-annealing placement refinement (S10, SPEC P6 stage 2).
 
 SA over rigid CLUSTER positions/rotations (clusters = placelib.build_clusters
-+ place_seed satellite slots - the same move unit and transform math as the
-seed), starting from the board's current placement (normally place_seed
---apply output). The board file is never touched unless --apply-best; results
-are emitted as ABSOLUTE op lists for place_edit.py.
++ the board's OWN satellite geometry - U20: a valid existing slot is
+inherited, never re-derived from place_seed, so a hand-placed decoupler
+survives stage 2; re-slotting happens only for an invalid slot and is
+reported in `satellites_reslotted`), starting from the board's current
+placement (normally place_seed --apply output). The board file is never
+touched unless --apply-best; results are emitted as ABSOLUTE op lists for
+place_edit.py. A candidate violating a DECLARED decoupling max_dist_mm is
+rejected (marked illegal), never merely scored down.
 
 Cost (raw term totals maintained incrementally, recombined with weights at
 accept time):
@@ -210,11 +214,83 @@ def _mirror_variant(v: Variant) -> Variant:
          for ref, (slot, rel) in v.slots.items()})
 
 
+def _inherit_slots(model: PlaceModel, cluster, decoupling, warnings,
+                   reslotted: list[str]) -> dict[str, tuple]:
+    """The board's EXISTING satellite geometry as slots (U20, ladder row 313).
+
+    The annealer refines the placement it was handed: a satellite whose
+    current position is valid stays EXACTLY where it is relative to its
+    anchor - the SA moves the cluster, never re-slots the member. A slot is
+    re-derived (loudly: warning + `satellites_reslotted` fact) only when the
+    existing one is invalid: satellite on the other side from its anchor,
+    colliding inside its own cluster (PRECISE shapes - the U5 standard, so
+    tight-but-legal hand placements survive), or violating a DECLARED
+    decoupling max_dist_mm (class defaults are gate heuristics, not
+    re-slotting grounds). Pre-U20 every slot came from place_seed, so a
+    hand-placed decoupler could not survive stage 2 (bb-adc: seed slots put
+    C3 at 3.97 mm against its declared 2.5 mm and the report opened with a
+    58 mm hpwl_input/hpwl_start gap before a single move ran)."""
+    if not cluster.satellites:
+        return {}
+    from geom import _rot
+    anchor = model.footprints[cluster.anchor]
+    declared = [a for a in (decoupling or {}).get("associations", [])
+                if a.get("max_dist_mm") is not None
+                and {a.get("cap"), a.get("ic")} <= set(cluster.refs)]
+    kept_shapes = [anchor.precise_extents_abs()]
+    slots: dict[str, tuple] = {}
+    invalid: list[str] = []
+    for s in sorted(cluster.satellites, key=lambda s: s.ref):
+        fp = model.footprints[s.ref]
+        why = None
+        shape = fp.precise_extents_abs()
+        if fp.side != anchor.side:
+            why = f"sits on the {fp.side} side of its {anchor.side} anchor"
+        elif any(shape.intersection(k).area > placelib.EPS_AREA
+                 for k in kept_shapes if shape.intersects(k)):
+            why = "collides inside its own cluster"
+        else:
+            for a in declared:
+                if s.ref not in (a.get("cap"), a.get("ic")):
+                    continue
+                got = placelib.declared_assoc_dist(model, a)
+                if got is not None and got[0] > got[1] + 1e-6:
+                    why = (f"is {got[0]:.2f} mm from {a['ic']} pin "
+                           f"{a.get('pin')} against a declared "
+                           f"{got[1]:g} mm limit")
+                    break
+        if why:
+            invalid.append(s.ref)
+            warnings.append(f"satellite {s.ref} re-slotted: existing "
+                            f"placement {why}")
+            continue
+        dx = fp.center_abs()[0] - anchor.pos[0]
+        dy = fp.center_abs()[1] - anchor.pos[1]
+        slots[s.ref] = (_rot(dx, dy, anchor.angle),
+                        (fp.angle - anchor.angle) % 360.0)
+        kept_shapes.append(shape)
+    if not invalid:
+        return slots
+    reslotted.extend(invalid)
+    if cluster.template:
+        # a template lays its satellites as one set (symmetric pairs);
+        # partial re-derivation has no meaning there
+        warnings.append(f"template cluster {cluster.anchor} fully re-derived")
+        reslotted.extend(r for r in slots if r not in invalid)
+        return place_seed.layout_satellites(model, cluster, warnings)
+    slots.update(place_seed.layout_satellites(
+        model, cluster, warnings, only=set(invalid), keep=slots))
+    return slots
+
+
 def _build_bodies(model: PlaceModel, clusters, warnings,
-                  margin_mm: float = 0.0) -> list[Body]:
+                  margin_mm: float = 0.0, decoupling: dict | None = None,
+                  reslotted: list[str] | None = None) -> list[Body]:
     bodies = []
+    if reslotted is None:
+        reslotted = []
     for cid, c in enumerate(clusters):
-        slots = place_seed.layout_satellites(model, c, warnings)
+        slots = _inherit_slots(model, c, decoupling, warnings, reslotted)
         rel_poly, ac = place_seed.cluster_rel_poly(model, c, slots)
         if margin_mm > 0:
             # soft spacing margin (T6 P6A-6): shapes the SA overlap term and
@@ -1268,8 +1344,10 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
     hpwl_input = placelib.hpwl(model)["total_mm"]
 
     clusters, warnings = placelib.build_clusters(model, decoupling, placement)
+    reslotted: list[str] = []
     bodies = _build_bodies(model, clusters, warnings,
-                           margin_mm=params.margin_mm)
+                           margin_mm=params.margin_mm, decoupling=decoupling,
+                           reslotted=reslotted)
     engine = Engine(model, bodies, constraints, decoupling,
                     cell_mm=params.cell_mm, cong_cap=params.cong_cap,
                     weights=params.weights, margin_mm=params.margin_mm)
@@ -1301,6 +1379,11 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
                      engine.sides)
         repaired = _repair(model, engine, placement, grid=params.grid)
         viol = placelib.legality_violations(model, placement)
+        # U20 candidate REJECTION, not scoring: a candidate violating a
+        # DECLARED decoupling distance is illegal - it can never rank best
+        # over a clean one, --apply-best refuses it, and an all-violating
+        # pool exits 1 instead of shipping the violation as a "win"
+        viol += placelib.declared_decap_violations(model, decoupling)
         errors = [v for v in viol if v["severity"] == "error"]
         ops = []
         for b in bodies:
@@ -1352,6 +1435,7 @@ def anneal(pcb: Path, constraints: dict, decoupling: dict, params: Params,
                         "back": sum(len(b.refs) for b in bodies
                                     if b.side0 == "back")},
         "sides_best": best["sides"],
+        "satellites_reslotted": sorted(set(reslotted)),
         "hpwl_input_mm": hpwl_input,
         "hpwl_start_mm": start_terms["hpwl_raw_mm"],
         "hpwl_best_mm": best["hpwl_mm"],

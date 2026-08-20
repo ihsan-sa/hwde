@@ -849,6 +849,161 @@ def test_cli_missing_board_exits_2():
     assert place_anneal.main(["--pcb", "no/such/board.kicad_pcb"]) == 2
 
 
+# ============================================================ U20: satellite
+# slot inheritance - the annealer refines the placement it was handed instead
+# of re-deriving every satellite slot from place_seed (LEARNINGS 2026-08-19
+# [placement][anneal], ladder row 313).
+
+BBADC_FIX = REPO / "tests" / "fixtures" / "bb_adc"
+BBADC_UNLOCK = {"U1", "C2", "C3", "C8", "R7"}
+
+
+def _bbadc_board(tmp_path):
+    """The frozen bb-adc board with ONLY the converter cluster unlocked -
+    everything else stays a locked obstacle. This is the hand-placed state
+    the pre-U20 annealer silently degraded."""
+    import re
+    text = (BBADC_FIX / "bb-adc.kicad_pcb").read_text(encoding="utf-8")
+    parts = text.split("(footprint ")
+    out = [parts[0]]
+    for seg in parts[1:]:
+        m = re.search(r'\(property "Reference" "([^"]+)"', seg)
+        if m and m.group(1) in BBADC_UNLOCK:
+            seg = re.sub(r"\n\s*\(locked yes\)", "", seg)
+        out.append(seg)
+    pcb = tmp_path / "bb-adc.kicad_pcb"
+    pcb.write_text("(footprint ".join(out), encoding="utf-8")
+    con = json.loads((BBADC_FIX / "constraints.json").read_text("utf-8"))
+    dec = json.loads((BBADC_FIX / "decoupling.json").read_text("utf-8"))
+    return pcb, con, dec
+
+
+def test_bbadc_seed_slots_violate_declared_limits(tmp_path):
+    """The pre-U20 defect reproduced on the live fixture: place_seed-derived
+    slots (what _build_bodies used to start from) put C2 at 2.44 mm against
+    its declared 2.0 and C3 at 3.97 against 2.5."""
+    import place_seed
+    pcb, con, dec = _bbadc_board(tmp_path)
+    model = placelib.PlaceModel(pcb)
+    clusters, warns = placelib.build_clusters(model, dec,
+                                              con.get("placement") or {})
+    c = next(c for c in clusters if c.anchor == "U1")
+    anchor = model.footprints["U1"]
+    slots = place_seed.layout_satellites(model, c, warns)
+    place_seed.apply_cluster(model, c, slots, anchor.center_abs(),
+                             anchor.angle)
+    viol = placelib.declared_decap_violations(model, dec)
+    assert {v["refs"][0] for v in viol} == {"C2", "C3"}
+    assert all(v["severity"] == "error" for v in viol)
+
+
+def test_bbadc_hand_placement_survives_anneal(tmp_path):
+    """U20 acceptance on the live fixture: the annealer INHERITS the
+    hand-placed satellite geometry - no input/start hpwl gap, nothing
+    re-slotted - and the best candidate keeps every satellite exactly where
+    it was relative to its anchor, declared distances intact."""
+    pcb, con, dec = _bbadc_board(tmp_path)
+    cands, facts, _m = place_anneal.anneal(
+        pcb, con, dec, Params(seed=1, candidates=2, moves_per_cluster=10,
+                              max_epochs=4, stall=3))
+    assert facts["satellites_reslotted"] == []
+    assert facts["hpwl_start_mm"] == pytest.approx(facts["hpwl_input_mm"],
+                                                   abs=0.01)
+    best = cands[0]
+    assert best["legal"]
+    m0 = placelib.PlaceModel(pcb)
+    m1 = placelib.PlaceModel(pcb)
+    _fold_ops(m1, best["ops"])
+    a0, a1 = m0.footprints["U1"], m1.footprints["U1"]
+    for ref in ("C2", "C3", "C8", "R7"):
+        b0, b1 = m0.footprints[ref], m1.footprints[ref]
+        d0 = (b0.center_abs()[0] - a0.center_abs()[0],
+              b0.center_abs()[1] - a0.center_abs()[1])
+        d1 = (b1.center_abs()[0] - a1.center_abs()[0],
+              b1.center_abs()[1] - a1.center_abs()[1])
+        l0 = _rot(d0[0], d0[1], a0.angle)
+        l1 = _rot(d1[0], d1[1], a1.angle)
+        assert l1 == (pytest.approx(l0[0], abs=1e-3),
+                      pytest.approx(l0[1], abs=1e-3))
+        r0 = (b0.angle - a0.angle) % 360.0
+        r1 = (b1.angle - a1.angle) % 360.0
+        assert abs(((r1 - r0) + 180.0) % 360.0 - 180.0) < 1e-3
+    assert placelib.declared_decap_violations(m1, dec) == []
+
+
+DEC_C1U1 = {"associations": [
+    {"cap": "C1", "ic": "U1", "pin": "4", "rail": "VCC", "value": "100nF"}]}
+
+
+def _handplaced_board(tmp_path_factory, name, cap_at, cap_layer="F.Cu"):
+    """U1 with a VCC pin at local (-2, 2); C1 hand-placed at cap_at."""
+    body = _fp("U1", 30, 20, cy=(-3, -3, 3, 3),
+               pads=_pad("1", -2, -2, "A") + _pad("4", -2, 2, "VCC"))
+    body += _fp("R1", 6, 6, pads=_pad("1", -0.5, 0, "A")
+                + _pad("2", 0.5, 0, "GND"))
+    body += _fp("C1", cap_at[0], cap_at[1], layer=cap_layer,
+                pads=_pad("1", -0.5, 0, "VCC") + _pad("2", 0.5, 0, "GND"))
+    return _pcb(tmp_path_factory, name, body)
+
+
+def _bodies_of(pcb, dec):
+    model = placelib.PlaceModel(pcb)
+    clusters, warns = placelib.build_clusters(model, dec, {})
+    res: list[str] = []
+    bodies = place_anneal._build_bodies(model, clusters, warns,
+                                        decoupling=dec, reslotted=res)
+    return model, bodies, warns, res
+
+
+def test_hand_slot_inherited_when_valid(tmp_path_factory):
+    pcb = _handplaced_board(tmp_path_factory, "handok", (26, 26))
+    model, bodies, warns, res = _bodies_of(pcb, DEC_C1U1)
+    assert res == [] and not [w for w in warns if "re-slotted" in w]
+    b = next(b for b in bodies if b.cluster.anchor == "U1")
+    slot, rel = b.slots["C1"]
+    got = model.footprints["U1"].to_abs(slot)
+    want = model.footprints["C1"].center_abs()
+    assert got == (pytest.approx(want[0], abs=1e-6),
+                   pytest.approx(want[1], abs=1e-6))
+    assert rel == pytest.approx(0.0)
+
+
+def test_invalid_slots_reslotted_loudly(tmp_path_factory):
+    # colliding: C1 right on top of U1 -> re-derived, warned, reported
+    pcb = _handplaced_board(tmp_path_factory, "handcol", (30, 20))
+    model, bodies, warns, res = _bodies_of(pcb, DEC_C1U1)
+    assert res == ["C1"]
+    assert any("re-slotted" in w and "collides" in w for w in warns)
+    b = next(b for b in bodies if b.cluster.anchor == "U1")
+    got = model.footprints["U1"].to_abs(b.slots["C1"][0])
+    want = model.footprints["C1"].center_abs()
+    assert abs(got[0] - want[0]) + abs(got[1] - want[1]) > 1.0
+    # wrong side: satellite on B.Cu under a front anchor -> re-derived
+    pcb2 = _handplaced_board(tmp_path_factory, "handside", (26, 26),
+                             cap_layer="B.Cu")
+    _m2, _b2, warns2, res2 = _bodies_of(pcb2, DEC_C1U1)
+    assert res2 == ["C1"]
+    assert any("re-slotted" in w and "side" in w for w in warns2)
+
+
+def test_candidate_rejected_on_declared_distance(tmp_path_factory):
+    """Candidate REJECTION, not scoring: with a declared limit no slot can
+    satisfy, the hand slot is re-derived (loudly) and every candidate is
+    marked illegal by the declared violation - it can never rank as a clean
+    win and --apply-best refuses it."""
+    pcb = _handplaced_board(tmp_path_factory, "declfail", (26, 26))
+    dec = {"associations": [{"cap": "C1", "ic": "U1", "pin": "4",
+                             "rail": "VCC", "value": "100nF",
+                             "max_dist_mm": 0.2}]}
+    cands, facts, _m = _run_anneal(pcb, {"placement": {}}, dec)
+    assert facts["satellites_reslotted"] == ["C1"]
+    assert any("declared" in w for w in facts["warnings"])
+    for c in cands:
+        assert not c["legal"]
+        assert any(v["kind"] == "decoupler_distance" and v.get("declared")
+                   for v in c["violations"])
+
+
 # ============================================================ smoke: corpus
 
 @pytest.fixture(scope="session")

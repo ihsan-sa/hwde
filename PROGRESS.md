@@ -75,7 +75,7 @@ U18; hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16 + U18 land.
 | U17 | Editable board outline (board_edit.py --outline) | **done** | 2026-08-16 |
 | U18 | Learning mode: target outcome drives scope + binding | **done** | 2026-08-16 |
 | U19 | Bottom-side placement the annealer can discover | **done** | 2026-08-16 |
-| U20 | place_anneal must not degrade declared decoupling | pending | - |
+| U20 | place_anneal must not degrade declared decoupling | **done** | 2026-08-20 |
 | U21 | Unverified research is loud, never silent | pending | - |
 | U22 | Cross-run promotion + approval pass (owner present) | pending | - |
 
@@ -4803,6 +4803,107 @@ and are NOT part of this commit).
 - `--outline fit` uses courtyard extents; a footprint whose SILK reaches past
   its courtyard can end up crossing the new edge. `check_silk` / the dfm silk
   legs catch it at the gate; board_edit does not check silk today.
+
+
+## U20 - place_anneal must not degrade declared decoupling (2026-08-20) - DONE
+
+`_build_bodies` opened with `slots = place_seed.layout_satellites(...)`, so
+stage 2 always started from the SEED's satellite geometry: a hand-placed
+decoupler could not survive an anneal run, and on bb-adc the re-derived slots
+violated the board's own declared cap distances (C2 2.44 mm vs 2.0, C3
+3.97 mm vs 2.5) while `gate --gate place` still passed - the declared
+`max_dist_mm` only moved the WARN threshold (`dist_err = max(class_err,
+warn*1.5)`), so a declared limit could never fail a gate. LEARNINGS
+2026-08-19 [placement][anneal], triage row 313.
+
+**Built:**
+- `place_anneal._inherit_slots()` - the annealer now INHERITS the board's
+  existing satellite geometry: slot = `R(+anchor.angle).(sat_center_abs -
+  anchor.pos)`, rel = angle difference (exact inverse of `apply_cluster`, so
+  a valid placement round-trips bit-for-nothing-moved). Re-derivation via
+  `place_seed.layout_satellites` happens ONLY when the existing slot is
+  invalid - satellite on the other side from its anchor, colliding inside
+  its own cluster, or violating a DECLARED decoupling `max_dist_mm` - and is
+  LOUD: a warning per ref plus a `satellites_reslotted` fact (the triage-313
+  L1 rung; `hpwl_input_mm == hpwl_start_mm` is now the invariant on a valid
+  hand placement, bb-adc's 58 mm gap class is dead). Intra-cluster collision
+  uses PRECISE shapes (courtyard UNION per-pad boxes, the U5 standard) so
+  tight-but-legal hand-placed decouplers are preserved, not re-slotted; the
+  nudge search for NEW slots keeps the conservative hulls.
+- `place_seed.layout_satellites(..., only=, keep=)` - partial re-slotting:
+  derive just the invalid subset, nudging around the kept slots' geometry.
+  Template clusters re-derive as one set (symmetric pairs have no partial
+  meaning), with a warning.
+- Candidate REJECTION, not scoring: `placelib.declared_decap_violations()`
+  (model-side, same pad-matching as check_decoupling: nearest cap-rail-pad x
+  ic-pin-pad pair, Manhattan) marks any candidate exceeding a DECLARED
+  `max_dist_mm` with an error-severity `decoupler_distance` violation
+  (`declared: true`) -> `legal: false`, so it can never outrank a clean
+  candidate, `--apply-best` refuses it, and an all-violating pool exits 1
+  instead of shipping the violation as a 0.7% HPWL "win". Deliberately NOT a
+  cost term: the SA does not chase it, the emission gate enforces it.
+- `check_decoupling` (the place gate's decoupler leg + place_metrics + P8):
+  a declared `max_dist_mm`/`max_loop_nh` is now the ERROR threshold itself -
+  the warn/error band applies only to the class-default heuristics. bb-adc's
+  escape closes: a board violating its own declared distance fails the gate.
+- Bench: NO re-baseline needed - measured the only two P6 fixtures carrying
+  declared limits (pd_trigger C5 3.0 <= 5.0, lumina_carrier C32 3.91 <= 5.0);
+  both sit inside their limits, `decap_worst_mm` reads facts (unchanged).
+
+**Fixture:** `tests/fixtures/bb_adc/` - the frozen bb-adc board + sidecars
+(byte-identical copies of the 680416a close-out state; C2 measures 1.97 mm
+vs declared 2.0, C3 2.29 vs 2.5 - hand placement inside its own limits).
+Tests derive an unlock variant (converter cluster only) in tmp.
+
+**Tests** (+7: test_place_anneal +5, test_checks +1, test_place +1):
+- Pre-fix reproduction on the live fixture: seed-derived slots applied at
+  U1's pose violate BOTH declared limits (2.44/3.97 - the exact LEARNINGS
+  numbers) and `declared_decap_violations` catches them as errors.
+- Acceptance on the live fixture: a real anneal run inherits the hand
+  placement (`satellites_reslotted == []`, `hpwl_start == hpwl_input`), best
+  candidate legal, every satellite's anchor-frame offset and relative angle
+  preserved to 1e-3, declared distances intact on the folded model.
+- Synthetic: valid hand slot inherited exactly; colliding slot and
+  wrong-side slot re-derived loudly; an unsatisfiable declared limit (0.2 mm)
+  re-slots the cap AND rejects every candidate (`legal: false` with the
+  declared violation).
+- Gate: `check_decoupling` declared-limit error at the limit (dist + loop,
+  clean inside it); `place_metrics` on the frozen bb-adc board with a
+  tightened sidecar fails `decoupler_distance` in coverage, and with the real
+  sidecar is distance-clean.
+- Sharpness verified live: with HEAD's place_anneal.py restored, 4 of the 5
+  new anneal tests fail (the reproduction test passes by design); all 5 pass
+  with the fix. Full suite (check.cmd equivalent: `pytest` + `check_env
+  --quiet`, exit 0): everything green EXCEPT 2 test_learnings registry
+  failures fully attributable to the CONCURRENT U21 session's in-flight
+  root-LEARNINGS append (its entry was on disk before its triage row, so
+  rows != entries while it works; verified by re-running with my triage
+  edit stashed - same failure). None of U20's files are involved; the U21
+  session's close restores the invariant. U20 adds no LEARNINGS entry.
+
+**Deviations:** none from the plan entry. Locked satellites were already
+never re-slotted (build_clusters excludes non-movable refs from clusters -
+they are obstacles), so item (2)'s new work is the hand-placed half.
+Class-DEFAULT distances deliberately do NOT gate slot preservation or
+candidate rejection (only DECLARED limits do) - defaults stay gate
+heuristics; the plan's wording is consistently "declared" and the gate
+still reports class-default violations as before.
+
+**Interface changes for later steps:**
+- `place_anneal` facts gain `satellites_reslotted` (sorted refs whose slot
+  was re-derived; `[]` on a valid hand placement). Recipes/agents reading
+  anneal reports can now assert "nothing re-slotted" instead of comparing
+  `hpwl_input_mm`/`hpwl_start_mm` by hand.
+- `placelib.declared_assoc_dist(model, assoc)` /
+  `placelib.declared_decap_violations(model, decoupling)` are reusable
+  model-side helpers (routing-free Manhattan only; loop_nh stays P8's).
+- `place_seed.layout_satellites` accepts keyword-only `only`/`keep`;
+  default behavior unchanged.
+- SEMANTIC: `max_dist_mm`/`max_loop_nh` in decoupling.json are now HARD
+  limits (error at the limit). A sidecar that meant "warn earlier than the
+  class default" must instead rely on the class defaults or accept the
+  contract; all committed boards/fixtures measured inside their declared
+  limits, so nothing regressed.
 
 
 ## U19 - Bottom-side placement the annealer can discover (2026-08-16) - DONE

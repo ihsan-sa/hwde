@@ -10,8 +10,8 @@ tests/golden/<board>/decoupling.json hand-writes it for the corpus):
          "gnd": "GND",           # return net (default GND)
          "value": "100nF",       # cap value -> threshold class
          "role": "reg_input",    # optional: switching-regulator input cap
-         "max_dist_mm": 10.0,    # optional per-association overrides
-         "max_loop_nh": 10.0}]}
+         "max_dist_mm": 10.0,    # optional DECLARED limits: exceeding one is
+         "max_loop_nh": 10.0}]}  # an ERROR (class defaults only as fallback)
 
 Per association:
  - Manhattan distance cap rail-pad -> IC pin pad (spec metric; Euclidean also
@@ -180,12 +180,17 @@ def check_association(bg: geom.BoardGeom, a: dict, reg_groups: dict | None = Non
                            or (farads is not None
                                and farads <= REG_INPUT_HF_MAX_F)),
             "pin_pad": pin_pad})
+    # U20: a DECLARED per-association limit is the board's own engineering
+    # contract - exceeding it is an ERROR outright. The warn/error band only
+    # applies to the class-default heuristics (bb-adc escape: a declared
+    # 2.5 mm limit exceeded at 3.97 mm read as a warning because the error
+    # threshold stayed at the class default, so `gate --gate place` passed).
     dist_warn, dist_err = CLASSES[cls]["dist"]
-    dist_warn = float(a.get("max_dist_mm", dist_warn))
-    dist_err = max(dist_err, dist_warn * 1.5)
+    if a.get("max_dist_mm") is not None:
+        dist_warn = dist_err = float(a["max_dist_mm"])
     loop_warn, loop_err = CLASSES[cls]["loop"]
-    loop_warn = float(a.get("max_loop_nh", loop_warn))
-    loop_err = max(loop_err, loop_warn * 2.0)
+    if a.get("max_loop_nh") is not None:
+        loop_warn = loop_err = float(a["max_loop_nh"])
 
     violations = []
     common = {"kind": None, "cap_class": cls,

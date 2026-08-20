@@ -91,9 +91,16 @@ def _centered(poly):
 # ------------------------------------------------------- satellite slots
 
 def layout_satellites(model: PlaceModel, cluster: Cluster,
-                      warnings: list[str]) -> dict[str, tuple]:
-    """ref -> ((slot_x, slot_y) anchor-origin local frame, rel_angle_deg)."""
-    if cluster.template:
+                      warnings: list[str], *, only: set | None = None,
+                      keep: dict | None = None) -> dict[str, tuple]:
+    """ref -> ((slot_x, slot_y) anchor-origin local frame, rel_angle_deg).
+
+    only/keep (U20, for place_anneal's slot inheritance): slot just the
+    `only` subset, treating `keep` entries (ref -> (slot, rel)) as
+    already-placed geometry to nudge around; returns slots for the processed
+    subset only. Defaults keep the classic all-satellites, template-aware
+    behavior."""
+    if cluster.template and only is None:
         import placetemplates
         slots = placetemplates.layout(model, cluster, warnings)
         if slots is not None:
@@ -103,6 +110,10 @@ def layout_satellites(model: PlaceModel, cluster: Cluster,
     ac = anchor.center_local()
     rc = _circumradius(ext)
     placed = [ext]
+    for ref, (kslot, krel) in (keep or {}).items():
+        p = affinity.rotate(_centered(model.footprints[ref].extents_local()),
+                            -krel, origin=(0, 0))
+        placed.append(affinity.translate(p, kslot[0], kslot[1]))
     slots: dict[str, tuple] = {}
 
     def keyed(s):
@@ -110,7 +121,9 @@ def layout_satellites(model: PlaceModel, cluster: Cluster,
         return (0, _ang((p[0] - ac[0], p[1] - ac[1])), s.ref) if p \
             else (1, 0.0, s.ref)
 
-    for i, sat in enumerate(sorted(cluster.satellites, key=keyed)):
+    sats = cluster.satellites if only is None else \
+        [s for s in cluster.satellites if s.ref in only]
+    for i, sat in enumerate(sorted(sats, key=keyed)):
         fp = model.footprints[sat.ref]
         sat_rel = _centered(fp.extents_local())
         r_sat = _circumradius(sat_rel)

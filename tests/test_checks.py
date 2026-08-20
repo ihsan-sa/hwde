@@ -415,6 +415,28 @@ def test_decoupling_far_cap_flagged(tmp_path_factory):
     assert v["refs"] == ["C9", "U9"] and v["pin"] == "U9.7"
 
 
+def test_decoupling_declared_limit_is_error(tmp_path_factory):
+    """U20: a DECLARED per-association limit is the board's own contract -
+    exceeding it is an ERROR at the limit itself, never a warning until the
+    class-default error threshold (the bb-adc escape: a declared 2.5 mm
+    exceeded at 3.97 mm read as a warning, so `gate --gate place` passed)."""
+    bg = _decap_board(tmp_path_factory, "declared", 8.0)   # 2.6 mm measured
+    vs, _ = check_decoupling.check_association(
+        bg, {**META, "max_dist_mm": 2.0})
+    v = [x for x in vs if x["kind"] == "decoupler_distance"]
+    assert v and v[0]["severity"] == "error"
+    assert v[0]["limit_mm"] == pytest.approx(2.0)
+    # within the declared limit: clean - class defaults never re-enter
+    vs2, _ = check_decoupling.check_association(
+        bg, {**META, "max_dist_mm": 3.0})
+    assert [x for x in vs2 if x["kind"] == "decoupler_distance"] == []
+    # declared loop limit: same contract
+    vs3, _ = check_decoupling.check_association(
+        bg, {**META, "max_loop_nh": 1.0})
+    v3 = [x for x in vs3 if x["kind"] == "decoupler_loop"]
+    assert v3 and v3[0]["severity"] == "error"
+
+
 def test_decoupling_no_rail_path_counts_vias(tmp_path_factory):
     """Remove the surface rail trace: loop picks up 2 plane vias."""
     body = DECAP_BODY.format(cx=8.0, p1x=5.0, gvx=9.0).replace(

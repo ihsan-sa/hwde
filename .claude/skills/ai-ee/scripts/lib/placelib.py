@@ -608,6 +608,56 @@ def legality_violations(model: PlaceModel, placement: dict | None) -> list[dict]
     return v
 
 
+def declared_assoc_dist(model: PlaceModel, assoc: dict):
+    """(manhattan_mm, limit_mm) for one decoupling association carrying a
+    DECLARED max_dist_mm, measured on the in-memory model (same pad-matching
+    semantics as check_decoupling: cap rail pads x IC pin pads on the rail,
+    nearest pair). None when the association declares no limit or no longer
+    matches the model - stale metadata stays check_decoupling's report."""
+    limit = assoc.get("max_dist_mm")
+    if limit is None:
+        return None
+    cap = model.footprints.get(assoc.get("cap"))
+    ic = model.footprints.get(assoc.get("ic"))
+    if cap is None or ic is None:
+        return None
+    pin, rail = str(assoc.get("pin", "")), assoc.get("rail")
+    cap_pads = [(x, y) for _n, net, x, y in cap.pad_centers_abs()
+                if net == rail]
+    pin_pads = [(x, y) for n, net, x, y in ic.pad_centers_abs()
+                if n == pin and net == rail]
+    if not cap_pads or not pin_pads:
+        return None
+    dist = min(abs(cx - px) + abs(cy - py)
+               for cx, cy in cap_pads for px, py in pin_pads)
+    return dist, float(limit)
+
+
+def declared_decap_violations(model: PlaceModel, decoupling: dict | None
+                              ) -> list[dict]:
+    """ERROR violations for decoupling associations whose DECLARED
+    max_dist_mm the model's placement exceeds (U20: the annealer discards any
+    candidate carrying one - a declared limit is a hard contract, never a
+    score)."""
+    out: list[dict] = []
+    for a in (decoupling or {}).get("associations", []):
+        got = declared_assoc_dist(model, a)
+        if got is None:
+            continue
+        dist, limit = got
+        if dist <= limit + 1e-6:
+            continue
+        cap, ic = a["cap"], a["ic"]
+        pos = model.footprints[cap].center_abs()
+        out.append(checklib.violation(
+            "place", "error", pos, None, a.get("rail"), [cap, ic],
+            f"{cap} rail pad is {dist:.2f} mm Manhattan from {ic} pin "
+            f"{a.get('pin')} against a declared {limit:g} mm limit", SOURCE,
+            kind="decoupler_distance", limit_mm=limit,
+            manhattan_mm=checklib.rnd(dist), declared=True))
+    return out
+
+
 # ---------------------------------------------------------------- metrics
 
 def hpwl(model: PlaceModel) -> dict:

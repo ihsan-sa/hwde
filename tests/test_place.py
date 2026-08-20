@@ -685,6 +685,34 @@ def test_place_metrics_flags_moved_decoupler(tmp_path_factory):
     assert "C1" in v["refs"]
 
 
+def test_place_metrics_declared_limit_fails_gate(tmp_path):
+    """U20: the place gate fails a board violating its OWN declared
+    max_dist_mm - the declared limit is the error threshold, class defaults
+    apply only where nothing is declared."""
+    fix = REPO / "tests" / "fixtures" / "bb_adc"
+    dec = json.loads((fix / "decoupling.json").read_text("utf-8"))
+    for a in dec["associations"]:
+        if a["cap"] == "C2":
+            a["max_dist_mm"] = 1.0     # C2 measures 1.97 mm on the board
+    meta = tmp_path / "decoupling.json"
+    meta.write_text(json.dumps(dec), encoding="utf-8")
+    payload, _ = place_metrics.run(
+        ["--pcb", str(fix / "bb-adc.kicad_pcb"),
+         "--constraints", str(fix / "constraints.json"),
+         "--decoupling", str(meta)])
+    v = [x for x in payload["violations"]
+         if x["kind"] == "decoupler_distance" and "C2" in x["refs"]]
+    assert v and v[0]["severity"] == "error"
+    assert "decoupler_distance" in payload["coverage"]["failed"]
+    # the board's real sidecar is satisfied: no distance violations at all
+    payload2, _ = place_metrics.run(
+        ["--pcb", str(fix / "bb-adc.kicad_pcb"),
+         "--constraints", str(fix / "constraints.json"),
+         "--decoupling", str(fix / "decoupling.json")])
+    assert [x for x in payload2["violations"]
+            if x["kind"] == "decoupler_distance"] == []
+
+
 def test_place_gate_wired():
     import gate
     gates = gate.load_gates(gate.DEFAULT_GATES)
