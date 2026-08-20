@@ -2,14 +2,14 @@
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
 # U19 2026-08-16; U18 2026-08-16)
 
-One row per `LEARNINGS.md` entry (312 of them; the last starts at
-line 4603), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (313 of them; the last starts at
+line 4616), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (129) are the gaps nothing owns yet -
+the outer-loop worklist. `open` rows (130) are the gaps nothing owns yet -
 they are the input to T6 (per-stage deep evaluation) and to any later step
 looking for the next promotion.
 
@@ -35,15 +35,15 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at U18 (2026-08-16), all 312 rows
+Recomputed from the table at the bb-adc run (2026-08-19), all 313 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 119 | 14 |
+| L0 | 120 | 14 |
 | L1 | 16 | 13 |
 | L2 | 54 | 111 |
-| L3 | 123 | 174 |
+| L3 | 123 | 175 |
 
 126 entries want to climb at least one level. Status: **done 158**,
 **open 129**, **n/a 7**, planned 18
@@ -431,3 +431,4 @@ the row's Now level and status in the same commit as the code.
 | 310 | 4570 | place_anneal's fast test budget never reaches the cold regime - any as | [placement][anneal][tests] | L0 | L1 | scripts/place_anneal.py | open | Half-owned: the anneal report already carries `t0`/`t_end`, so the evidence is there, but nothing says the run did not converge - a derived `converged` flag (t_end < t0 * 1e-3) or an explicit warning would move this to L1 properly. The test-side rule (FAST budgets assert invariants, never which placement wins) is L0 prose in the U19 test block; the reusable half is the measurement: FAST leaves t_end ~150 on a cost-100 board |
 | 311 | 4586 | A dimension given at a CHECKPOINT is invisible to every P0 lint - the | [build-modes][state][pipeline] | L2 | L2 | scripts/board_init.py | done | FIXED in U18, not just recorded: `state.py mode` makes the run's binding machine state and `board_init.mode_outline_guard` REFUSES a fixed `--outline WxH` where geometry is an output (`--allow-fixed-outline` is the reported consent). `check_requirements` covers the artifact half (req_mode_unnamed / req_mode_unmarked_size). The general L0 residual, prose here: a value that enters as a CLI argument can only be policed by the script that takes it |
 | 312 | 4603 | `--outline fit` on a board that was placed to FIT cannot recover the size | [board_edit][placement][build-modes] | L0 | L2 | reference/recipes/full-run.md | open | The ORDER is the fix and it is prose today: full-run's P6 step and build-modes.md both say board_init --outline auto -> place -> fit, and board_init refuses a fixed outline at a canonical binding, but nothing FAILS when a canonical run reaches fit having been placed against a tight provisional outline. The honest L2 is a board_edit warning when `fit` GROWS the board under a geometry-output mode - it means the placement was already boxed in. Measured: bb-buck 35x25 -> fit 35.9 x 25.901 |
+| 313 | 4616 | `place_anneal` RE-DERIVES every satellite slot from `place_seed` - it | [placement][anneal] | L0 | L3 | scripts/place_anneal.py | open | ROOT CAUSE, not a tuning issue: `_build_bodies` opens with `slots = place_seed.layout_satellites(...)`, so stage 2 starts from the SEED's satellite geometry and a hand-placed decoupler cannot survive it. The L3 fix is to INHERIT the board's existing satellite placement instead of re-deriving it - correct by construction, and the only form that makes "place by hand, then anneal" a supported flow rather than a trap. Two cheaper rungs exist and neither is done: L1 = derive a `satellites_reslotted` flag when `hpwl_input_mm` != `hpwl_start_mm` (the numbers are ALREADY in the report - bb-adc printed 242.12 vs 299.80, a 58 mm gap that is entirely re-slotting, before a single move ran); L2 = refuse to rank a candidate BEST when it violates a declared `decoupling.json` distance, which is what happened here (C3 3.97 mm against a 2.5 mm limit, C2 2.44 against 2.0) - the annealer's own starting state failed `gate --gate place`'s decoupler leg while reporting a 0.7 % HPWL win. Today the only defence is prose in a `placement.groups` note telling the operator to LOCK before stage 2 |

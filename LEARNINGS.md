@@ -4612,3 +4612,23 @@ Consequence for the canonical binding: the order of operations is load-bearing, 
 `board_init --outline auto` (generous room) -> place -> fit is a measurement of what the
 layout wanted; place-into-a-size -> fit is a measurement of the size. Same command, opposite
 meanings. Any later "we can always shrink it afterwards" argument is answered by this number.
+
+## 2026-08-19 [placement][anneal] `place_anneal` RE-DERIVES every satellite slot from `place_seed` - it cannot preserve a hand-placed decoupler, and on bb-adc the slots it re-derives FAIL the board's own declared cap distances
+`_build_bodies` opens with `slots = place_seed.layout_satellites(model, c, warnings)`, so the SA
+starts from the seed's satellite geometry, not the board's. The tell is in the report itself:
+bb-adc's anneal on a hand-placed board printed `hpwl_input_mm 242.12` beside
+`hpwl_start_mm 299.80` - a 58 mm gap that is entirely the re-slotting, before a single move ran.
+Every candidate therefore carries the seed's satellite offsets no matter what the file said.
+That is not merely lossy here, it is wrong: `place_seed`'s own slots put C3 (C1210, VREF
+reservoir) **3.97 mm** from U1's REF pin against a declared 2.5 mm limit and C2 **2.44 mm**
+against 2.0 - i.e. the annealer's starting state fails `gate --gate place`'s decoupler leg, and
+its best candidate still did (C3 3.97 / C2 2.44) while the tap stub went 2.6 -> 7.18 mm and the
+anti-alias cap 1.97 -> 12.01 mm from the ADC input. HPWL "improved" 0.7 %.
+Consequences. (a) A `placement.groups` note like bb-adc's "place by explicit place_edit and LOCK
+before place_anneal" is not a style preference - locking is the ONLY way a hand-placed satellite
+survives stage 2, because a cluster is rigid but its internal slots are recomputed. (b) Read
+`hpwl_input_mm` vs `hpwl_start_mm` first on every anneal report; if they differ, the SA is not
+refining the placement you handed it. (c) With the analog + converter + reference clusters
+locked, `movable_clusters` fell to 0 and the one candidate emitted moved only C1 - from beside
+J2's +3V3/GND pins (2.8 mm) to 10 mm past its south end, hpwl 242 -> 260. Both runs were
+rejected on structure; the hand placement also won on HPWL.
