@@ -25,6 +25,12 @@ unscriptable):
    "y": mm, ["deg": d]}
      - repositions a footprint's Reference/Value field text (board frame;
        stored angle is ABSOLUTE per LEARNINGS [geometry]).
+  {"op": "silk_clear", "ref": R, ["layer": "F.SilkS"], ["only_offboard": true]}
+     - deletes a footprint's own GRAPHIC silk (lines/arcs/circles/polys) on
+       that layer, never its Reference/Value text. `only_offboard` keeps the
+       items fully inside the board outline. The only scripted way to fix
+       footprint-INTERNAL silk on an already-placed board (a library edit
+       cannot reach one without re-running board_init and losing placement).
 
 The board is saved ONLY if every op applied; any failure exits 3 with a JSON
 error and writes nothing (the driver treats the staged copy as garbage).
@@ -136,10 +142,80 @@ def apply_text_op(board, op: dict) -> dict:
     raise KeyError(f"unknown text op '{kind}'")
 
 
+EDGE_BOX = None   # board-edge bbox as plain ints, cached BEFORE any removal
+# Every FOOTPRINT/PCB_SHAPE wrapper touched by a removal stays referenced for
+# the life of this (short, single-job) process. Letting SWIG garbage-collect
+# them corrupts the board: after one silk_clear returns, the NEXT
+# board.FindFootprintByReference() comes back as a bare SwigPyObject with no
+# FOOTPRINT methods (KiCad 10.0.5, measured - and it is the wrappers going out
+# of scope, not `thisown`, which is False on both sides).
+_KEEPALIVE = []
+
+
+def _box(bb) -> tuple:
+    return (bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom())
+
+
+def _inside(inner: tuple, outer: tuple) -> bool:
+    return (inner[0] >= outer[0] and inner[1] >= outer[1]
+            and inner[2] <= outer[2] and inner[3] <= outer[3])
+
+
+def apply_silk_clear(board, op: dict) -> dict:
+    """{"op": "silk_clear", "ref": R, ["layer": "F.SilkS"],
+        ["only_offboard": true]}
+
+    Delete a footprint's own GRAPHIC silk items (lines, arcs, circles, polys).
+    Reference/Value text is never touched - move those with move_text.
+
+    Why this exists: footprint-INTERNAL silk is the librarian's to fix in the
+    LIBRARY, but a library edit does not reach a board that is already placed,
+    and nothing else in this pipeline can edit footprint graphics on a board.
+    That mattered on g0-sense P6: 12 of 13 residual silk warnings were body
+    outlines (a 0603 wedged between two ICs, and a flush edge connector whose
+    mouth-end silk hangs off the board), and `drc_routed` fails at
+    errors+warnings = 0, so they had to go before P7 could pass. Re-running
+    board_init to pick up a library edit would have destroyed the placement.
+
+    `only_offboard` keeps every item whose bounding box lies inside the board
+    outline and deletes the rest - the flush-connector case, where the silk
+    that offends is the part hanging past the edge and the rest is worth
+    keeping. Without it the footprint's graphic silk goes entirely.
+
+    Idempotent: nothing left to delete is a no-op with {"removed": 0}."""
+    ref = op["ref"]
+    fp = board.FindFootprintByReference(ref)
+    if fp is None:
+        raise KeyError(f"footprint '{ref}' not on board")
+    lname = op.get("layer", "F.SilkS")
+    lid = _layer_id(board, lname)
+    keep_inside = bool(op.get("only_offboard"))
+    if keep_inside and EDGE_BOX is None:
+        raise RuntimeError("only_offboard needs the board-edge box cached "
+                           "before the first removal - see main()")
+    victims = []
+    for item in list(fp.GraphicalItems()):
+        if item.GetLayer() != lid:
+            continue
+        if isinstance(item, pcbnew.PCB_TEXT):
+            continue          # ${REFERENCE}-style fields are move_text's job
+        if keep_inside and _inside(_box(item.GetBoundingBox()), EDGE_BOX):
+            continue
+        victims.append(item)
+    _KEEPALIVE.append(fp)
+    _KEEPALIVE.extend(victims)
+    for item in victims:
+        fp.Remove(item)
+    return {"ref": ref, "layer": lname, "removed": len(victims),
+            "only_offboard": keep_inside}
+
+
 def apply_op(board, op: dict) -> dict:
     kind = op["op"]
     if kind in ("add_text", "remove_text", "move_text"):
         return apply_text_op(board, op)
+    if kind == "silk_clear":
+        return apply_silk_clear(board, op)
     ref = op["ref"]
     fp = board.FindFootprintByReference(ref)
     if fp is None:
@@ -162,8 +238,16 @@ def apply_op(board, op: dict) -> dict:
 
 
 def main() -> int:
+    global EDGE_BOX
     job = json.loads(open(sys.argv[1], encoding="utf-8").read())
     board = pcbnew.LoadBoard(job["board"])
+    # GetBoardEdgesBoundingBox() SEGFAULTS once a footprint has had an item
+    # removed (KiCad 10.0.5, measured) - and returning its BOX2I into a later
+    # op corrupts the next FindFootprintByReference into a bare SwigPyObject.
+    # Take it once, up front, as plain ints.
+    if any(o.get("op") == "silk_clear" and o.get("only_offboard")
+           for o in job["ops"]):
+        EDGE_BOX = _box(board.GetBoardEdgesBoundingBox())
     results = []
     for i, op in enumerate(job["ops"]):
         try:

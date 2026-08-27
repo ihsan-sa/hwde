@@ -4815,3 +4815,34 @@ is to shrink the VERTICES until effective width equals the vendor number (here -
 not to delete the stroke. Check this on every pulled custom-pad footprint whose pads look
 suspiciously fat, and remember that fp_verify cannot catch it without a datasheet-extract JSON -
 J1 had none, so nothing checked this footprint until board_init's own DRC did.
+
+## 2026-08-27 [place_edit][swig][silk] Footprint-internal silk on a PLACED board is now `{"op": "silk_clear"}` - and two SWIG traps come with it
+g0-sense P6. A dense 35 x 28 mm layout finished with 13 silk DRC warnings, 12 of them
+footprint-INTERNAL graphics (a 0603's body outline wedged between two ICs; a flush edge
+connector's mouth-end outline hanging off the board). `drc_routed` fails at errors+warnings = 0,
+so they had to go - but the librarian fixes the LIBRARY, and a library edit cannot reach a board
+that is already placed without re-running `board_init` and losing the placement. Nothing in the
+pipeline could edit footprint graphics on a board. `place_edit` now carries
+`{"op": "silk_clear", "ref": R, ["layer": "F.SilkS"], ["only_offboard": true]}`: deletes a
+footprint's own graphic silk (never its Reference/Value text - those are `move_text`'s), and
+`only_offboard` keeps the items whose bbox is inside the board outline, which is exactly the
+flush-connector case.
+TRAP 1, SWIG GARBAGE COLLECTION. `fp.Remove(item)` inside a FUNCTION corrupts the board when the
+function returns: the next `board.FindFootprintByReference()` comes back as a bare `SwigPyObject`
+with no FOOTPRINT methods. It is the wrappers going out of scope, not ownership - `thisown` is
+False on the footprint before AND after, and setting `item.thisown = 1` changes nothing. The same
+code inlined at module scope works, which is what makes this so easy to mis-diagnose. Fix: hold
+every touched FOOTPRINT and PCB_SHAPE wrapper in a module-level `_KEEPALIVE` list for the life of
+the (short, single-job) worker process. Related: `board.GetBoardEdgesBoundingBox()` SEGFAULTS once
+any footprint has had an item removed, so cache it as plain ints BEFORE the first removal.
+TRAP 2, THE LEAK LINES ARE ON STDOUT. After any detach, KiCad's SWIG runtime prints
+`swig/python detected a memory leak of type 'PCB_SHAPE *', no destructor found.` at interpreter
+shutdown - i.e. AFTER the worker's result JSON. `place_edit` was reading `stdout.splitlines()[-1]`
+and reported a clean run as "worker exit 0 (rolled back)". It now scans BACKWARDS for the last
+parseable JSON object, the same shape `board_init._last_json` already used. Any bundled-python
+worker that mutates the board needs that parser.
+TRAP 3, LIBRARY PARITY. Clearing silk on the board alone trades 12 warnings for 2
+`lib_footprint_mismatch` ("Footprint 'C0603' does not match copy in library 'aiee'") - also
+warnings, so also fatal to drc_routed. Whatever you clear on the board must be deleted from
+lib/<lib>.pretty/<fp>.kicad_mod too, AND cleared on every other board instance of that footprint.
+Budget the fix as "one footprint, all its instances, plus the library", never "one refdes".
