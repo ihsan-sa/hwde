@@ -171,3 +171,48 @@
   env/linux-container branch (PR #1); do not spend board time on them.
 - Board status unchanged: erc PASS committed (b2758dc). Continue with the
   schematic reviewer -> H2 -> P5.
+
+## 2026-08-27 ~13:20Z - iteration 1 (loop 2) - P4 Schematic COMPLETE, gate erc PASS, H2 approved
+- Resumed from state.json: P4 sheets built, erc PASS and FRESH, schematic-reviewer
+  spawned but killed by the 429 session limit (iterations 2-4 of loop 1 died
+  there; see supervisor commit 213c1a4). Re-entered at the reviewer.
+- Ran the missing `netlist_audit` inline (log/netlist_audit-P4.json): 0 violations,
+  99/99 expected pins connected, 35 nets, 5 decoupling associations.
+- schematic-reviewer (fable/high, fresh context): 0 errors / 3 warnings. Every
+  bring-up killer was hunted and CLEARED with evidence - TVS D1 orientation
+  (symbol + footprint silk agree), SW1 A/B vs C/D contact pairing (the highest
+  dead-board risk; settled by live-fetching the XKB datasheet), LED and tantalum
+  polarity, AMS1117 pinout/cap types/dropout, the full STM32G030 pin map incl.
+  I2C SDA-SCL orientation and the BOOT0 strap, SHT40 pinout + unlanded die pad,
+  USB-C sink topology, per-pin decoupling, abs-max on every IC.
+- Warning dispositions taken on the owner's behalf (reports/erc-waivers.md, all
+  three recorded as decisions):
+  * W1 Qwiic ESD -> WAIVED. Ecosystem norm (bare JST SH), 2 kV HBM endpoints with
+    internal clamps, indoor-bench recorded environment; the array stays a cheap
+    post-run add-part.
+  * W2 SHT4x VDD slew <= 20 V/ms -> CLOSED as accepted risk. The reviewer's
+    "provenance not on file" was checked and is wrong (record + p9 Table 4 source
+    are in research/), the I_limit/C worst case cannot occur on a series-pass
+    follower LDO, and the datasheet's own failure mode is a reset - which is what
+    a cold start produces anyway. Hardware options priced and rejected (series R
+    killed by the 75 mA on-chip heater). Firmware note: soft reset 0x94 at init.
+  * W3 native DNP missing on J3/J4 -> FIXED, not waived (a native BOM/POS export
+    would have put THT headers into an SMT-only JLC order).
+- W3 fix loop: snapshot pre-fix-review-w3 -> work order wo-w3-dnp -> fixer
+  (sonnet/medium). It needed a new `schlib.Sheet.mark_dnp()` because ksa 0.5.6
+  hard-codes `(dnp no)`; the patch must run AFTER write_placements or the ksa
+  round-trip silently erases it (cost 1 attempt; now in LEARNINGS.md).
+  state.py edit --class swap_part_same_fp -> gate erc re-run PASS 0/0 (7f86cc9).
+  Verified independently, not on the fixer's word: exactly J3/J4 carry (dnp yes)
+  with in_bom/on_board still yes, and netlist_audit --compare says identical,
+  35/35 nets, 0 membership diffs.
+- The shared skill script `schlib.py` was committed SEPARATELY from the board
+  (a150701) with the LEARNINGS entry, after I re-ran tests/test_schgen.py +
+  tests/test_lib_hygiene.py with and without the edit: identical results, the
+  same 3 pre-existing 10.0.5 failures either way. No regression introduced.
+- Gates: erc PASS (fresh, attempt 2/3). H2 packet log/H2.md written, approved as
+  delegated. report_gen exit 0 (design doc regenerated, pdflatex rc 0).
+- Open issues: none. Carried to P9: CPL rotation must be validated for D1, D2,
+  D10 and C3, not only J1 (recorded as a decision so it cannot be lost).
+- Next: P5 board setup (board_init --outline auto + rules_gen, inline), then P6
+  placement + gate place.

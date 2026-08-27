@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries g0-sense --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-27 08:43:41
+generated 2026-08-27 13:20:40
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-27 08:43:41
 \endhead
 board & g0-sense \\
 workspace & \texttt{boards/g0-sense} \\
-phase & P2 \\
-gate status & no gates recorded yet \\
+phase & P4 \\
+gate status & all 1 recorded gates pass \\
 state created & 2026-08-27T06:35:38 \\
-state updated & 2026-08-27T08:42:51 \\
+state updated & 2026-08-27T13:18:16 \\
 \bottomrule
 \end{longtable}
 }
@@ -192,6 +192,11 @@ P1 & unattended default: LED colours - user LED green, power LED red; both 0603,
 P2 & research task block-mcu-1 closed over 1 unverified draft record(s): mcu-boot-strap-only-when-option-bytes-consult-pin & --accept-drafts: the slot ships without this knowledge \\
 P2 & unattended default: BOOT0 gets a populated 10k pull-down on PA14 (pin 19, shared with SWCLK) - the board does NOT rely on the unverified factory-option-byte claim & The research record mcu-boot-strap-only-when-option-bytes-consult-pin was REFUTED by a fresh second reader: its load-bearing claim (factory 0xDFFFE1AA / nBOOT\_SEL=1 makes the BOOT0 pin ignored) rests solely on a community.st.com forum page, and RM0454/AN2606 could not be acquired - st.com times out from this container (verified twice by curl, once by an agent). Rather than design on unverified knowledge, the board is made correct under EITHER option-byte state: a 10k pull-down guarantees BOOT0=0 at reset so the part boots main flash even if nBOOT\_SEL=0. Cost is one 0402 resistor; 330 uA load on SWCLK is negligible to any debugger's push-pull driver, and the datasheet-confirmed internal pull-down on PA14 in debug mode already pulls the same way. This closes the gap without the source. \\
 P2 & unattended default: I2C pull-ups are 1.5 kOhm (not the 2.2 kOhm the P1 fragment proposed) & The draft record sht4x-i2c-pullup-bus-cap was refuted for recommending 2.2k over its own declared 150-200 pF bus budget: UM10204 Eq 1 at tr=300 ns gives Rp(max) = 354/Cb{[}pF{]} kOhm, i.e. 1.77k at 200 pF, so 2.2k needs Cb \textless{}= 161 pF and misses the Fast-mode rise time on a cabled Qwiic bus. 1.5k holds the ceiling to 236 pF and clears both floors (967 Ohm from UM10204 Table 10 at 3.3 V/3 mA, 390 Ohm from the SHT4x datasheet). Value independently recomputed by a second reader. architecture/constraints.json and the P4 schematic must use 1.5k. \\
+P3 & unattended default: AMS1117 SOT-223 tab is treated as VOUT (+3V3) - the thermal pour is a +3V3 pour, not an isolated island & The datasheet-extractor honestly refused to assert it: the 'TAB IS OUTPUT' label on page 1 sits against the TO-252 view, and no text restates it for SOT-223. Resolved as tab=VOUT because (a) the datasheet's own 15 C/W junction-to-TAB figure means the tab is the die-attach pad, which on this family's leadframe is the VOUT lead, (b) the KiCad standard symbol/footprint pair the librarian pulls ties tab to VOUT, so schematic and layout agree by construction, and (c) it is the safe direction either way: if the tab were floating, a +3V3 pour on it is still harmless, whereas assuming 'floating' and isolating the copper would throw away the thermal design the 0.51 W design point depends on. Flagged for the schematic reviewer to confirm against the pulled symbol. \\
+P3 & unattended default: the SHT4x 20 V/ms VDD slew limit needs NO extra bulk capacitance - carried item CLOSED, not escalated & Two independent second readers read the SHT4x datasheet Table 4 slew row and quoted its condition verbatim: 'Voltage changes on the supply between VDD,min and VDD,max. Faster slew rates may lead to a reset' (min cell empty). That bounds supply changes DURING operation, not the cold-start ramp from 0 V - and a reset during power-on is the intended behaviour anyway (the part has a POR). In operation the 22 uF tantalum on +3V3 holds any load-step slew orders of magnitude below 20 V/ms. Adding bulk to slow a cold start would also fight the USB-C \textless{}=10 uF attach limit upstream. No hardware change; note it for bring-up. \\
+P4 & unattended default: WAIVE schematic-review W1 (no ESD array on the J2 Qwiic SDA/SCL) - ship the board without a TVS/ESD array on the I2C bus & Product-scope connector checklist allows met-or-waived. Waived on four grounds: (a) the Qwiic/STEMMA-QT ecosystem norm (SparkFun/Adafruit reference boards) is a bare 4-pin JST SH with no array, so a user-facing part behaves as the ecosystem's users expect; (b) STM32G030 PA11/PA12 and the SHT40 both carry internal ESD structures and are 2 kV HBM rated, which is the standard handling rating for an indoor bench device; (c) the recorded environment is indoor bench/room ambient with no ingress rating, not a field-exposed port; (d) adding a 4-channel array now means a new Extended MPN plus setup fee, a fresh library pull and footprint verify, and re-opening a green schematic at P4 - real regression risk against a warning-severity, field-reliability-only exposure that cannot prevent bring-up. Recorded in reports/erc-waivers.md and shown at H2. \\
+P4 & unattended default: CLOSE the carried verify item 'SHT4x VDD slew \textless{}= 20 V/ms vs AMS1117 startup ramp' (schematic-review W2) as accepted risk - no hardware change & Three findings close it. (1) PROVENANCE IS ON FILE, contrary to the reviewer's note: the 20 V/ms figure is research/records/sht4x-vdd-slew-power-up.yaml, sourced to research/sources/HT\_DS\_Datasheet\_SHT4x.pdf p9 Table 4 and read visually TWICE (researcher + fresh second reader, maturity verified). The reviewer grepped parts/C2909890.json (the extraction JSON) and the LCSC PDF, which is a different artifact. (2) THE WORST-CASE NUMBER IS AN UPPER BOUND THAT CANNOT OCCUR: I\_limit/C (\textasciitilde{}1 A into \textasciitilde{}27 uF, 40-68 V/ms) assumes the LDO sources its full current limit into the output cap independently of its input. The AMS1117 is a series pass follower - during a cold start VOUT cannot rise faster than VIN minus dropout, so +3V3's edge is set by the USB source's VBUS ramp through C2 = 10 uF, not by the LDO's current limit. (3) THE NAMED FAILURE MODE IS BENIGN AT COLD START: the datasheet says only 'faster slew rates MAY lead to a reset'; the second reader explicitly flagged 'or hung until re-powered' as an unsupported clause the researcher added. A reset during the power-up ramp lands the part in exactly the state a power-up is supposed to produce - there is no state to lose at t=0. The limit's real bite is in-operation supply excursions and hot-plugging a DOWNSTREAM breakout onto a live Qwiic rail, which is the breakout's decoupling problem, not this board's. HARDWARE ALTERNATIVES REJECTED: a series R at U3 VDD to slow the local ramp is disqualified by the SHT4x on-chip heater (75 mA peak would drop 7.5 V across the 100 ohm needed for a 100 us tau); raising C3 above \textasciitilde{}50 uF to force I\_limit/C under 20 V/ms buys nothing against (2) and costs a part change on a green schematic. BELT AND BRACES (documentation, not copper): the firmware note 'issue an SHT4x soft reset (0x94) at init, per Sensirion's own recommended start-up sequence' goes into the design doc and fab/README, and the Qwiic hot-plug caveat is recorded as a known limit. \\
+P4 & unattended default: carry a P9 REQUIRED check - CPL rotation must be validated for every polarized 2-pin part (D1 TVS SOD-123, D2 power LED, D10 user LED, C3 tantalum CASE-A), not only for J1 & schematic-review OPEN item. decisions.md \#13 carried a CPL rotation check for J1 alone; the KiCad\textless{}-\textgreater{}JLC 0-degree-reference offset (reference/jlc\_rotations.csv, LEARNINGS/S8) bites every polarized package, and a reversed tantalum on 3V3 or a reversed TVS on VBUS is a dead board, not a cosmetic error. dfm\_check.py owns polarity/rotation validation - at P9 its findings for D1/D2/D10/C3 must be read explicitly and each confirmed against the footprint pin-1 marking, not just accepted as a count. \\
 \bottomrule
 \end{longtable}
 }
@@ -246,7 +251,58 @@ Header pinouts (canonical): J3 SWD = 1:GND, 2:3V3, 3:SWDIO, 4:SWCLK. J4 UART = 1
 
 Full architecture narrative (not inlined; see the artifact index): \texttt{architecture/blocks.md}, \texttt{architecture/decisions.md}, \texttt{architecture/power\_tree.md}, \texttt{architecture/stackup.md}.
 \section{Schematic}
-\emph{Pending --- produced at P4.}
+Gate \texttt{erc} (phase P4): \textbf{pass} after 2 attempt(s); last 2026-08-27T13:18:16, failing 0 of 0.
+\subsection*{Review waivers}
+\subsection*{P4 schematic waivers - g0-sense}
+ERC gate itself is 0 errors / 0 warnings (reports/erc.json), and \texttt{netlist\_audit} (log/netlist\_audit-P4.json) is 0 violations with 99/99 expected pins connected. Nothing below is an ERC violation: these are the three WARNINGS raised by the fresh-context \texttt{schematic-reviewer} (reports/review-schematic.\{md,json\}), with the disposition taken on the owner's behalf under the unattended run contract. 0 errors were raised.
+
+\begin{quote}\small\ttfamily\raggedright
+\textbar{} \# \textbar{} kind \textbar{} refs \textbar{} severity \textbar{} disposition \textbar{}\\
+\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}---\textbar{}\\
+\textbar{} W1 \textbar{} qwiic-esd-unwaived \textbar{} J2, U2, U3 \textbar{} warning \textbar{} WAIVED (recorded decision, P4) \textbar{}\\
+\textbar{} W2 \textbar{} sht4x-vdd-slew-unclosed \textbar{} U3, U1, C3 \textbar{} warning \textbar{} CLOSED as accepted risk (recorded decision, P4) \textbar{}\\
+\textbar{} W3 \textbar{} dnp-not-native \textbar{} J3, J4 \textbar{} warning \textbar{} FIXED (work order wo-w3-dnp) \textbar{}
+\end{quote}
+\subsubsection*{W1 - no ESD array on the J2 Qwiic SDA/SCL - WAIVED}
+Finding: J2 is a populated, user-facing, hot-pluggable connector; SDA/SCL and +3V3 leave the board with no clamps and no series impedance, so a cable-borne strike reaches U2 PA11/PA12 and U3 (2 kV HBM) directly. The product-scope connector checklist requires this expectation met OR waived, and no waiver existed. Field-reliability only - it cannot prevent bring-up.
+
+Waived on four grounds:
+
+1. Ecosystem norm. The Qwiic / STEMMA-QT reference implementations (SparkFun, Adafruit) are a bare 4-pin JST SH with no array. A user-facing part that behaves the way the ecosystem's users expect is the conservative choice here, not the exceptional one. 2. Both silicon endpoints carry internal ESD structures and are rated 2 kV HBM - the standard handling rating for an indoor bench device. 3. The recorded operating environment (P0 decision) is indoor bench / room ambient, bare board, no ingress rating - not a field-exposed port. 4. Cost of the alternative at this point in the run: a new Extended MPN plus its JLC setup fee, a fresh library pull + fp\_verify, and re-opening a green schematic - real regression risk traded against a warning-severity exposure.
+
+If the owner wants the array anyway, the cheap retrofit is a 4-channel low-capacitance array on SDA/SCL at J2 (the 1.5 k pull-up budget has room: the bus was sized to 236 pF and an array adds single-digit pF). That is a post-run \texttt{add-part} task, not a rewind.
+
+\subsubsection*{W2 - carried SHT4x VDD-slew verify item - CLOSED as accepted risk}
+Finding: \texttt{power\_tree.md} / \texttt{decisions.md} carried "verify SHT4x VDD slew \textless{}= 20 V/ms vs the AMS1117 startup ramp"; the reviewer found it unclosed, found no slew spec in \texttt{parts/C2909890.json}, and computed \textasciitilde{}40 V/ms from AMS1117 current-limit charging of the \textasciitilde{}27 uF on +3V3.
+
+Closed, no hardware change, on three findings:
+
+1. \textbf{Provenance is on file} (the reviewer looked in the wrong artifact). The number is \texttt{research/records/sht4x-vdd-slew-power-up.yaml}, sourced to \texttt{research/sources/HT\_DS\_Datasheet\_SHT4x.pdf} p9 Table 4, read visually by the researcher and again by a fresh second reader (\texttt{maturity: verified}). \texttt{parts/C2909890.json} is the P3 extraction, a different artifact with a different scope. 2. \textbf{The worst-case number is an upper bound that cannot occur.} I/C (\textasciitilde{}1 A into \textasciitilde{}27 uF) assumes the LDO drives its output cap independently of its input. The AMS1117 is a series-pass follower: on a cold start VOUT cannot rise faster than VIN minus dropout, so the +3V3 edge is set by the USB source's VBUS ramp filtered by C2 = 10 uF, not by the LDO's current limit. 3. \textbf{The named failure mode is benign at cold start.} The datasheet says only "faster slew rates MAY lead to a reset" - and the second reader already flagged the researcher's added "or hung until re-powered" as unsupported by any cited page. A reset during the power-up ramp leaves the part in exactly the state a power-up is meant to produce. The limit's real bite is in-operation supply excursions, and hot-plugging a DOWNSTREAM breakout onto an already-live Qwiic rail - that one is the breakout's decoupling problem, not this board's.
+
+Hardware alternatives considered and rejected: a series R at U3 VDD to slow the local ramp is disqualified by the SHT4x on-chip heater (75 mA peak across the \textasciitilde{}100 ohm needed for a 100 us tau = 7.5 V drop); raising C3 past \textasciitilde{}50 uF to force I/C under 20 V/ms buys nothing against finding 2 and costs a part change on a green schematic.
+
+Belt and braces, documentation only: "issue an SHT4x soft reset (0x94) at init" (Sensirion's own recommended start-up sequence) goes into the design doc and \texttt{fab/README}, and the Qwiic hot-plug caveat is carried as a known limit of the board.
+
+\subsubsection*{W3 - J3/J4 DNP intent not KiCad-native - FIXED}
+Not waived. The headers carried DNP only in a custom \texttt{Variant=DNP} field and the value string, so a native KiCad BOM/POS export would have emitted the two THT headers as populate lines into a JLC economy (SMT-only) order. Dispatched as work order \texttt{log/workorders/wo-w3-dnp.json}: native \texttt{dnp} attribute set through the board's own generator, and \texttt{refdes\_class: \{J3, J4 -\textgreater{} hand\_install\}} added to the header line in \texttt{parts/parts.json} so \texttt{bom\_cpl.py} keeps them out of the assembler upload and the CPL while still listing them in the documentation BOM. ERC re-run after the change.
+
+\subsubsection*{Reviewer OPEN items and where they went}
+\begin{itemize}
+\item \textbf{AMS1117 SOT-223 tab = VOUT not stated in the on-file PDF.} Already a
+recorded P3 decision (the pulled symbol's pin 4 = VOUT, and SOT-223
+construction fuses the tab to the pin-2 lead frame in every 1117-family
+part). No further action.
+\item \textbf{SW1 pairing verified from a live fetch, not archived.} The evidence
+(A/B common, C/D common; NRST on 1/2, GND on 3/4) is recorded in
+\texttt{reports/review-schematic.md} with its source URL and is committed. Not
+re-fetched: the finding is a CLEAR, and the archive would only make an
+already-recorded pass reproducible.
+\item {*}{*}Extend the CPL rotation check from J1 to the polarized 2-pin parts
+(D1, D2, D10) and to C3.{*}{*} Carried into P9 as a required check; recorded
+as a decision so it cannot be lost.
+\end{itemize}
+The full schematic PDF follows.
+\includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
 \emph{Pending --- produced at P6.}
 \section{Verification}
@@ -311,9 +367,80 @@ element; USB-C THT legs verified OK in JLC Economic tier; heater budgeted;\\
 button size vs Basic; LED colours). Gates: none due at P1.
 \end{quote}
 \paragraph*{P2}
+\begin{quote}\small\ttfamily\raggedright
+\# P2 Architecture digest - g0-sense (2026-08-27)\\
+~\\
+- architect (fable/high) wrote blocks.md / power\_tree.md / stackup.md /\\
+  sheets.md / constraints.json / decisions.md. constraints\_lint exit 0.\\
+- 4 blocks: B1 usbc-sink, B2 ldo, B3 mcu, B4 sht4x. Stackup JLC2313\_1.6\\
+  (2L, 1 oz, HASL). Two sheets (power / main), disjoint refdes + \#PWR 100/200.\\
+- No diff pairs, no high-speed nets, no sim bench (recorded, with reasons).\\
+- P2 coverage exit: FIRST run 4 slots / 4 GAP (no checklist existed for any of\\
+  usbc-sink, ldo, mcu, sht4x). research.py open --all -\textgreater{} 4 tasks (per\_run cap\\
+  6, 2 left for P3). 4 researchers -\textgreater{} 16 quarantined sources, 4 new checklists,\\
+  23 draft records. 4 fresh second readers refuted 6. 5 were repaired against\\
+  ledger pages and re-read; the NRST record took three repair/re-read cycles\\
+  (each refutation narrower than the last) before verifying.\\
+- FINAL: 22 of 23 records verified. Re-run coverage: 4 slots, 0 gap,\\
+  4 provisional, 1 draft\_unverified.\\
+- The one unverifiable record (mcu boot-strap) is a container limit, not a\\
+  research failure: st.com times out, so RM0454/AN2606 cannot be acquired.\\
+  Its claim was load-bearing, so the DESIGN was changed to not need it.\\
+- Two research-forced design changes vs the architect's plan: I2C pull-ups\\
+  2.2k -\textgreater{} 1.5k (Rp ceiling arithmetic), BOOT0 no-strap -\textgreater{} R13 10k pull-down.\\
+  architecture/\{blocks,sheets,decisions\}.md updated to match.\\
+- H1 written to log/H1.md, approved as delegated. report\_gen exit 0 (10 pp).
+\end{quote}
+\paragraph*{P3}
+\begin{quote}\small\ttfamily\raggedright
+\# P3 Parts + Library digest - g0-sense (2026-08-27)\\
+~\\
+- part-sourcer (sonnet/high) -\textgreater{} parts/parts.json: 20 distinct parts covering\\
+  26 electrical refdes. 12 Basic / 8 Extended, of which 7 bear a JLC setup fee\\
+  (the DNP header is Extended-priced but never machine-placed). \textasciitilde{}\$4.42/board,\\
+  \textasciitilde{}\$22.10 for the 5-board run. All stock re-verified live; worst case (MCU\\
+  C724040, 8351 pcs) is 334x the 5x-build-qty floor.\\
+- Four sourcing corrections applied on review, three of them fee removals:\\
+  R3 620R Extended -\textgreater{} 680R Basic (620R is a genuine E24 Basic-catalog gap);\\
+  user LED KT-0603G Extended -\textgreater{} KT-0805G, which IS Basic; R12 220R -\textgreater{} 100R\\
+  (electrical, not cost: green Vf 2.6-3.1 V against 3.3 V gave 0.9 mA at the\\
+  worst bin - 100R gives 2-7 mA); whole resistor BOM normalised to 0603.\\
+- 3 datasheet-extractors (parallel) -\textgreater{} parts/C724040.json, C2909890.json,\\
+  C6186.json, all `datasheet\_extract --validate` exit 0. Notable: TSSOP-20\\
+  pin 19 is ONE bonded pad carrying PA15 and PA14-BOOT0/SWCLK - transcribed\\
+  as the datasheet names it rather than picking a function; AMS1117 has NO\\
+  recommended land pattern (outline only), so that field was omitted rather\\
+  than faked; SHT40 die pad is present but explicitly NOT to be soldered.\\
+- librarian (sonnet/medium): 20/20 pulled, 85 pins retyped (ERC prerequisite),\\
+  lib tables registered. fp\_verify found ONE real defect and it mattered:\\
+  the pulled SHT40 DFN-4 soldered the die pad, which would have defeated the\\
+  whole thermal-isolation design. Deleted (copper+paste+mask), courtyard\\
+  closed. Three more fixes: broken symbol-\textgreater{}footprint link (audited all 20 -\\
+  the only one); C3 tantalum had NO polarity marking at all - pin 1 = anode\\
+  established twice (manufacturer PDF + live EasyEDA CAD data), silk "+" and\\
+  bar added; J2 Qwiic pin-1 confirmed against JST's own eSH.pdf ("viewed from\\
+  the connector mounting surface", No. 1 circuit leftmost) - no flip needed.\\
+- fp\_verify final: 3 passed / 0 failed / 2 accepted pad\_size warnings.\\
+- P3 coverage exit: 7 slots, 0 gap, 3 part slots covered, 4 blocks\\
+  provisional. No P3 research needed (2 of the 6 per-run tasks still unspent).\\
+- 2 decisions recorded: AMS1117 SOT-223 tab = VOUT (pulled symbol confirms\\
+  pin 4 = VOUT); SHT4x 20 V/ms slew item CLOSED, not escalated (the limit is\\
+  specified for in-operation supply changes, not the cold-start ramp).
+\end{quote}
+\paragraph*{P4}
 \emph{(no digest recorded)}
 \subsection*{Gate attempt history}
-\emph{(no entries)}
+{\small
+\begin{longtable}{llll}
+\toprule
+\textbf{Timestamp} & \textbf{Gate} & \textbf{Status} & \textbf{Failing/Total} \\
+\midrule
+\endhead
+2026-08-27T09:50:50 & erc & pass & 0/0 \\
+2026-08-27T13:18:16 & erc & pass & 0/0 \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Issues}
 \emph{(no entries)}
 \subsection*{Human checkpoints}
@@ -323,7 +450,7 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \textbf{Id} & \textbf{Phase} & \textbf{Status} & \textbf{When} & \textbf{Note} \\
 \midrule
 \endhead
-1 & P2 & not reached &  &  \\
+1 & P2 & approved & 2026-08-27T08:44:13 & delegated (unattended): architecture + 2L stackup approved; LDO 0.51 W design point approved; boot-strap gap accepted because the 10k BOOT0 pull-down removes the dependency; outline stays an output; no sim bench \\
 2 & P4 & not reached &  &  \\
 3 & P6 & not reached &  &  \\
 4 & P8 & not reached &  &  \\
@@ -338,7 +465,8 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 19,847 B &  \\
+\texttt{state.json} & 34,303 B &  \\
+\texttt{kicad/g0-sense.kicad\_sch} & 1,710 B &  \\
 \texttt{brief/brief.md} & 1,634 B &  \\
 \texttt{requirements.md} & 6,653 B &  \\
 \texttt{architecture/blocks.md} & 11,799 B &  \\
@@ -347,6 +475,12 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \texttt{architecture/power\_tree.md} & 4,040 B &  \\
 \texttt{architecture/sheets.md} & 2,964 B &  \\
 \texttt{architecture/stackup.md} & 2,679 B &  \\
+\texttt{reports/erc-waivers.md} & 6,030 B &  \\
+\texttt{reports/erc.json} & 1,039 B &  \\
+\texttt{reports/review-schematic.json} & 1,621 B &  \\
+\texttt{reports/review-schematic.md} & 7,856 B &  \\
+\texttt{reports/schematic.pdf} & 131,338 B &  \\
+\texttt{reports/top.net} & 60,717 B &  \\
 \bottomrule
 \end{longtable}
 }
