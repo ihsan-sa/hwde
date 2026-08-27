@@ -261,3 +261,56 @@
 - Open issues: none. Next: P6 placement (seed -> anneal -> select/repair, move the
   M2 holes, `board_edit --outline fit`, THEN gate place - that order is the
   bb-mcu recorded pipeline defect and it is deliberate here).
+
+## 2026-08-27 ~16:00Z - iteration 1 (loop 2) - P6 Placement COMPLETE, gate place PASS, H3 approved
+- placement agent (fable/high): seed -> anneal -> hand rebuild. Gate **place PASS
+  0/0** (5 legs), DRC **0 non-unconnected**, route probe 0.969 (62/64).
+  Size EARNED **35.79 x 28.34 mm** from a 65.6 x 62.4 provisional; HPWL 662.6
+  (seed) -> 242.95 (hand) vs the annealer's best 468.1.
+- All three anneal candidates inherited the seed's 2 edge violations: at a
+  geometry-OUTPUT binding the annealer pins edge clusters to the PROVISIONAL
+  outline and places to FILL. cand1's cluster structure was kept and rebuilt
+  compactly by hand; the gate ran AFTER `--outline fit`, per the bb-mcu defect.
+  The pre-briefed order held - worth keeping in the P6 spawn for every board.
+- Verified rather than assumed: J1 mating direction two ways (WRL vertex
+  occupancy + left orthographic render); U3 island separation measured in real
+  geometry (>= 12 mm) because the `placement.separation` checker leg is
+  centre-to-centre AND skipped when a ref is locked; VBUS chain J1->D1->F1->C2
+  ->VIN with corridor intrusion 0. All four M2 holes kept - measured at 0.0 mm
+  outline cost, so the conditional drop rule never fired.
+- SILK 13 -> 0, and it needed a new tool. 12 of 13 were footprint-INTERNAL
+  graphics, which nothing could edit on an already-placed board (a library edit
+  only reaches a board through board_init, which would destroy the placement).
+  Added `place_edit {"op": "silk_clear"}` (committed separately, 5de167e) after
+  measuring two SWIG traps: `fp.Remove()` inside a function corrupts the next
+  `FindFootprintByReference` into a bare SwigPyObject unless every touched
+  wrapper is kept alive, and `GetBoardEdgesBoundingBox()` segfaults after any
+  removal. A third trap cost a debugging cycle: the SWIG runtime prints
+  "memory leak of type PCB_SHAPE *" to STDOUT at shutdown, AFTER the worker's
+  JSON, so place_edit's `stdout[-1]` parse reported a clean run as
+  "worker exit 0 (rolled back)"; it now scans backwards for the last JSON.
+- The silk fix is a THREE-part obligation, not one edit: clearing on the board
+  alone traded 12 warnings for 2 `lib_footprint_mismatch` warnings, which fail
+  drc_routed just as hard. C0603's outline was deleted from the library AND all
+  5 board instances; J1's 3 mouth-end segments likewise. `lib/EDITS.md` records
+  both. C12 could NOT be nudged instead: 1.62 mm of silk in a 1.29 mm corridor
+  is a position-invariant 0.33 mm shortfall - measured, not assumed.
+- Trap caught by testing on a copy: re-running `silk_place --apply --verify-drc`
+  on the now-clean board proposed 8 refdes moves that put D1's Reference back
+  over J1's VBUS pad. It APPLIES FIRST and reports the regression afterwards
+  (`applied: true`, `status: violations`) with no rollback, and gained nothing
+  (median beyond_extent 0.85 before and after). Not applied.
+  `kicad/silk_ops.json` was DELETED rather than left on disk: replaying that
+  proposal would undo a verified fix. In LEARNINGS + triage row 329.
+- CARRIED TO P7, recorded as a decision: the 0.8 mm Pwr_0p8mm VBUS netclass
+  cannot escape J1's 0.60 mm vendor pads on F.Cu at ANY placement (0.20 mm
+  neighbour gaps leave 0.10 mm against a 0.127 mm floor). Geometry, not a
+  placement defect. route_critical owns that entry before Freerouting (which
+  cannot via-in-pad); three options costed in the record - necked escape with a
+  recorded rule exception, via-in-pad to B.Cu with a JLC wicking remark, or the
+  two ganged pads sharing. Do NOT resolve it by editing the netclass or floor.
+- Gates: erc PASS, place PASS (both fresh). H3 packet log/H3.md written and
+  approved as delegated. report_gen exit 0.
+- Open issues: none. Next: P7 routing - planes_gen (B.Cu GND pour, F.Cu +3V3
+  tab pour, voids under the U3 island), route_critical for the VBUS entry,
+  route_auto, route_cleanup, gate drc_routed.

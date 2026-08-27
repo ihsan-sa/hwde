@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries g0-sense --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-27 13:20:40
+generated 2026-08-27 15:59:48
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-27 13:20:40
 \endhead
 board & g0-sense \\
 workspace & \texttt{boards/g0-sense} \\
-phase & P4 \\
-gate status & all 1 recorded gates pass \\
+phase & P6 \\
+gate status & all 2 recorded gates pass \\
 state created & 2026-08-27T06:35:38 \\
-state updated & 2026-08-27T13:18:16 \\
+state updated & 2026-08-27T15:59:22 \\
 \bottomrule
 \end{longtable}
 }
@@ -197,6 +197,9 @@ P3 & unattended default: the SHT4x 20 V/ms VDD slew limit needs NO extra bulk ca
 P4 & unattended default: WAIVE schematic-review W1 (no ESD array on the J2 Qwiic SDA/SCL) - ship the board without a TVS/ESD array on the I2C bus & Product-scope connector checklist allows met-or-waived. Waived on four grounds: (a) the Qwiic/STEMMA-QT ecosystem norm (SparkFun/Adafruit reference boards) is a bare 4-pin JST SH with no array, so a user-facing part behaves as the ecosystem's users expect; (b) STM32G030 PA11/PA12 and the SHT40 both carry internal ESD structures and are 2 kV HBM rated, which is the standard handling rating for an indoor bench device; (c) the recorded environment is indoor bench/room ambient with no ingress rating, not a field-exposed port; (d) adding a 4-channel array now means a new Extended MPN plus setup fee, a fresh library pull and footprint verify, and re-opening a green schematic at P4 - real regression risk against a warning-severity, field-reliability-only exposure that cannot prevent bring-up. Recorded in reports/erc-waivers.md and shown at H2. \\
 P4 & unattended default: CLOSE the carried verify item 'SHT4x VDD slew \textless{}= 20 V/ms vs AMS1117 startup ramp' (schematic-review W2) as accepted risk - no hardware change & Three findings close it. (1) PROVENANCE IS ON FILE, contrary to the reviewer's note: the 20 V/ms figure is research/records/sht4x-vdd-slew-power-up.yaml, sourced to research/sources/HT\_DS\_Datasheet\_SHT4x.pdf p9 Table 4 and read visually TWICE (researcher + fresh second reader, maturity verified). The reviewer grepped parts/C2909890.json (the extraction JSON) and the LCSC PDF, which is a different artifact. (2) THE WORST-CASE NUMBER IS AN UPPER BOUND THAT CANNOT OCCUR: I\_limit/C (\textasciitilde{}1 A into \textasciitilde{}27 uF, 40-68 V/ms) assumes the LDO sources its full current limit into the output cap independently of its input. The AMS1117 is a series pass follower - during a cold start VOUT cannot rise faster than VIN minus dropout, so +3V3's edge is set by the USB source's VBUS ramp through C2 = 10 uF, not by the LDO's current limit. (3) THE NAMED FAILURE MODE IS BENIGN AT COLD START: the datasheet says only 'faster slew rates MAY lead to a reset'; the second reader explicitly flagged 'or hung until re-powered' as an unsupported clause the researcher added. A reset during the power-up ramp lands the part in exactly the state a power-up is supposed to produce - there is no state to lose at t=0. The limit's real bite is in-operation supply excursions and hot-plugging a DOWNSTREAM breakout onto a live Qwiic rail, which is the breakout's decoupling problem, not this board's. HARDWARE ALTERNATIVES REJECTED: a series R at U3 VDD to slow the local ramp is disqualified by the SHT4x on-chip heater (75 mA peak would drop 7.5 V across the 100 ohm needed for a 100 us tau); raising C3 above \textasciitilde{}50 uF to force I\_limit/C under 20 V/ms buys nothing against (2) and costs a part change on a green schematic. BELT AND BRACES (documentation, not copper): the firmware note 'issue an SHT4x soft reset (0x94) at init, per Sensirion's own recommended start-up sequence' goes into the design doc and fab/README, and the Qwiic hot-plug caveat is recorded as a known limit. \\
 P4 & unattended default: carry a P9 REQUIRED check - CPL rotation must be validated for every polarized 2-pin part (D1 TVS SOD-123, D2 power LED, D10 user LED, C3 tantalum CASE-A), not only for J1 & schematic-review OPEN item. decisions.md \#13 carried a CPL rotation check for J1 alone; the KiCad\textless{}-\textgreater{}JLC 0-degree-reference offset (reference/jlc\_rotations.csv, LEARNINGS/S8) bites every polarized package, and a reversed tantalum on 3V3 or a reversed TVS on VBUS is a dead board, not a cosmetic error. dfm\_check.py owns polarity/rotation validation - at P9 its findings for D1/D2/D10/C3 must be read explicitly and each confirmed against the footprint pin-1 marking, not just accepted as a count. \\
+P5 & unattended default: P5 runs board\_init --mounting-holes 4 --mounting-hole-fp MountingHole:MountingHole\_2.2mm\_M2 --margin 6 --outline auto; the four holes are explicitly RELEASABLE at P6 - the placement agent may move them with place\_edit to the earned corners before board\_edit --outline fit & Three linked calls. (1) HOLE SIZE: board\_init's mounting-hole footprint was hard-coded to MountingHole\_3.2mm\_M3, but the brief and constraints ask for M2 (2.2 mm drill). I added an additive --mounting-hole-fp flag to board\_init.py, default unchanged, so the M2 hole is stated rather than inherited (MountingHole\_2.2mm\_M2: NPTH 2.2 mm drill, 4.9 mm courtyard, which also serves the constraints' 4.0-4.5 mm annulus/head clearance). (2) MARGIN 6: --mounting-holes places holes at margin/2, so margin 6 puts the M2 centres 3 mm inside the edge - the standard M2 corner inset, and 1.9 mm of board between hole wall and edge. A smaller margin would push the hole courtyard across the board edge. (3) HOLES RELEASABLE AT P6: place\_seed/place\_anneal treat board\_only footprints as immovable obstacles, so holes parked at the PROVISIONAL corners would fix the fitted bbox at the provisional size and defeat geometry-as-OUTPUT. They were auto-placed by a script at an arbitrary provisional corner, not by the owner, so the placement agent is authorised to move them with place\_edit to the corners the earned layout wants - the agent-prompt rule against moving board\_only refs exists to protect owner-placed mechanical fixtures, which these are not. Order follows the bb-mcu P6 recorded pipeline defect: place canonically, move the holes, board\_edit --outline fit, and only THEN run the place gate (legality measures declared edges against the CURRENT outline, so gating before fit would spread the connectors to the provisional size). \\
+P5 & unattended default: J1 USB-C footprint repaired at P5 - the four wide GND/VBUS pads restored to the vendor's own 0.60 mm land width, reopening the GND-VBUS gap from 0.100 mm to 0.200 mm & board\_init's self-check DRC found two clearance ERRORS inside J1's own footprint: pad A1B12 {[}GND{]} vs A4B9 {[}VBUS{]} at 0.1002 mm and B1A12 vs B4A9 at 0.1000 mm, against the aiee\_clearance\_floor of 0.127 mm (JLC 2-layer 1 oz). J1 was never geometry-checked at P3 (fp\_verify needs a datasheet-extract JSON and none exists for it). The librarian fetched the HRO Hroparts TYPE-C-31-M-12 drawing: its RECOMMEND P.C.B LAYOUT calls the four wide pads '4-0.60', i.e. 0.60 mm wide on a 0.8 mm pitch = a 0.20 mm gap, already above the floor. The pulled easyeda2kicad custom-pad polygons were the vendor's 0.60 mm, but carried a spurious 0.1 mm outline STROKE that inflated the effective copper to 0.70 mm and closed the gap to 0.100 mm. So this was a converter artifact, not a vendor deviation, and the fix RESTORES the manufacturer's land pattern rather than inventing a number: outer X vertices moved in by 0.05 mm per side on those four polygons only, pad centres / 1.30 mm length / the other 12 pads untouched. Contact tab is 0.20 mm wide (drawing callout 16-0.20+-0.05), so 0.60 mm still leaves 0.20 mm of fillet per side - the vendor's own allowance. Rationale recorded in the footprint descr, matching the P3 SHT40 die-pad precedent. \\
+P6 & unattended default: P7 must hand-route the VBUS entry out of J1 - the 0.8 mm Pwr\_0p8mm netclass cannot escape J1's 0.60 mm vendor pads on F.Cu at ANY placement, so route\_critical owns it and Freerouting must not be asked to & The placement agent's route probe closed at 0.969 (62/64) and root-caused the two residuals: J1's VBUS pads are 0.60 mm wide with 0.20 mm gaps to their GND neighbours, so a 0.8 mm track (the VBUS netclass width rules\_gen derived from the 1.5 A PTC-dwell case) cannot leave them on the top layer without breaking the 0.127 mm clearance floor - it is a geometric impossibility, not a placement defect, and no amount of re-placing fixes it. A via-in-pad escape to B.Cu was proven DRC-clean on a scratch copy; Freerouting cannot place via-in-pad, so this is route\_critical's job before the autorouter runs. THREE THINGS P7 MUST WEIGH, in this order: (1) a short NECKED escape (fab-minimum width for \textasciitilde{}1 mm out of the pad, widening to 0.8 mm once clear of the connector) is the ordinary way this is done and needs no via - but it violates the ERROR-severity aiee\_pwr\_width\_VBUS rule, so taking it means a rule EXCEPTION with recorded evidence (the pad itself is 0.60 mm, so the 0.8 mm rule is already wider than the conductor the current must pass through), not a silent neck; (2) via-in-pad to B.Cu carves the B.Cu GND pour under the connector and JLC will wick solder into an unfilled 0.3 mm via on a mechanically loaded connector pad - if this route is taken it needs an order remark and a fab/README note; (3) the two VBUS pads are ganged, so each carries half the fault current. Do NOT resolve this by editing the netclass or the floor to make DRC quiet. \\
 \bottomrule
 \end{longtable}
 }
@@ -304,7 +307,10 @@ as a decision so it cannot be lost.
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-\emph{Pending --- produced at P6.}
+Gate \texttt{place} (phase P6): \textbf{pass} after 5 attempt(s); last 2026-08-27T15:57:05, failing 0 of 0.
+
+Gate \texttt{drc\_routed}: \emph{not recorded}.
+\emph{No board renders found.}
 \section{Verification}
 \emph{Pending --- produced at P8.}
 \section{DFM and Fabrication}
@@ -428,7 +434,89 @@ button size vs Basic; LED colours). Gates: none due at P1.
   specified for in-operation supply changes, not the cold-start ramp).
 \end{quote}
 \paragraph*{P4}
-\emph{(no digest recorded)}
+\begin{quote}\small\ttfamily\raggedright
+\# P4 Schematic digest - g0-sense (2026-08-27)\\
+~\\
+- 2 schematic-block agents + root stitch: 26 electrical refdes (+4 conditional\\
+  M2 holes) on 2 sheets, 35 nets, 99/99 expected pins connected.\\
+- Gate erc PASS 0/0 (attempt 2; re-run after the W3 fix). netlist\_audit 0\\
+  violations: 3 constraint nets, 20 refs, 5 decoupling associations.\\
+- schematic-reviewer (fresh, adversarial): 0 errors / 3 warnings. It hunted and\\
+  CLEARED every bring-up killer: TVS D1 orientation, SW1 contact pairing (settled\\
+  by live-fetching the XKB datasheet), LED + tantalum polarity, AMS1117 pinout /\\
+  cap types / dropout, the full STM32G030 pin map incl. I2C orientation and the\\
+  BOOT0 strap, SHT40 pinout+EP, USB-C sink topology, decoupling, abs-max.\\
+- Dispositions (reports/erc-waivers.md): W1 Qwiic ESD WAIVED (ecosystem norm,\\
+  2 kV HBM endpoints, indoor bench env); W2 SHT4x VDD slew CLOSED as accepted\\
+  risk (provenance IS on file; LDO is a follower so I/C is unreachable; the\\
+  datasheet's failure mode is "a reset", which cold start produces anyway);\\
+  W3 native DNP missing on J3/J4 FIXED, not waived.\\
+- W3 fix (wo-w3-dnp): `(dnp yes)` on J3/J4 via new schlib.Sheet.mark\_dnp() +\\
+  refdes\_class hand\_install in parts.json; netlist proven identical (35/35 nets).\\
+- Carried to P9: CPL rotation check for D1/D2/D10/C3, not only J1.
+\end{quote}
+\paragraph*{P5}
+\begin{quote}\small\ttfamily\raggedright
+\# P5 Board Setup digest - g0-sense (2026-08-27)\\
+~\\
+- Run INLINE (no board-setup agent): no impedance work, no library repair planned.\\
+- `board\_init --layers 2 --stackup JLC2313\_1.6 --outline auto --margin 6\\
+  --mounting-holes 4 --mounting-hole-fp MountingHole:MountingHole\_2.2mm\_M2`.\\
+  Self-check {*}{*}PASS: parity 0, setup\_violations 0{*}{*}, 26 components, 16 nets,\\
+  unconnected 64 (expected, unrouted). Provisional outline bbox 9,9 -\textgreater{} 74.61,71.40\\
+  - generous ROOM, not a size: P6 places canonically and `--outline fit` earns it.\\
+- `rules\_gen` capability\_class {*}{*}2layer\_1oz{*}{*} (matches the stackup's own copper),\\
+  11 rules. Floors reported not assumed: track/clearance 0.127, via dia 0.6,\\
+  annular 0.15, hole-to-hole 0.5, edge clearance 0.3 mm. Netclasses: {*}{*}Pwr\_0p8mm{*}{*}\\
+  for VBUS and +5V (0.8 mm, the 1.5 A PTC-dwell case); +3V3 needs 0.15 mm so it\\
+  buckets into Default (0.2 mm) - exactly what P2 predicted. diff\_pairs {[}{]} and\\
+  hv\_rules {[}{]} are correct here.\\
+- {*}{*}Real defect found and fixed at P5{*}{*}: J1's pulled USB-C footprint had its ganged\\
+  GND and VBUS pads 0.100 mm apart, BELOW the 0.127 mm fab floor, on the two nets a\\
+  solder bridge shorts hardest. Cause was a converter artifact, not a vendor\\
+  deviation - a 0.1 mm outline stroke on the custom-pad polygons inflated each wide\\
+  pad from the vendor's 0.60 mm to 0.70 mm effective. Restored to the manufacturer's\\
+  own land pattern; gap now 0.200 mm, fillet allowance unchanged at 0.20 mm/side.\\
+- Two toolchain bugs fixed to get parity to 0 (both committed separately, both\\
+  regression-tested against the goldens): board\_init now mirrors a symbol's native\\
+  `dnp` onto the footprint, and it MEASURES whether KiCad wants the netlist's\\
+  `unconnected-(...)` pseudo-nets on the pads instead of guessing.\\
+- Sidecars beside the board: constraints.json (byte-identical to architecture/) and\\
+  decoupling.json. Remaining DRC: 2 transient silk\_edge\_clearance warnings on the\\
+  H1/H2 mounting-hole refdes text - P6's silk sweep owns them.
+\end{quote}
+\paragraph*{P6}
+\begin{quote}\small\ttfamily\raggedright
+\# P6 Placement digest - g0-sense (2026-08-27)\\
+~\\
+- Gate {*}{*}place PASS 0/0{*}{*} (all 5 legs: courtyard, outline, edges, keepouts,\\
+  decoupler\_distance). DRC: {*}{*}0 non-unconnected violations{*}{*}, 64 unconnected =\\
+  the unrouted ratsnest. Route probe 0.969 (62/64).\\
+- Size {*}{*}EARNED 35.79 x 28.34 mm{*}{*} (1014 mm2) from a 65.6 x 62.4 provisional.\\
+  The 3.3 mm over the brief's soft 35 x 25 is the U3 isolation zone (8 mm\\
+  separation + slits) - recorded as a relaxation, not drift.\\
+- Hand layout beat the annealer 243 vs 468 mm HPWL (662.6 at seed). All three\\
+  anneal candidates inherited the seed's 2 edge violations because at a\\
+  geometry-OUTPUT binding the annealer pins edge clusters to the PROVISIONAL\\
+  outline - the bb-buck trap. cand1's cluster structure was kept and rebuilt\\
+  compactly by hand; gate ran AFTER `--outline fit`, per the bb-mcu defect.\\
+- Judgment calls proven, not assumed: J1 mating direction two ways (WRL vertex\\
+  occupancy + left orthographic render); U3 rotated so supply pads face C13\\
+  (1.26 mm, 4.06 nH) and I2C faces the mainland - no island wraparound; D1\\
+  first in the VBUS chain (J1-\textgreater{}D1-\textgreater{}F1-\textgreater{}C2-\textgreater{}VIN), corridor intrusion 0; C12 held\\
+  1.5 mm from U2 pin 6 over silk. All four M2 holes KEPT - tucked in corner\\
+  dead zones they add 0.0 mm to the fitted outline.\\
+- Silk 13 -\textgreater{} 0. 12 were footprint-INTERNAL graphics, unreachable until\\
+  `place\_edit` gained a `silk\_clear` op this phase: C12's 0603 outline could\\
+  not be nudged clear (1.62 mm silk in a 1.29 mm corridor - a 0.33 mm\\
+  position-invariant shortfall), so C0603's outline went from the library AND\\
+  all 5 board instances; J1's 3 mouth-end segments (under the shell,\\
+  unprintable) likewise. D1's refdes moved off J1's VBUS pad. `lib/EDITS.md`\\
+  records both library edits.\\
+- Carried to P7: the 0.8 mm VBUS netclass cannot escape J1's 0.60 mm pads on\\
+  F.Cu at ANY placement - route\_critical owns that entry, not Freerouting.\\
+  `kicad/silk\_ops.json` deleted: replaying it would UNDO the D1 fix.
+\end{quote}
 \subsection*{Gate attempt history}
 {\small
 \begin{longtable}{llll}
@@ -438,6 +526,11 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \endhead
 2026-08-27T09:50:50 & erc & pass & 0/0 \\
 2026-08-27T13:18:16 & erc & pass & 0/0 \\
+2026-08-27T15:06:11 & place & pass & 0/0 \\
+2026-08-27T15:08:50 & place & pass & 0/0 \\
+2026-08-27T15:15:05 & place & pass & 0/0 \\
+2026-08-27T15:47:39 & place & pass & 0/0 \\
+2026-08-27T15:57:05 & place & pass & 0/0 \\
 \bottomrule
 \end{longtable}
 }
@@ -451,8 +544,8 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \midrule
 \endhead
 1 & P2 & approved & 2026-08-27T08:44:13 & delegated (unattended): architecture + 2L stackup approved; LDO 0.51 W design point approved; boot-strap gap accepted because the 10k BOOT0 pull-down removes the dependency; outline stays an output; no sim bench \\
-2 & P4 & not reached &  &  \\
-3 & P6 & not reached &  &  \\
+2 & P4 & approved & 2026-08-27T13:21:44 & delegated (unattended): schematic approved (erc 0/0, netlist\_audit 0, adversarial review 0 errors/3 warnings); W1 Qwiic-ESD waived on ecosystem norm + 2 kV HBM endpoints + indoor bench env; W2 SHT4x VDD slew closed as accepted risk (follower LDO makes I/C unreachable, failure mode is a benign cold-start reset); W3 native DNP on J3/J4 FIXED not waived; P5 proceeds with --outline auto \\
+3 & P6 & approved & 2026-08-27T15:59:22 & delegated (unattended): placement approved - gate place 0/0, DRC 0 non-unconnected, size earned 35.79 x 28.34 mm (excess is the SHT40 isolation zone), all four M2 holes kept at zero outline cost, silk 13 -\textgreater{} 0 via the new place\_edit silk\_clear op plus matching library edits; VBUS pad escape deferred to P7 route\_critical with three options costed \\
 4 & P8 & not reached &  &  \\
 5 & P10 & not reached &  &  \\
 \bottomrule
@@ -465,7 +558,8 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 34,303 B &  \\
+\texttt{state.json} & 47,918 B &  \\
+\texttt{kicad/g0-sense.kicad\_pcb} & 127,339 B &  \\
 \texttt{kicad/g0-sense.kicad\_sch} & 1,710 B &  \\
 \texttt{brief/brief.md} & 1,634 B &  \\
 \texttt{requirements.md} & 6,653 B &  \\
@@ -475,11 +569,27 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \texttt{architecture/power\_tree.md} & 4,040 B &  \\
 \texttt{architecture/sheets.md} & 2,964 B &  \\
 \texttt{architecture/stackup.md} & 2,679 B &  \\
+\texttt{reports/board\_edit\_fit.json} & 1,674 B &  \\
+\texttt{reports/board\_edit\_slits.json} & 1,763 B &  \\
+\texttt{reports/drc\_p6\_final.json} & 46,582 B &  \\
 \texttt{reports/erc-waivers.md} & 6,030 B &  \\
 \texttt{reports/erc.json} & 1,039 B &  \\
+\texttt{reports/place.json} & 1,545 B &  \\
+\texttt{reports/place\_anneal.json} & 4,224 B &  \\
+\texttt{reports/place\_edit\_j1flush.json} & 245 B &  \\
+\texttt{reports/place\_edit\_p6\_layout.json} & 3,395 B &  \\
+\texttt{reports/place\_edit\_p6\_silk.json} & 2,629 B &  \\
+\texttt{reports/place\_edit\_silkfix.json} & 757 B &  \\
+\texttt{reports/place\_metrics\_p6\_final.json} & 6,517 B &  \\
+\texttt{reports/place\_seed.json} & 2,539 B &  \\
 \texttt{reports/review-schematic.json} & 1,621 B &  \\
 \texttt{reports/review-schematic.md} & 7,856 B &  \\
+\texttt{reports/route\_probe\_p6.json} & 286 B &  \\
+\texttt{reports/route\_probe\_p6\_final.json} & 286 B &  \\
+\texttt{reports/route\_probe\_p6b.json} & 286 B &  \\
 \texttt{reports/schematic.pdf} & 131,338 B &  \\
+\texttt{reports/silk\_place.json} & 18,222 B &  \\
+\texttt{reports/silk\_place\_p6\_final.json} & 3,347 B &  \\
 \texttt{reports/top.net} & 60,717 B &  \\
 \bottomrule
 \end{longtable}

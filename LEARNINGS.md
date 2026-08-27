@@ -4846,3 +4846,21 @@ TRAP 3, LIBRARY PARITY. Clearing silk on the board alone trades 12 warnings for 
 warnings, so also fatal to drc_routed. Whatever you clear on the board must be deleted from
 lib/<lib>.pretty/<fp>.kicad_mod too, AND cleared on every other board instance of that footprint.
 Budget the fix as "one footprint, all its instances, plus the library", never "one refdes".
+
+## 2026-08-27 [silk_place][gates] `silk_place --apply --verify-drc` APPLIES FIRST and reports the regression afterwards - it does not roll back, and its model cannot see text-over-pad
+g0-sense P6, after the board was already silk-clean (0 non-unconnected DRC). Re-running
+`silk_place.py --pcb <board> --apply --verify-drc` proposed and APPLIED 8 refdes moves, one of
+which put D1's Reference field back at (27.76, 38.3) - exactly the spot a fixer had just moved it
+out of - re-creating `silk_over_copper` "Silkscreen clipped by solder mask" against J1's VBUS pad.
+The report is honest about it (`status: violations`, `drc_silk_total: 1`,
+`kind: silk_drc_regression`) but `applied` is ALSO true: the DRC runs POST-apply and nothing
+restores. Two consequences. (1) Never point `--apply` at a board you have already cleaned by hand
+without a snapshot, or better, run it on a COPY first and diff the DRC - the solver optimises
+`beyond_extent_mm` (label near its part) and has no term for a label sitting over another
+footprint's pad mask, so on a dense board it will happily trade a real DRC violation for a
+cosmetic gain (median_beyond_extent_mm was 0.85 before AND after here - it gained nothing).
+(2) A `<board dir>/silk_ops.json` left on disk is a PROPOSAL, not a record of what was applied;
+after a hand fix it can be actively regressive. g0-sense deletes it at P6 close rather than leave
+a file whose contents, if replayed, would undo a verified fix. Related: `state.py snapshot` only
+covers the files you name (the `.kicad_pcb`), so a restore silently desyncs companion files like
+this one.
