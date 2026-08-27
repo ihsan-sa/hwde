@@ -435,6 +435,8 @@ class Sheet:
         path = out_dir / f"{self.name}.kicad_sch"
         with _quiet():
             self.sch.save(str(path))
+        import schem_refdes as sr  # sibling script; deferred (shapely)
+        sr.strip_private_properties(path)   # KiCad-10 stock-lib notes ksa mangles (exit 3 at ERC)
         apply_pin_number_fixups(self._fixups, path)
         if place_fields:
             self._place_fields(path)
