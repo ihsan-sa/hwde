@@ -1,0 +1,49 @@
+{
+  "block": "ldo",
+  "candidates": [
+    {
+      "mpn": "AMS1117-3.3",
+      "lcsc": "C6186",
+      "package": "SOT-223",
+      "basic": true,
+      "stock": 1144285,
+      "price": 0.2019,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2410121508_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf",
+      "rank": 1,
+      "fit": "Only JLC Basic 3.3V/>=300mA LDO found; SOT-223 tab gives 45-90 C/W theta-JA (copper-dependent) - the only candidate that clears the 0.51W worst case with real margin at 40C ambient (Tj ~68-86C); tradeoffs are 1.1-1.3V dropout, 5-11mA Iq, and a datasheet-mandated >=22uF TANTALUM output cap (ceramic not endorsed)."
+    },
+    {
+      "mpn": "AP2112K-3.3TRG1",
+      "lcsc": "C51118",
+      "package": "SOT-25-5 (SOT-23-5 pinout)",
+      "basic": false,
+      "stock": 71461,
+      "price": 0.1761,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Diodes-Incorporated-AP2112K-3-3TRG1_C51118.pdf",
+      "rank": 2,
+      "fit": "Modern low-Iq (55uA typ) / low-dropout (125mV@300mA, 250mV@600mA) alternative, ceramic-stable 1.0uF X5R/X7R in+out, deep Extended stock; but package theta-JA(no heatsink)=184C/W puts Tj~134C at 40C ambient/0.51W worst case - thin margin to the 150C abs max, no exposed pad to improve it. Extended part (JLC setup fee applies)."
+    },
+    {
+      "mpn": "RT9013-33GB-MS",
+      "lcsc": "C7434207",
+      "package": "SOT-23-5",
+      "basic": false,
+      "stock": 142919,
+      "price": 0.0583,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2307051759_MSKSEMI-RT9013-33GB-MS_C7434207.pdf",
+      "rank": 3,
+      "fit": "Cheapest low-Iq (60uA typ) option with the deepest stock of any candidate, 1uF ceramic in/out; but the MSK-Semi 2nd-source datasheet's own SOT-23-5L package rating is Pd=300mW, already below the 510mW worst case, and it only characterizes dropout up to 200mA (500mA max-current claim unverified past that point) - verify against the original Richtek RT9013 datasheet at P3."
+    },
+    {
+      "mpn": "TLV70233DBVR",
+      "lcsc": "C26833",
+      "package": "SOT-23-5",
+      "basic": false,
+      "stock": 6853,
+      "price": 0.1837,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2410122017_Texas-Instruments-TLV70233DBVR_C26833.pdf",
+      "rank": 4,
+      "fit": "TI-branded, best-documented low-Iq (35uA typ) part with an explicit <=200mOhm output-ESR spec and 1uF X5R/X7R caps; but its 300mA current limit sits exactly at the requirement floor with zero headroom, and TI's own dissipation-vs-ambient table (500mW@25C, ~425mW interpolated @40C) is already below the 510mW worst case. Lowest stock and highest unit price of the four."
+    }
+  ]
+}

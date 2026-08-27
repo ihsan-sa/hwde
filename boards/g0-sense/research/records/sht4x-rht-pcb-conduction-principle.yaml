@@ -1,0 +1,45 @@
+id: sht4x-rht-pcb-conduction-principle
+classes:
+- thermal
+applies:
+  topologies:
+  - sht4x
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  dominant_heat_path: pcb-copper-conduction
+  rh_error_pct_per_degc_at_90pct_rh: 5
+prose: 'PCB copper conduction, not air, is the dominant path carrying board self-heat
+  into an RH/T sensor die. Design Guide sec 3 (p8, read visually): external heat
+  sources raise the sensed temperature and depress the RH reading; in the extreme
+  case at 90 pct RH a 1 degC deviation produces a 5 pct RH error - RH error is ~5x
+  the temperature error at high humidity. Heat conduction from nearby sources (power
+  electronics, microprocessors, displays) is called ''the more severe and most common
+  source of temperature deviations'' and ''mostly it occurs through the PCB''. Named
+  mitigations: sufficient distance, removal of unnecessary metal around the sensor
+  (trough milling or etching slits), and keeping metal connections on the PCB as
+  thin as possible. Fig 8 panels: a) thin metal connections + distance = good; b)
+  milled slits (white lines) around the sensor decrease conduction = good; c) thick
+  metal connections = bad; d) heat source in close proximity = bad. DG sec 3.3 (p11):
+  rule of thumb - implement the sensor as isolated from the device and as exposed
+  to the environment as possible, best with ambient airflow; Fig 11 shows the three
+  decoupling options: thin PCB connection tongue, milled slits, or a flex. States
+  mechanism and direction only; nothing bounds it, so it is a principle.'
+sources:
+- file: research/sources/Sensirion_Humidity_Temperature_Design_Guide.pdf
+  page: 8
+  note: 'sec 3 text: 1 degC -> 5 pct RH at 90 pct RH; conduction through PCB most
+    severe/common source; Fig 8 four-panel layout figure (thin connections, milled
+    slits, thick connections bad, close heat source bad)'
+- file: research/sources/Sensirion_Humidity_Temperature_Design_Guide.pdf
+  page: 11
+  note: 'sec 3.3 Thermal Design-In Conclusion: isolated-as-possible / exposed-as-possible
+    rule of thumb; Fig 11 panels a thin PCB connection, b milled slits, c flex'
+status: active
+origin: research:block-sht4x-1
+level: principle
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "DG p8 sec 3 re-read visually: text is verbatim 'In extreme cases such as at 90 %RH, a deviation of 1 degC will result in a deviation of the humidity signal of 5 %RH' - the record keys the 5 to 90 pct RH in the rule field, so the figure is not restated outside its condition. 'more severe and most common source of temperature deviations' + 'Mostly it occurs through the PCB' are exact quotes; mitigations (sufficient distances, trough milling/etching slits, metal connections as thin as possible, flex workaround) all on the page. Fig 8 panels confirmed by eye: a) thin connections + distance green check, b) white milled slits green check, c) thick/unnecessary metal red X, d) heat source in close proximity red X - matches the record panel-for-panel. DG p11 sec 3.3 verbatim 'as isolated as possible and as exposed to the environment as possible', Fig 11 a thin PCB connection / b milled slits / c flex confirmed. Level principle with no envelope is correct per schema (nothing bounds it)."}

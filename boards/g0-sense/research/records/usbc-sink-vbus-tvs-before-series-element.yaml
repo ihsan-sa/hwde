@@ -1,0 +1,51 @@
+id: usbc-sink-vbus-tvs-before-series-element
+classes: [esd]
+applies:
+  topologies: [usbc-sink]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  order: receptacle -> TVS -> series element (PTC) -> bulk/regulator
+  tvs_standoff_v_min: 5.5
+  tvs_gnd: own vias, minimum inductance to plane
+  stubs_to_tvs: none - route the line through the TVS pad
+prose: >
+  The VBUS TVS sits AT the receptacle, on the connector side of the PTC
+  and everything else, so a strike sees the clamp before any series
+  impedance or downstream silicon. SLVA680A p4 (Fig 2-1 models the path
+  as L1..L4 parasitics; summary bullets): place the TVS as near the
+  connector as design rules allow; place the protected IC much farther
+  from the TVS than the TVS is from the connector; no stubs - route
+  directly connector -> TVS -> onward; minimize TVS-to-ground inductance
+  (at 8 kV IEC 61000-4-2 di/dt, 0.25 nH already adds ~10 V, p4 text).
+  P5 (Fig 2-2): the copper between connector and TVS radiates during the
+  strike - keep unprotected traces out of that region and keep corners
+  at 45 deg or gentler. Semtech SI21-03 p3 (Fig 2 on the same page area,
+  full port protection scheme): protection parts hang directly on the
+  port pins, and the VBUS TVS working voltage is chosen against the
+  port's maximum VBUS (22 V class for PD-capable ports). On a 5 V-only
+  sink VBUS reaches at most 5.5 V at light load (spec 4.4.2, p141), so
+  pick stand-off >= 5.5 V (5.0 V nominal parts) with clamp comfortably
+  below the downstream regulator's absolute-maximum input. Ground the
+  TVS into the plane with its own vias next to the connector ground.
+sources:
+  - {file: research/sources/slva680a.pdf, page: 4, section: 2.1 + Figure 2-1, note: "read Fig 2-1 (L1-L4 parasitic model connector->TVS->IC) and the summary bullets: TVS as near the connector as rules allow, protected IC much farther, no stubs, minimize TVS ground inductance; 0.25 nH -> ~10 V at 8 kV example"}
+  - {file: research/sources/slva680a.pdf, page: 5, section: 2.2 + Figure 2-2, note: "read Fig 2-2 EMI coupling onto an adjacent unprotected trace: connector-to-TVS region is a keep-out for unprotected lines; corners max 45 deg or curved"}
+  - {file: research/sources/TVS_App_Notes-SI21-03-ESD_Protection_of_USB_Type-C_Interfaces_New_Template.pdf, page: 3, section: VBus pin protection + Figure 2, note: "read VBus pin protection paragraph (TVS working voltage chosen against max VBUS, 22 V for PD ports; low capacitance not critical on VBUS) and Fig 2: TVS devices drawn directly on the connector pins"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 141, section: 4.4.2, note: "read 4.4.2 VBUS: legacy devices may see up to 5.5 V at light loads - sizes the 5 V-port stand-off floor"}
+status: active
+origin: research:block-usbc-sink-1
+level: topology
+envelope:
+  vin_v: {max: 5.5}
+envelope_note: >
+  The placement/ordering mechanism is general ESD practice, but the
+  numeric half (stand-off >= 5.5 V, 5 V-class TVS) scales with the port's
+  maximum VBUS: bounded at the Type-C 5 V-only light-load max of 5.5 V. A
+  PD-capable port sees up to 20 V+ and needs a 22 V-working TVS (SI21-03
+  p3) - outside this record.
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "Checked the over-reach worry directly. SLVA680A p4 read visually: it is section 2 'PCB Layout Guidelines for Optimizing Dissipation of ESD' / 2.1, a GENERIC ESD layout note (running head 'ESD Protection Layout Guide'), not a USB data-interface note, so nothing to generalize. Figure 2-1 'PCB Inductance around a Single-channel TVS' does model L1-L4 between ESD source, TVS, protected IC and ground exactly as the record says, the 8 kV IEC 61000-4-2 arithmetic is verbatim ('(30 A)/(0.8x10-9 s) = 4 x 10^10 A/s. So even with 0.25 nH of inductance an additional 10 V is presented to the system'), and the Summary bullets read 'Place the TVS as near to the connector as design rules allow', 'Place the Protected IC much further from the TVS than the TVS is to the connector', 'Do not use stubs between the TVS and the Protected Line, route directly from the ESD Source to the TVS', 'Minimizing inductance between the TVS and ground is critical'. p5 confirms 2.2 / Figure 2-2 'EMI Coupling onto an Adjacent Unprotected Trace', the connector-to-TVS keep-out for unprotected traces, and 45 degrees as the maximum corner angle. Semtech SI21-03 p3 confirms the 'VBus pin protection' paragraph ('the VBus voltage can reach up to 20V, thus protecting VBus pin requires a TVS diode with a minimum 22V working voltage', 'Low capacitance is not a consideration for the protection of VBus line') and Figure 2 does draw the TVS parts hanging directly on the connector pins. The record only borrows the VBUS-pin half of that figure and correctly parks the 22 V number outside its envelope; the 5 V-only numbers come from spec p141 (5.5 V light-load max), re-read and confirmed. Envelope vin_v max 5.5 is source-supported. One prose defect to fix on the next pass, not refutation-grade because the machine-readable rule field tvs_standoff_v_min 5.5 is correct: the parenthetical 'stand-off >= 5.5 V (5.0 V nominal parts)' is self-contradictory - a 5.0 V-class TVS has a 5.0 V reverse standoff, below the 5.5 V the spec allows, and Semtech's own method (20 V bus -> 22 V working) applied to a 5.5 V bus lands on a 6 V-class part."}

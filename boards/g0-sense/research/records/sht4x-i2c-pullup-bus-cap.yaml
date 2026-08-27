@@ -1,0 +1,77 @@
+id: sht4x-i2c-pullup-bus-cap
+classes:
+- selection
+applies:
+  topologies:
+  - sht4x
+  packages: []
+  interfaces:
+  - i2c
+  parts: []
+rule:
+  enforced_by: null
+  rp_min_sensor_ohm: 390
+  rp_min_i2c_3ma_at_3v3_ohm: 970
+  rp_recommended_cabled_400khz_ohm: 1500
+  rp_max_at_cb_200pf_ohm: 1770
+  rp_max_formula: trise / (0.8473 x Cb)
+  trise_fast_mode_ns: 300
+  trise_fm_plus_ns: 120
+  cb_fast_mode_max_pf: 400
+prose: 'Pull-up sizing for a sensor I2C bus that leaves the board on a cable (Qwiic/STEMMA-QT,
+  ~0.5 m). Floor: UM10204 p50 Eq 2, Rp(min) = (VDD - VOL(max)) / IOL with the spec
+  sink of 3 mA at VOL 0.4 V for VDD > 2 V (Table 10, p43): at 3.3 V that is (3.3-0.4)/3
+  mA ~ 970 ohm for interop with any compliant device. The SHT4x''s own laxer floor
+  is 390 ohm at VDD >= 1.62 V (DS Table 4, p9). Ceiling: UM10204 p50 Eq 1, Rp(max)
+  = tr / (0.8473 x Cb); tr max is 1000 ns Standard, 300 ns Fast, 120 ns Fm+ and
+  Cb max 400 pF (Table 11, p44). Application: Cb is the TOTAL of traces, pins, cable
+  and downstream device, and the ceiling must hold at the TOP of the Cb budget -
+  at 400 kHz Eq 1 is Rp(max)[kohm] ~ 354/Cb[pF]: 2.36 k at 150 pF but only 1.77
+  k at 200 pF. For a ~0.5 m cable plus one remote node (150-200 pF budget) fit ~1.5
+  kohm: Eq 1 then holds to ~236 pF, margin over the whole budget, and it stays above
+  the 970 ohm floor (~1.9 mA sink at 3.3 V). Re-derive 354/Cb for a different cable
+  length rather than copying the value; past ~365 pF the 400 kHz window closes against
+  the 970 floor entirely; a 100 kHz-only bus relaxes the ceiling ~3.3x (tr 1000
+  ns). Fit the pull-ups once, at the host board; do not duplicate them on downstream
+  nodes. Neither Sensirion nor the connector ecosystem publishes a pF/m figure for
+  the Qwiic cable - estimate, then verify rise time at bring-up. DS p3 Fig 1 shows
+  10 kohm pull-ups: valid only for a short single-device bus, too high once a cable
+  is added.'
+sources:
+- file: research/sources/UM10204.pdf
+  page: 50
+  note: 'sec 7.1 pull-up sizing read visually: T = 0.8473 RC derivation, Eq 1 Rp(max)=tr/(0.8473
+    Cb), Eq 2 Rp(min)=(VDD-VOL)/IOL, Figs 41/42 Rp vs Cb and VDD'
+- file: research/sources/UM10204.pdf
+  page: 44
+  note: 'Table 11 bus-line characteristics: tr max 1000/300/120 ns and Cb max 400/400/550
+    pF for Sm/Fm/Fm+'
+- file: research/sources/UM10204.pdf
+  page: 43
+  note: 'Table 10 I/O stages: VOL1 0.4 V at 3 mA sink for VDD > 2 V; IOL 3 mA (20
+    mA Fm+)'
+- file: research/sources/HT_DS_Datasheet_SHT4x.pdf
+  page: 9
+  note: 'Table 4: Rp min 390 ohm (VDD>=1.62 V) / 820 ohm below; Cb < trise/(0.8473
+    Rp), trise 300 ns fast / 120 ns Fm+, Cb max 400/340 pF; VDD 1.08/3.3/3.6 V min/typ/max
+    and VIH max = VDD'
+- file: research/sources/HT_DS_Datasheet_SHT4x.pdf
+  page: 3
+  note: 'Fig 1 typical application circuit: two 10 kohm pull-ups and 100 nF at the
+    sensor, MCU as I2C master'
+status: active
+origin: research:block-sht4x-1
+level: topology
+envelope:
+  vin_v:
+    min: 2.0
+    max: 3.6
+envelope_note: 'The floor assumes the 3 mA / 0.4 V VOL row, valid for VDD > 2 V
+  (UM10204 Table 10; SHT4x Table 4 likewise gives the 0.4 V VOL row only for VDD
+  > 2.0 V) - below 2 V a different VOL/IOL row applies and the floor must be re-derived;
+  the rise-time ceiling formula itself holds at any VDD. The upper bound is the
+  sensor''s, not the bus spec''s: SHT4x Table 4 (p9) caps VDD at 3.6 V and VIH max
+  at VDD, so a bus this sensor sits on may not run above 3.6 V.'
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "Re-derived Eq 1 independently from UM10204 p50 (sec 7.1, resistive pull-up; T=0.8473RC from the 0.3/0.7 VDD thresholds): Rp(max)=tr/(0.8473*Cb) with tr=300ns gives 354.1/Cb[pF] kohm - 2.36k at 150pF, 1.770k at 200pF (rule field 1770 exact), and 1.5k holds to 236.1pF. p44 Table 11 confirms tr max 1000/300/120 ns and Cb max 400/400/550 pF; p43 Table 10 confirms VOL1 0.4V at 3mA sink for VDD>2V, so Eq 2 floor = (3.3-0.4)/3mA = 967 ohm (record rounds up to 970, conservative for a floor) and 1.5k sinks 1.93mA - clears it, and clears the SHT4x 390 ohm floor (DS p9 Table 4, VDD>=1.62V). 1.5k is inside the whole declared 150-200pF window (allowed band at 200pF is 0.97-1.77k) with ~18pct ceiling headroom; the old 2.2k defect (ceiling breached above 161pF) is gone. 365pF window-close and 3.3x Sm relaxation both check out. New envelope max 3.6V is supported by DS p9 Table 4 (VDD max 3.6, VIH max = VDD). DS p3 Fig 1 does show 10k pull-ups plus 100nF as claimed."}

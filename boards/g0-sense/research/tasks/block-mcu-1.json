@@ -1,0 +1,197 @@
+{
+ "id": "block-mcu-1",
+ "slot": "block:B3",
+ "kind": "block",
+ "token": "mcu",
+ "phase": "P2",
+ "status": "closed",
+ "outcome": "verified_with_drafts",
+ "opened": "2026-08-27T07:20:36",
+ "closed": "2026-08-27T08:42:51",
+ "coverage_report": "boards/g0-sense/log/coverage-P2.json",
+ "gap": {
+  "slot": "block:B3",
+  "kind": "block",
+  "topology": "mcu",
+  "operating_point": {
+   "vin_v": 3.3,
+   "pdiss_w": 0.008,
+   "board_layers": 2,
+   "source_kind": "usb",
+   "fsw_khz": 16000
+  },
+  "missing": [
+   {
+    "class": "coverage-checklist",
+    "min_level": null
+   }
+  ],
+  "reasons": [
+   "no coverage checklist for block 'mcu' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+  ],
+  "related_records": [],
+  "principle_parents": [],
+  "task": "research block 'mcu': produce its coverage checklist, then populate it"
+ },
+ "checklist_needed": true,
+ "caps": {
+  "depth_per_gap": 4,
+  "attempt_factor": 3
+ },
+ "sources": [
+  {
+   "n": 1,
+   "url": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf",
+   "final_url": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf",
+   "host": "wmsc.lcsc.com",
+   "domain": "lcsc.com",
+   "domain_kind": "distributor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "STM32G030F6P6",
+   "file": "research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf",
+   "sha256": "bd4d70f72b2e82c5965a2b92ef3b9c96ad48c0ecdf195cf900d14cd47bff09f5",
+   "bytes": 1495458,
+   "content_type": "application/pdf",
+   "pages": 93,
+   "fetched": "2026-08-27T07:24:51",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 2,
+   "url": "https://ww1.microchip.com/downloads/en/Appnotes/AN2519-AVR-Microcontroller-Hardware-Design-Considerations-00002519B.pdf",
+   "final_url": "https://ww1.microchip.com/downloads/en/Appnotes/AN2519-AVR-Microcontroller-Hardware-Design-Considerations-00002519B.pdf",
+   "host": "ww1.microchip.com",
+   "domain": "microchip.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "STM32G030F6P6",
+   "file": "research/sources/AN2519-AVR-Microcontroller-Hardware-Design-Considerations-00002519B.pdf",
+   "sha256": "26b325f16f526c5dfb060db8088e93d7a410800b626b4264bf55d69f98b07816",
+   "bytes": 1288414,
+   "content_type": "application/pdf",
+   "pages": 26,
+   "fetched": "2026-08-27T07:36:50",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 3,
+   "url": "https://community.st.com/t5/stm32-mcus-embedded-software/stm32g030-does-not-enter-bootloader-when-boot0-is-3-3v-what-is/td-p/222450",
+   "final_url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32g030-does-not-enter-bootloader-when-boot0-is-3-3v-what-is-boot-selector-option-bit-thank-you-40845",
+   "host": "community.st.com",
+   "domain": "st.com",
+   "domain_kind": "vendor",
+   "tier": "forum",
+   "declared_tier": "forum",
+   "about": "STM32G030F6P6",
+   "file": "research/sources/stm32g030-does-not-enter-bootloader-when-boot0-is-3-3v-what-is-boot-selector-option-bit-thank-you-40845.html",
+   "sha256": "30c70b4d58c9c2627f07a9b65d9e311a3561ae2acb3824f4e99d424647bd882b",
+   "bytes": 356658,
+   "content_type": "text/html; charset=UTF-8",
+   "pages": null,
+   "fetched": "2026-08-27T07:38:29",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 4,
+   "url": "https://onlinedocs.microchip.com/oxy/GUID-E9CAC59E-138C-416E-BE25-C5E915288E6D-en-US-3/GUID-3FD21524-1116-412C-8139-B7FBEA62950A.html",
+   "final_url": "https://onlinedocs.microchip.com/oxy/GUID-E9CAC59E-138C-416E-BE25-C5E915288E6D-en-US-3/GUID-3FD21524-1116-412C-8139-B7FBEA62950A.html",
+   "host": "onlinedocs.microchip.com",
+   "domain": "microchip.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "STM32G030F6P6",
+   "file": "research/sources/GUID-3FD21524-1116-412C-8139-B7FBEA62950A.html",
+   "sha256": "e7161109a097a115dd9b016c0646503110cd80eef9377c97f9559cc766e33f2f",
+   "bytes": 94428,
+   "content_type": "text/html; charset=utf-8",
+   "pages": null,
+   "fetched": "2026-08-27T07:39:23",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  }
+ ],
+ "attempts": [
+  {
+   "ts": "2026-08-27T07:24:21",
+   "url": "https://www.st.com/resource/en/datasheet/stm32g030f6.pdf",
+   "kind": "transport",
+   "detail": "ReadTimeout: The read operation timed out"
+  },
+  {
+   "ts": "2026-08-27T07:24:38",
+   "url": "https://datasheet.lcsc.com/lcsc/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf",
+   "kind": "not-pdf",
+   "detail": "starts b'<!doctype html>\\n'"
+  },
+  {
+   "ts": "2026-08-27T07:24:44",
+   "url": "https://www.lcsc.com/datasheet/C724040.pdf",
+   "kind": "not-pdf",
+   "detail": "starts b'<!doctype html>\\n'"
+  },
+  {
+   "ts": "2026-08-27T07:26:21",
+   "url": "https://www.mouser.com/pdfDocs/dm00463896-stm32g0x0-advanced-armbased-32bit-mcus-stmicroelectronics.pdf",
+   "kind": "transport",
+   "detail": "ReadTimeout: The read operation timed out"
+  }
+ ],
+ "verdicts": {
+  "mcu-decoupling-per-supply-pin-pair": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Re-read AN2519 p.5 (Fig 2-1 Incorrect Decoupling: current drawn in short spikes on clock edges, far cap enlarges the high-current loop, power/ground planes join it and the whole ground plane acts as an antenna) and p.6 (connect the cap to the planes as close as possible to the power and ground pins; opposite side of board best for large packages; critical to minimize the loop area; 'for devices with multiple pairs of power and ground pins ... a decoupling capacitor for every pair of pins'; 'the main power supply should also have a tantalum or ceramic capacitor to stabilize it') - every quoted phrase is on the page. DS12991 p.39 Fig 9 caution verbatim ('must be decoupled with filtering ceramic capacitors ... as close as possible to, or below, the appropriate pins on the underside of the PCB') and p.70 General PCB design guidelines verbatim ('the 100 nF capacitor should be ceramic (good quality) and it should be placed as close as possible to the chip'). Rule fields 100 nF per pin pair / one bulk per device / loop-area placement all supported; principle level and decoupling class fit. Only imprecision, not a defect: AN2519's 100 nF number appears in 2.2 for the analog supply and AREF, not for the digital pin pair, so the digital 100 nF value rests on ST p.70 - the parenthetical 'both vendors value here' is loose but the rule value is vendor-sourced.",
+   "ts": "2026-08-27T07:53:35"
+  },
+  "mcu-internal-rc-accuracy-vs-interface-budget": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "DS12991 Table 38 p.54 re-read row by row: fHSI16 15.88-16.08 MHz at VDD=3.0 V / TA=30 C (= -0.75/+0.5 pct of 16 MHz, arithmetic correct), dTemp(HSI16) -1/+1 pct for TA=0 to 85 C and -2/+1.5 pct for TA=-40 to 85 C, dVDD(HSI16) -0.1/+0.05 pct over VDD(min) to 3.6 V, tsu 0.8 typ / 1.2 us max; p.55 tstab 3/5 us and IDD 155/190 uA. Every rule field matches the table including its stated test conditions, and the -1.85/+1.55 pct worst-case sum over 0-85 C is the correct addition. Microchip AVR16EA 25.3.3.2.3 re-read: Table 25-4 (Normal-Speed, S=16) gives D=5 +-3.0, D=7/D=8 +-2.0, D=9/D=10 +-1.5 pct; Table 25-5 (Double-Speed, S=8) gives D=8 +-1.5 pct; the page states verbatim that the recommendations assume receiver and transmitter equally divide the maximum total error, and defines D as character size + parity size, so 8N1 = D=8 is the right row and 16x/8x oversampling is the page's own S=16/S=8. The AVR data recovery (majority vote of samples SF=8, SM=9) is the same receiver architecture the number is transferred to, and using the AVR half-budget for an ST receiver errs conservative (the page's own maximum TOTAL error at D=8 is -4.54/+4.58 pct). Two soft spots noted but not refuting: the prose's '-40 C blows the 8N1 budget on drift alone' overstates - -2 pct equals the +-2.0 pct half-budget and only exceeds it once the -0.75 pct trim is added (the envelope_note's 'consumes the whole half-budget' is the accurate phrasing); and 'USB full-speed is the canonical case' has no source in this ledger, though it is hedged as not live and drives no rule field.",
+   "ts": "2026-08-27T07:53:47"
+  },
+  "mcu-boot-strap-only-when-option-bytes-consult-pin": {
+   "verdict": "refuted",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Datasheet half holds: p.14 3.5 verbatim ('the boot pin is shared with a standard GPIO and can be enabled through the boot selector option bit'; bootloader on USART PA9/PA10 or PA2/PA3, I2C PB6/PB7 or PB10/PB11); Table 12 p.33 shows PA14-BOOT0 at TSSOP20 pin 19 with alternate functions SWCLK/USART2_TX and additional functions ADC_IN18/BOOT0, and the PA15 row carries the same TSSOP20 pin 19, so 'BOOT0 shares pin 19 with SWCLK, bonded with PA15' is supported; p.34 note 5 verbatim (upon reset these pins are SW debug AF, pull-up on PA13 and pull-down on PA14 active). REFUTED on tier and support: the entire load-bearing claim - factory user option bytes 0xDFFF E1AA, nBoot0=nBoot1=nBOOT_SEL=1, 'the BOOT0 pin state is ignored', empty flash still enters the bootloader (AN2606 pattern 11), clear nBOOT_SEL to make the pin matter - rests SOLELY on the community.st.com thread, which is forum tier. That page is a moderator quoting RM0454 3.4.1 and AN2606; neither document is in this ledger, so the record cites no vendor-tier page for its own conclusion. Text-searched the whole datasheet: no occurrence of nBOOT, no option-byte default value, no boot-mode table; p.14 says only that the pin CAN be enabled through the option bit and never that it is disabled as shipped. Rule fields boot0_strap_required:false, factory_user_option_bytes and factory_nboot_sel are therefore unsupported by the acquired sources, and the record itself flags RM0454 2.5 as an open cite-and-verify. Since the board's no-BOOT0-strap decision rests on this record, it must not go active until RM0454 2.5 + 3.4.1 (or AN2606) is acquired; the pinout/pin-sharing half can be kept as-is.",
+   "ts": "2026-08-27T07:54:00"
+  },
+  "mcu-nrst-internal-pullup-and-cap": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Fourth read, fresh context, all six cited pages reopened; every page now carries what the record says. p17 CHECKED FIRST because the previous refutation put 3.7.5 on p16: section 3.7.5 Reset mode is on PDF page 17 = printed 17/93 (PDF page == printed page throughout this file), verbatim \"when the reset source is internal, the built-in pull-up resistor on NRST pin is deactivated\" - the record's citation page is right and the earlier p16 was the error; the qualification is correctly reported as narrowing \"permanent\" without touching the conclusion. p66 Figure 19 rendered at 400 dpi and read as an image, not as text: ONE dashed ellipse labelled \"External reset circuit(1)\" encloses BOTH a normally-open push-button to GND AND the 0.1 uF to GND, the two hung in parallel on the NRST node with NO series resistor between them; RPU sits inside the solid device box from VDD into NRST -> Schmitt trigger -> Filter -> Internal reset, and no external pull-up is drawn anywhere. The repaired one-block description is exactly what the figure draws. Notes 2 and 3 verbatim. p65: 5.3.15 \"It is connected to a permanent pull-up resistor, RPU\"; Table 52 row by row - VIL(NRST) max 0.3 x VDDIO1, VIH min 0.7 x VDDIO1, Vhys typ 200 mV, RPU 25/40/55 kohm at VIN=VSS, VF(NRST) filtered pulse max 70 ns, VNF(NRST) not-filtered pulse min 350 ns carrying the row condition 2.0 V <= VDD <= 3.6 V. p15 3.7.2 verbatim: POR/PDR maintains reset below VPOR/PDR \"without the need for an external reset circuit\". AN2519 p7 re-read: \"If the environment is noisy, it can be insufficient and Reset may occur sporadically\", \"4.7 kOhm or larger\", \"must not be less than 10 kOhm\" for DebugWIRE, and the weakened debug claim now matches the page word for word (\"such extra capacitor cannot be used when DebugWIRE or PDI is used\") with no mechanism smuggled in - the previous over-claim is gone and the repair did not over-correct in the other direction either; Fig 3-1 note \"typical values ... must be changed accordingly\" verbatim. AN2519 p8: pulled the Figure 3-2 bitmap out of the PDF - GND - SW (4-pin tact) - R 330R - RESET, so the 330 ohm really is in series between the switch and the RESET-node cap of Fig 3-1, and the record now carries it as prose explicitly labelled AVR-only. METADATA CLEARS ON ALL THREE POINTS. (1) level: family is correct and is the right stopping point: the ledger's own counterexample (AN2519 p7 recommending an external pull-up) is an mcu, not a different supply voltage, so the bound is the vendor family, not the topology and not the envelope; and it costs no coverage - knowledgelib LEVELS = principle<topology<family<part<instance, the checklist mcu.yaml sequencing row is min_level topology, and _evaluate blocks only LEVEL_RANK[lv] < LEVEL_RANK[min_level], so family (rank 2) still satisfies topology (rank 1). ENVELOPE_REQUIRED_AT includes family, and the record has one. (2) envelope vin_v 2.0-3.6 is supported: Table 52's VNF(NRST) row states 2.0 V <= VDD <= 3.6 V explicitly, and 5.3.15's preamble inherits the remaining rows from Table 21 General operating conditions, whose VDD/VDDA row is exactly 2.0 to 3.6 V - same numbers by either route, so the envelope_note's description is accurate. (3) no rule field still smuggles a cross-vendor generalization: button_series_r_ohm is gone, and external_pullup false / nrst_cap_nf 100 / cap_placement \"as close as possible to the device\" all trace to Fig 19 plus note 3 on p66. Also re-checked the debug silence rather than assuming it: full-text search of DS12991 finds 32 NRST occurrences and not one of them sits in a debug/SWD context, so \"the G030 pages read show no NRST debug constraint; none sourced for SWD\" is an accurate statement of the source's silence. Residual imprecisions, all in the cross-vendor prose aside, none in a rule field, none changing a design action on this board: (a) \"ESD/Zener diode Reset-to-Vcc\" - p7 puts the ESD diode Reset-to-VCC but the Zener \"relative to GND\"; (b) \">= 4.7 kohm\" drops p7's condition \"when using STK600 for programming\", though Fig 3-1, titled Recommended Reset Pin Connection, draws 4.7k unconditionally; (c) rule do_not_oversize_cap: true has no single supporting sentence - it holds the design to ST's own 0.1 uF, which is the conservative direction and what the checklist row asked for; (d) envelope_note's \"an mcu at the same 2.0-3.6 V operating point\" for AVR is uncited, though AN2519 p10 (in the ledger, uncited) works its example at VCC 3.3 V. VERIFIED.",
+   "ts": "2026-08-27T08:41:54"
+  },
+  "mcu-decoupling-bonded-vdda-single-pair": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "DS12991 p31 Table 12 read row by row: VBAT row is populated only in the LQFP48 column (pin 4), VREF+ only in LQFP48 (pin 5), and the VDD/VDDA row reads SO8N 2 / TSSOP20 4 / LQFP32 4 / LQFP48 6 - so VDD/VDDA stays bonded in every column and no separate VDDA row exists anywhere in Table 12 (checked its continuation on pp32-34: only I/O pins follow). VSS/VSSA is 3/5/5/7, so TSSOP-20 pins 4/5 really are the only supply pair. p39 Fig 9 read visually: the 1x100nF+1x4.7uF pair sits on VDD/VDDA, a single 100nF sits on VREF+, and the VBAT branch carries only the 1.55-3.6V source into the power switch - no capacitor on VBAT, exactly as the repaired envelope_note now says. The Caution text matches the cited placement note. p14/p15 quotes are verbatim-accurate (VDDA identical to VDD via VDD/VDDA pin; VBAT pad internally bonded when absent; VREF+ internally connected to VDD on packages without the pin). The exactly-one-pair conclusion is an inference, but a sound one at family level: one supply pin pair plus no VREF+/VBAT pins leaves nowhere else to attach a cap. AN2519 p6 sec 2.2 supports the carried-forward trade-off. Minor wording only: the trade-off says a package with a true VDDA pin, but no G030 package has one, so it means a different part.",
+   "ts": "2026-08-27T08:20:29"
+  }
+ },
+ "queue_entry": "2026-08-27-research-task-block-mcu-1-4-verified",
+ "updated": "2026-08-27T08:42:51",
+ "accepted_drafts": [
+  "mcu-boot-strap-only-when-option-bytes-consult-pin"
+ ],
+ "summary": {
+  "verified": 4,
+  "refuted": 1,
+  "checklists": 1,
+  "sources": 4
+ }
+}

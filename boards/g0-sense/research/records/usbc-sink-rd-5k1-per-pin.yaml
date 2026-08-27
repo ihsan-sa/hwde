@@ -1,0 +1,48 @@
+id: usbc-sink-rd-5k1-per-pin
+classes: [selection]
+applies:
+  topologies: [usbc-sink]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  rd_kohm: 5.1
+  rd_tolerance_pct_max: 20
+  resistors: two - CC1 to GND and CC2 to GND, separate parts
+  series_elements_in_cc: none
+  tie_cc1_to_cc2: never
+prose: >
+  Concrete Rd implementation for a CC-blind sink: two 5.1 kohm resistors,
+  one from CC1 to GND and one from CC2 to GND. Table 4-25 Sink CC
+  Termination (Rd) Requirements (read on p236) gives three legal
+  implementations; the "+/-20% resistor to GND, 5.1 kohm" row applies to a
+  sink that cannot detect power capability ("Can detect power capability?
+  No", max voltage on pin 2.18 V) - exactly this topology - so ordinary 1%
+  chip resistors are far inside spec. The "+/-10% resistor" row exists only
+  for sinks that DO read the advertisement. Nothing goes in series with CC
+  (any series R adds to Rd and shifts the divider against the source's Rp
+  current source - Table 4-24, p235: default 80 uA / 56 kohm classes), and
+  CC1 is never tied to CC2 (see the independent-termination principle
+  record for the audio-accessory failure through e-marked cables). In this
+  power-only sink the CC pins are plain DC divider nodes - there is no PD
+  BMC receiver - so no CC capacitors or other parts are demanded by this
+  record; the two resistors are the entire CC circuit.
+sources:
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 236, section: Table 4-25, note: "read Table 4-25: Rd implementations - +/-20% resistor to GND, nominal 5.1 kohm, can detect power capability No, max voltage on pin 2.18 V; +/-10% row is the capability-detecting variant"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 235, section: Table 4-24 / 4.11.1, note: "read Table 4-24 Source Rp values (80 uA +/-20% or 56 kohm +/-20% at default; 22 k / 10 k for 1.5 A / 3.0 A) - the other half of the CC divider Rd works against, and note 1: 56 kohm Rp lives in A-to-C cable plugs"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 170, section: 4.5.2.2.3.1, note: "read: both CC1 and CC2 shall be independently terminated to ground through Rd - two separate resistors"}
+status: active
+origin: research:block-usbc-sink-1
+level: topology
+envelope:
+  iout_a: {max: 0.5}
+envelope_note: >
+  Bound is the current the sink claims without reading CC: the +/-20% Rd
+  row is legal only for a sink that never detects power capability, i.e.
+  one that stays at default USB power (500 mA). A sink drawing more than
+  0.5 A must monitor vRd (4.5.2.3.1.1) and needs the +/-10% detecting
+  implementation - outside this record.
+maturity: verified
+generalizes: [usbc-sink-cc-independent-rd-principle]
+verification: {by: "second-reader", date: "2026-08-27", note: "Re-read spec p236 Table 4-25 Sink CC Termination (Rd) Requirements visually: three rows - '+/-20% voltage clamp | 1.1 V | No | 1.32 V', '+/-20% resistor to GND | 5.1 kohm | No | 2.18 V', '+/-10% resistor to GND | 5.1 kohm | Yes | 2.04 V'. The record's tolerance (rd_tolerance_pct_max 20), nominal (5.1k), 'can detect power capability No' and max-pin-voltage 2.18 V all match the table row exactly, and the +/-10% row is indeed the 'Yes' (detecting) variant. p235 Table 4-24 Source CC Termination (Rp): Default 80 uA +/-20% / 56 kohm +/-20% / 36 kohm +/-20%; 1.5 A 180 uA / 22 k / 12 k; 3.0 A 330 uA / 10 k / 4.7 k - matches the record's 22k/10k shorthand; Note 1 does put the 56 kohm value in Type-C-to-Standard-A / Micro-B / captive plugs as the record says (note 1 actually tightens it to +/-5% there, a detail the record's citation note glosses as +/-20% but nothing in the rule depends on it). p170 confirms the two-separate-resistors requirement. Envelope iout_a max 0.5 is supported: p193 4.5.2.3.1.1 requires vRd monitoring above default USB power, and Table 4-25 says the +/-20% implementation cannot detect capability. Not refutable."}

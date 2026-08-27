@@ -1,0 +1,581 @@
+{
+ "version": 2,
+ "board": "g0-sense",
+ "workspace": "boards/g0-sense",
+ "created": "2026-08-27T06:35:38",
+ "updated": "2026-08-27T08:44:37",
+ "phase": "P3",
+ "gates": {},
+ "human": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-08-27T08:44:13",
+   "note": "delegated (unattended): architecture + 2L stackup approved; LDO 0.51 W design point approved; boot-strap gap accepted because the 10k BOOT0 pull-down removes the dependency; outline stays an output; no sim bench"
+  }
+ },
+ "artifacts": {},
+ "open_issues": [],
+ "next_issue_id": 1,
+ "budgets": {
+  "fix_loops": {
+   "erc": 3,
+   "place": 3,
+   "drc_routed": 3,
+   "verify": 3,
+   "dfm": 3
+  },
+  "freerouting_retries": 2,
+  "place_edit_iterations": 8,
+  "research": {
+   "per_run": 2,
+   "depth_per_gap": 4
+  }
+ },
+ "decisions": [
+  {
+   "what": "unattended default: environment = indoor bench/room ambient, 0-40 C operating, bare board, no ingress or vibration rating",
+   "why": "Q1 of requirements section 9; brief names no environment. Most conservative common-practice choice for a USB-powered indoor sensor node; parts will still be picked at industrial -40..85 C grade where that is the stocked option, so the assumption cannot make the board wrong.",
+   "phase": "P0",
+   "ts": "2026-08-27T06:38:43"
+  },
+  {
+   "what": "unattended default: Qwiic/STEMMA-QT downstream budget = 100 mA reserved on the 3V3 rail",
+   "why": "Q2; brief does not budget it. 100 mA covers typical Qwiic sensor/display loads and still fits inside the brief's >= 300 mA LDO floor with margin for the on-board tens of mA, so it sizes the LDO and its thermals honestly without inflating the part.",
+   "phase": "P0",
+   "ts": "2026-08-27T06:38:43"
+  },
+  {
+   "what": "unattended default: no hard per-board cost cap; minimize cost via JLC economy PCBA and Basic parts as the brief already directs",
+   "why": "Q3; brief states no budget. Cost is already bounded by the brief's own Basic-parts-preferred rule; inventing a cap could force a worse engineering choice.",
+   "phase": "P0",
+   "ts": "2026-08-27T06:38:43"
+  },
+  {
+   "what": "unattended default: the two 0.1 in headers (SWD, UART) ship UNPOPULATED - plated through-holes only, hand-solderable; only SMD parts go to JLC economy PCBA",
+   "why": "Q4; brief says 'JLC economy PCBA for the SMD parts'. JLC economy assembly is SMT-only, so THT headers are BOM 'do not populate / customer supplied'. Standard practice for dev/sensor boards and it keeps the assembly quote in economy tier.",
+   "phase": "P0",
+   "ts": "2026-08-27T06:38:43"
+  },
+  {
+   "what": "unattended default: ~35 x 25 mm is a SOFT preference, not an enclosure-driven hard cap; no HARD outline cap binds at P5",
+   "why": "Q5; the brief says 'whatever an honest layout wants, roughly 35 x 25 mm or smaller' and names no enclosure. Confirms requirements.md section 5; placement must not optimize to fit an unearned number (the bb-buck failure mode).",
+   "phase": "P0",
+   "ts": "2026-08-27T06:38:43"
+  },
+  {
+   "what": "unattended default: LDO = AMS1117-3.3 class in SOT-223 (JLC Basic, C6186); governing thermal design point is the brief's literal >=300 mA rated case (0.51 W), not the ~150 mA realistic load",
+   "why": "research/ldo.md escalated the SOT-223-vs-SOT-23-5 tradeoff; research/power.md resolved it with numbers: AMS1117 Tj 71-86 C at 40 C ambient and <=115 C even in the 500 mA abuse case, while AP2112K-class SOT-23-5 (theta-JA 184 C/W) hits Tj 134 C at the rated case with no copper fix available. The Qwiic port is an unfenced 3V3 output, so the rated case is reachable in the field. Basic part, 1.1M stock, $0.20.",
+   "phase": "P1",
+   "ts": "2026-08-27T07:09:46"
+  },
+  {
+   "what": "unattended default: a sub-6 V TVS clamping voltage is NOT a requirement; SMAJ5.0A/SMF5.0A-class (standoff 5.0-5.5 V, Vc ~9.2 V at Ipp) is accepted",
+   "why": "research/protection.md flagged that no passive TVS clamps under 6 V. Nothing on VBUS is 6 V-rated: the only VBUS consumers are the LDO (AMS1117 Vin abs max 15 V), the input caps (16 V+ parts) and the PTC (16 V). Everything at 3.3 V sits behind the LDO. A ~9.2 V clamp during a surge is therefore inside every VBUS part's rating - the original <6 V framing was an over-tight derived spec, not a real one.",
+   "phase": "P1",
+   "ts": "2026-08-27T07:09:47"
+  },
+  {
+   "what": "unattended default: NO series reverse-polarity element (no Schottky, no P-FET ideal diode) on VBUS",
+   "why": "Two independent reasons, both recorded in research: (a) a compliant USB-C cable cannot present reverse polarity (protection.md), and (b) research/power.md computed the end-to-end dropout budget and found a series Schottky's 125-190 mV would consume the entire AMS1117 headroom at the 4.75 V source corner (+0.11 V worst-corner margin as designed). The unidirectional TVS already crowbars a reverse fault. Adding it would make the board worse, not safer.",
+   "phase": "P1",
+   "ts": "2026-08-27T07:09:47"
+  },
+  {
+   "what": "unattended default: USB-C receptacle = 16-pin power-only part whose THT shield/mounting legs are accepted; JLC assembles it in the Economic PCBA tier",
+   "why": "research/connectors.md correctly flagged that every 16P part in this class has THT shield legs and asked whether economy PCBA can place them. Verified directly on the JLCPCB part page for C165948 (TYPE-C-31-M-12): Assembly Process = SMT, Mount Type = Surface Mount Right Angle, and the part is listed as supported by BOTH Economic and Standard assembly. So the legs are not an assembly blocker. Part is JLC Extended - permitted, the brief names the connector.",
+   "phase": "P1",
+   "ts": "2026-08-27T07:09:47"
+  },
+  {
+   "what": "unattended default: SHT4x on-chip heater (75 mA peak) IS budgeted in the rail tree at <=10% duty",
+   "why": "research/power.md's call, accepted: including it costs nothing (peak +3V3 still 185 mA, 240 mA with 30% headroom, under the 300 mA LDO floor and at 39% of the 500 mA CC-blind USB entitlement), while omitting it would turn a documented firmware feature into a hardware ECO later.",
+   "phase": "P1",
+   "ts": "2026-08-27T07:09:47"
+  },
+  {
+   "what": "unattended default: NRST tactile button - prefer the JLC Basic 5.1x5.1 mm part over the brief's smaller 3x2.5/4.2x3.2 mm size class if the layout has room; size class is a preference, Basic status and stock depth are the tiebreak",
+   "why": "research/connectors.md Q2: the only Basic button is 5.1x5.1 mm (C318884, 962k stock, $0.02); the closest-size alternative carries a documented lib_pull symbol gotcha in this repo's own LEARNINGS. The brief never fixed the button size, and the board size is soft, so paying ~2.9 mm of edge for a Basic, gotcha-free part is the conservative trade. Architect may overrule at P2 if placement suffers.",
+   "phase": "P1",
+   "ts": "2026-08-27T07:09:47"
+  },
+  {
+   "what": "unattended default: LED colours - user LED green, power LED red; both 0603, series resistors sized from the measured Vf band per colour",
+   "why": "research/connectors.md Q3 left the assignment open. Red is the conventional power indicator and is the JLC Basic option with the low Vf band (1.8-2.4 V), which gives the largest resistor and the lowest current draw for an always-on LED. Green for the user LED is the conventional 'activity' colour; it is Extended in the KT-0603 family, which is acceptable at one extra unique part, and its 2.6-3.1 V Vf is fine from 3.3 V at a few mA.",
+   "phase": "P1",
+   "ts": "2026-08-27T07:09:47"
+  },
+  {
+   "what": "research task block-mcu-1 closed over 1 unverified draft record(s): mcu-boot-strap-only-when-option-bytes-consult-pin",
+   "why": "--accept-drafts: the slot ships without this knowledge",
+   "phase": "P2",
+   "ts": "2026-08-27T08:42:51"
+  },
+  {
+   "what": "unattended default: BOOT0 gets a populated 10k pull-down on PA14 (pin 19, shared with SWCLK) - the board does NOT rely on the unverified factory-option-byte claim",
+   "why": "The research record mcu-boot-strap-only-when-option-bytes-consult-pin was REFUTED by a fresh second reader: its load-bearing claim (factory 0xDFFFE1AA / nBOOT_SEL=1 makes the BOOT0 pin ignored) rests solely on a community.st.com forum page, and RM0454/AN2606 could not be acquired - st.com times out from this container (verified twice by curl, once by an agent). Rather than design on unverified knowledge, the board is made correct under EITHER option-byte state: a 10k pull-down guarantees BOOT0=0 at reset so the part boots main flash even if nBOOT_SEL=0. Cost is one 0402 resistor; 330 uA load on SWCLK is negligible to any debugger's push-pull driver, and the datasheet-confirmed internal pull-down on PA14 in debug mode already pulls the same way. This closes the gap without the source.",
+   "phase": "P2",
+   "ts": "2026-08-27T08:42:51"
+  },
+  {
+   "what": "unattended default: I2C pull-ups are 1.5 kOhm (not the 2.2 kOhm the P1 fragment proposed)",
+   "why": "The draft record sht4x-i2c-pullup-bus-cap was refuted for recommending 2.2k over its own declared 150-200 pF bus budget: UM10204 Eq 1 at tr=300 ns gives Rp(max) = 354/Cb[pF] kOhm, i.e. 1.77k at 200 pF, so 2.2k needs Cb <= 161 pF and misses the Fast-mode rise time on a cabled Qwiic bus. 1.5k holds the ceiling to 236 pF and clears both floors (967 Ohm from UM10204 Table 10 at 3.3 V/3 mA, 390 Ohm from the SHT4x datasheet). Value independently recomputed by a second reader. architecture/constraints.json and the P4 schematic must use 1.5k.",
+   "phase": "P2",
+   "ts": "2026-08-27T08:42:51"
+  }
+ ],
+ "edits": [],
+ "spawns": [
+  {
+   "ts": "2026-08-27T06:35:58",
+   "role": "requirements-analyst",
+   "model": "fable/high",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "role": "research-component-scout",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "role": "research-component-scout",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "role": "research-component-scout",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "role": "research-component-scout",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "role": "research-interface-spec",
+   "model": "fable/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "role": "research-reference-design",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "role": "research-reference-design",
+   "model": "sonnet/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-27T07:01:20",
+   "role": "research-power-architect",
+   "model": "fable/high",
+   "phase": "P1"
+  },
+  {
+   "ts": "2026-08-27T07:10:24",
+   "role": "architect",
+   "model": "fable/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:20:58",
+   "role": "researcher",
+   "model": "fable/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:20:58",
+   "role": "researcher",
+   "model": "fable/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:20:58",
+   "role": "researcher",
+   "model": "fable/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:20:58",
+   "role": "researcher",
+   "model": "fable/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:46:05",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:46:05",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:46:05",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:46:05",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T08:00:56",
+   "role": "researcher",
+   "model": "fable/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T08:00:56",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T08:00:56",
+   "role": "research-second-reader",
+   "model": "opus/high",
+   "phase": "P2"
+  }
+ ],
+ "history": [
+  {
+   "ts": "2026-08-27T06:35:38",
+   "event": "init",
+   "board": "g0-sense",
+   "phase": "P0"
+  },
+  {
+   "ts": "2026-08-27T06:35:58",
+   "event": "spawn",
+   "role": "requirements-analyst",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T06:38:43",
+   "event": "decision",
+   "what": "unattended default: environment = indoor bench/room ambient, 0-40 C operating, bare board, no ingress or vibration rating"
+  },
+  {
+   "ts": "2026-08-27T06:38:43",
+   "event": "decision",
+   "what": "unattended default: Qwiic/STEMMA-QT downstream budget = 100 mA reserved on the 3V3 rail"
+  },
+  {
+   "ts": "2026-08-27T06:38:43",
+   "event": "decision",
+   "what": "unattended default: no hard per-board cost cap; minimize cost via JLC economy PCBA and Basic parts as the brief already directs"
+  },
+  {
+   "ts": "2026-08-27T06:38:43",
+   "event": "decision",
+   "what": "unattended default: the two 0.1 in headers (SWD, UART) ship UNPOPULATED - plated through-holes only, hand-solderable; only SMD parts go to JLC economy PCBA"
+  },
+  {
+   "ts": "2026-08-27T06:38:43",
+   "event": "decision",
+   "what": "unattended default: ~35 x 25 mm is a SOFT preference, not an enclosure-driven hard cap; no HARD outline cap binds at P5"
+  },
+  {
+   "ts": "2026-08-27T06:38:59",
+   "event": "phase",
+   "phase": "P1",
+   "prev": "P0"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "event": "spawn",
+   "role": "research-component-scout",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "event": "spawn",
+   "role": "research-interface-spec",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "event": "spawn",
+   "role": "research-reference-design",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-27T06:39:48",
+   "event": "spawn",
+   "role": "research-reference-design",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-27T07:01:20",
+   "event": "spawn",
+   "role": "research-power-architect",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T07:09:46",
+   "event": "decision",
+   "what": "unattended default: LDO = AMS1117-3.3 class in SOT-223 (JLC Basic, C6186); governing thermal design point is the brief's literal >=300 mA rated case (0.51 W), not the ~150 mA realistic load"
+  },
+  {
+   "ts": "2026-08-27T07:09:47",
+   "event": "decision",
+   "what": "unattended default: a sub-6 V TVS clamping voltage is NOT a requirement; SMAJ5.0A/SMF5.0A-class (standoff 5.0-5.5 V, Vc ~9.2 V at Ipp) is accepted"
+  },
+  {
+   "ts": "2026-08-27T07:09:47",
+   "event": "decision",
+   "what": "unattended default: NO series reverse-polarity element (no Schottky, no P-FET ideal diode) on VBUS"
+  },
+  {
+   "ts": "2026-08-27T07:09:47",
+   "event": "decision",
+   "what": "unattended default: USB-C receptacle = 16-pin power-only part whose THT shield/mounting legs are accepted; JLC assembles it in the Economic PCBA tier"
+  },
+  {
+   "ts": "2026-08-27T07:09:47",
+   "event": "decision",
+   "what": "unattended default: SHT4x on-chip heater (75 mA peak) IS budgeted in the rail tree at <=10% duty"
+  },
+  {
+   "ts": "2026-08-27T07:09:47",
+   "event": "decision",
+   "what": "unattended default: NRST tactile button - prefer the JLC Basic 5.1x5.1 mm part over the brief's smaller 3x2.5/4.2x3.2 mm size class if the layout has room; size class is a preference, Basic status and stock depth are the tiebreak"
+  },
+  {
+   "ts": "2026-08-27T07:09:47",
+   "event": "decision",
+   "what": "unattended default: LED colours - user LED green, power LED red; both 0603, series resistors sized from the measured Vf band per colour"
+  },
+  {
+   "ts": "2026-08-27T07:10:13",
+   "event": "phase",
+   "phase": "P2",
+   "prev": "P1"
+  },
+  {
+   "ts": "2026-08-27T07:10:24",
+   "event": "spawn",
+   "role": "architect",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T07:20:36",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 5
+  },
+  {
+   "ts": "2026-08-27T07:20:36",
+   "event": "research_opened",
+   "task": "block-usbc-sink-1",
+   "slot": "block:B1",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:20:36",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 4
+  },
+  {
+   "ts": "2026-08-27T07:20:36",
+   "event": "research_opened",
+   "task": "block-ldo-1",
+   "slot": "block:B2",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:20:36",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 3
+  },
+  {
+   "ts": "2026-08-27T07:20:36",
+   "event": "research_opened",
+   "task": "block-mcu-1",
+   "slot": "block:B3",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:20:36",
+   "event": "budget",
+   "path": "research.per_run",
+   "remaining": 2
+  },
+  {
+   "ts": "2026-08-27T07:20:36",
+   "event": "research_opened",
+   "task": "block-sht4x-1",
+   "slot": "block:B4",
+   "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T07:20:58",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T07:20:58",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T07:20:58",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T07:20:58",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T07:46:05",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-27T07:46:05",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-27T07:46:05",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-27T07:46:05",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-27T08:00:56",
+   "event": "spawn",
+   "role": "researcher",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T08:00:56",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-27T08:00:56",
+   "event": "spawn",
+   "role": "research-second-reader",
+   "model": "opus/high"
+  },
+  {
+   "ts": "2026-08-27T08:42:35",
+   "event": "research_closed",
+   "task": "block-usbc-sink-1",
+   "slot": "block:B1",
+   "outcome": "verified",
+   "queue_entry": "2026-08-27-research-task-block-usbc-sink-1-7"
+  },
+  {
+   "ts": "2026-08-27T08:42:36",
+   "event": "research_closed",
+   "task": "block-ldo-1",
+   "slot": "block:B2",
+   "outcome": "verified",
+   "queue_entry": "2026-08-27-research-task-block-ldo-1-5-verified"
+  },
+  {
+   "ts": "2026-08-27T08:42:36",
+   "event": "research_closed",
+   "task": "block-sht4x-1",
+   "slot": "block:B4",
+   "outcome": "verified",
+   "queue_entry": "2026-08-27-research-task-block-sht4x-1-6-verified"
+  },
+  {
+   "ts": "2026-08-27T08:42:51",
+   "event": "research_closed",
+   "task": "block-mcu-1",
+   "slot": "block:B3",
+   "outcome": "verified_with_drafts",
+   "queue_entry": "2026-08-27-research-task-block-mcu-1-4-verified"
+  },
+  {
+   "ts": "2026-08-27T08:42:51",
+   "event": "decision",
+   "what": "research task block-mcu-1 closed over 1 unverified draft record(s): mcu-boot-strap-only-when-option-bytes-consult-pin"
+  },
+  {
+   "ts": "2026-08-27T08:42:51",
+   "event": "research_drafts_accepted",
+   "task": "block-mcu-1",
+   "slot": "block:B3",
+   "records": [
+    "mcu-boot-strap-only-when-option-bytes-consult-pin"
+   ]
+  },
+  {
+   "ts": "2026-08-27T08:42:51",
+   "event": "decision",
+   "what": "unattended default: BOOT0 gets a populated 10k pull-down on PA14 (pin 19, shared with SWCLK) - the board does NOT rely on the unverified factory-option-byte claim"
+  },
+  {
+   "ts": "2026-08-27T08:42:51",
+   "event": "decision",
+   "what": "unattended default: I2C pull-ups are 1.5 kOhm (not the 2.2 kOhm the P1 fragment proposed)"
+  },
+  {
+   "ts": "2026-08-27T08:44:13",
+   "event": "human",
+   "checkpoint": "1",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-27T08:44:37",
+   "event": "phase",
+   "phase": "P3",
+   "prev": "P2"
+  }
+ ]
+}

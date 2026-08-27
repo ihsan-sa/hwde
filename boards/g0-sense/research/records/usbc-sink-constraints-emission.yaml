@@ -1,0 +1,43 @@
+id: usbc-sink-constraints-emission
+classes: [constraints-emission]
+applies:
+  topologies: [usbc-sink]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  placement: receptacle pinned to a board edge, mating face flush or proud
+  power_entry_vbus_ma_max: 500
+  blocks_entry: "topology: usbc-sink"
+  diff_pairs: omit - no data nets exist
+prose: >
+  What a CC-blind usbc-sink block must emit into constraints.json so the
+  placer, routers and checkers see it: (1) placement - pin the receptacle
+  to a board edge with the mating face flush or slightly proud; Fig 3-80
+  (p136) requires >= 0.05 mm plug-overmold clearance to the product
+  exterior surface, so a bare board gets zero setback; reserve an edge
+  swath about one connector pitch wide (Fig 3-79, p136: 12.85 mm
+  recommended spacing, informative) clear of tall parts so the overmold
+  seats. (2) power - a VBUS entry whose current is the CC-blind
+  entitlement ceiling (500 mA as a Power Sinking Device, 4.6.2.1 p218) so
+  netclass width and copper checks size against what the sink may legally
+  draw; if the architect fits a resettable series protector, its fault
+  dwell current may raise the copper-sizing entry (part-specific, outside
+  this record). (3) blocks - a {topology: usbc-sink} entry so knowledge
+  retrieval keys this slot on later passes. (4) diff_pairs - omit: a PSD
+  has no USB or Alternate Mode communications function (p219), D+/D- are
+  left unconnected and never become nets, so there is nothing for
+  auto-discovery to find. This is the pipeline emission contract for the
+  block, not physics; it carries no operating-point-dependent quantity
+  beyond the numbers its cited records already bound.
+sources:
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 136, section: Figures 3-79 / 3-80, note: "read Fig 3-80 (0.05 min overmold clearance to exterior surface - edge placement emission) and Fig 3-79 (12.85 mm recommended connector spacing - keepout swath emission)"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 218, section: 4.6.2.1, note: "read PSD bullet: sink may draw up to 500 mA - the power entry ceiling"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 219, section: 4.6.2.1 PSD text, note: "read: a PSD shall not have a USB or USB Type-C Alternate Mode communications function - grounds omitting diff_pairs"}
+status: active
+origin: research:block-usbc-sink-1
+level: principle
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "Re-read all three cited pages. p218 4.6.2.1 carries the PSD bullet verbatim ('the Sink may draw up to 500 mA'), so the 500 mA power-entry ceiling this record emits is the same number the entitlement record was verified on. p219 carries 'A PSD shall not have a USB or USB Type-C Alternate Mode communications function' verbatim, which does ground omitting diff_pairs for a board whose D+/D- are unconnected. p136 read visually: Figure 3-80 'Recommended Minimum Plug Overmold Clearance' shows '0.05 MIN.' to the '(EXTERIOR SURFACE OF PRODUCT)' with the plug fully seated, and Figure 3-79 'Recommended Minimum Spacing between Connectors' shows 12.85 - I checked the extension lines at high zoom and they land on the two side-by-side connector centrelines, so 12.85 really is a centre-to-centre pitch and the record's 'about one connector pitch wide' swath is a fair reading. Nothing refutable. Two wording caveats: both p136 figures sit in sections 3.10.2 and 3.10.3, each headed '(Informative)' and each titled 'Recommended', so the record's 'Fig 3-80 requires >= 0.05 mm' overstates the spec's normative force - it is a recommendation; and 'a bare board gets zero setback' is the record's own design inference, the figure says nothing about enclosure-less boards. Neither changes an emitted value."}

@@ -1,0 +1,56 @@
+{
+  "_provenance": "P1 power-architect fragment, g0-sense, 2026-08-27. Numbers and citations: research/power.md. Consumer currents trace to mcu-sensor.md (DS12991 Table 25; SHT4x DS Table 3), refdesign-sht4x.md (heater DS s4.9; 2.2k pull-ups), connectors.md (KT-0603 LED design point), requirements.md OQ2 (100 mA Qwiic reserve), ldo.md (AMS1117 Iq/theta-JA/dropout), protection.md (PTC Ri), interface-usbc-power-sink.md (500 mA entitlement, 1.5 A fault sizing, 10 uF attach limit).",
+  "rails": [
+    {
+      "net": "VBUS",
+      "vin": "USB-C receptacle, 5 V nominal (4.75-5.5 V at source receptacle)",
+      "topology": "direct",
+      "current_a": 0.2,
+      "consumers": [
+        "PTC -> +5V -> LDO: full downstream load (185 mA peak) + LDO ground current 5-11 mA (AMS1117, ldo.md)",
+        "TVS shunt leakage (negligible)",
+        "100 nF HF bypass at connector (only capacitance ahead of the PTC)"
+      ],
+      "dissipation_w": 0.0,
+      "_notes": "Steady-state worst draw 196 mA = 39% of the 500 mA CC-blind entitlement (interface-usbc-power-sink rows 4/5); copper is sized separately at 1.5 A dt10 for the PTC trip dwell (power_constraints entry)."
+    },
+    {
+      "net": "+5V",
+      "vin": "VBUS via PTC (750 mA hold, 70-90 mOhm initial Ri, protection.md)",
+      "topology": "direct",
+      "current_a": 0.2,
+      "consumers": [
+        "LDO input (all +3V3 load + Iq)",
+        "10 uF X5R LDO input cap (effective 6-8 uF at 5 V bias; total node capacitance incl. the 100 nF on VBUS stays under the Type-C 10 uF attach limit)"
+      ],
+      "dissipation_w": 0.003,
+      "_notes": "PTC I^2R = 0.185^2 x 0.09 = 3 mW at true peak. PTC IR drop 17-43 mV at design current (aged 2x allowance) - accounted in the dropout budget (power.md s7)."
+    },
+    {
+      "net": "+3V3",
+      "vin": "+5V",
+      "topology": "ldo",
+      "current_a": 0.24,
+      "consumers": [
+        "STM32G030F6P6: 1.6 mA typ / 2.5 mA max (DS12991 Table 25 via mcu-sensor.md)",
+        "SHT40: 2.4 uA avg, 0.5 mA measuring (SHT4x DS Table 3 via mcu-sensor.md)",
+        "SHT40 heater: 75 mA peak, <=10% duty, firmware-optional - BUDGETED (refdesign-sht4x.md s6)",
+        "2x LED at 2 mA design point = 4 mA (KT-0603 family, connectors.md s5)",
+        "I2C pull-ups 2x 2.2k: 0 typ / 3 mA both lines low (refdesign-sht4x.md s2)",
+        "Qwiic external reserve: 100 mA (owner-delegated decision, requirements.md OQ2)"
+      ],
+      "dissipation_w": 0.51,
+      "_notes": "Peak sum 185 mA; +30% headroom -> 0.24 A design current, under the brief's >=300 mA LDO floor. dissipation_w is the governing rated case (300 mA sustained x 1.7 V, power.md s5); realistic loaded case is 0.26 W at ~150 mA; 500 mA entitlement abuse case is ~0.83 W (AMS1117 survives at <=115 C junction, SOT-23-5 parts do not)."
+    }
+  ],
+  "power_constraints": [
+    {"net": "VBUS", "current_a": 1.5, "dt_c": 10},
+    {"net": "+5V", "current_a": 1.5, "dt_c": 10},
+    {"net": "+3V3", "current_a": 0.3, "dt_c": 10}
+  ],
+  "_power_constraints_notes": "VBUS and +5V carry the same copper: 1.5 A dt10 sizes for the PTC trip dwell (0.8 mm at 1 oz, interface-usbc-power-sink s3) - the PTC sits between the two nets so the fault current traverses both. +3V3 declared at the 0.3 A LDO rating floor (>= the 0.24 A design current; ~0.16 mm at 1 oz dt10 - free margin). GND deliberately not listed (canon: would demand full-budget vias in every GND cluster). Net names provisional until the final netlist exists; reconcile at P5.",
+  "thermal_constraints": [
+    {"ref": "U1", "power_w": 0.51, "net": "+3V3", "dt_c": 45}
+  ],
+  "_thermal_constraints_notes": "U1 = the 3.3 V LDO (provisional refdes; P3 fixes it). 0.51 W = governing rated case (300 mA sustained, Vin 5.0 V, 40 C ambient). net is +3V3 because the recommended AMS1117 SOT-223 tab is VOUT - the heat spreader is a TOP-side +3V3 pour of ~600-1000 mm^2 (B.Cu stays GND; no back-side spreading, hence no min_vias demand). dt_c 45 keeps Tj <= ~85 C at 40 C ambient. If P3 picks a SOT-23-5 part instead, this entry's premise fails: no copper area reaches the needed theta-JA <= 167 C/W (power.md s5)."
+}

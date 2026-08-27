@@ -1,0 +1,51 @@
+id: mcu-boot-strap-only-when-option-bytes-consult-pin
+classes: [selection, sequencing]
+applies:
+  topologies: [mcu]
+  packages: [TSSOP-20]
+  interfaces: []
+  parts: [STM32G030F6P6]
+rule:
+  enforced_by: null
+  boot0_strap_required: false
+  factory_user_option_bytes: "0xDFFFE1AA"
+  factory_nboot_sel: 1
+  boot0_pin_shares: "SWCLK (PA14), TSSOP-20 pin 19, bonded with PA15"
+prose: >
+  Boot-mode strapping is only owed to the board when the option-byte
+  configuration makes the physical pin participate in the boot decision.
+  DS12991 3.5 (read p.14): the boot pin "is shared with a standard GPIO
+  and can be enabled through the boot selector option bit"; the system
+  bootloader lives in system memory and listens on USART PA9/PA10 or
+  PA2/PA3 and I2C PB6/PB7 or PB10/PB11. On the concrete package, Table 12
+  (read p.33): TSSOP-20 pin 19 is PA14-BOOT0 - alternate functions SWCLK
+  and USART2_TX, additional function BOOT0 - bonded with PA15; footnote 5
+  (read p.34): upon reset these pins come up as SWD alternate functions
+  with PA13 pull-up and PA14 pull-down active. Factory default (ST
+  moderator answer, forum corroboration of the DS statement): user option
+  bytes ship as 0xDFFF'E1AA, i.e. nBoot0 = nBoot1 = nBOOT_SEL = 1 - the
+  boot area comes from the option bits, the BOOT0 pin state is ignored,
+  and an empty-flash device still enters the bootloader (AN2606 pattern
+  11); to make the pin matter, nBOOT_SEL must first be cleared over SWD or
+  the bootloader. Class consequence: on a factory STM32G0, place NO BOOT0
+  strap - the pin is already SWCLK, and a strap would load the debug
+  clock for zero function. The authoritative boot-mode table is RM0454
+  section 2.5 - unreachable this session, cite-and-verify open.
+sources:
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 14, section: "3.5 Boot modes", note: "boot pin shared with GPIO, enabled through the boot selector option bit; bootloader UART/I2C pin sets"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 33, section: "Table 12", note: "TSSOP-20 pin 19 PA14-BOOT0: AF SWCLK/USART2_TX, additional BOOT0, bonded with PA15; PA13 pin 18 SWDIO"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 34, section: "Table 12 note 5", note: "upon reset pins configured as SW debug AF, PA13 pull-up and PA14 pull-down activated"}
+  - {file: research/sources/stm32g030-does-not-enter-bootloader-when-boot0-is-3-3v-what-is-boot-selector-option-bit-thank-you-40845.html, page: 1, section: "accepted answer (ST moderator)", note: "factory 0xDFFF'E1AA => nBoot0=nBoot1=nBOOT_SEL=1; BOOT0 pin not consulted; empty flash enters bootloader (AN2606 pattern 11); clear nBOOT_SEL to use the pin"}
+status: draft
+origin: research:block-mcu-1
+level: family
+envelope:
+  package_kind: {in: [TSSOP-20]}
+envelope_note: >
+  The option-byte mechanism and factory default are family-wide (STM32G0);
+  the sharp edge - BOOT0 sharing the SWCLK pin so a strap fights debug -
+  is bounded to the packages where Table 12 bonds PA14-BOOT0 that way
+  (verified visually for TSSOP-20 only). Verify the bonding column before
+  extending to SO8N/LQFP32/LQFP48.
+maturity: draft
+generalizes: []

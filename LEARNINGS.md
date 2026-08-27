@@ -4677,3 +4677,22 @@ Linux venv path come back). `ai-ee-loop <board>` iterates fresh contexts (`--max
 resuming through `/ai-ee --resume` from state.json + `log/run-journal.md`; the contract delegates
 H1-H4, forbids ordering, and defines DONE. Launch on the box: `ccbox build ai-ee-run` then
 `ccbox ai-ee-run --open-egress --cmd "ai-ee-loop <board>"`; `docker/watch-run.sh` posts progress.
+
+## 2026-08-27 [linux][docker][research] st.com is unreachable from the run container - ST RMs/ANs cannot be acquired
+Every fetch of an `st.com/resource/...` PDF fails here: `curl` over HTTP/2 dies with
+`(92) stream 1 was not closed cleanly: INTERNAL_ERROR`, HTTP/1.1 with a browser UA hangs past 120 s,
+and a researcher agent saw 0 bytes at 280 s. `lcsc.com` (allowlisted) mirrors ST **datasheets**
+(DS12991 came through that way) but NOT reference manuals or application notes, so RM0454 / AN2606 /
+AN5096 / AN4989 are simply unavailable in an unattended container run. Consequence for the pipeline:
+a record whose load-bearing claim lives only in an ST RM/AN cannot be verified here and stays draft -
+the right move is to change the DESIGN so it does not depend on the claim (g0-sense fitted a 10k BOOT0
+pull-down instead of trusting a forum-sourced option-byte default), not to lower the evidence bar.
+mouser.com is also bot-blocked (PerimeterX). Off-list RM mirrors exist (embedded.fel.cvut.cz,
+aliyuncs) - allowlisting one is an owner decision, not a workaround a run may take.
+
+## 2026-08-27 [research][skill] jlcpcb.com part attributes: use the per-part URL, not componentSearch
+`https://jlcpcb.com/parts/componentSearch?searchTxt=<code>` renders 0 results when fetched headlessly
+(client-side search). `https://jlcpcb.com/partdetail/<vendor-slug>/<LCSC>` works and carries the fields
+that settle assembly questions - "Assembly Process" (SMT/THT) and which tiers (Economic / Standard) can
+place the part. That is how g0-sense resolved whether JLC Economic PCBA can place a Type-C receptacle
+with THT shield legs (C165948: Assembly Process SMT, Economic supported - so the legs are not a blocker).

@@ -1,0 +1,57 @@
+id: mcu-decoupling-bonded-vdda-single-pair
+classes: [decoupling]
+applies:
+  topologies: [mcu]
+  packages: [TSSOP-20, SO8N, LQFP32]
+  interfaces: []
+  parts: [STM32G030F6P6]
+rule:
+  enforced_by: null
+  vdd_hf_bypass_nf: 100
+  vdd_bulk_uf: 4.7
+  separate_vdda_network: false
+  separate_vref_cap: false
+  networks_total: "exactly one 100 nF + one 4.7 uF across pins 4/5 (TSSOP-20)"
+prose: >
+  Family rule (STM32G0x0 packages without separate analog supply pins): the
+  whole decoupling requirement collapses to ONE 100 nF + ONE 4.7 uF network
+  across the single bonded supply pin pair - no VDDA or VREF+ network is
+  possible or needed. DS12991 3.7.1 (read p.14): VDDA "voltage level is
+  identical to VDD ... provided externally through VDD/VDDA pin"; when no
+  VBAT pin exists "VBAT bonding pad is internally bonded to the VDD/VDDA
+  pin"; p.15: "On packages without VREF+ pin, VREF+ is internally connected
+  with VDD." Table 12 (read p.31): on TSSOP-20 pin 4 is the only supply
+  (VDD/VDDA, type S) and pin 5 the only ground (VSS/VSSA); VBAT and VREF+
+  rows exist only in the LQFP48 column (its pins 4/5). Fig 9 (read p.39)
+  draws ST's network: '1 x 100 nF + 1 x 4.7 uF' on VDD/VDDA, and a separate
+  100 nF on VREF+ that only applies to packages exposing VREF+; caution:
+  place as close as possible to, or below, the pins. Consequence for
+  layout: one two-cap group tight to pins 4/5, sharing the shortest ground
+  return. Trade-off to carry forward (cross-vendor, AN2519 2.2 read p.6): a
+  separate analog supply pin exists on other packages precisely so analog
+  circuits escape digital switching noise and get their own decoupling -
+  on bonded packages the ADC shares the digital rail, so noise-critical
+  analog work argues for a package with a true VDDA pin, not extra caps.
+sources:
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 14, section: "3.7.1 Power supply schemes", note: "VDDA identical to VDD through the single VDD/VDDA pin; VBAT pad internally bonded when absent"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 15, section: "3.7.1 cont", note: "VREF+ internally connected with VDD on packages without VREF+ pin; Fig 2 power domains"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 31, section: "Table 12", note: "TSSOP-20: pin 4 VDD/VDDA, pin 5 VSS/VSSA only supply pins; VBAT/VREF+ only as LQFP48 pins 4/5"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 39, section: "5.1.6 Fig 9", note: "1x100nF + 1x4.7uF network on VDD/VDDA; VREF+ 100 nF only where the pin exists; placement caution"}
+  - {file: research/sources/AN2519-AVR-Microcontroller-Hardware-Design-Considerations-00002519B.pdf, page: 6, section: "2.2 Analog Supply", note: "separate analog supply pin exists to isolate analog from digital switching noise and is decoupled separately"}
+status: active
+origin: research:block-mcu-1
+level: family
+envelope:
+  vin_v: {min: 2.0, max: 3.6}
+  package_kind: {in: [TSSOP-20, SO8N, LQFP32]}
+envelope_note: >
+  Scales with the number of exposed supply pins: holds while the package
+  bonds VDDA/VREF+/VBAT onto the one VDD/VDDA pin (TSSOP-20/SO8N/LQFP32,
+  Table 12). LQFP48 adds separate VBAT (pin 4) and VREF+ (pin 5) networks -
+  but Table 12 p31 keeps VDD/VDDA bonded even there (pin 6; no G030 package
+  has a separate VDDA pin), and Fig 9 p39 adds only a 100 nF on VREF+,
+  drawing no cap on VBAT. Outside these packages re-read Table 12/Fig 9.
+  vin_v is the DS operating range over which the scheme is specified.
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "DS12991 p31 Table 12 read row by row: VBAT row is populated only in the LQFP48 column (pin 4), VREF+ only in LQFP48 (pin 5), and the VDD/VDDA row reads SO8N 2 / TSSOP20 4 / LQFP32 4 / LQFP48 6 - so VDD/VDDA stays bonded in every column and no separate VDDA row exists anywhere in Table 12 (checked its continuation on pp32-34: only I/O pins follow). VSS/VSSA is 3/5/5/7, so TSSOP-20 pins 4/5 really are the only supply pair. p39 Fig 9 read visually: the 1x100nF+1x4.7uF pair sits on VDD/VDDA, a single 100nF sits on VREF+, and the VBAT branch carries only the 1.55-3.6V source into the power switch - no capacitor on VBAT, exactly as the repaired envelope_note now says. The Caution text matches the cited placement note. p14/p15 quotes are verbatim-accurate (VDDA identical to VDD via VDD/VDDA pin; VBAT pad internally bonded when absent; VREF+ internally connected to VDD on packages without the pin). The exactly-one-pair conclusion is an inference, but a sound one at family level: one supply pin pair plus no VREF+/VBAT pins leaves nowhere else to attach a cap. AN2519 p6 sec 2.2 supports the carried-forward trade-off. Minor wording only: the trade-off says a package with a true VDDA pin, but no G030 package has one, so it means a different part."}

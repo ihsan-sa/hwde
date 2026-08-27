@@ -1,0 +1,58 @@
+id: sht4x-vdd-decoupling-heater-transient
+classes:
+- decoupling
+applies:
+  topologies:
+  - sht4x
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  vdd_bypass_nf: 100
+  bypass_placement: directly at sensor VDD/VSS pins, minimal loop
+  heater_idd_max_ma: 100
+  power_up_ready_ms: 1
+prose: 'DS p3 Fig 1 typical application circuit (read visually): the SHT4x carries
+  one 100 nF capacitor from VDD to GND at the sensor, pull-ups on SDA/SCL, nothing
+  else; text: after reaching minimal supply voltage and the maximal power-up time
+  of 1 ms the sensor is ready for I2C. Rule: one 100 nF ceramic directly at the
+  sensor pins with the smallest loop; no bulk cap is datasheet-mandated at the sensor.
+  The sizing subtlety is the heater: DS p9 Table 4 gives measurement current max
+  500 uA, but supply current with heater on is 60 mA typ / 100 mA MAX at the nominal
+  200 mW setting. DS p14 heater note 5 states the heater ''draws a large amount
+  of current once enabled (up to ~75 mA in the highest power setting)'' and that
+  ''the power supply must be strong enough to avoid large voltage drops that could
+  provoke a sensor reset'' - the datasheet''s own Table 4 max (100 mA) exceeds the
+  ~75 mA text figure; size for the 100 mA table value. This interacts with the thermal-isolation
+  record''s necked-trace rule: a deliberately thin VDD feed onto the sensor island
+  adds resistance, so if firmware will ever run the heater (creep mitigation), check
+  the IR drop of the necked feed at 100 mA plus the regulator''s transient response;
+  if the heater is never commanded, the thin feed is unconstrained. Heater duty
+  limit 10 pct, ambient below 65 C for heater use (DS p14).'
+sources:
+- file: research/sources/HT_DS_Datasheet_SHT4x.pdf
+  page: 3
+  note: 'Fig 1 typical application circuit: 100 nF VDD-GND at sensor, pull-ups,
+    1 ms power-up-to-ready statement'
+- file: research/sources/HT_DS_Datasheet_SHT4x.pdf
+  page: 9
+  note: 'Table 4: IDD measurement 500 uA max; heater-on IDD 60 typ / 100 max mA
+    (200 mW), 33/55 (110 mW), 6/10 (20 mW)'
+- file: research/sources/HT_DS_Datasheet_SHT4x.pdf
+  page: 14
+  note: 'heater notes: up to ~75 mA text figure, supply must avoid voltage drops
+    provoking reset, 10 pct duty max, ambient < 65 C for heater'
+status: active
+origin: research:block-sht4x-1
+level: topology
+envelope:
+  vin_v:
+    min: 1.08
+    max: 3.6
+envelope_note: 'Bounded by the SHT4x supply range (DS Table 4): the 100 nF value,
+  ready-time and heater current figures are specified only inside 1.08-3.6 V; outside
+  it the part is out of spec entirely.'
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "DS p3 Fig 1 read visually: exactly one 100 nF from VDD to GND at the sensor plus two pull-ups, nothing else, and the text 'After reaching the minimal supply voltage and allowing for the maximal power-up time of 1 ms the sensor is ready for I2C communication' - so 'no bulk cap is datasheet-mandated' is right. DS p9 Table 4 rows confirmed: IDD measurement 320 typ / 500 max uA; heater-on IDD 60 typ / 100 max mA at nominal 200 mW, 33/55 at 110 mW, 6/10 at 20 mW, comment 'see section 4.9'. The flagged internal disagreement is real and both halves are on the pages: DS p14 heater note 5 verbatim 'The heater draws a large amount of current once enabled (up to ~75 mA in the highest power setting)' and 'the power supply must be strong enough to avoid large voltage drops that could provoke a sensor reset', against the 100 mA Table 4 max - sizing for 100 mA is the conservative in-document choice and the record states the conflict with both citations, as the disagreement rule requires. Heater duty 10 pct (note 1) and 'shall only be operated in ambient temperatures below 65 degC' (note 6) both on p14. Envelope 1.08-3.6 V matches the Table 4 supply-voltage row."}
