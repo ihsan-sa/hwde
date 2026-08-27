@@ -7,7 +7,7 @@ NAME="${1:?ccbox name}"; BOARD="${2:?board}"; EVERY="${3:-3600}"; C="ccbox-$NAME
 last=""
 digest(){
   phase=$(jq -r '.phase // "-"' "$WS/state.json" 2>/dev/null); gates=$(jq -r '[.gates // {} | to_entries[] | "\(.key)=\(.value.status // .value.last.status // "?")"] | join(" ")' "$WS/state.json" 2>/dev/null)
-  st=$(cat "$WS/log/run/STATUS" 2>/dev/null || echo "-"); it=$(grep -c ' end rc=' "$WS/log/run/loop.log" 2>/dev/null || echo 0)
+  st=$(cat "$WS/log/run/STATUS" 2>/dev/null || echo "-"); it=$(grep -c ' end rc=' "$WS/log/run/loop.log" 2>/dev/null); it=${it:-0}
   running=$(docker inspect -f '{{.State.Running}}' "$C" 2>/dev/null || echo no)
   cost=$(grep -o 'total=\$[0-9.]*' "$WS/log/run/loop.log" 2>/dev/null | tail -1)
   jt=$(tail -n 12 "$WS/log/run-journal.md" 2>/dev/null | sed 's/^/    /')
