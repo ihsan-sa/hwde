@@ -1,0 +1,130 @@
+{
+ "script": "dfm_check",
+ "status": "pass",
+ "board": "g0-sense.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.dfm": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "dfm",
+   "severity": "warning",
+   "pos": [
+    51.84,
+    42.5398
+   ],
+   "layer": "F.Silkscreen",
+   "net": null,
+   "refs": [],
+   "msg": "4 silk strokes below JLC minimum width 0.15 mm (narrowest 0.0600 mm) on F.Silkscreen",
+   "source": "check.dfm",
+   "items": [
+    {
+     "msg": "4 silk strokes below JLC minimum width 0.15 mm (narrowest 0.0600 mm) on F.Silkscreen",
+     "pos": [
+      51.84,
+      42.5398
+     ]
+    }
+   ],
+   "kind": "dfm_silk_width",
+   "width_mm": 0.06,
+   "min_mm": 0.15,
+   "count": 4
+  }
+ ],
+ "layers_present": [
+  "B.Cu",
+  "F.Cu",
+  "B.Mask",
+  "F.Mask",
+  "B.Silkscreen",
+  "F.Silkscreen"
+ ],
+ "n_holes": 52,
+ "missing_lcsc": [],
+ "unsourced": [],
+ "off_lcsc": [],
+ "missing_lcsc_unplaced": [
+  "H1",
+  "H2",
+  "H3",
+  "H4"
+ ],
+ "assembly_class_counts": {
+  "smt_placed": 24,
+  "hand_install": 2,
+  "board_feature": 4
+ },
+ "not_placed": [
+  {
+   "ref": "J3",
+   "class": "hand_install",
+   "source": "parts_ref"
+  },
+  {
+   "ref": "J4",
+   "class": "hand_install",
+   "source": "parts_ref"
+  }
+ ],
+ "polarity": {
+  "status": "checked",
+  "refs_checked": 26
+ },
+ "capability_key": "2layer_1oz",
+ "layer_count": 2,
+ "copper_oz": 1.0,
+ "copper_oz_source": "stackup",
+ "gerber_dir": "boards/g0-sense/fab/gerbers",
+ "min_trace_width_mm": 0.127,
+ "min_hole_mm": 0.3,
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-27T19:42:17+00:00",
+ "input": "boards/g0-sense/kicad/g0-sense.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:78f20b4b13f8390f7df0b95c041135505a1e527b5c683a8131bb2062c4ec2c35",
+ "coverage": {
+  "strict": false,
+  "required": [
+   "copper",
+   "copper_to_edge",
+   "drill",
+   "hole_to_edge",
+   "silk",
+   "polarity",
+   "bom",
+   "release"
+  ],
+  "ran": [
+   "copper",
+   "copper_to_edge",
+   "drill",
+   "hole_to_edge",
+   "silk",
+   "polarity",
+   "bom",
+   "release"
+  ],
+  "passed": [
+   "copper",
+   "copper_to_edge",
+   "drill",
+   "hole_to_edge",
+   "silk",
+   "polarity",
+   "bom",
+   "release"
+  ],
+  "failed": [],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ }
+}

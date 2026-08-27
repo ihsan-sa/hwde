@@ -3,8 +3,8 @@
  "board": "g0-sense",
  "workspace": "boards/g0-sense",
  "created": "2026-08-27T06:35:38",
- "updated": "2026-08-27T19:41:24",
- "phase": "P9",
+ "updated": "2026-08-27T19:43:57",
+ "phase": "P10",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -351,6 +351,35 @@
      }
     }
    ]
+  },
+  "dfm": {
+   "phase": "P9",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-27T19:42:01",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 1,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:78f20b4b13f8390f7df0b95c041135505a1e527b5c683a8131bb2062c4ec2c35",
+     "sch": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
+     "parts": null
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-27T19:42:01",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 1,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:78f20b4b13f8390f7df0b95c041135505a1e527b5c683a8131bb2062c4ec2c35",
+      "sch": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
+      "parts": null
+     }
+    }
+   ]
   }
  },
  "human": {
@@ -380,7 +409,7 @@
    "path": "kicad/g0-sense.kicad_sch",
    "kind": "sch",
    "sha256": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
-   "hashed": "2026-08-27T19:39:10"
+   "hashed": "2026-08-27T19:42:01"
   },
   "pro": {
    "path": "kicad/g0-sense.kicad_pro",
@@ -460,7 +489,7 @@
    "path": "kicad/g0-sense.kicad_pcb",
    "kind": "pcb",
    "sha256": "sexpr_no_uuid:78f20b4b13f8390f7df0b95c041135505a1e527b5c683a8131bb2062c4ec2c35",
-   "hashed": "2026-08-27T19:40:55"
+   "hashed": "2026-08-27T19:42:01"
   },
   "constraints": {
    "path": "kicad/constraints.json",
@@ -507,6 +536,12 @@
    "kind": "waivers",
    "sha256": "json_canonical:5fa5696453e3bb543ac3fd6e20fff5a1d37987a826a74869a2fe826abe62a1d6",
    "hashed": "2026-08-27T19:40:55"
+  },
+  "parts": {
+   "path": "kicad/parts.json",
+   "kind": "parts",
+   "sha256": null,
+   "hashed": "2026-08-27T19:42:01"
   }
  },
  "open_issues": [
@@ -822,6 +857,18 @@
    "why": "The silk text edits changed the board, so the P8 waiver's durability binding (artifact digest 9fa76a1b + checker_version 1) stopped matching and the entry would have been surfaced as waivers_invalid rather than silently applied - the binding doing exactly the job it exists for. Re-bound to 78f20b4b after confirming the underlying finding is unchanged: the silk edits touch no copper, so the credited area, theta_JA and rise are identical, and the evidence in the reason field still holds verbatim. Re-ran the verify gate with the re-issued sidecar: PASS, 0 failing, 1 waived, 0 invalid. This will need doing again if P9's fab export or any later edit changes the board digate - the binding is deliberately fragile and must never be loosened to avoid the re-issue.",
    "phase": "P9",
    "ts": "2026-08-27T19:41:24"
+  },
+  {
+   "what": "unattended default: CPL rotation obligation DISCHARGED - the polarity oracle checked all 26 refs with zero rotation_delta findings, and the five carried parts were confirmed individually",
+   "why": "The carried P4/P8 decisions made this a REQUIRED explicit read for D1 (SOD-123 TVS), D2 and D10 (LEDs), C3 (tantalum CASE-A) and U3 (SHT40 DFN-4, added by the P8 reviewer), never to be accepted as a count - a reversed tantalum or TVS is a dead board, and a rotated DFN-4 sensor is as dead. dfm_check ran with the schematic as the polarity oracle (--schematic g0-sense.kicad_sch, the pad-geometry-vs-schematic comparison that catches the mounted-backwards class net-level parity is blind to) and reported polarity status 'checked', refs_checked 26, with NO cpl_polarity finding and therefore no rotation_delta_deg on any part. The five carried refs and their emitted CPL rotations: C3 0.0, D1 0.0, D2 180.0, D10 180.0, U3 0.0 (with J1 270.0, U1 0.0, U2 180.0 alongside). Those angles come from bom_cpl applying reference/jlc_rotations.csv per package, which is the exact KiCad-to-JLC 0-degree-reference offset the carried decision was worried about, and the oracle then re-derives each from pad geometry rather than trusting the table. Note honestly what this does and does not prove: it proves the CPL angle agrees with the schematic's pin assignment for every part, which is the machine-placement risk; it does not substitute for the owner's own first-article check on the returned boards.",
+   "phase": "P9",
+   "ts": "2026-08-27T19:43:26"
+  },
+  {
+   "what": "unattended default: the single dfm warning (4 silk strokes below JLC's 0.15 mm minimum) is ACCEPTED - all four are inside U3's own DFN-4 footprint graphics",
+   "why": "Located rather than counted: every sub-minimum stroke belongs to U3's footprint aiee:DFN-4_L1.5-W1.5-P0.8-TL-EP at 0.06 and 0.08 mm, a pulled easyeda2kicad body outline and pin-1 marker on a 1.5 x 1.5 mm part. The four silk texts added at P9 are NOT implicated - all sit at exactly 0.150 mm, the same as every refdes on the board, which I checked specifically because adding four labels and then seeing four sub-width strokes is too neat a coincidence to leave unverified. WHY ACCEPT: the dfm-check recipe classes silk width as advisory by design; the consequence is that U3's tiny outline may print faint or drop out, not that anything is unfabricable. WHY NOT FIX: the two available moves are both worse. Widening 0.06 mm strokes to 0.15 mm on a 1.5 mm body with 0.8 mm pitch risks pushing silk onto the pads, converting an advisory warning into a real silk_over_pad DRC error; and place_edit's silk_clear would DELETE the marker, which is the opposite of what a pin-1 indicator is for. Both require a library edit reaching an already-placed board, the P6 problem that needed a new tool. WHAT COVERS THE RESIDUAL RISK: U3's orientation is guaranteed by the CPL rotation, which the polarity oracle verified against the schematic from pad geometry - the silk is a human cross-check on a machine-placed economy-PCBA part, not the control. Note it in fab/README so the owner does not read a faint U3 outline as a placement error.",
+   "phase": "P9",
+   "ts": "2026-08-27T19:43:26"
   }
  ],
  "edits": [
@@ -2124,6 +2171,30 @@
    "ts": "2026-08-27T19:41:24",
    "event": "decision",
    "what": "unattended default: the check_thermal waiver was RE-ISSUED at P9 against the new board digest, not carried over"
+  },
+  {
+   "ts": "2026-08-27T19:42:01",
+   "event": "gate",
+   "gate": "dfm",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-27T19:43:26",
+   "event": "decision",
+   "what": "unattended default: CPL rotation obligation DISCHARGED - the polarity oracle checked all 26 refs with zero rotation_delta findings, and the five carried parts were confirmed individually"
+  },
+  {
+   "ts": "2026-08-27T19:43:26",
+   "event": "decision",
+   "what": "unattended default: the single dfm warning (4 silk strokes below JLC's 0.15 mm minimum) is ACCEPTED - all four are inside U3's own DFN-4 footprint graphics"
+  },
+  {
+   "ts": "2026-08-27T19:43:57",
+   "event": "phase",
+   "phase": "P10",
+   "prev": "P9"
   }
  ]
 }

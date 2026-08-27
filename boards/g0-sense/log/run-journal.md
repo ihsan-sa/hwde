@@ -453,3 +453,48 @@
   move_text batch + J3/J4 pin labels; CPL rotation per polarized part incl. U3.
   Carried to P10: JLC order remark to keep break-off tabs off the sensor tongue.
 - Next: P9 DFM (dfm-check recipe, inline), then P10 ordering up to the quote.
+
+## 2026-08-27 ~19:40Z - iteration 3 (loop 2) - P9 DFM COMPLETE, gate dfm PASS
+- **dfm PASS: 0 failing, 1 advisory warning.** fab package exported (11 files),
+  BOM / BOM-full / CPL generated from assembly_class - 26 parts, 24 SMT-placed
+  (J3/J4 are DNP hand-install THT, so BOM-full only, as the recipe requires).
+- SILK PASS FIRST (it changes the board, so it had to land before the export).
+  A measured PARTIAL, accepted as such: 4 of 8 header pin labels added (J3 G/CLK,
+  J4 G/RX) - the other four have no legal spot, 1.34 mm available gap against a
+  1.6965 mm minimum label bbox in ANY orientation. 2 of 6 refdes moved (D2, R10).
+  D1 was attempted and REVERTED: its text landed on D1's OWN body-outline silk and
+  produced a real DRC silk_overlap - a finding worth keeping, since the own-part
+  exemption people assume for courtyards does NOT extend to silk graphics
+  (in LEARNINGS). R1/R2/C10 have no legal destination at all. check_silk 6 -> 4,
+  DRC still 0 violations / 0 unconnected / 0 parity.
+- I stopped the silk work there deliberately. The only remaining remedy is
+  placement-level - moving J1, U2, R13 or C11 - which means ripping copper on a
+  DRC-perfect, fully routed board to improve four WARNING-severity readability
+  findings that KiCad's own DRC does not raise at all. Wrong trade. Mitigation:
+  both headers carry a labelled pin 1 and pin 4, and the FULL J3/J4 pinout is owed
+  to fab/README and the design doc so the owner never has to guess.
+- THE WAIVER BINDING DID ITS JOB. The silk edits changed the board digest, which
+  invalidated the P8 check_thermal waiver (artifact 9fa76a1b) rather than letting
+  it apply silently. Re-issued against 78f20b4b after confirming the finding is
+  unchanged - silk touches no copper, so area/theta_JA/rise are identical. verify
+  re-run: PASS, 0 failing, 1 waived, 0 invalid.
+- **CPL ROTATION OBLIGATION DISCHARGED PART BY PART**, as the carried P4/P8
+  decisions required (never "accepted as a count"). dfm_check ran with the
+  schematic as the polarity oracle: checked, 26 refs, ZERO cpl_polarity findings,
+  no rotation_delta_deg anywhere. The five carried refs: C3 0.0, D1 0.0, D2 180.0,
+  D10 180.0, U3 0.0. Stated honestly in the record: this proves the CPL angle
+  agrees with the schematic's pin assignment for every part - the machine-placement
+  risk - and does not substitute for a first-article check on the returned boards.
+- The one warning, `dfm_silk_width` (4 strokes under JLC's 0.15 mm floor, narrowest
+  0.060 mm), was LOCATED rather than counted: all four are inside U3's own DFN-4
+  footprint graphics. I checked this specifically because "4 labels added, 4 thin
+  strokes found" is too neat a coincidence to assume - the added labels all sit at
+  exactly 0.150 mm, the same as every refdes on the board. Accepted: widening
+  0.06 mm strokes on a 1.5 mm body risks converting an advisory warning into a real
+  silk_over_pad error, and silk_clear would delete the pin-1 marker. U3's
+  orientation is controlled by the oracle-verified CPL rotation.
+- Gates: erc, place, drc_routed, verify, dfm ALL PASS. Open issues: none.
+- Next: P10 ordering - quote (API if reachable, else the jlc_pricing.yaml estimate,
+  clearly labelled), fab/README checklist incl. the Sensirion no-wash rules, the
+  tongue break-off-tab remark and the J3/J4 pinout, then attest.py build + verify.
+  H5 (pay) is NOT delegated and there are no credentials here: stop at the quote.
