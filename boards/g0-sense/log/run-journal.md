@@ -543,3 +543,37 @@
   Three new toolchain entries in LEARNINGS.md (attest relative-workspace,
   attest stale-artifact-marks, dfm parts.json coverage hole).
 - Gates: erc, place, drc_routed, verify, dfm ALL PASS and FRESH. Open issues: 0.
+
+## 2026-08-27 ~20:45Z - iteration 3 (loop 2) - RUN COMPLETE, verification sweep
+- FULL TEST SUITE RUN AND BASELINED. `pytest` reports **15 failures**, and all
+  15 reproduce at commit 4dc9056 (this iteration's starting point) in a scratch
+  worktree - so the `releaselib._ws_rel` fix introduced **zero** regressions.
+  They are container artifacts (tests hard-coding `.venv/Scripts/python.exe`,
+  KiCad 10.0.5 differences in lib_hygiene/plane_repair) plus pre-existing triage
+  drift. Targeted proof for the code I touched: the 56 release/attest/waiver
+  tests all pass, both pre-existing attested boards (stm32-blinky, usb-buck)
+  still verify valid in BOTH the relative and absolute --workspace forms, and
+  g0-sense's rev-2 attestation - written BEFORE the fix - still verifies after it.
+- I did NOT report the harness's "exit code 0" as a pass: that was the wrapper's
+  exit, not pytest's. The failures were read out of the output file.
+- Triage rows 330-335 added for this iteration's six LEARNINGS entries, honouring
+  the repo convention that entry and row land together. The 3 residual
+  test_remediations failures are pre-existing (5 untriaged [linux][docker]
+  entries from earlier work, #324's done-but-not-at-target, #328/#329's stale
+  line refs) and were deliberately left: assigning ladder levels to other
+  people's entries is not this iteration's call.
+- FINAL STATE VERIFIED against state.json, not against memory:
+  phase **P10**, release_disposition **order-ready**, gates erc / place /
+  drc_routed / verify / dfm ALL pass AND fresh, 0 stale, 0 unknown, 0 open
+  issues. Both P8/P9 gate results carry `skipped_error {}` - no coverage holes.
+  Attestation rev 2 verifies valid, problems []. Working tree clean.
+- fab/ holds gerbers+drill+zip, BOM, BOM-full, CPL, README checklist, quote.json,
+  order.json (ready_for_human), attestation.json. reports/ holds both renders,
+  the schematic PDF, verify/dfm release reports, the waiver sidecar, the board
+  review and design_doc/. 11/11 phase digests, H1-H4 approved, H5 presented and
+  deliberately NOT approved.
+- THE BOARD: g0-sense, 35.79 x 28.34 mm, 2 layers, 26 parts, routing completion
+  1.0, kicad-cli DRC 0 violations / 0 unconnected / 0 parity. One durable waiver
+  (check_thermal on U1, ratified by an independent fresh-context reviewer against
+  two vendor tables). Estimated USD 42.68 for 5 pieces. Nothing was ordered.
+STATUS: DONE
