@@ -3,9 +3,37 @@
  "board": "g0-sense",
  "workspace": "boards/g0-sense",
  "created": "2026-08-27T06:35:38",
- "updated": "2026-08-27T09:30:52",
+ "updated": "2026-08-27T09:50:50",
  "phase": "P3",
- "gates": {},
+ "gates": {
+  "erc": {
+   "phase": "P4",
+   "status": "pass",
+   "attempts": 1,
+   "last": {
+    "ts": "2026-08-27T09:50:50",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "sch": "sexpr_no_uuid:f8fbea71d7e27b46e328faf9ea4b7040e68c3b983a421f37815141686af3564c",
+     "pro": "json_canonical:8ceb42980cb7a7e701710b95ac3576e9edb30ab78b2ae053742a03230a620270"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-27T09:50:50",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:f8fbea71d7e27b46e328faf9ea4b7040e68c3b983a421f37815141686af3564c",
+      "pro": "json_canonical:8ceb42980cb7a7e701710b95ac3576e9edb30ab78b2ae053742a03230a620270"
+     }
+    }
+   ]
+  }
+ },
  "human": {
   "1": {
    "status": "approved",
@@ -13,7 +41,20 @@
    "note": "delegated (unattended): architecture + 2L stackup approved; LDO 0.51 W design point approved; boot-strap gap accepted because the 10k BOOT0 pull-down removes the dependency; outline stays an output; no sim bench"
   }
  },
- "artifacts": {},
+ "artifacts": {
+  "sch": {
+   "path": "kicad/g0-sense.kicad_sch",
+   "kind": "sch",
+   "sha256": "sexpr_no_uuid:f8fbea71d7e27b46e328faf9ea4b7040e68c3b983a421f37815141686af3564c",
+   "hashed": "2026-08-27T09:50:50"
+  },
+  "pro": {
+   "path": "kicad/g0-sense.kicad_pro",
+   "kind": "pro",
+   "sha256": "json_canonical:8ceb42980cb7a7e701710b95ac3576e9edb30ab78b2ae053742a03230a620270",
+   "hashed": "2026-08-27T09:50:50"
+  }
+ },
  "open_issues": [],
  "next_issue_id": 1,
  "budgets": {
@@ -303,6 +344,12 @@
    "ts": "2026-08-27T09:30:52",
    "role": "schematic-block",
    "model": "fable/medium",
+   "phase": "P4"
+  },
+  {
+   "ts": "2026-08-27T09:44:45",
+   "role": "schematic-block",
+   "model": "sonnet/high (root stitch)",
    "phase": "P4"
   }
  ],
@@ -682,6 +729,25 @@
    "event": "spawn",
    "role": "schematic-block",
    "model": "fable/medium"
+  },
+  {
+   "ts": "2026-08-27T09:44:07",
+   "event": "resumed",
+   "note": "iteration 2: resume at P4 - sheets built, root stitch + erc + reviewer + H2 pending; three skill-script edits reverted in iter 1"
+  },
+  {
+   "ts": "2026-08-27T09:44:45",
+   "event": "spawn",
+   "role": "schematic-block",
+   "model": "sonnet/high (root stitch)"
+  },
+  {
+   "ts": "2026-08-27T09:50:50",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
   }
  ]
 }
