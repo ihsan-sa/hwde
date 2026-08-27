@@ -44,7 +44,8 @@ def test_passes_on_dev_machine():
     names = {c["name"] for c in report["checks"]}
     assert "kicad-cli" in names
     assert "package:kicad-python" in names
-    assert report["resolved"]["kicad_cli"].lower().endswith("kicad-cli.exe")
+    assert report["resolved"]["kicad_cli"].lower().endswith(
+        "kicad-cli.exe" if sys.platform == "win32" else "kicad-cli")
 
 
 def test_missing_kicad_fails_with_remediation():

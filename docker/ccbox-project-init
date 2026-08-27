@@ -5,4 +5,7 @@ cd /workspace 2>/dev/null || exit 0
 [ -e .venv ] || ln -s /opt/venv .venv                       # repo scripts run as .venv/bin/python (Makefile, SKILL.md)
 git config --global --add safe.directory /workspace 2>/dev/null
 mkdir -p tools; [ -f tools/CONTAINER.txt ] || printf 'In the container the toolchain lives under /opt (JRE 25, Freerouting 2.2.4, KRT 0.19.0)\nand is pinned through AIEE_* env vars - nothing is vendored here. See docker/README.md.\n' > tools/CONTAINER.txt
-echo "ccbox-project-init: .venv -> /opt/venv, tools/CONTAINER.txt, safe.directory"
+if command -v Xvfb >/dev/null && [ ! -e /tmp/.X11-unix/X99 ]; then   # KiCad SWIG (Specctra DSN/SES, wx paths) needs a display
+  (Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &); sleep 1
+fi
+echo "ccbox-project-init: .venv -> /opt/venv, tools/CONTAINER.txt, safe.directory, Xvfb :99 ($(pgrep -c Xvfb 2>/dev/null || echo 0) running)"

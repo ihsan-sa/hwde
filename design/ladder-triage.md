@@ -2,8 +2,8 @@
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
 # U19 2026-08-16; U18 2026-08-16)
 
-One row per `LEARNINGS.md` entry (313 of them; the last starts at
-line 4616), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (318 of them; the last starts at
+line 4674), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -35,18 +35,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at the U21 close (2026-08-20), all 314 rows
+Recomputed from the table at the Linux port (2026-08-27), all 318 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 120 | 14 |
+| L0 | 121 | 14 |
 | L1 | 16 | 13 |
-| L2 | 54 | 111 |
-| L3 | 123 | 175 |
+| L2 | 56 | 115 |
+| L3 | 125 | 176 |
 
-126 entries want to climb at least one level. Status: **done 158**,
-**open 129**, **n/a 7**, planned 18
+128 entries want to climb at least one level. Status: **done 161**,
+**open 132**, **n/a 7**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
 
@@ -433,3 +433,7 @@ the row's Now level and status in the same commit as the code.
 | 312 | 4603 | `--outline fit` on a board that was placed to FIT cannot recover the size | [board_edit][placement][build-modes] | L0 | L2 | reference/recipes/full-run.md | open | The ORDER is the fix and it is prose today: full-run's P6 step and build-modes.md both say board_init --outline auto -> place -> fit, and board_init refuses a fixed outline at a canonical binding, but nothing FAILS when a canonical run reaches fit having been placed against a tight provisional outline. The honest L2 is a board_edit warning when `fit` GROWS the board under a geometry-output mode - it means the placement was already boxed in. Measured: bb-buck 35x25 -> fit 35.9 x 25.901 |
 | 313 | 4616 | `place_anneal` RE-DERIVES every satellite slot from `place_seed` - it | [placement][anneal] | L3 | L3 | scripts/place_anneal.py | done | FIXED in U20, all three rungs: `_inherit_slots` starts stage 2 from the board's OWN satellite geometry (slot = exact inverse of `apply_cluster`, so a valid hand placement round-trips unmoved and `hpwl_input == hpwl_start` by construction); re-derivation only for an INVALID slot (wrong side / intra-cluster collision on PRECISE U5 shapes / declared `max_dist_mm` violated) and is loud - warning + `satellites_reslotted` fact (the L1 rung). L2 rung as candidate REJECTION not scoring: `placelib.declared_decap_violations` marks any candidate exceeding a declared distance illegal, so it never outranks a clean one and `--apply-best` refuses it. The gate escape closed in the same step: `check_decoupling` now treats declared `max_dist_mm`/`max_loop_nh` as the ERROR threshold itself (was: declared moved only WARN while error stayed at the class default - why bb-adc passed at 3.97 vs 2.5). Frozen fixture `tests/fixtures/bb_adc/` reproduces the exact 2.44/3.97 numbers pre-fix |
 | 314 | 4636 | `learnings.py compile` WRITES - smoke-testing a run-close verb straight | [research][process][tools] | L0 | L2 | scripts/learnings.py | open | The read-only board rule is prose and the run-close verbs mutate BY DESIGN, so nothing stands between a smoke test and a committed board: U21 pointed `learnings.py compile` at `boards/bb-amp` to watch the draft sweep fire and wrote queue.yaml + a state decision + a history event into it (reverted with `git checkout`). The L2 rung is a consent flag - a verb that writes into a workspace under `boards/` refuses unless the caller passes it, the same shape as `board_init --allow-fixed-outline` (U18). L1 alternative: report the paths a verb WOULD write before writing them. Today the only defence is copying the workspace to the scratchpad first and checking `git status -- boards/` after any smoke |
+| 315 | 4649 | The whole toolchain runs in one container built on the official KiCad  | [linux][docker] | L3 | L3 | docker/Dockerfile | done | The image IS the pin: kicad/kicad:10.0.5 base, venv from requirements.lock, JRE/Freerouting/KRT under /opt, AIEE_* env + DISPLAY=:99 baked; env.py resolves the bundled python and falls back to the Xvfb display. Host facts recorded once in docker/README.md |
+| 316 | 4661 | Fixture CSVs come out LF on a Linux checkout - byte-compare normalized | [linux][tests][fab] | L2 | L2 | tests/test_assembly.py | done | `_lf` normalizes both sides; the writer stays CRLF (csv default, what JLC gets). Nothing to climb |
+| 317 | 4668 | bench baselines are pinned to KiCad 10.0.3 - they fail on 10.0.5 by de | [linux][tests][bench] | L2 | L2 | scripts/bench.py | open | The refusal is already a check (L2) and correct; the residual is a decision, not a promotion: re-record the frozen baselines on 10.0.5 deliberately (`bench.py --freeze`) or keep 10.0.3 as the scoring toolchain. Owner call, opened by the Linux port |
+| 318 | 4674 | Unattended runs: `ai-ee-loop` + `docker/run-contract.md` | [linux][docker][skill] | L0 | L2 | docker/ai-ee-loop | open | The DONE criteria are prose the orchestrator self-verifies against state.json; a `state.py`/`attest.py`-backed done-check the loop runs before accepting `STATUS: DONE` would make the exit machine-verified instead of trusted |
