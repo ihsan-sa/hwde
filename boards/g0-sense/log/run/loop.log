@@ -5,3 +5,11 @@
 2026-08-27T16:30:16Z LIMIT: usage limit hit (You've hit your session limit · resets 5:20pm (UTC) ); waiting 3104s until 17:22Z, then probing
 2026-08-27T17:22:05Z LIMIT: cleared, resuming
 2026-08-27T17:22:05Z iter 2/12 start (/ai-ee --resume boards/g0-sense)
+2026-08-27T17:36:16Z iter 2 end rc=0 err=false turns=31 cost=$6.761599499999999 total=$105.31 phase=P7 commits=yes journal=unchanged
+  |  router finishes (its `gate --commit` writes `state.json`, so concurrent `state.py` writes would race):
+  | 
+  | 1. **`erc` reads stale for a benign reason** — its `.kicad_pro` input hash changed at P5 when `rules_gen` added the `Pwr_0p8mm` netclass. The schematic hash is unchanged. I'll re-run the gate rather than reason around it. `place` is stale because routing is changing the board; I'll re-run it once copper is final.
+  | 2. **No sim bench exists** (`kicad/sims/` absent) and no decision records why. The `sim` gate is conditional on a bench existing, so nothing is being skipped against the contract — but the absence should be a recorded judgment, not a silent gap. I'll record it with the reasoning once state is writable.
+  | 
+  | I'll report the routing result and journal P7 when the router returns.
+2026-08-27T17:36:16Z iter 3/12 start (/ai-ee --resume boards/g0-sense)
