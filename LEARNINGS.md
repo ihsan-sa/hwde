@@ -4,7 +4,7 @@ Append-only, non-obvious gotchas. Recall by tag/keyword before touching an area.
 Entries sourced from prior attempts are marked; re-verify at first use here.
 
 ## Tags
-[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git] [latex] [spice] [linux] [docker]
+[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git] [latex] [spice] [linux] [docker] [kicad-sch-api]
 
 ## 2026-07-06 [windows] cp1252 console crashes on non-ASCII output
 Printing degree signs, ohms, plus-minus, emoji to a default Windows console raises
@@ -4677,3 +4677,33 @@ Linux venv path come back). `ai-ee-loop <board>` iterates fresh contexts (`--max
 resuming through `/ai-ee --resume` from state.json + `log/run-journal.md`; the contract delegates
 H1-H4, forbids ordering, and defines DONE. Launch on the box: `ccbox build ai-ee-run` then
 `ccbox ai-ee-run --open-egress --cmd "ai-ee-loop <board>"`; `docker/watch-run.sh` posts progress.
+
+## 2026-08-27 [kicad-sch-api][kicad][linux] KiCad-10 stock libs carry `(property private ...)` - ksa 0.5.6 mangles it and kicad-cli refuses the schematic
+The 10.0.5 symbol libraries (format 20251024) write KLC notes as `(property private "KLC_S3.3"
+"text" ...)` - a bare `private` flag BEFORE the name (419 of them; Device:Crystal_GND24 is one).
+kicad-sch-api 0.5.6 reads the flag as the name and the name as the value and emits the note as bare
+atoms: `(property "private" "KLC_S3.3" The rectangle is not ...`. kicad-cli 10.0.5 then fails the
+WHOLE file with the only message it gives, "Failed to load schematic" (exit 3) - bisect by splicing
+lib_symbols entries one at a time into a known-good file. `schem_refdes.strip_private_properties`
+removes each balanced block after every ksa save (schlib.Sheet.save, write_placements); the notes
+have no electrical meaning. Version-bumping the schematic header does NOT help. The 10.0.3 Windows
+libs predate the token, which is why S7 never saw it.
+
+## 2026-08-27 [swig][freerouting][linux] SWIG Specctra export/import needs an X display on Linux - Xvfb :99
+`route_swig` (export_dsn, dedup_copper, import_ses) under the bundled python fails on Linux with
+"Unable to access the X Display, is $DISPLAY set properly?" - the pcbnew Specctra path is
+wx-backed. Plain LoadBoard/SaveBoard (check_env's round trip) and `kicad-cli pcb render` need no
+display. The container starts `Xvfb :99` (docker/ccbox-project-init) and bakes `DISPLAY=:99`;
+`env.py` also exports it to children when the caller has no DISPLAY and the :99 socket exists.
+kicad-cli has no `pcb export specctra` subcommand (checked), so SWIG stays the only DSN path.
+
+## 2026-08-27 [kicad][drc][erc][linux] KiCad 10.0.5 vs 10.0.3 deltas seen through the suite (fixture-recorded numbers move)
+Same boards, same rules, different kicad-cli: (1) `hole_clearance` errors between a footprint's OWN
+pads and its NPTH holes (USB-C receptacle: 0.18-0.21 mm vs the 0.25 mm rule) - 4 on the pd_trigger
+stage fixture, so every board_update DRC==0 assert fails; expect it on any USB-C J1 at drc_routed
+and judge it against the vendor geometry + jlc_capabilities, do not move pads; (2) the pristine
+easyeda footprint fixture DRCs 18, not 16, and a second field-placement pass moves 1 field
+(test_lib_hygiene); (3) the blinky2 regen carries one 0.0254 mm wire stub (unconnected_wire_endpoint
+warning) against the 10.0.5 Crystal_GND24 geometry while the committed golden ERCs clean. None of
+these are Linux defects; the assert numbers are 10.0.3 recordings. Re-baseline deliberately or keep
+10.0.3 as the scoring toolchain - the bench refusal (row 317) is the same decision.

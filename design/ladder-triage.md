@@ -2,8 +2,8 @@
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
 # U19 2026-08-16; U18 2026-08-16)
 
-One row per `LEARNINGS.md` entry (318 of them; the last starts at
-line 4674), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (321 of them; the last starts at
+line 4700), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -35,18 +35,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at the Linux port (2026-08-27), all 318 rows
+Recomputed from the table at the Linux port (2026-08-27), all 321 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 121 | 14 |
-| L1 | 16 | 13 |
+| L0 | 122 | 14 |
+| L1 | 16 | 14 |
 | L2 | 56 | 115 |
-| L3 | 125 | 176 |
+| L3 | 127 | 178 |
 
-128 entries want to climb at least one level. Status: **done 161**,
-**open 132**, **n/a 7**, planned 18
+129 entries want to climb at least one level. Status: **done 163**,
+**open 133**, **n/a 7**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
 
@@ -437,3 +437,6 @@ the row's Now level and status in the same commit as the code.
 | 316 | 4661 | Fixture CSVs come out LF on a Linux checkout - byte-compare normalized | [linux][tests][fab] | L2 | L2 | tests/test_assembly.py | done | `_lf` normalizes both sides; the writer stays CRLF (csv default, what JLC gets). Nothing to climb |
 | 317 | 4668 | bench baselines are pinned to KiCad 10.0.3 - they fail on 10.0.5 by de | [linux][tests][bench] | L2 | L2 | scripts/bench.py | open | The refusal is already a check (L2) and correct; the residual is a decision, not a promotion: re-record the frozen baselines on 10.0.5 deliberately (`bench.py --freeze`) or keep 10.0.3 as the scoring toolchain. Owner call, opened by the Linux port |
 | 318 | 4674 | Unattended runs: `ai-ee-loop` + `docker/run-contract.md` | [linux][docker][skill] | L0 | L2 | docker/ai-ee-loop | open | The DONE criteria are prose the orchestrator self-verifies against state.json; a `state.py`/`attest.py`-backed done-check the loop runs before accepting `STATUS: DONE` would make the exit machine-verified instead of trusted |
+| 319 | 4681 | KiCad-10 stock libs carry `(property private ...)` - ksa 0.5.6 mangles | [kicad-sch-api][kicad][linux] | L3 | L3 | scripts/schem_refdes.py | done | strip_private_properties runs after every ksa save - the file cannot be written broken. Residual: pin kicad-sch-api past 0.5.6 once a release parses the `private` flag, then drop the guard |
+| 320 | 4692 | SWIG Specctra export/import needs an X display on Linux - Xvfb :99 | [swig][freerouting][linux] | L3 | L3 | docker/ccbox-project-init | done | Xvfb :99 + DISPLAY baked into the image and env.py's fallback; nothing to check at run time |
+| 321 | 4700 | KiCad 10.0.5 vs 10.0.3 deltas seen through the suite (fixture-recorded | [kicad][drc][erc][linux] | L0 | L1 | scripts/bench.py | open | A toolchain-delta report (run the frozen fixtures on both kicad-cli versions, diff the violation sets by type) would turn 'the numbers moved' into a list; today it is prose + this row. Same decision as row 317 |
