@@ -1,0 +1,199 @@
+{
+  "script": "gate",
+  "gate": "verify",
+  "phase": "P8",
+  "tool": "verify",
+  "input": "boards/g0-sense/kicad/g0-sense.kicad_pcb",
+  "input_digest": "sexpr_no_uuid:0b12cafc93a2a35add1649241acd74309e0f2b417508c0a4717d09edbce49710",
+  "status": "fail",
+  "criteria": {
+    "fail_severities": [
+      "error"
+    ],
+    "max_count": 0
+  },
+  "counts": {
+    "total": 11,
+    "by_severity": {
+      "error": 4,
+      "warning": 7
+    },
+    "by_source": {
+      "check_current": 3,
+      "check_thermal": 1,
+      "check_silk": 6,
+      "check_pdn": 1
+    },
+    "by_check": {
+      "check_return_path": 0,
+      "check_current": 3,
+      "check_decoupling": 0,
+      "check_diffpair": 0,
+      "check_creepage": 0,
+      "check_thermal": 1,
+      "check_silk": 6,
+      "check_pdn": 1
+    }
+  },
+  "failing_count": 4,
+  "failing": [
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        26.9785,
+        38.8709
+      ],
+      "layer": "F.Cu",
+      "net": "VBUS",
+      "refs": [],
+      "msg": "VBUS pour on F.Cu necks to ~0.10 mm between via attachments; IPC-2152 needs 0.800 mm for 1.50 A at dT=10C",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "VBUS pour on F.Cu necks to ~0.10 mm between via attachments; IPC-2152 needs 0.800 mm for 1.50 A at dT=10C",
+          "pos": [
+            26.9785,
+            38.8709
+          ]
+        }
+      ],
+      "kind": "pour_neckdown",
+      "neck_mm": 0.1,
+      "required_mm": 0.8,
+      "current_a": 1.5
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        28.075,
+        38.9
+      ],
+      "layer": null,
+      "net": "VBUS",
+      "refs": [],
+      "msg": "VBUS layer transition at (28.07, 38.90) has 2 via(s); 1.50 A needs 3 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "VBUS layer transition at (28.07, 38.90) has 2 via(s); 1.50 A needs 3 (>= 1 via per 0.5 A)",
+          "pos": [
+            28.075,
+            38.9
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 2,
+      "required": 3
+    },
+    {
+      "check": "check_current",
+      "severity": "error",
+      "pos": [
+        28.075,
+        44.3
+      ],
+      "layer": null,
+      "net": "VBUS",
+      "refs": [],
+      "msg": "VBUS layer transition at (28.07, 44.30) has 2 via(s); 1.50 A needs 3 (>= 1 via per 0.5 A)",
+      "source": "check_current",
+      "items": [
+        {
+          "msg": "VBUS layer transition at (28.07, 44.30) has 2 via(s); 1.50 A needs 3 (>= 1 via per 0.5 A)",
+          "pos": [
+            28.075,
+            44.3
+          ]
+        }
+      ],
+      "kind": "insufficient_transition_vias",
+      "vias": 2,
+      "required": 3
+    },
+    {
+      "check": "check_thermal",
+      "severity": "error",
+      "pos": [
+        34.415,
+        44.6
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "U1"
+      ],
+      "msg": "U1 dissipates 0.51 W into 171 mm2 of +3V3 copper: ~65 C rise (theta_JA ~128 C/W) > 45 C allowed; grow the +3V3 pour",
+      "source": "check_thermal",
+      "items": [
+        {
+          "msg": "U1 dissipates 0.51 W into 171 mm2 of +3V3 copper: ~65 C rise (theta_JA ~128 C/W) > 45 C allowed; grow the +3V3 pour",
+          "pos": [
+            34.415,
+            44.6
+          ]
+        }
+      ],
+      "kind": "thermal_area",
+      "power_w": 0.51,
+      "area_mm2": 171.0895,
+      "theta_ja": 127.9881,
+      "rise_c": 65.2739,
+      "dt_allowed_c": 45.0
+    }
+  ],
+  "coverage": {
+    "strict": false,
+    "required": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "ran": [
+      "check_return_path",
+      "check_current",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_thermal",
+      "check_silk",
+      "check_pdn"
+    ],
+    "passed": [
+      "check_return_path",
+      "check_decoupling",
+      "check_diffpair",
+      "check_creepage",
+      "check_silk",
+      "check_pdn"
+    ],
+    "failed": [
+      "check_current",
+      "check_thermal"
+    ],
+    "waived": [],
+    "not_applicable": {},
+    "skipped_error": {}
+  },
+  "record_result": {
+    "ok": true,
+    "recorded": true,
+    "workspace": "boards/g0-sense",
+    "gate": "verify",
+    "status": "fail",
+    "attempts": 2,
+    "inputs": {
+      "pcb": "sexpr_no_uuid:0b12cafc93a2a35add1649241acd74309e0f2b417508c0a4717d09edbce49710",
+      "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+      "decoupling": "json_canonical:0a7e1619cf19821a1a3d6600721dfe9aaf7580009b98a9bb3012c5cf2d5ed1ee",
+      "waivers": null
+    }
+  }
+}

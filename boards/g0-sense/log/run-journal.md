@@ -379,3 +379,10 @@
   Seven decisions recorded (six unattended defaults + the corrected thermal).
 - Open issues: none. Next: P8 verification - gate verify (8 checks), then
   verify-reviewer in fresh context, then H4.
+
+## 2026-08-27 18:20Z - OWNER NOTE (via supervisor) - open item, not a redirect
+- The owner saw the 18:15Z render and does not like CURVED traces where a
+  straight/45-degree route would do. Recorded as an OPEN ITEM for this board's
+  close-out (fab/README + LEARNINGS), not a change of course now: finish P8/P9
+  as planned. If a routing pass is redone anyway (fix loop), prefer
+  straight/45-degree geometry; do not launch a re-route just for style.

@@ -4864,3 +4864,43 @@ after a hand fix it can be actively regressive. g0-sense deletes it at P6 close 
 a file whose contents, if replayed, would undo a verified fix. Related: `state.py snapshot` only
 covers the files you name (the `.kicad_pcb`), so a restore silently desyncs companion files like
 this one.
+
+## 2026-08-27 [check_current][gates][planes_gen] `pour_neck` runs PER ZONE FILL, so a pour tiled across abutting same-net zones reports its own tiling seam as a neck
+`check_current.py` erodes each zone fill in isolation (check_current.py:283) and reports a
+neck when the fill's attached vias split. But `planes_gen.assign_priorities` deliberately
+tiles one electrical pour across several abutting same-net zones at distinct priorities, so
+the seam between two abutting fills reads as a 0.10 mm neck even where the copper is
+continuous and wide. g0-sense P8: VBUS reported "necks to ~0.10 mm" against a 0.800 mm
+IPC-2152 requirement; the physical union of the same-net fills plus the connector pad copper,
+eroded by 0.4 mm (the full 0.8 mm test at the conservative 1.5 A basis), left EVERY J1 VBUS
+pad connected to all three of its vias. Real minimum in that copper was 0.680 mm, found by
+bisection, and the feature it gates is a 0.33 mm2 dead lobe holding no via and no pad.
+HOW TO TELL THEM APART without trusting either the checker or the fixer: union the same-net
+fills for the layer (shapely `unary_union` over `GetFilledPolysList(layer)` outlines), add the
+relevant pad polygons (`pad.GetEffectivePolygon(layer)` - it REQUIRES the layer argument on
+10.0.5), erode by required/2, and ask whether each source pad still reaches its vias. That is
+the question IPC-2152 actually asks; the per-zone test is a proxy for it.
+Two related traps measured the same session: (a) nothing in the toolchain can delete or
+reshape an EXISTING zone - `planes_gen` only adds, and skips any region already >=80% covered
+by same-net fill - so the `pour_neckdown` remediation ladder's "grow the zone polygon" /
+"second lobe" rungs are unreachable on an already-poured board; an annex zone at a distinct
+priority is the only lever. (b) An annex zone added with planes_gen's DEFAULT connect mode
+produced a `starved_thermal` DRC error (J2 pad 2 dropped to 1 spoke, min 2) and had to be
+rolled back and re-added with `connect: "solid"` - default a power-spreader lobe to solid.
+
+## 2026-08-27 [check_thermal][gates] the theta_JA model credits only same-net TOP copper - no backside-pour credit, so it is ~40-60 C/W pessimistic in the 100-200 mm2 band
+`check_thermal.py:47,55` uses theta_JA(A) = 55 + (174-55)*exp(-A/350) for 1 oz / 2-layer.
+Checked against the vendor tables that the ai-ee knowledge base already carries for the same
+package (record `ldo-sot223-thermal-copper-sets-current`): the model returns 144 C/W where
+AMS1117 datasheet p5 Table 1 MEASURED 80 (100 mm2 top + backside pour), and 123 C/W where TI
+LM1117 Table 9-2 measured 84 (0.3 in2). It converges with the vendors only past ~600 mm2.
+The gap is backside copper: the model counts only the pour on the dissipator's own net, while
+the AMS row credits a 2500 mm2 back pour, and the knowledge record states explicitly that the
+spreading layer NEED NOT BE ELECTRICALLY CONNECTED. On a 2-layer board with a solid GND pour
+under the regulator the model therefore understates reality badly. g0-sense P8 waived it with
+both vendor rows plus a measured proof of unreachability: satisfying the model needed 446.4
+mm2 of credited copper, and assigning EVERY free mm2 of front copper on the whole board to the
+rail yields only 439.9 mm2 inside the checker's 14.33 mm reach disc. When this fires, compute
+the vendor-anchored Tj before spending copper - and note that the fix that would satisfy it on
+2 layers (a backside island + thermal vias) carves the ground return plane, trading a passing
+check_return_path for margin the measured data may say is not needed.
