@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries g0-sense --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-27 19:09:58
+generated 2026-08-27 19:48:25
 \end{center}
 \tableofcontents
 
@@ -29,10 +29,10 @@ generated 2026-08-27 19:09:58
 \endhead
 board & g0-sense \\
 workspace & \texttt{boards/g0-sense} \\
-phase & P8 \\
-gate status & all 4 recorded gates pass \\
+phase & P10 \\
+gate status & all 5 recorded gates pass \\
 state created & 2026-08-27T06:35:38 \\
-state updated & 2026-08-27T19:08:37 \\
+state updated & 2026-08-27T19:47:49 \\
 \bottomrule
 \end{longtable}
 }
@@ -63,6 +63,23 @@ names the part (MCU, sensor, connectors).
 M2 mounting holes if they fit without hurting the layout.
 \item No battery, no mains, no USB data, no RF.
 \end{itemize}
+\subsection*{Fabrication spec snapshot}
+{\small
+\begin{longtable}{ll}
+\toprule
+\textbf{Key} & \textbf{Value} \\
+\midrule
+\endhead
+layers & 2 \\
+width\_mm & 35.79 \\
+height\_mm & 28.34 \\
+qty & 5 \\
+surface\_finish & HASL \\
+solder\_mask\_color & green \\
+assembly & True \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Stackup}
 Chosen stackup: \texttt{JLC2313\_1.6} (reference/stackups.yaml, \texttt{available: true})
 \section{Requirements}
@@ -214,6 +231,11 @@ P8 & unattended default: the 6 check\_silk silk\_misattributed WARNINGS are acce
 P8 & unattended default: REVISING my earlier P8 stance on the 6 silk\_misattributed warnings - they are now a REQUIRED P9 fix (place\_edit move\_text), not an accepted residual & The fresh-context verify-reviewer overruled the reason I gave, and it was right to. I accepted the warnings partly on the grounds that refdes text mainly serves human debugging and rework, and that the part outlines disambiguate it. The reviewer measured what actually happens after assembly: four of the six texts end up UNDER part bodies (R1 and R2 under J1's shell, C10 under U2, D1 inside U1's outline). Text under a component body is not ambiguous, it is invisible - which defeats the exact purpose I used to justify accepting it. So the finding is real and worth fixing. HOW IT MUST BE FIXED AT P9, and this is load-bearing: place\_edit move\_text on individual pin-locked labels ONLY, with a full kicad-cli DRC after each move. Do NOT run silk\_place.py on this board - P6 recorded, from a test on a copy, that it APPLIES BEFORE IT REPORTS, does not roll back, and proposed moves that put D1's Reference back over J1's VBUS pad, i.e. it trades warnings for real DRC errors. Do not recreate kicad/silk\_ops.json. If a given label has no legal destination on a 35.79 x 28.34 mm board, leaving that one is an acceptable outcome - but it must be the measured exception, not the default for all six. \\
 P8 & unattended default: carry TWO more P9 obligations from the verify-reviewer - J3/J4 per-pin silk labels, and U3 added to the CPL rotation check list & (1) SILK PIN LABELS: architecture/blocks.md promises per-pin labels on the two 0.1 in headers (J3 SWD: GND/3V3/SWDIO/SWCLK; J4 UART: GND/3V3/TX/RX) and the board does not have them. These are the two connectors the OWNER hand-wires - the brief calls J4 a readout/logging header - so an unlabelled 4-pin row is a real usability defect and a wrong-way-round UART connection is the predictable consequence. Eight texts to add at P9 with place\_edit add\_text, DRC-verified, subject to the same 'no legal spot is an acceptable measured exception' rule as the refdes moves. (2) CPL ROTATION: decisions already carry a REQUIRED P9 check that CPL rotation be validated per polarized part for D1 (SOD-123 TVS), D2 and D10 (LEDs) and C3 (tantalum CASE-A), not just J1. The reviewer adds U3, the SHT40 in DFN-4 - a rotated DFN-4 sensor is as dead as a reversed tantalum and the package gives the pick-and-place no mechanical asymmetry to self-correct against. P9 must read dfm\_check's polarity/rotation findings for D1, D2, D10, C3 AND U3 explicitly, each confirmed against the footprint pin-1 marking, never accepted as a count. \\
 P8 & unattended default: carry a P10 ORDER REMARK - ask JLCPCB not to land break-off tabs on the SHT40 sensor tongue's outer edge & The verify-reviewer flagged that the tongue's outer face (x = 54.75, y 38.05-44.95) is a board edge JLC's internal panelizer may choose for break-off tabs or mouse-bites. That edge is the free end of a cantilever whose whole purpose is to hold the sensor thermally and mechanically isolated from the board; a tab landing there puts depanelization stress directly into the tongue root and leaves a rough breakout beside the sensor aperture. This costs nothing to prevent and cannot be fixed after the fact. It goes in the JLC order remarks alongside the Sensirion assembly rules already carried from P2 (no-clean paste, NO post-assembly board wash, no vapor-phase reflow, no hand rework of the sensor), and into fab/README so the owner can restate it if JLC comes back with a panel proposal. \\
+P9 & unattended default: the P9 silk pass is a MEASURED PARTIAL and is accepted there - 4 of 8 header pin labels added, 2 of 6 misattributed refdes moved, DRC still 0/0/0 & TASK A (pin labels): the fixer derived the pin order from the board itself rather than the doc (they agreed: J3 GND/3V3/SWDIO/SWCLK, J4 GND/3V3/TX/RX) and added the 4 labels that had a collision-free spot at the board's own 1.0 mm / 0.15 mm silk floor - J3 G at GND, J3 CLK at SWCLK, J4 G at GND, J4 RX at UART\_RX. The other four (both 3V3 pins, SWDIO, TX) have no legal spot: the available gap below each header is \textless{}= 1.34 mm against a minimum label bounding box of 1.6965 mm in ANY orientation, with R13/C11 and the header's own reference text filling the rest. That is a physical impossibility at this pitch, not a lack of effort. MITIGATION, and it is required: both headers now carry a labelled pin 1 at one end and a labelled pin 4 at the other, which is the ordinary convention for a 0.1 in header, and the FULL pinout for J3 and J4 must appear in fab/README and the design doc so the owner can wire them without guessing. TASK B (refdes): D2 and R10 moved beside their own pads and both now pass. D1 was attempted and REVERTED - its reference text landed on D1's own body-outline silk graphic and produced a real DRC silk\_overlap, and no alternative nearby spot cleared its own silk, its pads or its neighbours. R1, R2 and C10 have no legal destination at all (J1's connector pads extend past its drawn courtyard; C10 is boxed by C11/U2/C1/D1). WHY I STOP HERE RATHER THAN PUSH ON: the only remaining remedy is placement-level - moving J1, U2, R13 or C11 - which on a fully routed, DRC-perfect board means ripping copper and re-opening P6/P7 to improve four warning-severity readability findings that KiCad's own DRC does not raise at all. That trade is plainly wrong. The fixer reverting D1 rather than shipping a regression is exactly the right call and is the reason the board is still 0 violations / 0 unconnected / 0 parity. check\_silk 6 -\textgreater{} 4; verify re-run PASS. \\
+P9 & unattended default: the check\_thermal waiver was RE-ISSUED at P9 against the new board digest, not carried over & The silk text edits changed the board, so the P8 waiver's durability binding (artifact digest 9fa76a1b + checker\_version 1) stopped matching and the entry would have been surfaced as waivers\_invalid rather than silently applied - the binding doing exactly the job it exists for. Re-bound to 78f20b4b after confirming the underlying finding is unchanged: the silk edits touch no copper, so the credited area, theta\_JA and rise are identical, and the evidence in the reason field still holds verbatim. Re-ran the verify gate with the re-issued sidecar: PASS, 0 failing, 1 waived, 0 invalid. This will need doing again if P9's fab export or any later edit changes the board digate - the binding is deliberately fragile and must never be loosened to avoid the re-issue. \\
+P9 & unattended default: CPL rotation obligation DISCHARGED - the polarity oracle checked all 26 refs with zero rotation\_delta findings, and the five carried parts were confirmed individually & The carried P4/P8 decisions made this a REQUIRED explicit read for D1 (SOD-123 TVS), D2 and D10 (LEDs), C3 (tantalum CASE-A) and U3 (SHT40 DFN-4, added by the P8 reviewer), never to be accepted as a count - a reversed tantalum or TVS is a dead board, and a rotated DFN-4 sensor is as dead. dfm\_check ran with the schematic as the polarity oracle (--schematic g0-sense.kicad\_sch, the pad-geometry-vs-schematic comparison that catches the mounted-backwards class net-level parity is blind to) and reported polarity status 'checked', refs\_checked 26, with NO cpl\_polarity finding and therefore no rotation\_delta\_deg on any part. The five carried refs and their emitted CPL rotations: C3 0.0, D1 0.0, D2 180.0, D10 180.0, U3 0.0 (with J1 270.0, U1 0.0, U2 180.0 alongside). Those angles come from bom\_cpl applying reference/jlc\_rotations.csv per package, which is the exact KiCad-to-JLC 0-degree-reference offset the carried decision was worried about, and the oracle then re-derives each from pad geometry rather than trusting the table. Note honestly what this does and does not prove: it proves the CPL angle agrees with the schematic's pin assignment for every part, which is the machine-placement risk; it does not substitute for the owner's own first-article check on the returned boards. \\
+P9 & unattended default: the single dfm warning (4 silk strokes below JLC's 0.15 mm minimum) is ACCEPTED - all four are inside U3's own DFN-4 footprint graphics & Located rather than counted: every sub-minimum stroke belongs to U3's footprint aiee:DFN-4\_L1.5-W1.5-P0.8-TL-EP at 0.06 and 0.08 mm, a pulled easyeda2kicad body outline and pin-1 marker on a 1.5 x 1.5 mm part. The four silk texts added at P9 are NOT implicated - all sit at exactly 0.150 mm, the same as every refdes on the board, which I checked specifically because adding four labels and then seeing four sub-width strokes is too neat a coincidence to leave unverified. WHY ACCEPT: the dfm-check recipe classes silk width as advisory by design; the consequence is that U3's tiny outline may print faint or drop out, not that anything is unfabricable. WHY NOT FIX: the two available moves are both worse. Widening 0.06 mm strokes to 0.15 mm on a 1.5 mm body with 0.8 mm pitch risks pushing silk onto the pads, converting an advisory warning into a real silk\_over\_pad DRC error; and place\_edit's silk\_clear would DELETE the marker, which is the opposite of what a pin-1 indicator is for. Both require a library edit reaching an already-placed board, the P6 problem that needed a new tool. WHAT COVERS THE RESIDUAL RISK: U3's orientation is guaranteed by the CPL rotation, which the polarity oracle verified against the schematic from pad geometry - the silk is a human cross-check on a machine-placed economy-PCBA part, not the control. Note it in fab/README so the owner does not read a faint U3 outline as a placement error. \\
+P10 & run closed over 1 unverified research record(s): mcu-boot-strap-only-when-option-bytes-consult-pin & the second reader never verified them, so they never injected - this board was designed without that knowledge \\
 \bottomrule
 \end{longtable}
 }
@@ -321,9 +343,9 @@ as a decision so it cannot be lost.
 The full schematic PDF follows.
 \includepdf[pages=-]{reports/schematic.pdf}
 \section{Layout}
-Gate \texttt{place} (phase P6): \textbf{pass} after 9 attempt(s); last 2026-08-27T18:50:05, failing 0 of 0.
+Gate \texttt{place} (phase P6): \textbf{pass} after 10 attempt(s); last 2026-08-27T19:44:51, failing 0 of 0.
 
-Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 5 attempt(s); last 2026-08-27T18:43:50, failing 0 of 0.
+Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 6 attempt(s); last 2026-08-27T19:39:10, failing 0 of 0.
 \begin{center}
 \includegraphics[width=0.72\textwidth]{reports/renders/g0-sense_top.png}\\
 {\small\texttt{reports/renders/g0-sense\_top.png}}
@@ -337,8 +359,25 @@ Gate \texttt{drc\_routed} (phase P7): \textbf{pass} after 5 attempt(s); last 202
 {\small\texttt{reports/renders/g0-sense\_iso.png}}
 \end{center}
 \section{Verification}
-Gate \texttt{verify} (phase P8): \textbf{pass} after 5 attempt(s); last 2026-08-27T18:49:24, failing 0 of 8.
-\emph{reports/verify\_all.json not available.}
+Gate \texttt{verify} (phase P8): \textbf{pass} after 6 attempt(s); last 2026-08-27T19:40:55, failing 0 of 6.
+\subsection*{Verification checks}
+{\small
+\begin{longtable}{llcp{6cm}}
+\toprule
+\textbf{Check} & \textbf{Status} & \textbf{Findings} & \textbf{Note} \\
+\midrule
+\endhead
+\texttt{check\_return\_path} & pass & 0 &  \\
+\texttt{check\_current} & pass & 0 &  \\
+\texttt{check\_decoupling} & pass & 0 &  \\
+\texttt{check\_diffpair} & pass & 0 &  \\
+\texttt{check\_creepage} & pass & 0 &  \\
+\texttt{check\_thermal} & violations & 1 &  \\
+\texttt{check\_silk} & violations & 6 &  \\
+\texttt{check\_pdn} & violations & 1 &  \\
+\bottomrule
+\end{longtable}
+}
 \subsection*{Design review of record}
 \subsection*{Board review - g0-sense (P8 verify-reviewer, adversarial pass, 2026-08-27)}
 Board digest reviewed: sexpr\_no\_uuid:9fa76a1b (matches checks/summary.json and the waiver binding). Renders made for this review: reports/renders/g0-sense\_top.png, reports/renders/g0-sense\_bottom.png, reports/renders/g0-sense\_iso.png (2400 px). All 8 verify checks RAN (skipped\_error empty - no coverage holes). kicad-cli DRC: 0 violations, 0 unconnected. Every measurement below was re-taken by me from the board file with pcbnew, not inherited from the authors.
@@ -454,7 +493,48 @@ enclosure-fit comparison exists to fail.
 1. RATIFY the check\_thermal U1 waiver (evidence re-verified independently). 2. ACCEPT pdn\_no\_bulk as justified-by-design (no waiver file entry needed for a warning; this md is the record). 3. ORDER at P9 only after the W-1/W-2 silk batch and with the W-3 order remark; none of the three blocks fab if the owner chooses speed over polish, but W-1 is the one I would not skip on a product-scope board.
 
 \section{DFM and Fabrication}
-\emph{Pending --- produced at P9.}
+Gate \texttt{dfm} (phase P9): \textbf{pass} after 2 attempt(s); last 2026-08-27T19:47:49, failing 0 of 1.
+\subsection*{Fabrication outputs}
+Exported layers: F.Cu, B.Cu, F.Silkscreen, B.Silkscreen, F.Mask, B.Mask, F.Paste, B.Paste, Edge.Cuts.
+\subsection*{Bill of materials}
+{\small
+\begin{longtable}{p{4.4cm}p{2.8cm}p{4.6cm}l}
+\toprule
+\textbf{Comment} & \textbf{Designator} & \textbf{Footprint} & \textbf{LCSC} \\
+\midrule
+\endhead
+100nF 50V X7R & C1,C10,C12,C13 & C0603 & C14663 \\
+10uF 25V X5R & C2 & C0805 & C15850 \\
+22uF 10V tantalum & C3 & CASE-A\_3216 & C122643 \\
+4.7uF 16V X5R & C11 & C0603 & C19666 \\
+SMF5.0A TVS 5V & D1 & SOD-123\_L2.8-W1.8-LS3.7-RD & C284108 \\
+Red LED & D2 & LED-SMD\_L1.6-W0.8-R-RD & C2286 \\
+Green 0805 & D10 & LED0805-R-RD & C2297 \\
+PTC 750mA 16V & F1 & F0805 & C976303 \\
+TYPE-C-31-M-12 & J1 & USB-C\_SMD-TYPE-C-31-M-12\_1 & C165948 \\
+Qwiic JST SH 4P & J2 & CONN-SMD\_4P-P1.00\_SM04B-SRSS-TB-LF-SN & C160404 \\
+5.1k 1\% & R1,R2 & R0603 & C23186 \\
+680R 1\% & R3 & R0603 & C23228 \\
+1.5k & R10,R11 & R0603 & C22843 \\
+100R & R12 & R0603 & C22775 \\
+10k & R13 & R0603 & C25804 \\
+Tactile button & SW1 & SW-SMD\_4P-L5.1-W5.1-P3.70-LS6.5-TL\_H1.5 & C318884 \\
+AMS1117-3.3 & U1 & SOT-223-3\_L6.5-W3.4-P2.30-LS7.0-BR & C6186 \\
+STM32G030F6P6 & U2 & TSSOP-20\_L6.5-W4.4-P0.65-LS6.4-BL & C724040 \\
+SHT40-AD1B-R2 & U3 & DFN-4\_L1.5-W1.5-P0.8-TL-EP & C2909890 \\
+\bottomrule
+\end{longtable}
+}
+3 CPL rotation correction(s) applied; no missing LCSC numbers.
+\subsection*{Quote}
+Estimated total \$42.68 for qty 5 (unit \$8.54). This is an estimate from published pricing; the JLCPCB cart quote page is authoritative.
+\subsection*{Human steps before ordering}
+\begin{enumerate}
+\item Upload boards/g0-sense/fab/g0-sense\_gerbers.zip to https://jlcdfm.com/ and review the DFM report (V6: no public API).
+\item Upload the same zip at https://cart.jlcpcb.com/quote and confirm the real price against the estimate above.
+\item If assembling: upload BOM.csv and CPL.csv, then CHECK THE RENDERED PART PREVIEW for every polarized part (LED/diode/electrolytic) - rotation corrections are the classic failure mode.
+\item Review, then pay. Payment is always the human's action.
+\end{enumerate}
 \section{Run Record (Appendix)}
 \subsection*{Phase digests}
 \paragraph*{P0}
@@ -661,123 +741,85 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \begin{quote}\small\ttfamily\raggedright
 \# P7 Routing digest - g0-sense (2026-08-27)\\
 ~\\
-- Gate {*}{*}drc\_routed PASS 0/0{*}{*} on attempt 1, {*}{*}completion 1.0{*}{*} (0 unconnected).\\
-  Independently re-verified with kicad-cli direct: 0 violations, 0 unconnected,\\
-  0 schematic parity. erc / place / drc\_routed all PASS and FRESH at the one\\
-  board hash 0b12cafc.\\
-- 2-layer chain, in the live-verified order: planes\_gen (9 zones) -\textgreater{}\\
-  route\_critical -\textgreater{} route\_auto (Freerouting 3 rungs, best rung 1 at fr 0.854;\\
-  KRT finish generated and correctly discarded - it did not strictly improve\\
-  DRC) -\textgreater{} stitch\_vias (13 vias; 3 redundant removed, 1 moved for hole\_to\_hole)\\
-  -\textgreater{} plane\_repair -\textgreater{} gate. {*}{*}route\_cleanup skipped{*}{*} by the S14 rule: this is\\
-  exactly the 2L pour board class where its loop-breaker regressed twice.\\
-- {*}{*}The P6-carried VBUS item was RETIRED, not executed.{*}{*} `route\_critical\\
-  --pad-window` - the premise check the role prompt demands before forcing a\\
-  rule width at a connector - measured J1's A4B9/B4A9 escape windows at\\
-  {*}{*}1.315 mm{*}{*}, above the 0.8 mm Pwr\_0p8mm rule. P6's "impossible at any\\
-  placement" was true of a 0.8 mm TRACK leaving the pad, not of the pad's\\
-  escape corridor. VBUS is pour-carried at a \textasciitilde{}1.45 mm fill band - wider than\\
-  the rule asks - so neither costed option was needed: {*}{*}no neck{*}{*} (hence no\\
-  ERROR-severity rule exception) and {*}{*}no via-in-pad{*}{*} (hence no unfilled via\\
-  in a mechanically loaded connector pad, and no JLC wicking remark owed to\\
-  fab/README). The two F.Cu VBUS pours are joined by a 0.8 mm B.Cu bridge on\\
-  2+2 vias sited in open pour, holes clear of every pad edge.\\
-- {*}{*}The bridge's real risk was checked, not assumed.{*}{*} That bridge crosses the\\
-  layer that IS the GND pour - the playbook's "viasless pour-channel" blind\\
-  spot - and the router's own plane\_repair2 run was restricted to +3V3, so\\
-  nothing had re-examined GND after the bridge landed. `plane\_repair\\
-  --flag-only` (never writes) on the final board: GND B.Cu = 1 group, split\\
-  False, 813.2 mm2, 27 anchored components, 0 dead islands. Return path intact.\\
-- {*}{*}U3 sensor island contract met in full{*}{*}: exactly 4 necked crossings (SDA\\
-  0.127 / SCL 0.127 / GND 0.127 / +3V3 0.150, the lawful minimum for that net),\\
-  zero copper and zero pour fill inside the tongue on both layers. Freerouting\\
-  had laid a fifth crossing - SCL routed straight THROUGH the island - which\\
-  was ripped and the I2C trunk rebuilt on B.Cu. The U-slot already existed from\\
-  P6 (two 5.5 mm Edge.Cuts slots make a 3-sides-open tongue), so no new cut and\\
-  Edge.Cuts is unchanged from the gated placement.\\
-- {*}{*}One router number corrected.{*}{*} It reported the U1 tab pour at 158.0 mm2\\
-  "connected". That is the CURRENT figure, not the HEAT figure: the +3V3 F.Cu\\
-  pour is four components (113.2 + 24.3 + 18.4 + 1.6 mm2) merged into one\\
-  electrical group by 0.25/0.5 mm bridge TRACKS, which carry 0.3 A at a 13 mV\\
-  drop but conduct essentially no heat. The thermal spreader is {*}{*}113.2 mm2{*}{*}.\\
-  It still passes on the board's own declared criterion: AMS1117 p5 Table 1\\
-  gives 80 C/W for \textasciitilde{}100 mm2 top plus a backside pour (B.Cu GND is 813 mm2\\
-  under and around U1, and the record notes a spreader need not be\\
-  electrically connected), so the rise is 0.51 x 80 = {*}{*}40.8 K against the\\
-  declared dt\_c 45{*}{*}; Tj 80.8 C rated, 60.8 C realistic, 106 C at the\\
-  entitlement-abuse case, all under the 125 C limit. The 600-1000 mm2 figure\\
-  was the architect's MEANS to Tj 71-76 C, not a separate requirement, and the\\
-  earned 1014 mm2 outline cannot fund it. Buying pour area by shrinking the U3\\
-  void was rejected outright - the B4 isolation contract outranks it.\\
-- iter-2's `placement\_adjust\_request` (+3V3, SDA, GND, VBUS) was judged\\
-  PREMATURE and not escalated to the P6 backward edge: it fired before\\
-  stitch\_vias and plane\_repair, which own three of its four nets on the 2L\\
-  chain. Finishing the chain closed all four.\\
-- Nothing was weakened to pass: `.kicad\_dru` and `.kicad\_pro` are unmodified\\
-  through all of P7 (git), and no zone, netclass or gate parameter was touched.\\
-- Carried to P8: recompute the U1 thermal with {*}{*}113 mm2{*}{*}, not 158.
+- {*}{*}drc\_routed PASS 0/0, attempt 1, completion 1.0.{*}{*} Re-verified with kicad-cli\\
+  direct: 0 violations, 0 unconnected, 0 parity. Nothing weakened - .kicad\_dru\\
+  and .kicad\_pro unmodified (git).\\
+- 2L chain in the verified order: planes\_gen (9 zones) -\textgreater{} route\_critical -\textgreater{}\\
+  route\_auto (FR 3 rungs, best rung 1; KRT finish correctly discarded) -\textgreater{}\\
+  stitch\_vias (13) -\textgreater{} plane\_repair -\textgreater{} gate. route\_cleanup SKIPPED (S14 rule).\\
+- {*}{*}The P6-carried VBUS item was RETIRED, not executed{*}{*}: `--pad-window` measured\\
+  J1's escape at 1.315 mm vs the 0.8 mm rule, so P6's "impossible" applied only to\\
+  a track leaving the pad. VBUS is pour-carried at a \textasciitilde{}1.45 mm band - no neck, no\\
+  rule exception, no via-in-pad, no JLC wicking remark owed.\\
+- Its real risk was checked, not assumed: the 0.8 mm B.Cu bridge crosses the GND\\
+  pour layer, and plane\_repair2 had been restricted to +3V3. Re-ran plane\_repair\\
+  --flag-only: GND B.Cu = 1 group, 813.2 mm2, 27 anchors, 0 dead islands.\\
+- U3 island contract met: exactly 4 necked crossings, 0 copper and 0 fill in the\\
+  tongue on both layers. FR's fifth crossing (SCL through the island) was ripped\\
+  and the I2C trunk rebuilt on B.Cu. U-slot pre-existed from P6.\\
+- Corrected the router's own number: the U1 tab spreader is {*}{*}113.2 mm2{*}{*}\\
+  contiguous, not the 158 mm2 it reported (0.25/0.5 mm bridge tracks carry\\
+  current, not heat). Full detail in log/run-journal.md.
 \end{quote}
 \paragraph*{P8}
 \begin{quote}\small\ttfamily\raggedright
 \# P8 Verification digest - g0-sense (2026-08-27)\\
 ~\\
 - {*}{*}verify PASS: 0 failing{*}{*} (from 5 errors), 8/8 checks ran, no coverage holes.\\
-  1 waived error + 7 warnings, every one with a recorded verdict. erc, place,\\
-  drc\_routed, verify all PASS and FRESH at board digest 9fa76a1b.\\
-- {*}{*}Four of the five errors were fixed on their merits, not suppressed.{*}{*}\\
-  Nothing was edited to make a gate quiet: constraints.json, .kicad\_dru,\\
-  .kicad\_pro, netclasses and gates.yaml are untouched across P7 and P8 (git).\\
-- check\_pdn "VBUS has no decoupling capacitors" was a DATA gap, not a board\\
-  defect: C1 - the 100 nF at the connector that constraints.json names as the\\
-  ONLY capacitance permitted ahead of the PTC by the Type-C 10 uF attach limit -\\
-  was missing from decoupling.json's inventory. check\_pdn never looks at copper;\\
-  it filters that inventory by rail. Completed the inventory rather than waive a\\
-  true-but-misleading finding, after measuring C1 at 5.52 mm from J1's VBUS pad\\
-  (inside check\_decoupling's 7.5 mm HF threshold). check\_decoupling still passes,\\
-  loop 5.32 nH. The error correctly became the intended pdn\_no\_bulk warning.\\
-- Two `insufficient\_transition\_vias` fixed in copper: 2 vias -\textgreater{} 3 at each VBUS\\
-  transition. The fixer measured room BEFORE acting per the remediation ladder\\
-  and found 0 legal cells at netclass clearance in both clusters, then solved\\
-  them by re-arrangement instead - moving one via and adding another on a 0.4 mm\\
-  B.Cu stub, and extending the B.Cu bridge 0.9 mm to land the third inside the\\
-  existing pour (clearances 0.865/0.874 mm, hole-edge 0.600 mm).\\
-- {*}{*}The `pour\_neckdown` "0.10 mm" was a per-zone checker artifact, and I proved\\
-  it rather than accepting the agent's word.{*}{*} check\_current erodes each zone\\
-  fill in isolation, while planes\_gen deliberately tiles one pour across abutting\\
-  same-net zones - so a tiling seam reads as a neck. Re-ran the checker's own\\
-  test on the physical UNION of the VBUS fills plus J1's pad copper: eroded by\\
-  0.4 mm (the full 0.8 mm requirement at the conservative 1.5 A fault basis),\\
-  each pad still reaches all three of its vias. The narrowest real feature is\\
-  0.680 mm by bisection, and it gates a 0.33 mm2 dead lobe holding no via and no\\
-  pad. Consequence: the current-basis lever the remediation reserves for the\\
-  orchestrator was NOT pulled - the board meets 1.5 A physically, so relaxing\\
-  constraints.json would have been unnecessary and would have weakened the record.\\
-- {*}{*}One durable waiver: check\_thermal on U1{*}{*} (57.8 C modelled vs 45 C allowed),\\
-  bound to digest 9fa76a1b + checker\_version 1, expiry 2027-08-27. The model\\
-  credits only same-net top copper: it returns 144 C/W where AMS1117 p5 Table 1\\
-  measured 80, and 123 C/W where TI LM1117 Table 9-2 measured 84, while this\\
-  board carries an uncredited 810.9 mm2 B.Cu spreader under U1. At the\\
-  conservative 84 C/W anchor the rise is 42.8 C - inside budget - giving Tj\\
-  82.8 C rated and 109.7 C at the entitlement-abuse case against a 125 C limit.\\
-  Proven unreachable too: the model needs 446.4 mm2 credited and the whole board\\
-  can only fund 439.9 mm2. The pour was still grown 171 -\textgreater{} 250 mm2 anyway.\\
-  Rejected deliberately: a B.Cu +3V3 island / thermal vias would carve the ground\\
-  return plane, trading a PASSING check\_return\_path for unneeded margin.\\
-- {*}{*}verify-reviewer (fresh context): 0 errors, 3 new warnings.{*}{*} It re-measured\\
-  instead of trusting - reproduced the thermal miscalibration at both vendor\\
-  anchors, re-ran the VBUS erosion test, confirmed 0.0 mm2 pour in the sensor\\
-  tongue with exactly 4 necked crossings, and checked that every polarity mark\\
-  (C3 "+", D1 cathode band, LED brackets, pin-1 dots) is outboard and visible\\
-  after assembly. It ratified both the thermal waiver and pdn\_no\_bulk.\\
-- {*}{*}The reviewer overruled the orchestrator once, correctly.{*}{*} I had accepted the\\
-  6 silk\_misattributed warnings; it measured that four of them also sit UNDER\\
-  part bodies after assembly (R1/R2 under J1's shell, C10 under U2, D1 inside\\
-  U1's outline) - invisible, not merely ambiguous, which defeats the reason I\\
-  gave. Reclassified as a required P9 move\_text fix. Decision revised on file.\\
-- Carried to P9/P10: J3/J4 per-pin silk labels (promised by blocks.md, absent);\\
-  CPL rotation checked per polarized part incl. U3 (DFN-4, reviewer addition);\\
-  JLC order remark to keep break-off tabs off the sensor tongue edge.
+  erc / place / drc\_routed / verify all PASS and FRESH at digest 9fa76a1b.\\
+- {*}{*}Four of five errors fixed on their merits, one waived.{*}{*} Nothing edited to\\
+  quiet a gate: constraints.json, .kicad\_dru, .kicad\_pro, netclasses and\\
+  gates.yaml untouched across P7 and P8 (git).\\
+- check\_pdn "VBUS undecoupled" was a DATA gap - C1 (the 100 nF the Type-C 10 uF\\
+  attach limit permits ahead of the PTC) was missing from decoupling.json.\\
+  Completed the inventory after measuring 5.52 mm to J1's pad; error -\textgreater{} the\\
+  intended pdn\_no\_bulk warning. Two via clusters fixed in copper, 2 -\textgreater{} 3 vias.\\
+- {*}{*}pour\_neckdown "0.10 mm" was a per-zone checker artifact, proved not assumed{*}{*}:\\
+  eroding the UNION of the VBUS fills + J1 pad copper by 0.4 mm (the full 0.8 mm\\
+  test at the 1.5 A fault basis) leaves each pad reaching all 3 of its vias. Real\\
+  minimum 0.680 mm, gating a 0.33 mm2 dead lobe. So the current-basis lever was\\
+  deliberately NOT pulled - the board meets 1.5 A physically.\\
+- {*}{*}One durable waiver: check\_thermal on U1{*}{*}, bound to digest 9fa76a1b +\\
+  checker\_version 1. The model credits only same-net top copper (144 C/W where AMS\\
+  measured 80; 123 where TI measured 84) against an uncredited 810.9 mm2 B.Cu\\
+  spreader. At 84 C/W the rise is 42.8 C, inside the declared 45; Tj 82.8 C rated,\\
+  109.7 C abuse, limit 125. Also unreachable: needs 446.4 mm2, board can fund 439.9.\\
+  Pour still grown 171 -\textgreater{} 250 mm2. B.Cu island/thermal vias rejected - they carve\\
+  the ground return, trading a PASSING check\_return\_path for unneeded margin.\\
+- {*}{*}verify-reviewer (fresh context): 0 errors, 3 warnings{*}{*}, ratified both the\\
+  waiver and pdn\_no\_bulk - and overruled me correctly on silk: 4 of the 6\\
+  misattributed refdes also sit UNDER part bodies, so they are invisible rather\\
+  than ambiguous. Reclassified as a required P9 move\_text fix.
 \end{quote}
+\paragraph*{P9}
+\begin{quote}\small\ttfamily\raggedright
+\# P9 DFM digest - g0-sense (2026-08-27)\\
+~\\
+- {*}{*}dfm gate PASS: 0 failing, 1 advisory warning.{*}{*} fab package exported\\
+  (11 files: gerbers + drill + zip), BOM/BOM-full/CPL written from\\
+  assembly\_class, 26 parts / 24 SMT-placed (J3/J4 are DNP hand-install THT).\\
+- {*}{*}The carried CPL rotation obligation is discharged, part by part.{*}{*} dfm\_check\\
+  ran with the schematic as the polarity oracle: status checked, refs\_checked 26,\\
+  ZERO cpl\_polarity findings and no rotation\_delta\_deg anywhere. The five carried\\
+  refs: C3 0.0, D1 0.0, D2 180.0, D10 180.0, U3 0.0 (J1 270.0, U1 0.0, U2 180.0).\\
+  This proves the CPL angle agrees with the schematic pin assignment for every\\
+  part; it does not replace the owner's first-article check.\\
+- The single warning is `dfm\_silk\_width`: 4 strokes under JLC's 0.15 mm floor\\
+  (narrowest 0.060 mm). Located, not counted - {*}{*}all four are inside U3's own\\
+  DFN-4 footprint{*}{*} (0.06/0.08 mm body outline and pin-1 marker on a 1.5 mm\\
+  part). The four labels added earlier at P9 are NOT implicated: they sit at\\
+  exactly 0.150 mm, same as every refdes, which I checked precisely because\\
+  "4 new labels, 4 thin strokes" is too neat a coincidence to assume.\\
+- Accepted rather than fixed: widening 0.06 mm strokes on a 1.5 mm body risks\\
+  silk-over-pad (a real DRC error from an advisory warning), and silk\_clear would\\
+  delete the pin-1 marker outright. U3's orientation is controlled by the\\
+  oracle-verified CPL rotation; the silk is a human cross-check. Goes in\\
+  fab/README so a faint U3 outline is not misread as a placement error.\\
+- Silk pass earlier in P9: check\_silk 6 -\textgreater{} 4 misattributed, DRC still 0/0/0.\\
+  Thermal waiver re-issued against digest 78f20b4b; verify re-run PASS.
+\end{quote}
+\paragraph*{P10}
+\emph{(no digest recorded)}
 \subsection*{Gate attempt history}
 {\small
 \begin{longtable}{llll}
@@ -807,6 +849,11 @@ button size vs Basic; LED colours). Gates: none due at P1.
 2026-08-27T18:43:51 & verify & fail & 1/8 \\
 2026-08-27T18:49:24 & verify & pass & 0/8 \\
 2026-08-27T18:50:05 & place & pass & 0/0 \\
+2026-08-27T19:39:10 & drc\_routed & pass & 0/0 \\
+2026-08-27T19:40:55 & verify & pass & 0/6 \\
+2026-08-27T19:42:01 & dfm & pass & 0/1 \\
+2026-08-27T19:44:51 & place & pass & 0/0 \\
+2026-08-27T19:47:49 & dfm & pass & 0/1 \\
 \bottomrule
 \end{longtable}
 }
@@ -832,7 +879,7 @@ button size vs Basic; LED colours). Gates: none due at P1.
 1 & P2 & approved & 2026-08-27T08:44:13 & delegated (unattended): architecture + 2L stackup approved; LDO 0.51 W design point approved; boot-strap gap accepted because the 10k BOOT0 pull-down removes the dependency; outline stays an output; no sim bench \\
 2 & P4 & approved & 2026-08-27T13:21:44 & delegated (unattended): schematic approved (erc 0/0, netlist\_audit 0, adversarial review 0 errors/3 warnings); W1 Qwiic-ESD waived on ecosystem norm + 2 kV HBM endpoints + indoor bench env; W2 SHT4x VDD slew closed as accepted risk (follower LDO makes I/C unreachable, failure mode is a benign cold-start reset); W3 native DNP on J3/J4 FIXED not waived; P5 proceeds with --outline auto \\
 3 & P6 & approved & 2026-08-27T15:59:22 & delegated (unattended): placement approved - gate place 0/0, DRC 0 non-unconnected, size earned 35.79 x 28.34 mm (excess is the SHT40 isolation zone), all four M2 holes kept at zero outline cost, silk 13 -\textgreater{} 0 via the new place\_edit silk\_clear op plus matching library edits; VBUS pad escape deferred to P7 route\_critical with three options costed \\
-4 & P8 & not reached &  &  \\
+4 & P8 & approved & 2026-08-27T19:10:05 & delegated (unattended): verify PASS 0 failing (8/8 checks ran); 4 of 5 errors fixed on their merits, 1 durable check\_thermal waiver ratified by the fresh-context reviewer against two vendor tables; reviewer 0 errors / 3 warnings; silk refdes reclassified to a required P9 move\_text fix after the reviewer showed 4 of 6 sit under part bodies \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
@@ -844,9 +891,13 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 85,495 B &  \\
-\texttt{kicad/g0-sense.kicad\_pcb} & 250,884 B &  \\
+\texttt{state.json} & 97,731 B &  \\
+\texttt{kicad/g0-sense.kicad\_pcb} & 251,575 B &  \\
 \texttt{kicad/g0-sense.kicad\_sch} & 1,710 B &  \\
+\texttt{fab/g0-sense\_gerbers.zip} & 41,858 B & sha256 da0db18bb3b0f39a... \\
+\texttt{fab/order.json} & 3,162 B &  \\
+\texttt{fab/BOM.csv} & 834 B &  \\
+\texttt{fab/CPL.csv} & 836 B &  \\
 \texttt{brief/brief.md} & 1,634 B &  \\
 \texttt{requirements.md} & 6,653 B &  \\
 \texttt{architecture/blocks.md} & 11,799 B &  \\
@@ -857,10 +908,14 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \texttt{architecture/stackup.md} & 2,679 B &  \\
 \texttt{reports/board\_edit\_fit.json} & 1,674 B &  \\
 \texttt{reports/board\_edit\_slits.json} & 1,763 B &  \\
+\texttt{reports/bom\_cpl.json} & 15,263 B &  \\
+\texttt{reports/dfm-P9.json} & 2,277 B &  \\
+\texttt{reports/dfm\_release.json} & 2,276 B &  \\
 \texttt{reports/drc\_p6\_final.json} & 46,582 B &  \\
 \texttt{reports/drc\_wo1\_refill.json} & 564 B &  \\
 \texttt{reports/erc-waivers.md} & 6,030 B &  \\
 \texttt{reports/erc.json} & 1,039 B &  \\
+\texttt{reports/fab\_export.json} & 2,163 B &  \\
 \texttt{reports/g0-sense\_bottom.png} & 74,299 B &  \\
 \texttt{reports/g0-sense\_top.png} & 276,539 B &  \\
 \texttt{reports/place.json} & 1,545 B &  \\
@@ -882,7 +937,9 @@ button size vs Basic; LED colours). Gates: none due at P1.
 \texttt{reports/silk\_place.json} & 18,222 B &  \\
 \texttt{reports/silk\_place\_p6\_final.json} & 3,347 B &  \\
 \texttt{reports/top.net} & 60,717 B &  \\
-\texttt{reports/verify-waivers.json} & 4,600 B &  \\
+\texttt{reports/verify-waivers.json} & 5,034 B &  \\
+\texttt{reports/verify\_all.json} & 8,324 B &  \\
+\texttt{reports/verify\_release.json} & 7,012 B &  \\
 \bottomrule
 \end{longtable}
 }

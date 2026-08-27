@@ -4921,3 +4921,46 @@ cannot hold one - label pin 1 and pin 4 and put the full pinout in fab/README in
 Script gap proposed by the fixer: `place_edit --suggest-text-spot` (pads + silk graphics
 as keepouts, own courtyard exempt, edge clearance, check_silk's own_off/nearest_other
 formula) - it hand-built that search this session.
+
+## 2026-08-27 [attest][p10][linux] `attest.py build` crashes on a RELATIVE --workspace when a waiver sidecar exists
+`attest.py build --workspace boards/<b>` exits 2 with
+`ValueError: '/workspace/boards/<b>/reports/verify-waivers.json' is not in the subpath of
+'boards/<b>'`: the waiver path is resolved to absolute while the workspace stays relative,
+so the containment check compares an absolute path against a relative one. Every other
+script in the pipeline takes a relative --workspace happily, so this is easy to trip after
+a whole run of relative paths. WORKAROUND: pass the workspace absolute -
+`--workspace /workspace/boards/<b>` - which succeeds immediately with the identical inputs.
+Only boards carrying a `reports/verify-waivers.json` hit it; a waiver-free board builds
+either way, which is why it survived earlier runs. Fix belongs in attest.py: resolve the
+workspace before the containment test.
+
+## 2026-08-27 [attest][p10] the attestation refuses on STALE ARTIFACT MARKS, not just gate freshness - `state.py rehash` is the intended clear
+`attest.py build` listed five blockers of the form "artifact bom: carries 1 stale mark(s) -
+regenerate it first" alongside the expected "gate place: passed but not fresh". The marks
+came from a P4 `state.py edit --class swap_part_same_fp` and had been carried, correctly,
+all the way to P10 - the derived artifacts HAD since been regenerated (fab_export + bom_cpl
+at P9), but regenerating a file does not clear the mark that says it was invalidated.
+`state.py rehash --workspace <ws> --names bom bom_full cpl gerbers netlist` re-hashes them
+from disk and drops the marks. Do this only AFTER genuinely regenerating each artifact -
+rehash is a "I have rebuilt these, re-measure them" statement, not a way to silence a
+blocker. Also note `report_gen.py` looks for `reports/bom_cpl.json`, `reports/fab_export.json`
+and `reports/verify_all.json` specifically, so writing those reports only into `fab/` leaves
+report_gen at exit 1 with `missing`/`warnings` entries.
+
+## 2026-08-27 [dfm][gates][sidecars] a missing `parts.json` beside the board makes the dfm gate PASS with its bom leg silently skipped
+The SKILL's sidecar rule (constraints/decoupling/parts/schematic resolve from the BOARD's
+directory, kept beside it from P5) is not decorative: g0-sense had parts.json only at
+`parts/parts.json`, so the recorded dfm gate ran 7 of 8 legs with
+`skipped_error {'bom': 'no parts.json'}` and still reported **PASS** - a skipped leg is not
+a failed one. An attestation was then built on that result. Nothing in the gate path flags
+it; what caught it was `state.py freshness` reporting the registered artifact `parts`
+(path `kicad/parts.json`) as `exists=False`. CHECK THE ARTIFACT SWEEP, not just the gate
+verdict, and read `coverage.skipped_error` on every gate result you record.
+Established convention (verified by diff on bb-amp / bb-buck / bb-mcu): parts.json exists
+BOTH at `parts/parts.json` (source) and `kicad/parts.json` (sidecar beside the board).
+Two adjacent traps found the same session: (a) `gate.py` resolves the parts sidecar from the
+board directory but bare `dfm_check.py` does NOT - without an explicit `--parts` a
+hand-generated `--strict` release report drops the bom leg, then `attest.py` refuses it with
+"--report refused: status 'error' is not a completed run"; (b) the attestation's input
+binding DOES catch the repair - adding parts.json invalidated rev 1 with "input parts:
+changed since attestation (recorded 'None')", which is the machinery working correctly.

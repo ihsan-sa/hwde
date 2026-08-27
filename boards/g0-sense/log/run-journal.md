@@ -498,3 +498,48 @@
   clearly labelled), fab/README checklist incl. the Sensirion no-wash rules, the
   tongue break-off-tab remark and the J3/J4 pinout, then attest.py build + verify.
   H5 (pay) is NOT delegated and there are no credentials here: stop at the quote.
+
+## 2026-08-27 ~20:20Z - iteration 3 (loop 2) - P10 Ordering COMPLETE (stops at the quote)
+- **Attestation rev 2 verifies VALID, disposition order-ready** (sha 2a0035eb).
+  All five gates PASS and FRESH, 0 open issues, H4 approved. `attest.py verify`
+  problems: [].
+- **H5 NOT TAKEN - nothing was ordered.** The contract withholds payment, there
+  are no credentials here, `order_submit --api-create` was never run and no
+  network call touched an ordering endpoint. `fab/order.json` = ready_for_human.
+  H5 packet written to log/H5.md as a presentation, deliberately NOT approved.
+- Quote is the jlc_pricing.yaml estimate, clearly labelled (the API path needs
+  credentials this container does not have): **qty 5 = USD 42.68, 8.54/unit**;
+  qty 10 = 43.36; qty 30 = 52.98. Every figure `estimated: true`.
+- **A COVERAGE HOLE WAS FOUND AND CLOSED AT P10, by the artifact sweep rather
+  than by any gate.** `state.py freshness` showed the registered artifact
+  `parts` (kicad/parts.json) as exists=False - the file lived only in `parts/`,
+  and the SKILL's sidecar rule wants it beside the board from P5. So the
+  RECORDED dfm gate had been running 7 of 8 legs with
+  `skipped_error {'bom': 'no parts.json'}` and still reporting PASS, and
+  attestation rev 1 was built on top of that. A skipped leg is a hole, not a
+  pass. Copied the sidecar (both locations is the established convention -
+  confirmed by diff on bb-amp/bb-buck/bb-mcu), re-ran dfm to 8/8 legs with no
+  skips, PASS. The attestation then correctly refused ("input parts: changed
+  since attestation") and was reissued as rev 2. Lesson recorded: read
+  `coverage.skipped_error` on every gate result, never just the verdict.
+- TOOLCHAIN FIX, committed SEPARATELY from the board and regression-tested:
+  `releaselib._ws_rel`. `waivers_for_input` returns an ABSOLUTE path in the
+  normal governed-workspace case while `--workspace` stays relative, so
+  `Path.relative_to` raised "is not in the subpath of". That broke `attest.py
+  build` outright (exit 2) and SILENTLY degraded `state.py resume`'s
+  `release_disposition` to null - the exact field the run contract's done-check
+  reads, so the board looked non-order-ready for a purely cosmetic reason.
+  g0-sense is the first ATTESTED board carrying a waiver sidecar, which is why
+  it surfaced now; the two pre-existing attested boards have no waiver and
+  never hit it. Verified before/after on both of them in BOTH path forms
+  (unchanged, still valid), and the attestation written BEFORE the fix still
+  verifies - the emitted string is identical, only the comparison is robust.
+- fab/README.md written with the ordering checklist: JLC settings, the estimate,
+  the Sensirion no-wash rules, the "no break-off tabs on the sensor tongue"
+  panelization remark, the polarity/rotation table for C3/D1/D2/D10/U3, the
+  U3 faint-silk note, and the FULL J3/J4 pinout - owed because the silk could
+  only fit 4 of 8 pin labels.
+- learnings.py compile: 4 new entries added (8 pending), validate PASS.
+  Three new toolchain entries in LEARNINGS.md (attest relative-workspace,
+  attest stale-artifact-marks, dfm parts.json coverage hole).
+- Gates: erc, place, drc_routed, verify, dfm ALL PASS and FRESH. Open issues: 0.
