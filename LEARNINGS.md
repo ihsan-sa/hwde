@@ -4749,3 +4749,25 @@ explicitly states "the PC board layout figure shown is viewed from the connector
 (i.e. the same top-down view as a KiCad footprint) and labels "No. 1 circuit" at the leftmost pad.
 Three independent sources (pulled footprint, KiCad system lib, manufacturer PDF) agreeing is what
 "settled, not guessed" looks like for a connector pin-1 call.
+
+## 2026-08-27 [kicad-sch-api][schlib][schematic][bom] Native KiCad `dnp` from a generator is now `Sheet.mark_dnp()` - and the saved-file patch MUST run last, after `write_placements`
+kicad-sch-api 0.5.6 exposes no writable `dnp` field on a schematic symbol: its writer hard-codes
+`(dnp no)` on every instance it emits (the 2026-08-07 entry recorded this as "DNP is unreachable from
+a generator"; g0-sense P4 needed it, because DNP carried only in a custom `Variant` field lets a
+native `kicad-cli bom`/POS export emit THT headers as populate lines into an SMT-only JLC order).
+`schlib.py` now carries `Sheet.mark_dnp(ref)` + `apply_native_dnp(refs, path)`, a saved-file text
+repair in the same shape as the existing `apply_pin_number_fixups` (nearest preceding `(dnp no)`
+before that instance's own `(property "Reference" "<ref>" ...)`; raises on a missing or non-unique
+reference rather than guessing). It is a no-op when nothing is marked, so other boards are unaffected.
+THE ORDERING IS THE TRAP, and it cost one failed attempt: `Sheet.save()` calls
+`schem_refdes.write_placements()` for field placement, and that function round-trips the whole file
+back through `ksa.Schematic.load().save()` whenever ANY field actually moved - which silently
+re-hardcodes `(dnp no)` and erases a dnp patch applied earlier in `save()`. Measured: with the call
+placed before `_place_fields`, J3/J4 came back `(dnp no)` with no error anywhere. Any future
+saved-file repair of a field ksa also writes has the same hazard - apply it AFTER the last ksa
+round-trip in the save path, and grep the written file to prove it stuck.
+Corollary for the BOM side: `bom_cpl.py` resolves assembly class parts.json-first
+(`refdes_class` > line `assembly_class` > the board footprint's own `dnp` attr > `smt_placed`), and
+`refdes_class` is keyed by refdes independently of whether the line carries a `refs` list - so a
+hand-fitted THT header is `refdes_class: {"J3": "hand_install"}` on the part line, and the native
+`dnp` attribute is belt-and-braces for third-party exporters, not the mechanism this pipeline reads.
