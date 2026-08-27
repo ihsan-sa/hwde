@@ -31,6 +31,15 @@ entries headed `SUPERVISOR NOTE`. They are legitimate and already reviewed:
 never revert them, never re-investigate them, do not count their subject matter
 as a board issue. `git log --oneline -5` shows them.
 
+## Headless facts
+
+You run under `claude -p`: the process EXITS the moment your turn ends, and
+anything still running in the background dies with it. Never launch a subagent
+or a script "in the background" and end your turn to wait for it - there is no
+callback. Run agents and long scripts in the foreground and act on their result
+before you stop. If you must stop mid-phase (turn budget), leave state.json
+consistent and journal exactly where the next iteration re-enters.
+
 ## Delegation rules
 
 1. Human checkpoints H1-H4 are DELEGATED to you. At each one: write the packet in
