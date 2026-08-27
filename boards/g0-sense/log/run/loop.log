@@ -13,3 +13,12 @@
   | 
   | I'll report the routing result and journal P7 when the router returns.
 2026-08-27T17:36:16Z iter 3/12 start (/ai-ee --resume boards/g0-sense)
+2026-08-27T20:10:26Z iter 3 end rc=0 err=false turns=224 cost=$58.15938880000003 total=$163.47 phase=P10 commits=yes journal=updated
+  | orktree; all 15 pre-date my work, so the `releaselib` fix I committed introduced no regressions.
+  | 
+  | ## One caveat on the waiver
+  | 
+  | The single error-severity finding on the board (`check_thermal` on U1) is waived, not fixed. I believe it's honest — the checker ignores the 810.9 mm² backside spreader, two vendor tables put the rise inside budget, and no geometry on this outline can satisfy the model — and an independent reviewer ratified it. But it is a judgment call resting on vendor tables rather than a measurement of your board, and it's question 2 in `log/H5.md` for exactly that reason.
+  | 
+  | `fab/README.md` carries the ordering checklist, including two remarks that are unrecoverable if missed: the Sensirion no-wash rules, and asking JLC not to land break-off tabs on the sensor tongue edge.
+2026-08-27T20:10:26Z DONE after 3 iteration(s), $163.47
