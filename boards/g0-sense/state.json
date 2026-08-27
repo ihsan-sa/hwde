@@ -3,8 +3,8 @@
  "board": "g0-sense",
  "workspace": "boards/g0-sense",
  "created": "2026-08-27T06:35:38",
- "updated": "2026-08-27T18:50:45",
- "phase": "P8",
+ "updated": "2026-08-27T19:10:33",
+ "phase": "P9",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -344,6 +344,11 @@
    "status": "approved",
    "ts": "2026-08-27T15:59:22",
    "note": "delegated (unattended): placement approved - gate place 0/0, DRC 0 non-unconnected, size earned 35.79 x 28.34 mm (excess is the SHT40 isolation zone), all four M2 holes kept at zero outline cost, silk 13 -> 0 via the new place_edit silk_clear op plus matching library edits; VBUS pad escape deferred to P7 route_critical with three options costed"
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-08-27T19:10:05",
+   "note": "delegated (unattended): verify PASS 0 failing (8/8 checks ran); 4 of 5 errors fixed on their merits, 1 durable check_thermal waiver ratified by the fresh-context reviewer against two vendor tables; reviewer 0 errors / 3 warnings; silk refdes reclassified to a required P9 move_text fix after the reviewer showed 4 of 6 sit under part bodies"
   }
  },
  "artifacts": {
@@ -763,6 +768,24 @@
    "why": "R2, R1, C10, D2, R10 and D1 carry refdes text that sits 2-3 mm beyond its own pads and closer to a neighbour, so each reads as the neighbour's label. Three reasons to accept them. (1) KiCad's own DRC - the authoritative oracle after P7 - reports ZERO silk findings on this board; this is check_silk's stricter readability heuristic, and the gate treats it as warning severity for exactly that reason. (2) The alternative is measurably worse. P6 already fought this battle down from 13 silk DRC violations to 0, and it needed a new place_edit silk_clear op plus two library edits to do it. That phase also recorded, from a test on a copy, that re-running silk_place on the now-clean board APPLIES BEFORE IT REPORTS, does not roll back, and proposed moves that put D1's Reference back over J1's VBUS pad - trading warnings for real DRC errors. On a 35.79 x 28.34 mm board with 26 parts there is nowhere to move a 0603's refdes except over its own pads. (3) The board is JLC economy PCBA: the machine places the SMD parts, so refdes text serves human debugging and rework, where the part outlines and the assembly drawing disambiguate. Carried to P9/P10: note the crowding in fab/README so the owner is not surprised, and do NOT let a DFM pass 'fix' it by running silk_place.",
    "phase": "P8",
    "ts": "2026-08-27T18:50:45"
+  },
+  {
+   "what": "unattended default: REVISING my earlier P8 stance on the 6 silk_misattributed warnings - they are now a REQUIRED P9 fix (place_edit move_text), not an accepted residual",
+   "why": "The fresh-context verify-reviewer overruled the reason I gave, and it was right to. I accepted the warnings partly on the grounds that refdes text mainly serves human debugging and rework, and that the part outlines disambiguate it. The reviewer measured what actually happens after assembly: four of the six texts end up UNDER part bodies (R1 and R2 under J1's shell, C10 under U2, D1 inside U1's outline). Text under a component body is not ambiguous, it is invisible - which defeats the exact purpose I used to justify accepting it. So the finding is real and worth fixing. HOW IT MUST BE FIXED AT P9, and this is load-bearing: place_edit move_text on individual pin-locked labels ONLY, with a full kicad-cli DRC after each move. Do NOT run silk_place.py on this board - P6 recorded, from a test on a copy, that it APPLIES BEFORE IT REPORTS, does not roll back, and proposed moves that put D1's Reference back over J1's VBUS pad, i.e. it trades warnings for real DRC errors. Do not recreate kicad/silk_ops.json. If a given label has no legal destination on a 35.79 x 28.34 mm board, leaving that one is an acceptable outcome - but it must be the measured exception, not the default for all six.",
+   "phase": "P8",
+   "ts": "2026-08-27T19:08:37"
+  },
+  {
+   "what": "unattended default: carry TWO more P9 obligations from the verify-reviewer - J3/J4 per-pin silk labels, and U3 added to the CPL rotation check list",
+   "why": "(1) SILK PIN LABELS: architecture/blocks.md promises per-pin labels on the two 0.1 in headers (J3 SWD: GND/3V3/SWDIO/SWCLK; J4 UART: GND/3V3/TX/RX) and the board does not have them. These are the two connectors the OWNER hand-wires - the brief calls J4 a readout/logging header - so an unlabelled 4-pin row is a real usability defect and a wrong-way-round UART connection is the predictable consequence. Eight texts to add at P9 with place_edit add_text, DRC-verified, subject to the same 'no legal spot is an acceptable measured exception' rule as the refdes moves. (2) CPL ROTATION: decisions already carry a REQUIRED P9 check that CPL rotation be validated per polarized part for D1 (SOD-123 TVS), D2 and D10 (LEDs) and C3 (tantalum CASE-A), not just J1. The reviewer adds U3, the SHT40 in DFN-4 - a rotated DFN-4 sensor is as dead as a reversed tantalum and the package gives the pick-and-place no mechanical asymmetry to self-correct against. P9 must read dfm_check's polarity/rotation findings for D1, D2, D10, C3 AND U3 explicitly, each confirmed against the footprint pin-1 marking, never accepted as a count.",
+   "phase": "P8",
+   "ts": "2026-08-27T19:08:37"
+  },
+  {
+   "what": "unattended default: carry a P10 ORDER REMARK - ask JLCPCB not to land break-off tabs on the SHT40 sensor tongue's outer edge",
+   "why": "The verify-reviewer flagged that the tongue's outer face (x = 54.75, y 38.05-44.95) is a board edge JLC's internal panelizer may choose for break-off tabs or mouse-bites. That edge is the free end of a cantilever whose whole purpose is to hold the sensor thermally and mechanically isolated from the board; a tab landing there puts depanelization stress directly into the tongue root and leaves a rough breakout beside the sensor aperture. This costs nothing to prevent and cannot be fixed after the fact. It goes in the JLC order remarks alongside the Sensirion assembly rules already carried from P2 (no-clean paste, NO post-assembly board wash, no vapor-phase reflow, no hand rework of the sensor), and into fab/README so the owner can restate it if JLC comes back with a panel proposal.",
+   "phase": "P8",
+   "ts": "2026-08-27T19:08:37"
   }
  ],
  "edits": [
@@ -1049,6 +1072,12 @@
    "ts": "2026-08-27T18:16:29",
    "role": "fixer",
    "model": "opus",
+   "phase": "P8"
+  },
+  {
+   "ts": "2026-08-27T18:52:06",
+   "role": "verify-reviewer",
+   "model": "fable",
    "phase": "P8"
   }
  ],
@@ -1982,6 +2011,39 @@
    "ts": "2026-08-27T18:50:45",
    "event": "decision",
    "what": "unattended default: the 6 check_silk silk_misattributed WARNINGS are accepted and recorded, not fixed - and not waived either, since they do not fail the gate"
+  },
+  {
+   "ts": "2026-08-27T18:52:06",
+   "event": "spawn",
+   "role": "verify-reviewer",
+   "model": "fable"
+  },
+  {
+   "ts": "2026-08-27T19:08:37",
+   "event": "decision",
+   "what": "unattended default: REVISING my earlier P8 stance on the 6 silk_misattributed warnings - they are now a REQUIRED P9 fix (place_edit move_text), not an accepted residual"
+  },
+  {
+   "ts": "2026-08-27T19:08:37",
+   "event": "decision",
+   "what": "unattended default: carry TWO more P9 obligations from the verify-reviewer - J3/J4 per-pin silk labels, and U3 added to the CPL rotation check list"
+  },
+  {
+   "ts": "2026-08-27T19:08:37",
+   "event": "decision",
+   "what": "unattended default: carry a P10 ORDER REMARK - ask JLCPCB not to land break-off tabs on the SHT40 sensor tongue's outer edge"
+  },
+  {
+   "ts": "2026-08-27T19:10:05",
+   "event": "human",
+   "checkpoint": "4",
+   "status": "approved"
+  },
+  {
+   "ts": "2026-08-27T19:10:33",
+   "event": "phase",
+   "phase": "P9",
+   "prev": "P8"
   }
  ]
 }

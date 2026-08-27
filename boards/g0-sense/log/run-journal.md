@@ -386,3 +386,70 @@
   close-out (fab/README + LEARNINGS), not a change of course now: finish P8/P9
   as planned. If a routing pass is redone anyway (fix loop), prefer
   straight/45-degree geometry; do not launch a re-route just for style.
+
+## 2026-08-27 ~19:05Z - iteration 3 (loop 2) - P8 Verification COMPLETE, gate verify PASS, H4 approved
+- **verify PASS, 0 failing** (from 5 errors), 8/8 checks ran with no coverage
+  holes. erc / place / drc_routed / verify ALL pass and fresh at digest 9fa76a1b.
+  A 4th gate refresh was needed because the decoupling.json fix restaled place.
+- FOUR OF FIVE ERRORS WERE FIXED ON THEIR MERITS. Nothing was edited to quiet a
+  gate: constraints.json, .kicad_dru, .kicad_pro, netclasses and gates.yaml are
+  untouched across both P7 and P8 (git-verified).
+  * check_pdn "VBUS has no decoupling capacitors" was a DATA gap, not a board
+    defect. check_pdn never looks at copper - it filters decoupling.json by rail,
+    and that inventory omitted C1, the 100 nF at the connector which
+    constraints.json names as the ONLY capacitance the Type-C 10 uF attach limit
+    permits ahead of the PTC. Confirmed C1 sits on VBUS/GND on the board, measured
+    5.52 mm to J1's VBUS pad (inside check_decoupling's 7.5 mm HF threshold) BEFORE
+    adding it so as not to trade one finding for another. check_decoupling still
+    passes (loop 5.32 nH); the error became the intended pdn_no_bulk warning.
+  * 2x insufficient_transition_vias: 2 vias -> 3 per transition. The fixer measured
+    room first (0 legal cells at netclass clearance in BOTH clusters) and solved by
+    re-arrangement rather than forcing a companion - moved one via, added one on a
+    0.4 mm B.Cu stub, extended the bridge 0.9 mm for the third.
+- THE pour_neckdown "0.10 mm" WAS A CHECKER ARTIFACT, AND I PROVED IT RATHER THAN
+  TAKING THE AGENT'S WORD. check_current erodes each zone fill in isolation while
+  planes_gen deliberately tiles one pour across abutting same-net zones, so a
+  tiling seam reads as a neck. I re-ran the checker's own test on the physical
+  UNION of the VBUS fills plus J1's pad copper: eroded by 0.4 mm - the full 0.8 mm
+  IPC-2152 requirement at the conservative 1.5 A fault basis - each pad still
+  reaches all three of its vias. Narrowest real feature 0.680 mm (bisection), and
+  it gates a 0.33 mm2 DEAD lobe with no via and no pad. So the current-basis lever
+  the remediation reserves for the orchestrator was deliberately NOT pulled: the
+  board meets 1.5 A physically and relaxing constraints would have weakened the
+  record. (Two new LEARNINGS entries: the per-zone defect with the union-erosion
+  method that distinguishes the two, and the check_thermal calibration gap.)
+- ONE DURABLE WAIVER, check_thermal on U1, bound to digest 9fa76a1b +
+  checker_version 1, expiry 2027-08-27. The model credits only same-net TOP copper:
+  144 C/W where AMS1117 p5 Table 1 measured 80, 123 C/W where TI Table 9-2 measured
+  84, against an uncredited 810.9 mm2 B.Cu spreader under U1. At the conservative
+  84 C/W anchor the rise is 42.8 C, INSIDE the declared 45; Tj 82.8 C rated,
+  109.7 C at the abuse case, limit 125. Also proven unreachable - the model needs
+  446.4 mm2 credited, the whole board can only fund 439.9. The pour was still grown
+  171 -> 250 mm2. A B.Cu +3V3 island / thermal vias were rejected on purpose: they
+  carve the ground return of a 2-layer board, trading a PASSING check_return_path
+  for margin the measured data says is not needed.
+- verify-reviewer (fable, fresh context): **0 errors, 3 warnings**. It re-measured
+  rather than trusted - reproduced the thermal miscalibration at both vendor
+  anchors, re-ran the VBUS erosion test independently, confirmed 0.0 mm2 pour in
+  the sensor tongue with exactly 4 necked crossings, and checked every polarity
+  mark is outboard and visible after assembly. Ratified both the thermal waiver
+  and pdn_no_bulk.
+- **THE REVIEWER OVERRULED ME ONCE, CORRECTLY.** I had accepted the 6
+  silk_misattributed warnings, reasoning that part outlines disambiguate refdes for
+  human rework. It measured what I had not: four of the six also sit UNDER part
+  bodies after assembly (R1/R2 under J1's shell, C10 under U2, D1 inside U1's
+  outline) - invisible, not ambiguous, which defeats my own justification. Decision
+  revised on file: required P9 move_text fix, one pin-locked label at a time with
+  DRC after each, and NEVER silk_place.py.
+- Housekeeping: one decision's text was mangled by a backtick triggering shell
+  command substitution inside a double-quoted --why; repaired in place (the tool
+  name `place_edit move_text` had been eaten). Worth remembering for future
+  state.py decision calls - avoid backticks in shell-quoted argument text.
+- Gates: erc, place, drc_routed, verify all PASS and fresh. H4 packet log/H4.md
+  written and approved as delegated. report_gen exit 0. sim gate recorded
+  NOT APPLICABLE with reasoning (no analog fragment; every value-bearing part was
+  already second-read at P2/P3) rather than left a silent gap.
+- Open issues: none (both P8 work orders closed `fixed`). Carried to P9: silk
+  move_text batch + J3/J4 pin labels; CPL rotation per polarized part incl. U3.
+  Carried to P10: JLC order remark to keep break-off tabs off the sensor tongue.
+- Next: P9 DFM (dfm-check recipe, inline), then P10 ordering up to the quote.

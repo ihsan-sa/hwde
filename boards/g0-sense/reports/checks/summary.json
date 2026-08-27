@@ -1,0 +1,384 @@
+{
+ "script": "verify_all",
+ "board": "g0-sense.kicad_pcb",
+ "status": "violations",
+ "counts": {
+  "total": 8,
+  "by_severity": {
+   "error": 1,
+   "warning": 7
+  },
+  "by_source": {
+   "check_thermal": 1,
+   "check_silk": 6,
+   "check_pdn": 1
+  },
+  "by_check": {
+   "check_return_path": 0,
+   "check_current": 0,
+   "check_decoupling": 0,
+   "check_diffpair": 0,
+   "check_creepage": 0,
+   "check_thermal": 1,
+   "check_silk": 6,
+   "check_pdn": 1
+  }
+ },
+ "checks": {
+  "check_return_path": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/g0-sense/reports/checks/check_return_path.json"
+  },
+  "check_current": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/g0-sense/reports/checks/check_current.json"
+  },
+  "check_decoupling": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/g0-sense/reports/checks/check_decoupling.json"
+  },
+  "check_diffpair": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/g0-sense/reports/checks/check_diffpair.json"
+  },
+  "check_creepage": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/g0-sense/reports/checks/check_creepage.json"
+  },
+  "check_thermal": {
+   "status": "violations",
+   "counts": {
+    "total": 1,
+    "by_severity": {
+     "error": 1
+    },
+    "by_source": {
+     "check_thermal": 1
+    }
+   },
+   "report": "boards/g0-sense/reports/checks/check_thermal.json"
+  },
+  "check_silk": {
+   "status": "violations",
+   "counts": {
+    "total": 6,
+    "by_severity": {
+     "warning": 6
+    },
+    "by_source": {
+     "check_silk": 6
+    }
+   },
+   "report": "boards/g0-sense/reports/checks/check_silk.json"
+  },
+  "check_pdn": {
+   "status": "violations",
+   "counts": {
+    "total": 1,
+    "by_severity": {
+     "warning": 1
+    },
+    "by_source": {
+     "check_pdn": 1
+    }
+   },
+   "report": "boards/g0-sense/reports/checks/check_pdn.json"
+  }
+ },
+ "coverage": {
+  "strict": false,
+  "required": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "ran": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "passed": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_silk",
+   "check_pdn"
+  ],
+  "failed": [
+   "check_thermal"
+  ],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ },
+ "violations": [
+  {
+   "check": "check_thermal",
+   "severity": "error",
+   "pos": [
+    34.415,
+    44.6
+   ],
+   "layer": "F.Cu",
+   "net": "+3V3",
+   "refs": [
+    "U1"
+   ],
+   "msg": "U1 dissipates 0.51 W into 250 mm2 of +3V3 copper: ~58 C rise (theta_JA ~113 C/W) > 45 C allowed; grow the +3V3 pour",
+   "source": "check_thermal",
+   "items": [
+    {
+     "msg": "U1 dissipates 0.51 W into 250 mm2 of +3V3 copper: ~58 C rise (theta_JA ~113 C/W) > 45 C allowed; grow the +3V3 pour",
+     "pos": [
+      34.415,
+      44.6
+     ]
+    }
+   ],
+   "kind": "thermal_area",
+   "power_w": 0.51,
+   "area_mm2": 249.8845,
+   "theta_ja": 113.2747,
+   "rise_c": 57.7701,
+   "dt_allowed_c": 45.0
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    24.822,
+    42.75
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "R2"
+   ],
+   "msg": "refdes \"R2\" sits 3.05 mm beyond its own pads and 0.00 mm from J1 - reads as J1's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"R2\" sits 3.05 mm beyond its own pads and 0.00 mm from J1 - reads as J1's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      24.822,
+      42.75
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "R2",
+   "offset_mm": 3.05,
+   "nearest_ref": "J1",
+   "nearest_mm": 0.0
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    36.675,
+    36.0
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "C10"
+   ],
+   "msg": "refdes \"C10\" sits 3.05 mm beyond its own pads and 0.00 mm from U2 - reads as U2's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"C10\" sits 3.05 mm beyond its own pads and 0.00 mm from U2 - reads as U2's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      36.675,
+      36.0
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "C10",
+   "offset_mm": 3.05,
+   "nearest_ref": "U2",
+   "nearest_mm": 0.0
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    43.25,
+    42.925
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "D2"
+   ],
+   "msg": "refdes \"D2\" sits 2.80 mm beyond its own pads and 0.12 mm from C3 - reads as C3's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"D2\" sits 2.80 mm beyond its own pads and 0.12 mm from C3 - reads as C3's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      43.25,
+      42.925
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "D2",
+   "offset_mm": 2.8,
+   "nearest_ref": "C3",
+   "nearest_mm": 0.1205
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    47.028,
+    35.9
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "R10"
+   ],
+   "msg": "refdes \"R10\" sits 2.05 mm beyond its own pads and 0.82 mm from D10 - reads as D10's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"R10\" sits 2.05 mm beyond its own pads and 0.82 mm from D10 - reads as D10's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      47.028,
+      35.9
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "R10",
+   "offset_mm": 2.05,
+   "nearest_ref": "D10",
+   "nearest_mm": 0.825
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    24.822,
+    40.55
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "R1"
+   ],
+   "msg": "refdes \"R1\" sits 3.05 mm beyond its own pads and 0.00 mm from J1 - reads as J1's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"R1\" sits 3.05 mm beyond its own pads and 0.00 mm from J1 - reads as J1's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      24.822,
+      40.55
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "R1",
+   "offset_mm": 3.05,
+   "nearest_ref": "J1",
+   "nearest_mm": 0.0
+  },
+  {
+   "check": "check_silk",
+   "severity": "warning",
+   "pos": [
+    35.6,
+    42.6
+   ],
+   "layer": "F.SilkS",
+   "net": null,
+   "refs": [
+    "D1"
+   ],
+   "msg": "refdes \"D1\" sits 2.75 mm beyond its own pads and 0.00 mm from U1 - reads as U1's label; scripted fix: place_edit.py move_text",
+   "source": "check_silk",
+   "items": [
+    {
+     "msg": "refdes \"D1\" sits 2.75 mm beyond its own pads and 0.00 mm from U1 - reads as U1's label; scripted fix: place_edit.py move_text",
+     "pos": [
+      35.6,
+      42.6
+     ]
+    }
+   ],
+   "kind": "silk_misattributed",
+   "ref": "D1",
+   "offset_mm": 2.7471,
+   "nearest_ref": "U1",
+   "nearest_mm": 0.0
+  },
+  {
+   "check": "check_pdn",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "VBUS",
+   "refs": [
+    "C1"
+   ],
+   "msg": "power rail VBUS has 1 cap(s) but no bulk reservoir (>= 1 uF); only ceramics hold it",
+   "source": "check_pdn",
+   "items": [
+    {
+     "msg": "power rail VBUS has 1 cap(s) but no bulk reservoir (>= 1 uF); only ceramics hold it",
+     "pos": null
+    }
+   ],
+   "kind": "pdn_no_bulk",
+   "rail": "VBUS",
+   "cap_count": 1,
+   "bulk_count": 0
+  }
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-27T18:52:25+00:00",
+ "input": "boards/g0-sense/kicad/g0-sense.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:9fa76a1beecfa20e380a17e3bf188514aa4d99689258c9117302bb923aa7fc96"
+}
