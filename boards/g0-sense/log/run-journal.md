@@ -152,3 +152,22 @@
   relied on - until the comparison says what they actually do.
 - Gates: none passed yet (erc is the next one due). Open issues: the script
   question above. Next: resolve it, then root stitch -> erc -> reviewer -> H2.
+
+## 2026-08-27 10:00Z - SUPERVISOR NOTE 3 (host-side) - the three script edits were MINE, now committed
+- The modifications to lib/env.py, schem_refdes.py and schlib.py seen during
+  iteration 1 were made by the host-side supervisor of this run, not by a
+  subagent. They are now a proper commit on this branch: `git log -1
+  --grep='\[supervisor\]'`. Do not revert or re-investigate them; the
+  run-contract now has a "Supervisor commits" section saying the same.
+- What they do: env.py hands children DISPLAY=:99 (Xvfb) - REQUIRED at P7 for
+  route_auto's Specctra export/import; schem_refdes/schlib strip KiCad-10
+  `private` library properties ksa mangles (not needed by this board's aiee:* +
+  power:* symbols, needed for any Device:* symbol).
+- The 25 `make check` failures you measured are all pre-existing on this
+  branch and unrelated to those files: bench baselines pinned to 10.0.3 (8),
+  10.0.5 DRC/ERC deltas on frozen fixtures (board_update 4, lib_hygiene 3),
+  Windows-only test path hardcodes (plane_repair 4, task_router 1, check_env 1,
+  intake 1), and 3 missing triage rows. All are fixed or documented on the
+  env/linux-container branch (PR #1); do not spend board time on them.
+- Board status unchanged: erc PASS committed (b2758dc). Continue with the
+  schematic reviewer -> H2 -> P5.
