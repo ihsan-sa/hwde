@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # watch-run.sh <ccbox-name> <board> [poll-sec=600] - HOST side. Polls an unattended ai-ee run in a ccbox container and
-# posts to the owner (cc-notify -> Slack #<repo> + ntfy) ONLY at milestones: phase / gate / STATUS / container /
-# usage-limit changes, plus one final report. Posts are short and link the journal (owner rule 2026-08-27: <= 6 bullets,
+# posts to the owner (cc-notify -> Slack #<repo> + ntfy) ONLY at milestones: a phase change, a gate newly PASSING, a
+# usage-limit wait starting, plus one final report (gate fails and other churn stay silent; the title names the milestone). Posts are short and link the journal (owner rule 2026-08-27: <= 6 bullets,
 # long reports in a file). The last milestone key is persisted, so a watcher restart does not re-post an unchanged state.
 set -uo pipefail
 case ":$PATH:" in *":$HOME/bin:"*) ;; *) PATH="$HOME/bin:$PATH";; esac; export PATH   # systemd --user units lack ~/bin (cc-notify)
@@ -22,8 +22,13 @@ digest(){ # <= 4 short bullets; the journal is linked, not pasted
 }
 last=$(cat "$LASTF" 2>/dev/null || true)
 while :; do
-  key; d=$(digest)
+  key; d=$(digest); IFS='|' read -r pphase pgates pst prun plim <<<"$last"
   if [ "$st" != RUNNING ] || [ "$running" != true ]; then cc-notify -p high -t "ai-ee run $BOARD: $st" "$d"; printf '%s' "$k" > "$LASTF"; exit 0; fi
-  if [ "$k" != "$last" ]; then cc-notify -t "ai-ee run $BOARD: $phase${limstate:+ (usage-limit wait)}" "$d"; printf '%s' "$k" > "$LASTF"; last="$k"; fi
+  ev=""   # milestones only: a phase change, a gate newly PASSING, a usage-limit wait starting. Gate fails, limit clearing and other churn stay silent.
+  [ "$phase" != "$pphase" ] && ev="phase $phase"
+  for g in $gates; do case "$g" in *=pass) grep -qw -- "$g" <<<"$pgates" || ev="${ev:+$ev, }gate ${g%=pass} PASS";; esac; done
+  [ "$limstate" = limit-wait ] && [ "$plim" != limit-wait ] && ev="${ev:+$ev, }usage-limit wait"
+  [ -n "$ev" ] && [ -n "$last" ] && cc-notify -t "ai-ee run $BOARD: $ev" "$d"   # an empty $last = first start: record, do not post
+  [ "$k" != "$last" ] && { printf '%s' "$k" > "$LASTF"; last="$k"; }
   sleep "$EVERY"
 done
