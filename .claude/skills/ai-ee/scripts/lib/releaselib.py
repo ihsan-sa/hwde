@@ -216,6 +216,23 @@ def durable_problems(waivers: list[dict], report: dict) -> list[str]:
     return problems
 
 
+def _ws_rel(path: Path, ws: Path) -> str:
+    """Workspace-relative POSIX string, robust to either side being relative.
+
+    `waivers_for_input` returns an ABSOLUTE path when it resolves through the
+    boards/<b> ancestor (the normal governed-workspace case) but a path shaped
+    like its argument otherwise, while `ws` is whatever the caller passed on the
+    command line. Comparing the two directly raised
+    "ValueError: '<abs waiver>' is not in the subpath of '<rel ws>'" for every
+    board carrying a waiver sidecar, which broke `attest.py build` and silently
+    degraded `state.py resume`'s release_disposition to null (2026-08-27,
+    g0-sense - the first attested board with a waiver). Resolve both sides
+    before relativising; the emitted string is unchanged, so attestations
+    written before this fix still verify."""
+    return str(Path(path).resolve()
+               .relative_to(Path(ws).resolve())).replace("\\", "/")
+
+
 def waivers_for_input(input_file: Path) -> Path | None:
     """Default waiver-sidecar resolution shared with gate.py: the board
     WORKSPACE reports/ dir first (where every real waiver file lives, and
@@ -637,7 +654,7 @@ def build(ws: Path,
         "gates": gate_snap,
         "reports": reports_snap,
         "waivers": {
-            "path": (str(waiver_path.relative_to(ws)).replace("\\", "/")
+            "path": (_ws_rel(waiver_path, ws)
                      if waiver_path is not None else None),
             "hash": (statelib.hash_artifact(waiver_path, "json_canonical")
                      if waiver_path is not None else None),
@@ -772,7 +789,7 @@ def verify(ws: Path, att: dict | None = None) -> dict:
                         f"waiver [{w.get('check') or w.get('kind')}]: "
                         f"expired {w.get('expires')}")
     resolved = waivers_for_input(ws / pcb_rel)
-    resolved_rel = (str(resolved.relative_to(ws)).replace("\\", "/")
+    resolved_rel = (_ws_rel(resolved, ws)
                     if resolved is not None else None)
     if resolved_rel != wv.get("path"):
         problems.append(f"waiver resolution changed: attested "
