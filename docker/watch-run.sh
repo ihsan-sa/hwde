@@ -11,7 +11,9 @@ digest(){
   running=$(docker inspect -f '{{.State.Running}}' "$C" 2>/dev/null || echo no)
   cost=$(grep -o 'total=\$[0-9.]*' "$WS/log/run/loop.log" 2>/dev/null | tail -1)
   jt=$(tail -n 12 "$WS/log/run-journal.md" 2>/dev/null | sed 's/^/    /')
-  printf 'board %s: phase %s | loop %s, %s iteration(s) done, %s | container running=%s\ngates: %s\njournal tail:\n%s\n' "$BOARD" "$phase" "$st" "$it" "${cost:-cost n/a}" "$running" "${gates:--}" "$jt"
+  lim=$(tail -n 3 "$WS/log/run/loop.log" 2>/dev/null | grep -o 'LIMIT: .*' | tail -1)   # last line(s) = a usage-limit wait in progress
+  printf 'board %s: phase %s | loop %s, %s iteration(s) done, %s | container running=%s\ngates: %s\n%sjournal tail:\n%s\n' "$BOARD" "$phase" "$st" "$it" "${cost:-cost n/a}" "$running" "${gates:--}" "${lim:+$lim
+}" "$jt"
 }
 while :; do
   d=$(digest); st=$(cat "$WS/log/run/STATUS" 2>/dev/null || echo RUNNING); running=$(docker inspect -f '{{.State.Running}}' "$C" 2>/dev/null || echo false)
