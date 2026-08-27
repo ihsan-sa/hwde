@@ -3,7 +3,7 @@
  "board": "g0-sense",
  "workspace": "boards/g0-sense",
  "created": "2026-08-27T06:35:38",
- "updated": "2026-08-27T13:52:01",
+ "updated": "2026-08-27T15:15:05",
  "phase": "P6",
  "gates": {
   "erc": {
@@ -39,6 +39,57 @@
      "inputs": {
       "sch": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
       "pro": "json_canonical:8ceb42980cb7a7e701710b95ac3576e9edb30ab78b2ae053742a03230a620270"
+     }
+    }
+   ]
+  },
+  "place": {
+   "phase": "P6",
+   "status": "pass",
+   "attempts": 3,
+   "last": {
+    "ts": "2026-08-27T15:15:05",
+    "status": "pass",
+    "failing_count": 0,
+    "total": 0,
+    "inputs": {
+     "pcb": "sexpr_no_uuid:625cb743eb5fd10eaacfa488efb04d86db23598290cb78cdbef2f7bda30862f4",
+     "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+     "decoupling": "json_canonical:7fa38b112290817f0c7137eedfd76b553e51196117ff487af218f3011b297929"
+    }
+   },
+   "history": [
+    {
+     "ts": "2026-08-27T15:06:11",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:0928e625b0bc58d7b94b22ae7d3d5f639d5c119626e86ada618ca3d340f83c0d",
+      "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+      "decoupling": "json_canonical:7fa38b112290817f0c7137eedfd76b553e51196117ff487af218f3011b297929"
+     }
+    },
+    {
+     "ts": "2026-08-27T15:08:50",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:625cb743eb5fd10eaacfa488efb04d86db23598290cb78cdbef2f7bda30862f4",
+      "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+      "decoupling": "json_canonical:7fa38b112290817f0c7137eedfd76b553e51196117ff487af218f3011b297929"
+     }
+    },
+    {
+     "ts": "2026-08-27T15:15:05",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:625cb743eb5fd10eaacfa488efb04d86db23598290cb78cdbef2f7bda30862f4",
+      "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+      "decoupling": "json_canonical:7fa38b112290817f0c7137eedfd76b553e51196117ff487af218f3011b297929"
      }
     }
    ]
@@ -136,6 +187,24 @@
      "human_hold": 2
     }
    ]
+  },
+  "pcb": {
+   "path": "kicad/g0-sense.kicad_pcb",
+   "kind": "pcb",
+   "sha256": "sexpr_no_uuid:625cb743eb5fd10eaacfa488efb04d86db23598290cb78cdbef2f7bda30862f4",
+   "hashed": "2026-08-27T15:15:05"
+  },
+  "constraints": {
+   "path": "kicad/constraints.json",
+   "kind": "constraints",
+   "sha256": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+   "hashed": "2026-08-27T15:15:05"
+  },
+  "decoupling": {
+   "path": "kicad/decoupling.json",
+   "kind": "decoupling",
+   "sha256": "json_canonical:7fa38b112290817f0c7137eedfd76b553e51196117ff487af218f3011b297929",
+   "hashed": "2026-08-27T15:15:05"
   }
  },
  "open_issues": [],
@@ -514,6 +583,12 @@
    "role": "librarian",
    "model": "sonnet/medium",
    "phase": "P5"
+  },
+  {
+   "ts": "2026-08-27T13:52:52",
+   "role": "placement",
+   "model": "fable/high",
+   "phase": "P6"
   }
  ],
  "history": [
@@ -1021,6 +1096,36 @@
    "event": "phase",
    "phase": "P6",
    "prev": "P5"
+  },
+  {
+   "ts": "2026-08-27T13:52:52",
+   "event": "spawn",
+   "role": "placement",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T15:06:11",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 1,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-27T15:08:50",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-27T15:15:05",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 3,
+   "failing_count": 0
   }
  ]
 }
