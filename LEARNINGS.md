@@ -4696,3 +4696,24 @@ aliyuncs) - allowlisting one is an owner decision, not a workaround a run may ta
 that settle assembly questions - "Assembly Process" (SMT/THT) and which tiers (Economic / Standard) can
 place the part. That is how g0-sense resolved whether JLC Economic PCBA can place a Type-C receptacle
 with THT shield legs (C165948: Assembly Process SMT, Economic supported - so the legs are not a blocker).
+
+## 2026-08-27 [librarian][easyeda2kicad][parts] lib_pull footprint_verified:false, deterministic: symbol's Footprint property drops a name suffix that the actual .kicad_mod keeps
+g0-sense P3, pulling SHT40-AD1B-R2 (C2909890, DFN-4-EP 1.5x1.5). `lib_pull.py --parts ...` (batch)
+and a solo `--lcsc C2909890 --overwrite` retry both ended with the SAME error, byte-for-byte:
+`symbol 'SHT40-AD1B-R2' names footprint 'aiee:DFN-4_L1.5-W1.5-P0.8' but no such file exists in
+aiee.pretty | log: .8-TL-EP.kicad_mod` - i.e. easyeda2kicad wrote the real footprint file as
+`DFN-4_L1.5-W1.5-P0.8-TL-EP.kicad_mod` (TL-EP = thermal-land/exposed-pad suffix it appends for
+parts with a center pad) but stamped the symbol's `(property "Footprint" "aiee:DFN-4_L1.5-W1.5-P0.8")`
+without that suffix - a genuine generator-side name-derivation mismatch between its symbol writer and
+footprint writer, not a rate-limit/network flake (retry does not fix it; it is 100% reproducible for
+this part). Net effect: the symbol-to-footprint link is broken even though both halves individually
+exist and load fine (`--verify-load` passes for the .kicad_mod on its own; `fp_verify.py --footprint
+<the real path>.kicad_mod` runs fine too - only the symbol's Footprint *property string* is wrong).
+`lib_pull.py`'s own footprint_verified check IS what catches this - do not ignore an `"error"` entry
+in the per-part results just because `footprint`/`symbol` blocks look present elsewhere in the JSON.
+The fix (one line: correct the Footprint property value in the .kicad_sym to the real filename) is a
+SYMBOL edit, not a footprint geometry edit - the librarian role's "don't hand-edit footprints without
+approval" rule is about pad/silk/courtyard geometry, but this fix was still left for the orchestrator
+since no established repair pattern for this class of bug existed in LEARNINGS.md yet. Likely trigger:
+any pulled part whose footprint name gets a generator-appended suffix (EP/TL-EP/multi-land-class
+disambiguators) is a candidate to re-check the same way.

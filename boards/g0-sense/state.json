@@ -3,7 +3,7 @@
  "board": "g0-sense",
  "workspace": "boards/g0-sense",
  "created": "2026-08-27T06:35:38",
- "updated": "2026-08-27T08:44:37",
+ "updated": "2026-08-27T09:05:34",
  "phase": "P3",
  "gates": {},
  "human": {
@@ -121,6 +121,18 @@
    "why": "The draft record sht4x-i2c-pullup-bus-cap was refuted for recommending 2.2k over its own declared 150-200 pF bus budget: UM10204 Eq 1 at tr=300 ns gives Rp(max) = 354/Cb[pF] kOhm, i.e. 1.77k at 200 pF, so 2.2k needs Cb <= 161 pF and misses the Fast-mode rise time on a cabled Qwiic bus. 1.5k holds the ceiling to 236 pF and clears both floors (967 Ohm from UM10204 Table 10 at 3.3 V/3 mA, 390 Ohm from the SHT4x datasheet). Value independently recomputed by a second reader. architecture/constraints.json and the P4 schematic must use 1.5k.",
    "phase": "P2",
    "ts": "2026-08-27T08:42:51"
+  },
+  {
+   "what": "unattended default: AMS1117 SOT-223 tab is treated as VOUT (+3V3) - the thermal pour is a +3V3 pour, not an isolated island",
+   "why": "The datasheet-extractor honestly refused to assert it: the 'TAB IS OUTPUT' label on page 1 sits against the TO-252 view, and no text restates it for SOT-223. Resolved as tab=VOUT because (a) the datasheet's own 15 C/W junction-to-TAB figure means the tab is the die-attach pad, which on this family's leadframe is the VOUT lead, (b) the KiCad standard symbol/footprint pair the librarian pulls ties tab to VOUT, so schematic and layout agree by construction, and (c) it is the safe direction either way: if the tab were floating, a +3V3 pour on it is still harmless, whereas assuming 'floating' and isolating the copper would throw away the thermal design the 0.51 W design point depends on. Flagged for the schematic reviewer to confirm against the pulled symbol.",
+   "phase": "P3",
+   "ts": "2026-08-27T09:05:28"
+  },
+  {
+   "what": "unattended default: the SHT4x 20 V/ms VDD slew limit needs NO extra bulk capacitance - carried item CLOSED, not escalated",
+   "why": "Two independent second readers read the SHT4x datasheet Table 4 slew row and quoted its condition verbatim: 'Voltage changes on the supply between VDD,min and VDD,max. Faster slew rates may lead to a reset' (min cell empty). That bounds supply changes DURING operation, not the cold-start ramp from 0 V - and a reset during power-on is the intended behaviour anyway (the part has a POR). In operation the 22 uF tantalum on +3V3 holds any load-step slew orders of magnitude below 20 V/ms. Adding bulk to slow a cold start would also fight the USB-C <=10 uF attach limit upstream. No hardware change; note it for bring-up.",
+   "phase": "P3",
+   "ts": "2026-08-27T09:05:28"
   }
  ],
  "edits": [],
@@ -250,6 +262,36 @@
    "role": "research-second-reader",
    "model": "opus/high",
    "phase": "P2"
+  },
+  {
+   "ts": "2026-08-27T08:45:13",
+   "role": "part-sourcer",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-27T08:56:11",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-27T08:56:12",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-27T08:56:12",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high",
+   "phase": "P3"
+  },
+  {
+   "ts": "2026-08-27T09:05:34",
+   "role": "librarian",
+   "model": "sonnet/medium",
+   "phase": "P3"
   }
  ],
  "history": [
@@ -576,6 +618,46 @@
    "event": "phase",
    "phase": "P3",
    "prev": "P2"
+  },
+  {
+   "ts": "2026-08-27T08:45:13",
+   "event": "spawn",
+   "role": "part-sourcer",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-27T08:56:11",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-27T08:56:12",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-27T08:56:12",
+   "event": "spawn",
+   "role": "datasheet-extractor",
+   "model": "sonnet/high"
+  },
+  {
+   "ts": "2026-08-27T09:05:28",
+   "event": "decision",
+   "what": "unattended default: AMS1117 SOT-223 tab is treated as VOUT (+3V3) - the thermal pour is a +3V3 pour, not an isolated island"
+  },
+  {
+   "ts": "2026-08-27T09:05:28",
+   "event": "decision",
+   "what": "unattended default: the SHT4x 20 V/ms VDD slew limit needs NO extra bulk capacitance - carried item CLOSED, not escalated"
+  },
+  {
+   "ts": "2026-08-27T09:05:34",
+   "event": "spawn",
+   "role": "librarian",
+   "model": "sonnet/medium"
   }
  ]
 }

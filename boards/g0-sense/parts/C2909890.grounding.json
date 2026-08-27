@@ -1,0 +1,306 @@
+{
+ "script": "datasheet_extract",
+ "status": "extracted",
+ "source_pdf": "boards/g0-sense/parts/U3_SHT40-AD1B-R2_C2909890.pdf",
+ "lcsc": "",
+ "n_pages": 17,
+ "text_chars": 36328,
+ "pages_trimmed": 5,
+ "text_by_page": [
+  {
+   "page": 0,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 1/17 \nSHT4x  \n4th Generation, High-Accuracy, Ultra-Low-Power, 16-bit  \nRelative Humidity and Temperature Sensor \nFeatures \n\u2022 Relative humidity accuracy: up to \u00b11.5 %RH \n\u2022 Temperature accuracy: up to \u00b10.1 \u00b0C \n\u2022 Supply voltage: 1.08 V \u2026 3.6 V \n\u2022 Average current: 0.4 \u00b5A (at meas. rate 1 Hz) \n\u2022 Idle current: 80 nA \n\u2022 I2C fast mode plus, CRC checksum \n \n\u2022 Operating range: 0\u2026100 %RH, -40\u2026125 \u00b0C \n\u2022 Fully functional in condensing environment \n\u2022 Variable power heater \n\u2022 NIST traceability  \n\u2022 JEDEC JESD47 qualification \n\u2022 Mature technology from global market leader \nGeneral Description  \nSHT4x is a digital sensor platform for measuring relative humidity and temperature at different \naccuracy classes. The I2C interface provides several preconfigured I2C addresses and maintains \nan ultra-low power budget. The power-trimmed internal heater can be used at three heating levels \nthus enabling sensor operation in demanding environments. The four-pin dual-flat-no-leads \npackage is suitable for surface mount technology (SMT) processing. \nDevice Overview Functional Block Diagram \n \n \n \n \n  Full product list on page 15  \nProducts Details \nSHT40-AD1B base RH&T accur., 0x44 I2C addr. \nSHT40-BD1B base RH&T accur., 0x45 I2C addr. \nSHT41-AD1B Intermed. RH&T accur., 0x44 I2C addr. \nSHT45-AD1B \u00b11.5 %RH, \u00b10.1\u00b0C accur., 0x44 I2C addr. \n"
+  },
+  {
+   "page": 1,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 2/17 \nContents \n  \nFeatures ........................................................................................................................................................................ 1 \nGeneral Description ................................................................................................................................................... 1 \nDevice Overview ......................................................................................................................................................... 1 \nFunctional Block Diagram ........................................................................................................................................ 1 \n1 Quick Start \u2013 Hello World ..................................................................................................................................... 3 \n2 Humidity and Temperature Sensor Specifications ....................................................................................... 4 \n2.1 Relative Humidity ............................................................................................................................................ 4 \n2.2 Temperature ..................................................................................................................................................... 5 \n2.3 Recommended Operating Conditions ...................................................................................................... 6 \n3 Electrical Specifications ........................................................................................................................................ 6 \n3.1 Electrical Characteristics .............................................................................................................................. 7 \n3.2 Timings ............................................................................................................................................................... 7 \n3.3 Absolute Maximum Ratings ......................................................................................................................... 8 \n4 Sensor Operation .................................................................................................................................................... 8 \n4.1 I2C communication ......................................................................................................................................... 8 \n4.2 Data type & length .......................................................................................................................................... 9 \n4.3 Checksum Calculation ................................................................................................................................... 9 \n4.4 Command Overview .................................................................................................................................... 10 \n4.5 Conversion of Signal Output ..................................................................................................................... 10 \n4.6 Serial number ................................................................................................................................................. 11 \n4.7 Reset & Abort ................................................................................................................................................. 11 \n4.8 Heater Operation........................................................................................................................................... 11 \n5 Physical Specification .......................................................................................................................................... 12 \n5.1 Package Description .................................................................................................................................... 12 \n5.2 Package Outline ............................................................................................................................................ 12 \n5.3 Land Pattern ................................................................................................................................................... 12 \n5.4 Pin Assignment & Laser Marking ............................................................................................................. 13 \n5.5 Thermal Information ..................................................................................................................................... 14 \n6 Quality and Material Contents........................................................................................................................... 14 \n7 Tape and Reel Packaging .................................................................................................................................. 14 \n8 Product Name Nomenclature ............................................................................................................................ 15 \n9 Ordering Information ............................................................................................................................................ 15 \n10 Bibliography .......................................................................................................................................................... 15 \n11 Revision History .................................................................................................................................................. 16 \n \n  \n"
+  },
+  {
+   "page": 2,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 3/17 \n1 Quick Start \u2013 Hello World \nA typical application circuit for SHT4x is shown on the left -hand side of Figure 1. After reaching \nthe minimal supply voltage and allowing for the maximal power-up time of 1 ms the sensor is ready \nfor I2C communication. The quickest way to measure humidity and temperature is pseudo-coded \non the right-hand side of Figure 1. Together with the conversion formulae given in equations ( 1 ), \n( 2 ), and ( 3 ), the digital signals can be translated into relative humidity and temperature readings. \n \nTypical application circuit \n \n \nPseudo code \n \n  i2c_write(i2c_addr=0x44, tx_bytes=[0xFD]) \n  wait_seconds(0.01) \n  rx_bytes = i2c_read(i2c_addr=0x44,                            \n  number_of_bytes=6) \n  t_ticks = rx_bytes[0] * 256 + rx_bytes[1] \n  checksum_t = rx_bytes[2] \n  rh_ticks = rx_bytes[3] * 256 + rx_bytes[4] \n  checksum_rh = rx_bytes[5] \n  t_degC = -45 + 175 * t_ticks/65535 \n  rh_pRH = -6 + 125 * rh_ticks/65535 \n  if (rh_pRH > 100):  \n        rh_pRH = 100 \n  if (rh_pRH < 0): \n        rh_pRH = 0 \n \nFigure 1: Typical application circuit (left) and pseudo code (right) for easy starting. For details on \nthe signal cropping in the last four lines see section 4.5. \n \nFind code re sources and embedded drivers on: https://github.com/Sensirion/embedded-\nsht/releases  \n \nCAD files can be downloaded from SnapEDA : https://www.snapeda.com/parts/SHT40-AD1B-\nR3/Sensirion/view-part/ \n \n  \n"
+  },
+  {
+   "page": 3,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 4/17 \n2 Humidity and Temperature Sensor Specifications \nEvery SHT4x is individually tested and calibrated and is identifiable by its unique serial number  \n(see section 4.6 for details on the serial number) . For the calibration, Sensirion uses transfer \nstandards, which are subject to a scheduled calibration procedure. The calibration of the reference, \nused for the calibration of the transfer standards, is NIST traceable through an ISO/IEC  17025 \naccredited laboratory. \n2.1 Relative Humidity \nParameter Conditions Value Units \nSHT40 RH accuracy1 typ. \uf0b11.8 %RH \nmax. see Figure 2 - \nSHT41 RH accuracy1 typ. \uf0b11.8 %RH \nmax. See Figure 3 - \nSHT45 RH accuracy1 typ. \uf0b11.5 %RH \nmax. tbd - \nRepeatability2, 3 \nhigh 0.08 %RH \nmedium 0.15 %RH \nlow 0.25 %RH \nResolution4 - 0.01 %RH \nHysteresis - \uf0b11 %RH \nSpecified range5 extended6 0 to 100 %RH \nResponse time7 t63% 6 s \nLong-term drift8 typ. <0.25 %RH/y \nTable 1: General relative humidity sensor specifications. \n \n \n \nFigure 2: SHT40 typical and maximal relative \nhumidity accuracy at 25 \u00b0C. \n Figure 3: SHT41 typical and maximal relative \nhumidity accuracy at 25 \u00b0C. \n \n \n1 For definition of typ. and max. accuracy, please refer to the document \u201cSensirion Humidity Sensor Specification Statement\u201d. \n2 The stated repeatability is 3 times the standard deviation (3\u03c3) of multiple consecutive measurement values at constant conditions and is a measure for the noise \non the physical sensor output. Different repeatability commands are listed in Table 7. \n3 Valid for 25\u00b0C and 50%RH. \n4 Resolution of A/D converter. \n5 Specified range refers to the range for which the humidity or temperature sensor specification is guaranteed. \n6 For details about recommended humidity and temperature operating range, please refer to section 2.3. \n7 Time for achieving 63% of a humidity step function, measured at 25\u00b0C and 1 m/s airflow. Humidity response time in the application depends on the design-in of the \nsensor. \n8 Typical value for operation in normal RH/T operating range. Max. value is < 0.5 %RH/y. Value may be higher in environments with vaporized solvents, out-gassing \ntapes, adhesives, packaging materials, etc. For more details please refer to Handling Instructions. \n\u00b10\n\u00b12\n\u00b14\n\u00b16\n\u00b18\n0 10 20 30 40 50 60 70 80 90 100\nRelative Humidity (%RH)\nSHT40 typ\nSHT40 max\nDRH (%RH)\n\u00b10\n\u00b12\n\u00b14\n\u00b16\n\u00b18\n0 10 20 30 40 50 60 70 80 90 100\nRelative Humidity (%RH)\nSHT41 typ\nSHT41 max\nDRH (%RH)\n"
+  },
+  {
+   "page": 4,
+   "first_line": "www.sensirion.com / D1 Version 2 \u2013 July 2021 5/17",
+   "chars": 1478
+  },
+  {
+   "page": 5,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 6/17 \n \n \n \nFigure 6: SHT40 typical and maximal \ntemperature accuracy. \n Figure 7: SHT41 typical and maximal \ntemperature accuracy. \n2.3 Recommended Operating Conditions \nThe sensor shows best performance when operated within the recommended normal temperature \nand humidity range of 5 \u00b0C \u2026 60 \u00b0C and 20 %RH \u2026 80 %RH, respectively. Long term exposure to \nconditions outside recommended normal range, especially at high relative humidity, may \ntemporarily offset the RH signal (e.g. +3  %RH after 60 h at >  80 %RH). After returning into the \nrecommended normal temperature and humidity range the sensor will recover to within \nspecifications by itself. Prolonged exposure to extreme conditions may accelerate ageing. \nTo ensure stable operation of th e humidity sensor, the conditions described in the document  \n(Sensirion, 2020) regarding exposure to volatile organic compounds must be met. Please note as \nwell that this does apply not only to transportation and manufacturing, but also to operation of the \nSHT4x. \n3 Electrical Specifications \nValid for all electrical specifications: Typical values correspond to VDD = 3.3 V and T = 25 \u00b0C. Min. \nand max. values are valid in the full temperature range -40 \u00b0C \u2026 125 \u00b0C and at declared VDD levels. \n\u00b10.0\n\u00b10.2\n\u00b10.4\n\u00b10.6\n\u00b10.8\n\u00b11.0\n-40 -20 0 20 40 60 80 100 120\nTemperature (\u00b0C)\nSHT40 typ\nSHT40 max\nDT (\u00b0C)\n\u00b10.0\n\u00b10.2\n\u00b10.4\n\u00b10.6\n\u00b10.8\n\u00b11.0\n-40 -20 0 20 40 60 80 100 120\nTemperature (\u00b0C)\nSHT41 typ\nSHT41 max\nDT (\u00b0C)"
+  },
+  {
+   "page": 6,
+   "first_line": "www.sensirion.com / D1 Version 2 \u2013 July 2021 7/17",
+   "chars": 1598
+  },
+  {
+   "page": 7,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 8/17 \nParameter Symbol Conditions Min. Typ. Max. Units Comments \nPower-up time tPU After hard reset, \nVDD \u2265 VPOR - 0.3 1 ms \nTime between VDD \nreaching VPOR and \nsensor entering idle \nstate \nSoft reset time tSR After soft reset - - 1 ms \nTime between ACK of \nsoft reset command and \nsensor entering idle \nstate. Also valid for I2C \ngeneral call reset.  \nMeasurement \nduration \ntMEAS,l Low \nrepeatability - 1.3 1.7 ms The three repeatability \nmodes differ with \nrespect to measurement \nduration, noise level and \nenergy consumption \ntMEAS,m Med. \nrepeatability - 3.7 4.5 ms \ntMEAS,h High \nrepeatability - 6.9 8.2 ms \nHeater-on duration tHeater \nLong pulse 0.9 1 1.1 s \nAfter that time the heater \nis automatically switched \noff \nShort pulse 0.09 0.1 0.11 s \nAfter that time the heater \nis automatically switched \noff \nTable 4 System timing specifications. \n3.3 Absolute Maximum Ratings \nStress levels beyond those listed in Table 5 may cause permanent damage or affect the reliability \nof the device. These are stress ratings only and functional operation of the device at these \nconditions is not guaranteed. Ratings are only tested each at a time. \n \nParameter Rating \nMax. voltage on any pin  VSS - 0.3 V \u2026 VDD + 0.3 V \nOperating temperature range -40 \u00b0C \u2026 125 \u00b0C \nStorage temperature range11 -40 \u00b0C \u2026150 \u00b0C \nESD HBM 2 kV \nESD CDM 500 V \nLatch up, JESD78 Class II, 125\u00b0C +-100 mA \nTable 5: Absolute maximum ratings. \n4 Sensor Operation \n4.1 I2C communication  \nI2C communication is based on NXP\u2019s I2C-bus specification and user manual UM10204, Rev.6, 4 \nApril 2014. Supported I2C modes are standard, fast mode, and fast mode plus. Data is transferred \nin multiples of 16 -bit words and 8-bit checksum (cyclic redundancy check = CRC). All transfers \nmust begin with a start condition (S) and terminate with a stop condition (P). To finish a read \ntransfer, send not acknowledge (NACK) and stop condition (P). Addressing a specific slave device \nis done by sending its 7 -bit I2C address followed by an eight h bit, denoting the communication \ndirection: \u201czero\u201d indicates transmission to the slave, i.e. \u201cwrite\u201d, a \u201cone\u201d indicates a \u201cread\u201d request. \nSchematics of the I2C transfer types are sketched in Figure 8. The sensor does not support clock-\nstretching. In case the sensor receives a read header and is still busy with e.g. measurement or \n \n11 The recommended storage temperature range is 10-50\u00b0C. Please consult the document \u201cSHTxx Handling Instructions\u201d for more information.  \n"
+  },
+  {
+   "page": 8,
+   "first_line": "www.sensirion.com / D1 Version 2 \u2013 July 2021 9/17",
+   "chars": 1361
+  },
+  {
+   "page": 9,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 10/17 \n4.4 Command Overview \nCommand \n(hex) \nResponse length \nincl. CRC (bytes) \nDescription \n[return values] \n0xFD 6 measure T & RH with high precision (high repeatability) \n[2 * 8-bit T-data; 8-bit CRC; 2 * 8-bit RH-data; 8-bit CRC] \n0xF6 6 measure T & RH with medium precision (medium repeatability)  \n[2 * 8-bit T-data; 8-bit CRC; 2 * 8-bit RH-data; 8-bit CRC] \n0xE0 6 measure T & RH with lowest precision (low repeatability) \n[2 * 8-bit T-data; 8-bit CRC; 2 * 8-bit RH-data; 8-bit CRC]  \n0x89 6 read serial number \n[2 * 8-bit data; 8-bit CRC; 2 * 8-bit data; 8-bit CRC] \n0x94 - soft reset \n[ACK] \n0x39 6 \nactivate heater with 200mW for 1s, including a high precision \nmeasurement just before deactivation \n[2 * 8-bit T-data; 8-bit CRC; 2 * 8-bit RH-data; 8-bit CRC] \n0x32 6 \nactivate heater with 200mW for 0.1s including a high precision \nmeasurement just before deactivation \n[2 * 8-bit T-data; 8-bit CRC; 2 * 8-bit RH-data; 8-bit CRC] \n0x2F 6 \nactivate heater with 110mW for 1s including a high precision \nmeasurement just before deactivation \n[2 * 8-bit T-data; 8-bit CRC; 2 * 8-bit RH-data; 8-bit CRC] \n0x24 6 \nactivate heater with 110mW for 0.1s including a high precision \nmeasurement just before deactivation \n[2 * 8-bit T-data; 8-bit CRC; 2 * 8-bit RH-data; 8-bit CRC] \n0x1E 6 \nactivate heater with 20mW for 1s including a high precision \nmeasurement just before deactivation \n[2 * 8-bit T-data; 8-bit CRC; 2 * 8-bit RH-data; 8-bit CRC] \n0x15 6 \nactivate heater with 20mW for 0.1s including a high precision \nmeasurement just before deactivation \n[2 * 8-bit T-data; 8-bit CRC; 2 * 8-bit RH-data; 8-bit CRC] \nTable 7 Overview of I2C commands. If the sensor is not ready to process a command, e.g. because it is still \nmeasuring, it will response with NACK to the I2C read header . Given heater power values are typical and \nvalid for VDD=3.3V. \n4.5 Conversion of Signal Output \nThe digital sensor signals correspond to following humidity and temperature values: \n \ud835\udc45\ud835\udc3b = (\u22126 + 125 \u2219 \ud835\udc46\ud835\udc45\ud835\udc3b\n216 \u2212 1) %RH ( 1 ) \n \ud835\udc47 = (\u221245 + 175 \u2219 \ud835\udc46\ud835\udc47\n216 \u2212 1) \u00b0C ( 2 ) \n \ud835\udc47 = (\u221249 + 315 \u2219 \ud835\udc46\ud835\udc47\n216 \u2212 1) \u00b0F ( 3 ) \nN.B.: The RH conversion formula ( 1) allows values to be reported which are outside of the range \nof 0 %RH \u2026 100 %RH. Relative humidity values which are smaller than 0  %RH and larger than \n100 %RH are non-physical, however these \u201cuncropped\u201d values might be found beneficial in some \ncases (e.g. when the distribution of the sensors at the measurement boundaries are of interest) . \nFor all users who do  not want to engage in evaluation of these non -physical values, cropping of \nthe RH signal to the range of 0 %RH \u2026 100 %RH is advised. "
+  },
+  {
+   "page": 10,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 11/17 \n4.6 Serial number  \nEach sensor has a unique serial number, that is assigned by Sensirion during production.  It is \nstored in the one -time-programmable memory and cannot be manipulated after production.  The \nserial number is accessible via I2C command 0x89 and is transmitted as two 16 -bit words, each \nfollowed by an 8-bit CRC.  \n \n4.7 Reset & Abort \nA reset of the sensor can be achieved in three ways: \n\u2022 Soft reset: send the reset command described in Table 7. \n\u2022 I2C general call reset: all devices on I2C bus are reset by sending the command 0x06 to \nthe I2C address 0x00. \n\u2022 Power down (incl. pulling SCL and SDA low)  \nAny command that triggers an action at the sensor can be aborted via I2C general call reset or soft \nreset. \n4.8 Heater Operation \nThe sensor incorporates an integrated on-chip heater which can be switched on by the set of \ncommands given in Table 7. Three heating powers and two heating durations are selectable. After \nreception of a heater-on command, the sensor executes the following procedure:  \n1. The heater is enabled and the timer starts its count-down \n2. On timer expiration a temperature and humidity measurement with the highest repeatability \nis started, the heater remains enabled  \n3. After the measurement is finished the heater is turned off \n4. Temperature and humidity values are now available \nThe maximum on-time of the heater commands is 1 second, in order to prevent overheating of the \nsensor by unintended usage of the heater. Thus, there is no dedicated command to turn off the \nheater. For extended heating periods it is required to send periodic heater-on commands, keeping \nin mind that the heater is designed f or a maximal duty cycle of less than 5% . To obtain a fast \nincrease in temperature the idle time between consecutive heating pulses shall be kept minimal.  \nPossible Heater Use Cases \nThere will be dedicated Sensirion application notes elaborating on various use cases of the \nheater. In general, the applications of the on-chip heater range around:  \n1. Removal of condensed / spray water on the sensor surface. Although condensed water is \nnot a reliability / quality problem to the sensor, it will however make the sensor non-\nresponsive to RH changes in the air as long as there is liquid water on the surface. \n2. Creep-free operation in high humid environments. Periodic heating pulses allow for creep-\nfree high-humidity measurements for extended times. \n \nImportant notes for operating the heater: \n1. The heater is designed for a maximum duty cycle of 5%, meaning the total heater-on-time \nshould not be longer than 5% of the sensor\u2019s lifetime.  \n2. During operation of the heater, sensor specifications are not valid.  \n3. The temperature sensor can additionally be affected by the thermally induced mechanical \nstress, offsetting the temperature reading from the actual temperature. \n4. The sensor\u2019s temperature (base temperature + temperature increase from heater) must \nnot exceed Tmax = 125 \u00b0C in order to have proper electrical functionality of the chip. \n5. The heater draws a large amount of current once enabled (up to ~75mA in the highest \npower setting). Although a dedicated circuitry draws this current smoothly, the power \n"
+  },
+  {
+   "page": 11,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 12/17 \nsupply has to be strong enough to avoid large voltage drops that could provoke a sensor \nreset. \nIf higher heating temperatures are desired, consecutive heating commands have to be sent to the \nsensor. The heater shall only be operated in ambient temperatures below 65\u00b0C else it could drive \nthe sensor outside of its maximal operating temperature. \n5 Physical Specification \n5.1 Package Description \nSHT4x is provided in an open-cavity dual flat no lead (DFN) package. The humidity sensor opening \nis centered on the top side of the package. The sensor chip is made of silicon, hosted on a copper \nlead frame and overmolded by an epoxy -based mold compound. Exposed bottom side  of the \nleadframe with the metallic contacts is Ni/Pd/Au coated, side walls are bare copper.  \nMoisture sensitivity level (MSL) of 1 according to IPC/JEDEC J -STD-020 is achieved. It is \nrecommended to process the sensors within one year after date of delivery.  \n5.2 Package Outline \n \nFigure 9 Dimensional drawing of SHT4x including package tolerances (units mm). \n5.3 Land Pattern \nThe land pattern is recommended to be designed according to the used PCB and soldering process \ntogether with the physical outer dimensions of the sensor. For reference, the land pattern used with \nSensirion\u2019s PCBs and soldering processes is given in Figure 10.  \nSoldering of the central die pad is optional. Sensirion recommends to not solder the central die pad \nbecause the sensor can reach higher temperatures upon heater activation. \n"
+  },
+  {
+   "page": 12,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 13/17 \n \nFigure 10: Recommended land pattern \n(in mm). Details can vary and depend on \nused PCBs and solder processes. There \nshall be no copper under the sensor \nother than at the pin pads. \n5.4 Pin Assignment & Laser Marking \n   \n \nPin Name Comments \n1 SDA Serial data, bidirectional \n2 SCL Serial clock, unidirectional input \n3 VDD Supply voltage \n4 VSS Ground \n   \nFigure 11 Pin assignment (transparent top view). Dashed lines are only visible if sensor is viewed \nfrom below. The die pad is not directly connected to any pin. \nThe laser marking consists of two lines, indicated in Figure 11. In the first line a filled circle serves \nas pin-1 indicator and is followed by \u201cSH4\u201d. The last character will indicate the accuracy class of \nthis product (here \u201cx\u201d serves as place holder). In the second line, the first three characters specify \nthe product characteristics according  to positions 7,8 and 9 of Table 9. The second thre e \ncharacters serve as internal batch tracking code. \n"
+  },
+  {
+   "page": 13,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 14/17 \n5.5 Thermal Information \nSymbol Description \nHeater off, die \npad soldered \n(K/W) \nHeater on, die \npad soldered \n(K/W) \nHeater off, die \npad \n not soldered \n(K/W) \nHeater on, die \npad  \nnot soldered \n(K/W) \n\ud835\udc45\ud835\udf03\ud835\udc3d\ud835\udc34 Junction-to-ambient \nthermal resistance 246 308 297 357 \n\ud835\udc45\ud835\udf03\ud835\udc3d\ud835\udc36 Junction-to-case \nthermal resistance 189 255 191 257 \n\ud835\udc45\ud835\udf03\ud835\udc3d\ud835\udc35 Junction-to-board \nthermal resistance 159 225 193 258 \n\u03a8\ud835\udc3d\ud835\udc35 \nJunction-to-board \ncharacterization \nparam. \n159 223 191 254 \n\u03a8\ud835\udc3d\ud835\udc47 \nJunction-to-top \ncharacterization \nparam. \n38 105 44 112 \nTable 8 Typical values for thermal metrics. In the \u201cheater on\u201d columns a heater power of 200  mW was \nassumed. Soldering of the die pad is not recommended, therefore the two right hand side columns are bold. \nValues are based on simulation.  \n6 Quality and Material Contents \nQualification of SHT4x is performed based on the JEDEC JESD47 qualification test method, \nqualification report available on request. The device is fully RoHS and WEEE compliant, e.g. free \nof Pb, Cd, and Hg. \nFor general remarks of best practice in processing hum idity sensor please refer to the hand ling \ninstructions (Sensirion, 2020). \n7 Tape and Reel Packaging \nAll specifications for the tape and reel packaging can be found on Figure 12. Reel diameters are \n13 inch and 8 inch for the 10k and the 2.5k packaging sizes, respectively.  \n \nFigure 12: Tape and reel specifications including sensor orientation in pocket (see indication of two sensors \non the right side of the tape). \n"
+  },
+  {
+   "page": 14,
+   "first_line": "www.sensirion.com / D1 Version 2 \u2013 July 2021 15/17",
+   "chars": 1415
+  },
+  {
+   "page": 15,
+   "first_line": "www.sensirion.com / D1 Version 2 \u2013 July 2021 16/17",
+   "chars": 735
+  },
+  {
+   "page": 16,
+   "text": " \nwww.sensirion.com / D1 Version 2 \u2013 July 2021 17/17 \nImportant Notices \nWarning, Personal Injury\nDo not use this product as safety or emergency stop devices or in any other application where failure of the product could result \nin personal injury. Do not use this product for applications other than its intended and authorized use. Before installing, \nhandling, using or servicing this product, please consult the data sheet and application notes. Failure to comply with these \ninstructions could result in death or serious injury. \nIf the Buyer shall purchase or use SENSIRION products for any unintended or unauthorized application, Buyer shall defend, indemnify and \nhold harmless SENSIRION and its officers, employees, subsidiaries, affiliates and distributors against all claims, costs, damages and \nexpenses, and reasonable attorney fees arising out of, directly or indirectly, any claim of personal injury or death associated with such \nunintended or unauthorized use, even if SENSIRION shall be allegedly negligent with respect to the design or the manufacture of the \nproduct. \nESD Precautions \nThe inherent design of this component causes it to be sensitive to electrostatic discharge (ESD). To prevent ESD-induced damage and/or \ndegradation, take customary and statutory ESD precautions when handling this product. \nSee application note \u201cESD, Latchup and EMC\u201d for more information. \nWarranty \nSENSIRION warrants solely to the original purchaser of this product for a period of 12 months (one year) from the date of delivery that this \nproduct shall be of the quality, material and workmanship defined in SENSIRION\u2019s published specifications of the product. Within such \nperiod, if proven to be defective, SENSIRION shall repair and/or replace this product, in SENSIRION\u2019s discretion, free of charge to the \nBuyer, provided that: \n\u2022 notice in writing describing the defects shall be given to SENSIRION within fourteen (14) days after their appearance;  \n\u2022 such defects shall be found, to SENSIRION\u2019s reasonable satisfaction, to have arisen from SENSIRION\u2019s faulty design, material, or \nworkmanship;  \n\u2022 the defective product shall be returned to SENSIRION\u2019s factory at the Buyer\u2019s expense; and \n\u2022 the warranty period for any repaired or replaced product shall be limited to the unexpired portion of the original period. \nThis warranty does not apply to any equipment which has not been installed and used within the specifications recommended by \nSENSIRION for the intended and proper use of the equipment. EXCEPT FOR THE WARRANTIES EXPRESSLY SET FORTH HEREIN, \nSENSIRION MAKES NO WARRANTIES, EITHER EXPRESS OR IMPLIED, WITH RESPECT TO THE PRODUCT. ANY AND ALL \nWARRANTIES, INCLUDING WITHOUT LIMITATION, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR \nPURPOSE, ARE EXPRESSLY EXCLUDED AND DECLINED. \nSENSIRION is only liable for defects of this product arising under the conditions of operation provided for in the data sheet and proper use \nof the goods. SENSIRION explicitly disclaims all warranties, express or implied, for any period during which the goods are operated or \nstored not in accordance with the technical specifications. \nSENSIRION does not assume any liability arising out of any application or use of any product or circuit and specifically disclaims any and \nall liability, including without limitation consequential or incidental damages. All operating parameters, including without limitation \nrecommended parameters, must be validated for each customer\u2019s applications by customer\u2019s technical experts. Recommended \nparameters can and do vary in different applications. \nSENSIRION reserves the right, without further notice, (i) to change the product specifications and/or the information in this document and \n(ii) to improve reliability, functions and design of this product. \nCopyright \u00a9 2021, by SENSIRION. CMOSens\u00ae is a trademark of Sensirion. All rights reserved \nHeadquarters and Subsidiaries \nSensirion AG \nLaubisruetistr. 50 \nCH-8712 Staefa ZH \nSwitzerland \n \nphone: +41 44 306 40 00 \nfax: +41 44 306 40 30 \ninfo@sensirion.com \nwww.sensirion.com \nSensirion Inc., USA \nphone: +1 312 690 5858 \ninfo-us@sensirion.com \nwww.sensirion.com \nSensirion Korea Co. Ltd. \nphone: +82 31 337 7700~3 \ninfo-kr@sensirion.com \nwww.sensirion.com/kr \nSensirion Japan Co. Ltd.  \nphone: +81 3 3444 4940 \ninfo-jp@sensirion.com \nwww.sensirion.com/jp \nSensirion China Co. Ltd. \nphone: +86 755 8252 1501 \ninfo-cn@sensirion.com \nwww.sensirion.com/cn \nSensirion Taiwan Co. Ltd \nphone: +886 3 5506701 \ninfo@sensirion.com \nwww.sensirion.com \nTo find your local representative, please visit www.sensirion.com/distributors \n \n "
+  }
+ ],
+ "schema": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-ee datasheet extraction",
+  "type": "object",
+  "required": [
+   "mpn",
+   "pinout"
+  ],
+  "additionalProperties": false,
+  "properties": {
+   "mpn": {
+    "type": "string",
+    "minLength": 1
+   },
+   "lcsc": {
+    "type": "string"
+   },
+   "package": {
+    "type": "string"
+   },
+   "description": {
+    "type": "string"
+   },
+   "pinout": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pin",
+      "name",
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pin": {
+       "type": "string",
+       "minLength": 1
+      },
+      "name": {
+       "type": "string",
+       "minLength": 1
+      },
+      "type": {
+       "type": "string",
+       "enum": [
+        "power_in",
+        "power_out",
+        "ground",
+        "input",
+        "output",
+        "bidirectional",
+        "passive",
+        "analog",
+        "clock",
+        "nc",
+        "open_collector",
+        "tristate",
+        "unspecified"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "decoupling": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "pins",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "pins": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1
+      },
+      "value": {
+       "type": "string",
+       "minLength": 1
+      },
+      "placement": {
+       "type": "string"
+      },
+      "notes": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "land_pattern": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pad_count"
+    ],
+    "properties": {
+     "package": {
+      "type": "string"
+     },
+     "pad_count": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "pitch_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "pad_size_mm": {
+      "type": "array",
+      "items": {
+       "type": "number",
+       "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "row_spacing_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "drill_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "annulus_mm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+     },
+     "courtyard_excess_mm": {
+      "type": "number",
+      "minimum": 0
+     },
+     "pin1": {
+      "type": "string",
+      "description": "pad number that is pin 1 (default '1')"
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   },
+   "exposed_pad": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "present": {
+      "type": "boolean"
+     },
+     "connect_to": {
+      "type": "string"
+     },
+     "thermal_vias": {
+      "type": "integer",
+      "minimum": 0
+     }
+    },
+    "required": [
+     "present"
+    ]
+   },
+   "layout_notes": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   },
+   "abs_max": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "required": [
+      "param",
+      "value"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "param": {
+       "type": "string"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ]
+      },
+      "unit": {
+       "type": "string"
+      }
+     }
+    }
+   },
+   "source_pdf": {
+    "type": "string"
+   }
+  }
+ },
+ "template": {
+  "mpn": "",
+  "lcsc": "",
+  "package": "",
+  "pinout": [
+   {
+    "pin": "1",
+    "name": "",
+    "type": "unspecified"
+   }
+  ],
+  "decoupling": [],
+  "land_pattern": {
+   "pad_count": 0
+  },
+  "layout_notes": [],
+  "abs_max": []
+ },
+ "note": "Fill the template from text_by_page and the PDF pages, then re-run with --validate. Pages without schema-relevant keywords are stubs {page, first_line, chars} - read those PDF pages directly if needed, or re-run with --full-text. If text_chars is ~0 the PDF is image-only; read the rendered pages directly."
+}
