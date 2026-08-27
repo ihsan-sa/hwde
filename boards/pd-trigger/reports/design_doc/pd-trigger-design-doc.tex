@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries pd-trigger --- Design Document}\\[6pt]
 {\large ai-ee v1 pipeline}\\[2pt]
-generated 2026-08-20 03:39:36
+generated 2026-08-27 09:31:33
 \end{center}
 \tableofcontents
 
@@ -723,13 +723,13 @@ corrections from ground truth.
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 25,484 B &  \\
+\texttt{state.json} & 24,428 B &  \\
 \texttt{kicad/pd-trigger.kicad\_pcb} & 234,842 B &  \\
-\texttt{kicad/pd-trigger.kicad\_sch} & 150,179 B &  \\
+\texttt{kicad/pd-trigger.kicad\_sch} & 141,300 B &  \\
 \texttt{fab/pd-trigger\_gerbers.zip} & 38,673 B & sha256 ac8e03ac89de8d2b... \\
-\texttt{fab/order.json} & 3,717 B &  \\
-\texttt{fab/BOM.csv} & 953 B &  \\
-\texttt{fab/CPL.csv} & 1,017 B &  \\
+\texttt{fab/order.json} & 3,626 B &  \\
+\texttt{fab/BOM.csv} & 927 B &  \\
+\texttt{fab/CPL.csv} & 986 B &  \\
 \texttt{brief/brief.md} & 832 B &  \\
 \texttt{requirements.md} & 11,271 B &  \\
 \texttt{architecture/blocks.md} & 13,604 B &  \\
@@ -738,59 +738,58 @@ corrections from ground truth.
 \texttt{architecture/power\_tree.md} & 9,068 B &  \\
 \texttt{architecture/sheets.md} & 8,918 B &  \\
 \texttt{architecture/stackup.md} & 4,553 B &  \\
-\texttt{reports/board\_init.json} & 25,835 B &  \\
-\texttt{reports/bom\_cpl.json} & 12,202 B &  \\
-\texttt{reports/drc-place.json} & 51,463 B &  \\
+\texttt{reports/board\_init.json} & 24,752 B &  \\
+\texttt{reports/bom\_cpl.json} & 11,556 B &  \\
+\texttt{reports/drc-place.json} & 49,124 B &  \\
 \texttt{reports/erc-waivers.md} & 719 B &  \\
-\texttt{reports/erc\_p4.json} & 256 B &  \\
-\texttt{reports/fab\_export.json} & 2,295 B &  \\
-\texttt{reports/fp\_scratch\_drc.json} & 1,121 B &  \\
-\texttt{reports/fp\_verify\_U1.json} & 1,575 B &  \\
-\texttt{reports/gate-dfm.json} & 1,082 B &  \\
-\texttt{reports/gate-drc\_routed.json} & 403 B &  \\
-\texttt{reports/gate-erc.json} & 473 B &  \\
-\texttt{reports/gate-place.json} & 414 B &  \\
-\texttt{reports/gate-verify.json} & 705 B &  \\
-\texttt{reports/lib\_pull.json} & 8,948 B &  \\
-\texttt{reports/lib\_verify.json} & 22,907 B &  \\
-\texttt{reports/netlist\_audit\_p4.json} & 2,097 B &  \\
-\texttt{reports/pd-trigger.net} & 65,211 B &  \\
+\texttt{reports/erc\_p4.json} & 243 B &  \\
+\texttt{reports/fab\_export.json} & 2,212 B &  \\
+\texttt{reports/fp\_scratch\_drc.json} & 1,084 B &  \\
+\texttt{reports/fp\_verify\_U1.json} & 1,546 B &  \\
+\texttt{reports/gate-dfm.json} & 1,021 B &  \\
+\texttt{reports/gate-drc\_routed.json} & 382 B &  \\
+\texttt{reports/gate-erc.json} & 448 B &  \\
+\texttt{reports/gate-place.json} & 390 B &  \\
+\texttt{reports/gate-verify.json} & 671 B &  \\
+\texttt{reports/lib\_pull.json} & 8,611 B &  \\
+\texttt{reports/lib\_verify.json} & 22,009 B &  \\
+\texttt{reports/netlist\_audit\_p4.json} & 1,978 B &  \\
+\texttt{reports/pd-trigger.net} & 61,586 B &  \\
 \texttt{reports/pd-trigger\_bottom.png} & 59,102 B &  \\
 \texttt{reports/pd-trigger\_left.png} & 27,161 B &  \\
 \texttt{reports/pd-trigger\_right.png} & 26,711 B &  \\
 \texttt{reports/pd-trigger\_top.png} & 237,347 B &  \\
-\texttt{reports/place\_anneal.json} & 2,800 B &  \\
-\texttt{reports/place\_edit\_p6.json} & 6,708 B &  \\
-\texttt{reports/place\_edit\_silk.json} & 1,968 B &  \\
-\texttt{reports/place\_metrics\_final.json} & 5,110 B &  \\
-\texttt{reports/place\_p6.ops.json} & 6,476 B &  \\
-\texttt{reports/place\_seed.json} & 1,851 B &  \\
-\texttt{reports/place\_seed.ops.json} & 3,587 B &  \\
-\texttt{reports/plane\_repair\_flag.json} & 1,301 B &  \\
-\texttt{reports/planes\_gen.json} & 682 B &  \\
-\texttt{reports/planes\_gen\_gnd.json} & 809 B &  \\
-\texttt{reports/planes\_gen\_vbus.json} & 596 B &  \\
+\texttt{reports/place\_anneal.json} & 2,669 B &  \\
+\texttt{reports/place\_edit\_p6.json} & 6,250 B &  \\
+\texttt{reports/place\_edit\_silk.json} & 1,841 B &  \\
+\texttt{reports/place\_metrics\_final.json} & 4,752 B &  \\
+\texttt{reports/place\_p6.ops.json} & 6,022 B &  \\
+\texttt{reports/place\_seed.json} & 1,723 B &  \\
+\texttt{reports/place\_seed.ops.json} & 3,343 B &  \\
+\texttt{reports/plane\_repair\_flag.json} & 1,224 B &  \\
+\texttt{reports/planes\_gen.json} & 640 B &  \\
+\texttt{reports/planes\_gen\_gnd.json} & 760 B &  \\
+\texttt{reports/planes\_gen\_vbus.json} & 561 B &  \\
 \texttt{reports/review-board.json} & 6,037 B &  \\
 \texttt{reports/review-board.md} & 11,514 B &  \\
 \texttt{reports/review-schematic.json} & 2,488 B &  \\
 \texttt{reports/review-schematic.md} & 17,762 B &  \\
-\texttt{reports/review\_bcu.svg} & 23,093 B &  \\
-\texttt{reports/review\_fcu.svg} & 39,795 B &  \\
-\texttt{reports/route-probe-deep.json} & 323 B &  \\
-\texttt{reports/route-probe.json} & 323 B &  \\
-\texttt{reports/route\_auto.json} & 3,405 B &  \\
-\texttt{reports/route\_edit\_fix.json} & 1,460 B &  \\
-\texttt{reports/route\_edit\_fix2.json} & 256 B &  \\
-\texttt{reports/route\_edit\_fix3.json} & 864 B &  \\
-\texttt{reports/route\_edit\_gnd\_vias.json} & 1,918 B &  \\
-\texttt{reports/route\_edit\_vbus.json} & 955 B &  \\
-\texttt{reports/rules\_gen.json} & 1,166 B &  \\
+\texttt{reports/review\_bcu.svg} & 21,888 B &  \\
+\texttt{reports/review\_fcu.svg} & 37,986 B &  \\
+\texttt{reports/route-probe-deep.json} & 310 B &  \\
+\texttt{reports/route-probe.json} & 310 B &  \\
+\texttt{reports/route\_auto.json} & 3,243 B &  \\
+\texttt{reports/route\_edit\_fix.json} & 1,380 B &  \\
+\texttt{reports/route\_edit\_fix2.json} & 241 B &  \\
+\texttt{reports/route\_edit\_fix3.json} & 816 B &  \\
+\texttt{reports/route\_edit\_gnd\_vias.json} & 1,823 B &  \\
+\texttt{reports/route\_edit\_vbus.json} & 909 B &  \\
+\texttt{reports/rules\_gen.json} & 1,114 B &  \\
 \texttt{reports/schematic.pdf} & 105,717 B &  \\
-\texttt{reports/stitch\_dryrun.json} & 3,172 B &  \\
-\texttt{reports/stitch\_vias.json} & 3,187 B &  \\
-\texttt{reports/top.net} & 65,211 B &  \\
-\texttt{reports/U1\_ESSOP10.overlay.svg} & 4,426 B &  \\
-\texttt{reports/verify\_all.json} & 1,669 B &  \\
+\texttt{reports/stitch\_dryrun.json} & 2,952 B &  \\
+\texttt{reports/stitch\_vias.json} & 2,965 B &  \\
+\texttt{reports/top.net} & 61,586 B &  \\
+\texttt{reports/verify\_all.json} & 1,581 B &  \\
 \bottomrule
 \end{longtable}
 }

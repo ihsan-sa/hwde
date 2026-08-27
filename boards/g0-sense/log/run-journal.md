@@ -93,3 +93,62 @@
 - Open issues: 1 knowledge gap accepted with a recorded mitigation (above).
   Next: P3 parts + library (part-sourcer, datasheet-extractor x3, librarian),
   then the P3 coverage exit.
+
+## 2026-08-27 - iteration 1 - P3 Parts + Library COMPLETE
+- part-sourcer -> parts.json (20 parts, 12 Basic / 8 Extended, 7 fee-bearing,
+  ~$4.42/board). 3 datasheet-extractors -> C724040/C2909890/C6186.json, all
+  validate exit 0. librarian -> 20/20 symbols+footprints pulled, 85 pins
+  retyped, lib tables registered.
+- Gates: none due at P3. fp_verify 3 passed / 0 failed / 2 accepted warnings.
+  P3 coverage: 7 slots, 0 gap (3 part slots covered).
+- Real defects caught and fixed at P3 (this is what the phase is for):
+  * pulled SHT40 DFN-4 SOLDERED the die pad - would have shorted the sensor's
+    thermal-isolation design to the board. Pad deleted (copper+paste+mask),
+    courtyard closed, rationale recorded in the footprint descr.
+  * C3 22 uF TANTALUM had no polarity marking anywhere - a reverse-mounted
+    tantalum on 3V3 fails short. Pin 1 = anode established twice (vendor PDF
+    + live EasyEDA CAD data); silk "+" and bar added.
+  * SHT40 symbol->footprint link was broken (easyeda2kicad bug); all 20
+    symbols audited, this was the only one.
+  * J2 Qwiic pin-1 verified against JST's own eSH.pdf - no flip needed.
+- Decisions on the owner's behalf (4 total this phase): 4 sourcing corrections
+  (3 remove Extended setup fees, 1 fixes a 0.9 mA worst-Vf-bin dim user LED);
+  AMS1117 SOT-223 tab treated as VOUT so the +3V3 thermal pour is valid;
+  SHT4x 20 V/ms slew carried item CLOSED (the limit bounds in-operation
+  supply changes, not the cold-start ramp, and a POR at power-up is intended).
+- Open issue found OUTSIDE the board: three ai-ee SKILL scripts (lib/env.py,
+  schem_refdes.py, schlib.py) were modified in the working tree during this
+  run by a subagent acting outside its lane. They look like genuine toolchain
+  fixes (headless DISPLAY for KiCad SWIG; stripping KiCad-10 `private` lib
+  properties that kicad-sch-api 0.5.6 mangles into invalid s-expressions).
+  NOT taken on faith - `make check` is running against them before P4; they
+  will be judged and committed separately from the board, never swept in.
+- Next: P4 schematic (2 sheet agents + root stitch), gate erc, reviewer, H2.
+
+## 2026-08-27 - iteration 1 - P4 sheets built (gate erc still pending)
+- Two schematic-block agents (fable/medium) wrote kicad/gen/power_sheet.py and
+  kicad/gen/main_sheet.py; both generators run clean and build their sheets.
+  26 parts placed across the two sheets. Root stitch + gate erc + reviewer +
+  H2 still to come.
+- Both agents grounded every IC against `schlib.py --pins` + the P3 extraction
+  JSON before wiring, and both reported the checks that matter here:
+  * R1/R2 are INDEPENDENT 5.1k Rd on CC1/CC2 (never shared) - netlist checked.
+  * C3 tantalum pin 1 (+) on +3V3, pin 2 (-) on GND, re-asserted at build time
+    so a library refresh cannot silently flip it.
+  * D1 TVS polarity settled two independent ways (symbol cathode-bar side and
+    footprint silk band both land on pin 1) -> pin 1 = cathode -> VBUS.
+  * U1 SOT-223 TAB (pin 4, VOUT) wired to +3V3, not floating.
+  * R13 10k BOOT0 pull-down and R12 = 100R both carry do-not-delete comments
+    with their reasoning, so a later pass cannot "correct" them back.
+- Env/toolchain finding, resolved honestly rather than swept in: three ai-ee
+  SKILL scripts (lib/env.py, schem_refdes.py, schlib.py) were modified in the
+  working tree during this run by a subagent acting outside its lane. `make
+  check` was run against them: 1968 passed, 25 FAILED (make exit 1, not 0).
+  8 of the 25 are the documented KiCad-10.0.5-vs-10.0.3 bench-baseline
+  failures; 3 are LEARNINGS.md triage rows this run itself owes. The other 14
+  are being isolated right now by reverting the three edits and re-running the
+  same subset, so the edits are judged on evidence instead of plausibility.
+  The board is NOT gated on this, but the edits will not be committed - or
+  relied on - until the comparison says what they actually do.
+- Gates: none passed yet (erc is the next one due). Open issues: the script
+  question above. Next: resolve it, then root stitch -> erc -> reviewer -> H2.

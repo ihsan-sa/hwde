@@ -1,4 +1,6 @@
 (module easyeda2kicad:CASE-A_3216 (layer F.Cu) (tedit 5DC5F6A4)
+	(descr "EIA 3216 (Case A) SMD tantalum chip capacitor land pattern. POLARIZED: pad 1 (at x=-1.20) = ANODE (+), pad 2 (at x=+1.20) = CATHODE (-), confirmed from the CA45-A010K226T (C122643) manufacturer datasheet (Hunan Xiangyee, Sec.9 Marking: dark/copper case stripe = positive-electrode marking) cross-checked against the EasyEDA source schematic symbol's own '+' polarity graphic, which sits on the pin-1 side (librarian P3 fix 2026-08-27, orchestrator-approved). Reverse-mounting a tantalum cap on a live rail can fail short/burn - do not remove the polarity mark below.")
+	(tags "tantalum polarized CASE-A 3216 anode-pad1")
 	(attr smd)
 	(fp_text reference REF** (at 0 -1.504) (layer F.SilkS)
 		(effects (font (size 1 1) (thickness 0.15)))
@@ -16,6 +18,10 @@
 	(fp_line (start 1.60 -0.80) (end 1.60 0.80) (layer F.CrtYd) (width 0.05))
 	(fp_line (start 1.60 0.80) (end -1.60 0.80) (layer F.CrtYd) (width 0.05))
 	(fp_line (start -1.60 0.80) (end -1.60 -0.80) (layer F.CrtYd) (width 0.05))
+	(fp_line (start -2.20 -0.70) (end -2.20 0.70) (layer F.SilkS) (width 0.20))
+	(fp_text user "+" (at -2.70 0.00 0) (layer F.SilkS)
+		(effects (font (size 0.80 0.80) (thickness 0.15)))
+	)
 	(model "/workspace/boards/g0-sense/lib/aiee.3dshapes/CASE-A_3216.wrl"
 		(offset (xyz 0.000 0.000 0.000))
 		(scale (xyz 1 1 1))

@@ -4717,3 +4717,35 @@ approval" rule is about pad/silk/courtyard geometry, but this fix was still left
 since no established repair pattern for this class of bug existed in LEARNINGS.md yet. Likely trigger:
 any pulled part whose footprint name gets a generator-appended suffix (EP/TL-EP/multi-land-class
 disambiguators) is a candidate to re-check the same way.
+
+## 2026-08-27 [librarian][easyeda2kicad][polarity][parts] Determining polarized-2-pin-part anode/cathode when the pulled symbol only has generic "1"/"2" pins: re-fetch the EasyEDA source, don't trust pad numbering
+g0-sense P3, C3 = CA45-A010K226T tantalum cap (C122643). Orchestrator required settling anode/cathode
+from the datasheet, explicitly forbidding inferring it from pad numbering alone (a prior board's
+LEARNINGS entry, "RVT V-chip electrolytic CHAMFERED corners mark the ANODE," already burned that
+shortcut once). The manufacturer spec PDF (fetched from the LCSC-hosted URL in parts.json) gives the
+PHYSICAL marking convention (Sec.9 "Marking": dark/copper case stripe = positive-electrode marking)
+but, being a generic case-level spec sheet, has no pin-number table - 2-terminal chip caps don't carry
+manufacturer-assigned pin numbers, "1"/"2" is purely an easyeda2kicad library-generation artifact.
+The resolution: re-fetch the RAW EasyEDA CAD source directly (`EasyedaApi().get_cad_data_of_component
+(lcsc_id=...)`, the same call `lib_pull.py` makes) and read `dataStr.shape` - the schematic symbol's
+own polarity "+" graphic survives as two short `PL~` (polyline) primitives forming a plus-sign, at a
+position that sits unambiguously on one pin's side (here, next to the pin-1 plate). This is PART-
+SPECIFIC hard evidence, not a generic convention - and it independently matches what's already sitting
+un-labeled in the pulled `.kicad_sym` (the "+" polylines survive the symbol conversion; only their
+semantic tag as "this is a plus sign" is lost, so `grep`-ing the .kicad_sym for a literal "+" property
+finds nothing - you have to look at the raw polyline geometry). Cross-check the SAME conclusion two
+ways before trusting it with hardware safety on the line.
+
+## 2026-08-27 [librarian][connector][parts] Settling connector pin-1 physical location: KiCad's own system-library footprint for the identical part number is strong corroboration, but fetch the manufacturer drawing too
+g0-sense P3, J2 = JST SM04B-SRSS-TB (Qwiic 4P, C160404). Two independent checks, both confirming the
+pulled easyeda2kicad footprint's pad "1" (leftmost of the 4 signal pads) was correct, not flipped:
+(1) `/usr/share/kicad/footprints/Connector_JST.pretty/JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal
+.kicad_mod` - KiCad's OWN system library ships a footprint for this exact MPN, its `descr` cites JST's
+own `eSH.pdf` datasheet URL, and its pad-1-through-4 geometry matches the pulled footprint almost
+exactly (same left-to-right order, same offset mounting-tab row). (2) The official datasheet itself is
+directly fetchable: `curl http://www.jst-mfg.com/product/pdf/eng/eSH.pdf` (no lcsc.com redirect
+needed, jst-mfg.com is un-gated) - page 1 "PC board layout and Assembly layout / Side entry type"
+explicitly states "the PC board layout figure shown is viewed from the connector mounting surface"
+(i.e. the same top-down view as a KiCad footprint) and labels "No. 1 circuit" at the leftmost pad.
+Three independent sources (pulled footprint, KiCad system lib, manufacturer PDF) agreeing is what
+"settled, not guessed" looks like for a connector pin-1 call.

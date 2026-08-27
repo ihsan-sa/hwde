@@ -1,39 +1,17 @@
 {
  "script": "fp_verify",
- "status": "violations",
+ "status": "pass",
  "board": "DFN-4_L1.5-W1.5-P0.8-TL-EP.kicad_mod",
  "counts": {
-  "total": 2,
+  "total": 1,
   "by_severity": {
-   "error": 1,
    "warning": 1
   },
   "by_source": {
-   "check.fp_verify": 2
+   "check.fp_verify": 1
   }
  },
  "violations": [
-  {
-   "check": "fp_verify",
-   "severity": "error",
-   "pos": null,
-   "layer": "F.Cu",
-   "net": null,
-   "refs": [
-    "DFN-4_L1.5-W1.5-P0.8-TL-EP"
-   ],
-   "msg": "copper pad count 5 != datasheet 4",
-   "source": "check.fp_verify",
-   "items": [
-    {
-     "msg": "copper pad count 5 != datasheet 4",
-     "pos": null
-    }
-   ],
-   "kind": "pad_count",
-   "expected": 4,
-   "measured": 5
-  },
   {
    "check": "fp_verify",
    "severity": "warning",
@@ -43,11 +21,11 @@
    "refs": [
     "DFN-4_L1.5-W1.5-P0.8-TL-EP"
    ],
-   "msg": "pad size(s) [[0.4, 1.1], [0.42, 0.505]] mm != datasheet [0.3, 0.5] mm (tol 0.1; min/max of 2 distinct sizes)",
+   "msg": "pad size(s) [[0.42, 0.505]] mm != datasheet [0.3, 0.5] mm (tol 0.1; min/max of 1 distinct sizes)",
    "source": "check.fp_verify",
    "items": [
     {
-     "msg": "pad size(s) [[0.4, 1.1], [0.42, 0.505]] mm != datasheet [0.3, 0.5] mm (tol 0.1; min/max of 2 distinct sizes)",
+     "msg": "pad size(s) [[0.42, 0.505]] mm != datasheet [0.3, 0.5] mm (tol 0.1; min/max of 1 distinct sizes)",
      "pos": null
     }
    ],
@@ -58,10 +36,6 @@
    ],
    "measured_mm": [
     [
-     0.4,
-     1.1
-    ],
-    [
      0.42,
      0.505
     ]
@@ -70,9 +44,9 @@
  ],
  "footprint": "DFN-4_L1.5-W1.5-P0.8-TL-EP",
  "footprint_file": "boards/g0-sense/lib/aiee.pretty/DFN-4_L1.5-W1.5-P0.8-TL-EP.kicad_mod",
- "copper_pads": 5,
- "total_pads": 5,
- "measured_pitch_mm": 0.7889,
+ "copper_pads": 4,
+ "total_pads": 4,
+ "measured_pitch_mm": 0.8,
  "measured_pad_size_mm": [
   0.42,
   0.505
@@ -94,7 +68,7 @@
  "svg": "boards/g0-sense/log/U3_SHT40.overlay.svg",
  "report_schema": 1,
  "checker_version": 1,
- "generated_at": "2026-08-27T09:13:16+00:00",
+ "generated_at": "2026-08-27T09:26:05+00:00",
  "input": "boards/g0-sense/lib/aiee.pretty/DFN-4_L1.5-W1.5-P0.8-TL-EP.kicad_mod",
- "input_digest": "sexpr_no_uuid:a82d4b1a6b9c5c4740173f9dd475c29db61172c365716dfd9865e1b9cb946614"
+ "input_digest": "sexpr_no_uuid:72dbf659922729f8b67ab617eaf3740d0a3744d12ad69905e922a817c2662286"
 }
