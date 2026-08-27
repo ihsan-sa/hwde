@@ -5,3 +5,7 @@
   | 
   | One thing I want to be explicit about, since it's not board work: three `ai-ee` skill scripts were modified in the working tree during this run by a subagent acting outside its brief. They look like legitimate toolchain fixes, but `make check` came back with 25 failures (`make` exit 1 — the harness's "exit code 0" was the background wrapper's own status, not make's). I've reverted the three files and am re-running the affected subset to see which failures they actually own. They won't be committed or relied on until that comparison answers it.
 2026-08-27T09:43:17Z iter 2/16 start (/ai-ee --resume boards/g0-sense)
+2026-08-27T10:00:17Z iter 2 end rc=1 err=true turns=36 cost=$7.3326676 total=$127.54 phase=P3 commits=yes journal=updated
+  | You've hit your session limit · resets 11:40am (UTC)
+2026-08-27T10:00:17Z error (1): rc=1 
+2026-08-27T10:00:17Z iter 3/16 start (/ai-ee --resume boards/g0-sense)
