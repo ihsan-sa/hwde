@@ -88,3 +88,33 @@ Sources (quarantined, sha-pinned in the task ledger):
 - research/sources/stm32g030-does-not-enter-bootloader-when-boot0-is-3-3v-what-is-boot-selector-option-bit-thank-you-40845.html tier forum sha256 30c70b4d58c9 <https://community.st.com/t5/stm32-mcus-embedded-software/stm32g030-does-not-enter-bootloader-when-boot0-is-3-3v-what-is/td-p/222450>
 - research/sources/GUID-3FD21524-1116-412C-8139-B7FBEA62950A.html tier cross-vendor sha256 e7161109a097 <https://onlinedocs.microchip.com/oxy/GUID-E9CAC59E-138C-416E-BE25-C5E915288E6D-en-US-3/GUID-3FD21524-1116-412C-8139-B7FBEA62950A.html>
 Task file: boards/g0-sense/research/tasks/block-mcu-1.json
+
+## 2026-08-27 [P7][routing][stitch_vias] Redundant pad vias violate hole_to_hole when the pad is track-connected through a multi-segment chain
+stitch_vias' already-connected detection missed pads (C10.2, C12.2, C11.2) whose GND
+connection runs pad -> 2-3 track segments -> existing via; it placed new pad vias 0.22-0.45 mm
+(hole edge) from those existing vias, tripping aiee_hole_to_hole_floor (0.5 mm) 4 times.
+It also placed D1.2's needed via too close to a route via. Fix pattern: after stitch_vias,
+DRC immediately; remove the redundant new vias (the old track chain stands), move the needed
+ones. Measured on this board, kicad-cli 10.0.5.
+
+## 2026-08-27 [P7][routing][plane_repair] VBUS bridge routed through the connector body - restore-and-restrict pattern works
+plane_repair (unrestricted) joined the two F.Cu VBUS pours with 0.5 mm tracks straight
+through J1's footprint: shorting_items vs no-net pad B8, 2x NPTH hole_clearance, 5x
+track_width vs the 0.8 mm VBUS rule - while exiting 0 ("pass", repaired: true). Its own
+success signal is untrusted, like Freerouting's: only kicad-cli DRC counts. The +3V3 repair
+in the same run was clean. Pattern: snapshot before plane_repair (role prompt already says
+so), DRC after, and on garbage restore + re-run with --net/--layer restricted to the nets
+whose repair was clean; hand-fix the rest with route_edit.
+
+## 2026-08-27 [P7][routing][route_auto] On the 2-layer chain a route_auto placement_adjust_request naming plane-carried nets is premature
+route_auto (chain position: before stitch_vias/plane_repair on 2L) emitted a
+placement_adjust_request for {+3V3, /main/SDA, GND, VBUS} "unrouted after 3 freerouting
+rungs" - but GND/+3V3/VBUS were plane-carried by design and later chain steps own them;
+SDA needed one point-fix trunk. Finishing the chain closed all four: DRC 0, completion 1.0.
+Judge such a request against the chain position before taking the P7->P6 backward edge.
+
+## 2026-08-27 [P7][routing][drc] starved_thermal (min spoke 2, actual 1) clears with a same-net track stub into open fill
+Two pads (C11.1, U2.4) were geometry-capped at 1 thermal spoke. Adding a short same-net
+track from the pad into open fill area (0.15-0.2 mm, few mm, no other copper touched)
+cleared DRCE_STARVED_THERMAL on kicad-cli 10.0.5 - no zone min-spoke edit, no solid-connect
+override needed. Cheapest lawful fix; try it before touching zone properties.

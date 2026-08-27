@@ -314,3 +314,12 @@
 - Open issues: none. Next: P7 routing - planes_gen (B.Cu GND pour, F.Cu +3V3
   tab pour, voids under the U3 island), route_critical for the VBUS entry,
   route_auto, route_cleanup, gate drc_routed.
+
+## 2026-08-27 17:40Z - SUPERVISOR NOTE 4 (host-side) - iteration 2 lost its router
+- Loop-2 iteration 2 ended after 31 turns with "I'll report the routing result
+  when the router returns": the router agent was left running and the turn
+  ended. Under `claude -p` the process exits when the turn ends and background
+  agents die with it - the routing work was lost and iteration 3 re-entered P7.
+- Rule added to docker/run-contract.md ("Headless facts"): run agents and long
+  scripts in the FOREGROUND and act on their result before stopping; never
+  wait for a callback. Nothing else changed; erc + place still PASS.
