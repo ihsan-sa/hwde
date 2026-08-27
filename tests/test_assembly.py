@@ -44,6 +44,14 @@ RF_DE_DNP = ["C203", "C205", "C206", "C308", "C309", "C318",
              "C321", "C322", "C323"]
 
 
+
+def _lf(path):
+    """CSV bytes with line endings normalized: the writer emits CRLF (csv
+    default, what JLC gets) while a Linux checkout of the shipped fixture is
+    LF (gitattributes text normalization) - byte identity must not depend on
+    the checkout platform."""
+    return path.read_bytes().replace(b"\r\n", b"\n")
+
 def _run(board: Path, out_dir: Path, parts: Path | None = None) -> dict:
     """bom_cpl on a real board, driven from its committed pos export."""
     pos = next(board.glob("fab/*-pos.csv"))
@@ -250,8 +258,8 @@ def test_rf_de_regenerates_without_a_local_filter(tmp_path):
     assert sorted(e["ref"] for e in rep["not_placed"]) == sorted(RF_DE_DNP)
 
     for name in ("BOM.csv", "CPL.csv"):
-        assert (tmp_path / name).read_bytes() == \
-            (RF_DE / "fab" / name).read_bytes(), f"{name} is not reproducible"
+        assert _lf(tmp_path / name) == _lf(RF_DE / "fab" / name), \
+            f"{name} is not reproducible"
 
     placed = _designators(tmp_path / "CPL.csv")
     assert len(placed) == 59
@@ -336,8 +344,7 @@ def test_rf_term_regeneration_preserves_r1(tmp_path):
     # the CPL is unchanged from the delivered package
     assert "R1" not in _designators(tmp_path / "CPL.csv")
     assert "R1" not in _designators(tmp_path / "BOM.csv")
-    assert (tmp_path / "CPL.csv").read_bytes() == \
-        (RF_TERM / "fab" / "CPL.csv").read_bytes()
+    assert _lf(tmp_path / "CPL.csv") == _lf(RF_TERM / "fab" / "CPL.csv")
 
     rows = _rows(tmp_path / "BOM-full.csv")
     full = {r["Designator"]: r for r in rows}

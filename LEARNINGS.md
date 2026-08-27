@@ -4,7 +4,7 @@ Append-only, non-obvious gotchas. Recall by tag/keyword before touching an area.
 Entries sourced from prior attempts are marked; re-verify at first use here.
 
 ## Tags
-[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git] [latex] [spice]
+[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git] [latex] [spice] [linux] [docker]
 
 ## 2026-07-06 [windows] cp1252 console crashes on non-ASCII output
 Printing degree signs, ohms, plus-minus, emoji to a default Windows console raises
@@ -4645,3 +4645,35 @@ safe to aim at a real board: `researchlib.draft_sweep`, `knowledgelib.coverage`,
 status`. Rule for smoking a mutating verb: copy the workspace into the scratchpad first, or use
 a synthetic tmp_path workspace, and run `git status -- boards/` after ANY script smoke - the
 mutation is silent and a board's state.json is the one file a later run trusts absolutely.
+
+## 2026-08-27 [linux][docker] The whole toolchain runs in one container built on the official KiCad image
+`docker/Dockerfile` (FROM `kicad/kicad:10.0.5`, Debian 13) gives kicad-cli 10.0.5, the bundled python
+3.13.5 WITH the SWIG pcbnew module at `/usr/bin/python3` (env.find_kicad_python resolves it as
+`cli.parent/python3`), symbol+footprint libs under `/usr/share/kicad`, and libngspice at
+`/usr/lib/x86_64-linux-gnu/libngspice.so.0` (NOT beside kicad-cli - pin it with AIEE_NGSPICE_DLL). No
+10.0.3 image is published; 10.0.x share the file format. `check_env.py --full` is all-pass except the
+known ipc-headless warn. `kicad-cli pcb render` works headless with NO display/xvfb (Mesa EGL in the
+image). Freerouting 2.2.4 on Temurin 25 runs headless with the verified `--gui.enabled=false` flag set
+(the "Couldn't get screen resolution" line is a warning, not a failure). KRT's prebuilt
+`grid_router-linux-x86_64.so` (abi3) imports in the venv once copied to `rust_router/grid_router.so`.
+Pins are env vars there (`AIEE_KICAD_CLI/JAVA/FREEROUTING_JAR/KRT_DIR/NGSPICE_DLL`); `tools/` unused.
+
+## 2026-08-27 [linux][tests][fab] Fixture CSVs come out LF on a Linux checkout - byte-compare normalized
+`bom_cpl` writes CRLF (csv module default, what JLC gets). `.gitattributes` (`* text=auto eol=lf`)
+stores the shipped `fab/*.csv` as LF, so every FRESH checkout has LF; the Windows working tree still
+held the CRLF bytes the writer had produced in place (git never re-checked them out), which is the only
+reason `test_assembly`'s byte-identity asserts passed there. Compare with `\r\n`->`\n` normalized on
+both sides (`_lf` helper); never make the writer platform-dependent.
+
+## 2026-08-27 [linux][tests][bench] bench baselines are pinned to KiCad 10.0.3 - they fail on 10.0.5 by design
+`bench.py` refuses to score against a baseline recorded on a different kicad-cli ("scores across
+toolchains are not comparable; re-record the baselines deliberately"). In the 10.0.5 container every
+`test_live_fixture_matches_baseline[...]` case fails for that reason alone; re-recording is an owner
+decision (a deliberate `bench.py --freeze` pass), not something a Linux port does on the side.
+
+## 2026-08-27 [linux][docker][skill] Unattended runs: `ai-ee-loop` + `docker/run-contract.md`
+`claude -p "/ai-ee ..."` loads the skill in headless mode (verified: the front-door verbs and the
+Linux venv path come back). `ai-ee-loop <board>` iterates fresh contexts (`--max-turns` cuts them),
+resuming through `/ai-ee --resume` from state.json + `log/run-journal.md`; the contract delegates
+H1-H4, forbids ordering, and defines DONE. Launch on the box: `ccbox build ai-ee-run` then
+`ccbox ai-ee-run --open-egress --cmd "ai-ee-loop <board>"`; `docker/watch-run.sh` posts progress.
