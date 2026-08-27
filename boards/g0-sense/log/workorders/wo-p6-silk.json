@@ -1,0 +1,39 @@
+{
+  "id": "p6-silk",
+  "domain": "silk",
+  "edit_class": "silk_edit",
+  "gate": "kicad-cli DRC (the drc_routed gate at P7 fails at errors+warnings = 0, so these warnings must reach 0 now)",
+  "workspace": "boards/g0-sense",
+  "board": "boards/g0-sense/kicad/g0-sense.kicad_pcb",
+  "success_criteria": "kc.py drc --parity on kicad/g0-sense.kicad_pcb reports ZERO violations whose source is not 'unconnected'. The 64 unconnected_items are the unrouted ratsnest and are P7's - leave them.",
+  "violations": [
+    {"check": "silk_edge_clearance", "severity": "warning", "refs": ["J1"], "count": 3,
+     "msg": "Silkscreen clipped by board edge - 3 segments of J1's own F.Silkscreen. J1 is flush with the left board edge by design (cable mating face); the offending segments are its mouth-end outline, which sits under the connector shell and cannot print."},
+    {"check": "silk_overlap", "severity": "warning", "refs": ["C12", "U2"], "count": 5,
+     "msg": "C12's F.Silkscreen body outline (arcs + segments) against U2's."},
+    {"check": "silk_overlap", "severity": "warning", "refs": ["C12", "U1"], "count": 4,
+     "msg": "C12's F.Silkscreen body outline against U1's."},
+    {"check": "silk_over_copper", "severity": "warning", "refs": ["D1", "J1"], "count": 1,
+     "msg": "Silkscreen clipped by solder mask - D1's Reference field text over pad A4B9 [VBUS] of J1. This one is TEXT, so place_edit move_text / silk_place own it."}
+  ],
+  "allowed_scripts": [
+    ".claude/skills/ai-ee/scripts/place_edit.py (ops: move, rotate, move_text, silk_clear)",
+    ".claude/skills/ai-ee/scripts/silk_place.py (--apply --verify-drc: the refdes solver)",
+    ".claude/skills/ai-ee/scripts/kc.py (drc --parity: the authoritative oracle)",
+    ".claude/skills/ai-ee/scripts/gate.py --gate place (legality re-check; do NOT pass --workspace)",
+    "direct edits to boards/g0-sense/lib/aiee.pretty/*.kicad_mod (library files, in your lane)"
+  ],
+  "guidance": [
+    "PREFER THE LEAST INVASIVE FIX, in this order, and say which you used and why:",
+    "  (a) MOVE the part. C12 is the NRST cap; the placement agent put it ~1.5 mm from U2 pin 6 citing knowledge record mcu-nrst-internal-pullup-and-cap ('as close as possible to the device'). A sub-millimetre nudge that clears both silk collisions AND keeps the cap inside its decoupling class limit is the best outcome - try it FIRST and report the numbers. If no nudge clears both U1 and U2 without breaking the gate, say so with the geometry.",
+    "  (b) TRIM/CLEAR the offending silk. `place_edit` now has {\"op\": \"silk_clear\", \"ref\": R, [\"layer\": \"F.SilkS\"], [\"only_offboard\": true]} - it deletes a footprint's own GRAPHIC silk on the board (never its Reference/Value text); only_offboard keeps the items fully inside the board outline. Verified working on this board: C12 -> 10 items, J1 with only_offboard -> exactly the 3 offending segments.",
+    "THE TRAP THAT MAKES (b) BIGGER THAN IT LOOKS - do not miss it: silk_clear changes the BOARD's footprint instance, and kicad-cli then reports `lib_footprint_mismatch` (\"Footprint 'C0603' does not match copy in library 'aiee'\") - a WARNING, so it fails the same gate you are trying to clear. Measured: clearing C12 + J1 traded 12 warnings for 2. So whatever you clear on the board you must ALSO delete from the matching file in boards/g0-sense/lib/aiee.pretty/, and then clear it on EVERY OTHER BOARD INSTANCE of that same footprint (aiee:C0603 is shared by several caps - find them all, do not guess). Board and library must agree part-for-part when you are done, and the final DRC is what proves it.",
+    "Judgement call that is yours to make and to justify: a 0603 body outline is decoration - the refdes is what assembly and debug actually read - so clearing C0603's F.SilkS across the board is defensible on a dense 35 x 28 mm layout IF a nudge cannot do the job. J1's mouth-end segments are unprintable under the shell either way. Do NOT clear silk that carries meaning (polarity bars, pin-1 marks, the C3 tantalum '+' added at P3) - if a clear would take one of those, stop and report.",
+    "Document any library edit in boards/g0-sense/lib/EDITS.md, following the format of boards/usb-buck/lib/EDITS.md (why, what was deleted, verification). Create the file if it does not exist.",
+    "The D1 reference-field item is separate and easy: silk_place left D1 unmoved. Move that text with place_edit move_text (or re-run silk_place after the other fixes free up room) so it is off J1's VBUS pad.",
+    "WHEN DONE: re-run `gate.py --gate place kicad/g0-sense.kicad_pcb` (no --workspace) and confirm it still passes 0/0 - a nudge must not break placement legality. Report both numbers.",
+    "Budget: work until DRC non-unconnected is 0, but stop and report honestly if you need more than 2 distinct approaches."
+  ],
+  "snapshot_label": "pre-fix-p6-silk",
+  "remediations": []
+}

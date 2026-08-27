@@ -1,0 +1,53 @@
+{
+ "script": "place_edit",
+ "status": "pass",
+ "board": "boards/g0-sense/kicad/g0-sense.kicad_pcb",
+ "applied": 7,
+ "verified": true,
+ "results": [
+  {
+   "ref": "C12",
+   "layer": "F.SilkS",
+   "removed": 10,
+   "only_offboard": false
+  },
+  {
+   "ref": "C1",
+   "layer": "F.SilkS",
+   "removed": 10,
+   "only_offboard": false
+  },
+  {
+   "ref": "C10",
+   "layer": "F.SilkS",
+   "removed": 10,
+   "only_offboard": false
+  },
+  {
+   "ref": "C11",
+   "layer": "F.SilkS",
+   "removed": 10,
+   "only_offboard": false
+  },
+  {
+   "ref": "C13",
+   "layer": "F.SilkS",
+   "removed": 10,
+   "only_offboard": false
+  },
+  {
+   "ref": "J1",
+   "layer": "F.SilkS",
+   "removed": 3,
+   "only_offboard": true
+  },
+  {
+   "ref": "D1",
+   "field": "reference",
+   "x": 35.6,
+   "y": 42.6,
+   "deg": 90.0
+  }
+ ],
+ "notes": "wo-p6-silk fixer (silk domain). C12 (NRST cap) is sandwiched between U1 and U2: silk bbox math shows the two neighbours' F.Silkscreen leave only a 1.29mm vertical corridor (U1 top 41.195 to U2 bottom 39.905) for C12's own 1.62mm-tall silk body outline - a 0.33mm shortfall that a pure Y-nudge cannot clear (moving C12 up trades U2 overlap for more U1 overlap 1:1, sum is position-invariant). So rung (a) MOVE was ruled out by geometry, not guessed; rung (b) TRIM (silk_clear) used instead, per work order guidance. C12's full F.SilkS body outline (10 graphics: 6 fp_line + 4 fp_arc) deleted; since aiee:C0603 is shared by C1/C10/C11/C12/C13, all five board instances were cleared to stay in sync with the library edit (boards/g0-sense/lib/aiee.pretty/C0603.kicad_mod, see lib/EDITS.md). J1's mouth-end silk (3 of its 5 F.SilkS lines: the far end 3 sides of the cable-entry rectangle, unprintable under the connector shell, x<=18.92 which is at/past the 18.91mm board edge) cleared with only_offboard=true, keeping the 2 on-board sides. D1's Reference field, left at (27.76,38.3) by the P6 silk_place solver, was clipped by J1's own VBUS pad A4B9's solder mask; an exhaustive geometric search (pad/silk AABB scan with 0.2mm margin, both text rotations, whole board) found no valid slot within about 6mm of D1 - the J1-D1 corridor is a stack of pads on ~0.2mm pitch gaps and D1's own footprint pocket (between its own VBUS/GND pads) is smaller than the ref text's own bounding box (1.697 x 2.202mm) in both orientations, confirmed unchanged even after also clearing C1/C10/C11/C12/C13's silk. Nearest DRC-clean slot found is (35.6,42.6) deg=90, inside the open (copper-free) interior of U1's own silk outline box, ~6.2mm from D1's body - verified violation-free by kc.py drc on a scratch copy before applying for real."
+}

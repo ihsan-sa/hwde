@@ -3,7 +3,7 @@
  "board": "g0-sense",
  "workspace": "boards/g0-sense",
  "created": "2026-08-27T06:35:38",
- "updated": "2026-08-27T15:15:05",
+ "updated": "2026-08-27T15:57:05",
  "phase": "P6",
  "gates": {
   "erc": {
@@ -46,14 +46,14 @@
   "place": {
    "phase": "P6",
    "status": "pass",
-   "attempts": 3,
+   "attempts": 5,
    "last": {
-    "ts": "2026-08-27T15:15:05",
+    "ts": "2026-08-27T15:57:05",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "pcb": "sexpr_no_uuid:625cb743eb5fd10eaacfa488efb04d86db23598290cb78cdbef2f7bda30862f4",
+     "pcb": "sexpr_no_uuid:417fc751de47f356706a1a4c4bbc8edb8eabd823a368f39ba268caa04c339fa6",
      "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
      "decoupling": "json_canonical:7fa38b112290817f0c7137eedfd76b553e51196117ff487af218f3011b297929"
     }
@@ -88,6 +88,28 @@
      "total": 0,
      "inputs": {
       "pcb": "sexpr_no_uuid:625cb743eb5fd10eaacfa488efb04d86db23598290cb78cdbef2f7bda30862f4",
+      "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+      "decoupling": "json_canonical:7fa38b112290817f0c7137eedfd76b553e51196117ff487af218f3011b297929"
+     }
+    },
+    {
+     "ts": "2026-08-27T15:47:39",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:417fc751de47f356706a1a4c4bbc8edb8eabd823a368f39ba268caa04c339fa6",
+      "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+      "decoupling": "json_canonical:7fa38b112290817f0c7137eedfd76b553e51196117ff487af218f3011b297929"
+     }
+    },
+    {
+     "ts": "2026-08-27T15:57:05",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "pcb": "sexpr_no_uuid:417fc751de47f356706a1a4c4bbc8edb8eabd823a368f39ba268caa04c339fa6",
       "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
       "decoupling": "json_canonical:7fa38b112290817f0c7137eedfd76b553e51196117ff487af218f3011b297929"
      }
@@ -191,20 +213,42 @@
   "pcb": {
    "path": "kicad/g0-sense.kicad_pcb",
    "kind": "pcb",
-   "sha256": "sexpr_no_uuid:625cb743eb5fd10eaacfa488efb04d86db23598290cb78cdbef2f7bda30862f4",
-   "hashed": "2026-08-27T15:15:05"
+   "sha256": "sexpr_no_uuid:417fc751de47f356706a1a4c4bbc8edb8eabd823a368f39ba268caa04c339fa6",
+   "hashed": "2026-08-27T15:57:05"
   },
   "constraints": {
    "path": "kicad/constraints.json",
    "kind": "constraints",
    "sha256": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
-   "hashed": "2026-08-27T15:15:05"
+   "hashed": "2026-08-27T15:57:05"
   },
   "decoupling": {
    "path": "kicad/decoupling.json",
    "kind": "decoupling",
    "sha256": "json_canonical:7fa38b112290817f0c7137eedfd76b553e51196117ff487af218f3011b297929",
-   "hashed": "2026-08-27T15:15:05"
+   "hashed": "2026-08-27T15:57:05"
+  },
+  "gerbers": {
+   "path": "fab/g0-sense_gerbers.zip",
+   "kind": "gerbers",
+   "sha256": null,
+   "hashed": "2026-08-27T15:57:05",
+   "stale": [
+    {
+     "ts": "2026-08-27T15:57:05",
+     "edit_class": "silk_edit",
+     "refs": [
+      "C1",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "J1",
+      "D1"
+     ],
+     "human_hold": 0
+    }
+   ]
   }
  },
  "open_issues": [],
@@ -356,6 +400,12 @@
    "why": "board_init's self-check DRC found two clearance ERRORS inside J1's own footprint: pad A1B12 [GND] vs A4B9 [VBUS] at 0.1002 mm and B1A12 vs B4A9 at 0.1000 mm, against the aiee_clearance_floor of 0.127 mm (JLC 2-layer 1 oz). J1 was never geometry-checked at P3 (fp_verify needs a datasheet-extract JSON and none exists for it). The librarian fetched the HRO Hroparts TYPE-C-31-M-12 drawing: its RECOMMEND P.C.B LAYOUT calls the four wide pads '4-0.60', i.e. 0.60 mm wide on a 0.8 mm pitch = a 0.20 mm gap, already above the floor. The pulled easyeda2kicad custom-pad polygons were the vendor's 0.60 mm, but carried a spurious 0.1 mm outline STROKE that inflated the effective copper to 0.70 mm and closed the gap to 0.100 mm. So this was a converter artifact, not a vendor deviation, and the fix RESTORES the manufacturer's land pattern rather than inventing a number: outer X vertices moved in by 0.05 mm per side on those four polygons only, pad centres / 1.30 mm length / the other 12 pads untouched. Contact tab is 0.20 mm wide (drawing callout 16-0.20+-0.05), so 0.60 mm still leaves 0.20 mm of fillet per side - the vendor's own allowance. Rationale recorded in the footprint descr, matching the P3 SHT40 die-pad precedent.",
    "phase": "P5",
    "ts": "2026-08-27T13:51:19"
+  },
+  {
+   "what": "unattended default: P7 must hand-route the VBUS entry out of J1 - the 0.8 mm Pwr_0p8mm netclass cannot escape J1's 0.60 mm vendor pads on F.Cu at ANY placement, so route_critical owns it and Freerouting must not be asked to",
+   "why": "The placement agent's route probe closed at 0.969 (62/64) and root-caused the two residuals: J1's VBUS pads are 0.60 mm wide with 0.20 mm gaps to their GND neighbours, so a 0.8 mm track (the VBUS netclass width rules_gen derived from the 1.5 A PTC-dwell case) cannot leave them on the top layer without breaking the 0.127 mm clearance floor - it is a geometric impossibility, not a placement defect, and no amount of re-placing fixes it. A via-in-pad escape to B.Cu was proven DRC-clean on a scratch copy; Freerouting cannot place via-in-pad, so this is route_critical's job before the autorouter runs. THREE THINGS P7 MUST WEIGH, in this order: (1) a short NECKED escape (fab-minimum width for ~1 mm out of the pad, widening to 0.8 mm once clear of the connector) is the ordinary way this is done and needs no via - but it violates the ERROR-severity aiee_pwr_width_VBUS rule, so taking it means a rule EXCEPTION with recorded evidence (the pad itself is 0.60 mm, so the 0.8 mm rule is already wider than the conductor the current must pass through), not a silent neck; (2) via-in-pad to B.Cu carves the B.Cu GND pour under the connector and JLC will wick solder into an unfilled 0.3 mm via on a mechanically loaded connector pad - if this route is taken it needs an order remark and a fab/README note; (3) the two VBUS pads are ganged, so each carries half the fault current. Do NOT resolve this by editing the netclass or the floor to make DRC quiet.",
+   "phase": "P6",
+   "ts": "2026-08-27T15:27:50"
   }
  ],
  "edits": [
@@ -382,6 +432,30 @@
     "bom",
     "bom_full",
     "cpl"
+   ]
+  },
+  {
+   "ts": "2026-08-27T15:57:05",
+   "class": "silk_edit",
+   "refs": [
+    "C1",
+    "C10",
+    "C11",
+    "C12",
+    "C13",
+    "J1",
+    "D1"
+   ],
+   "note": "P6 silk sweep: silk_clear on the five aiee:C0603 instances and on J1's 3 off-board mouth-end segments, the same graphics deleted from lib/aiee.pretty so board and library agree, plus D1's Reference field moved off J1's VBUS pad. kc.py drc --parity non-unconnected 13 -> 0.",
+   "human_hold": 0,
+   "gates": [
+    "drc_routed",
+    "verify",
+    "dfm"
+   ],
+   "gates_marked": [],
+   "stale_artifacts": [
+    "gerbers"
    ]
   }
  ],
@@ -588,6 +662,12 @@
    "ts": "2026-08-27T13:52:52",
    "role": "placement",
    "model": "fable/high",
+   "phase": "P6"
+  },
+  {
+   "ts": "2026-08-27T15:26:48",
+   "role": "fixer",
+   "model": "sonnet/medium",
    "phase": "P6"
   }
  ],
@@ -1125,6 +1205,60 @@
    "gate": "place",
    "status": "pass",
    "attempt": 3,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-27T15:22:09",
+   "event": "snapshot",
+   "label": "pre-fix-p6-silk",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-27T15:23:20",
+   "event": "restore",
+   "label": "pre-fix-p6-silk",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-27T15:26:48",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "sonnet/medium"
+  },
+  {
+   "ts": "2026-08-27T15:27:50",
+   "event": "decision",
+   "what": "unattended default: P7 must hand-route the VBUS entry out of J1 - the 0.8 mm Pwr_0p8mm netclass cannot escape J1's 0.60 mm vendor pads on F.Cu at ANY placement, so route_critical owns it and Freerouting must not be asked to"
+  },
+  {
+   "ts": "2026-08-27T15:47:39",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 4,
+   "failing_count": 0
+  },
+  {
+   "ts": "2026-08-27T15:57:05",
+   "event": "edit",
+   "edit_class": "silk_edit",
+   "refs": [
+    "C1",
+    "C10",
+    "C11",
+    "C12",
+    "C13",
+    "J1",
+    "D1"
+   ],
+   "human_hold": 0
+  },
+  {
+   "ts": "2026-08-27T15:57:05",
+   "event": "gate",
+   "gate": "place",
+   "status": "pass",
+   "attempt": 5,
    "failing_count": 0
   }
  ]
