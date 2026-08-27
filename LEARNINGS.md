@@ -4771,3 +4771,47 @@ Corollary for the BOM side: `bom_cpl.py` resolves assembly class parts.json-firs
 `refdes_class` is keyed by refdes independently of whether the line carries a `refs` list - so a
 hand-fitted THT header is `refdes_class: {"J3": "hand_install"}` on the part line, and the native
 `dnp` attribute is belt-and-braces for third-party exporters, not the mechanism this pipeline reads.
+
+## 2026-08-27 [board_init][kicad][parity] KiCad's `unconnected-(...)` pseudo-nets: a FLAT schematic wants them on the pads, a HIERARCHICAL one refuses them - so board_init measures instead of guessing
+g0-sense P5. `kicad-cli sch export netlist` invents a net named `unconnected-(REF-PIN-PadN)` for
+every pin the schematic leaves unconnected, and board_swig faithfully assigned it to the pad. On
+g0-sense (hierarchical: root + `/power/` + `/main/`) that produced 18 parity warnings, one per
+deliberately-NC pad of J1/J2/U2: `net_conflict` "No corresponding pin found in schematic". Dropping
+those pseudo-nets wholesale took g0-sense parity 20 -> 0 - and broke `tests/golden/usbbuck4` (FLAT,
+sheetpath "/"), which then reported the OPPOSITE message on its 31 NC pads: "Pad missing net given
+by schematic". Two boards, contradictory requirements, same KiCad 10.0.5.
+What is NOT the discriminator, measured: `pintype`. Both boards spell these pins `*+no_connect`
+(g0-sense 19 x `passive+no_connect`; usbbuck4 1 x `passive+no_connect` + 30 x
+`bidirectional+no_connect`), so an explicit-NC-flag rule is wrong. Prefixing the component's sheet
+path onto the pseudo-net name (`unconnected-(/main/U2-PA0-Pad7)`) does NOT fix the hierarchical case
+either - still 18. The only structural difference left is flat vs hierarchical, and the underlying
+KiCad reason is not established here.
+Resolution shipped: do not encode a guessed rule. `board_init` builds WITH the pseudo-nets, runs the
+real parity checker, and only if EVERY parity violation is `net_conflict` + "No corresponding pin
+found in schematic" + a pad whose net literally contains `unconnected-` does it re-run the worker
+with `job["skip_unconnected_nets"]` and re-check, reporting `unconnected_nets_skipped: true`. The
+`unconnected-` guard is what stops a genuine pad-not-in-symbol defect from being retried away. Cost
+is one extra DRC pass on affected boards; the payoff is that it is correct on both shapes without
+anyone having to know which shape they have.
+
+## 2026-08-27 [board_init][kicad][bom] A symbol's native `dnp` must be MIRRORED onto the footprint or parity fails
+Same P5. Once J3/J4 carried KiCad's native `(dnp yes)` in the schematic, `drc --schematic-parity`
+reported `footprint_symbol_mismatch` "Footprint attributes don't match symbol: 'Do not populate'
+settings differ" - board_swig copies symbol FIELDS onto footprints but never copied attributes. The
+netlist exposes it as a valueless `(property (name "dnp"))` on the comp (not a `(fields ...)` entry,
+so `_comp_fields` never sees it). board_init now parses that property and board_swig ORs `FP_DNP`
+onto the footprint. Set ONLY FP_DNP: touching `exclude_from_bom` here trades one parity mismatch for
+another (LEARNINGS 2026-07-29 says the same for mounting holes - fix at the symbol, and let the
+footprint mirror it).
+
+## 2026-08-27 [librarian][footprint][easyeda] An easyeda2kicad custom pad's outline STROKE inflates effective copper - measure with GetEffectivePolygon, not the vertex list
+g0-sense P5, J1 = TYPE-C-31-M-12 (C165948). DRC found the ganged GND and VBUS pads 0.100 mm apart
+against a 0.127 mm fab floor. The polygon vertices were the vendor's own 0.60 mm width (HRO drawing,
+"RECOMMEND P.C.B LAYOUT", callout `4-0.60`, 0.8 mm pitch -> 0.20 mm gap), but the converted
+`gr_poly` carried a `(width 0.1)` outline stroke, and KiCad grows the copper by half that on every
+edge: 0.60 -> 0.70 mm effective, gap 0.20 -> 0.10 mm. Reading the vertex list would have said the
+footprint matched the datasheet; `pcbnew`'s `GetEffectivePolygon` is what tells the truth. The fix
+is to shrink the VERTICES until effective width equals the vendor number (here -0.05 mm per side),
+not to delete the stroke. Check this on every pulled custom-pad footprint whose pads look
+suspiciously fat, and remember that fp_verify cannot catch it without a datasheet-extract JSON -
+J1 had none, so nothing checked this footprint until board_init's own DRC did.

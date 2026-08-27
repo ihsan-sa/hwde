@@ -3,8 +3,8 @@
  "board": "g0-sense",
  "workspace": "boards/g0-sense",
  "created": "2026-08-27T06:35:38",
- "updated": "2026-08-27T13:21:44",
- "phase": "P4",
+ "updated": "2026-08-27T13:52:01",
+ "phase": "P6",
  "gates": {
   "erc": {
    "phase": "P4",
@@ -275,6 +275,18 @@
    "why": "schematic-review OPEN item. decisions.md #13 carried a CPL rotation check for J1 alone; the KiCad<->JLC 0-degree-reference offset (reference/jlc_rotations.csv, LEARNINGS/S8) bites every polarized package, and a reversed tantalum on 3V3 or a reversed TVS on VBUS is a dead board, not a cosmetic error. dfm_check.py owns polarity/rotation validation - at P9 its findings for D1/D2/D10/C3 must be read explicitly and each confirmed against the footprint pin-1 marking, not just accepted as a count.",
    "phase": "P4",
    "ts": "2026-08-27T13:07:32"
+  },
+  {
+   "what": "unattended default: P5 runs board_init --mounting-holes 4 --mounting-hole-fp MountingHole:MountingHole_2.2mm_M2 --margin 6 --outline auto; the four holes are explicitly RELEASABLE at P6 - the placement agent may move them with place_edit to the earned corners before board_edit --outline fit",
+   "why": "Three linked calls. (1) HOLE SIZE: board_init's mounting-hole footprint was hard-coded to MountingHole_3.2mm_M3, but the brief and constraints ask for M2 (2.2 mm drill). I added an additive --mounting-hole-fp flag to board_init.py, default unchanged, so the M2 hole is stated rather than inherited (MountingHole_2.2mm_M2: NPTH 2.2 mm drill, 4.9 mm courtyard, which also serves the constraints' 4.0-4.5 mm annulus/head clearance). (2) MARGIN 6: --mounting-holes places holes at margin/2, so margin 6 puts the M2 centres 3 mm inside the edge - the standard M2 corner inset, and 1.9 mm of board between hole wall and edge. A smaller margin would push the hole courtyard across the board edge. (3) HOLES RELEASABLE AT P6: place_seed/place_anneal treat board_only footprints as immovable obstacles, so holes parked at the PROVISIONAL corners would fix the fitted bbox at the provisional size and defeat geometry-as-OUTPUT. They were auto-placed by a script at an arbitrary provisional corner, not by the owner, so the placement agent is authorised to move them with place_edit to the corners the earned layout wants - the agent-prompt rule against moving board_only refs exists to protect owner-placed mechanical fixtures, which these are not. Order follows the bb-mcu P6 recorded pipeline defect: place canonically, move the holes, board_edit --outline fit, and only THEN run the place gate (legality measures declared edges against the CURRENT outline, so gating before fit would spread the connectors to the provisional size).",
+   "phase": "P5",
+   "ts": "2026-08-27T13:25:33"
+  },
+  {
+   "what": "unattended default: J1 USB-C footprint repaired at P5 - the four wide GND/VBUS pads restored to the vendor's own 0.60 mm land width, reopening the GND-VBUS gap from 0.100 mm to 0.200 mm",
+   "why": "board_init's self-check DRC found two clearance ERRORS inside J1's own footprint: pad A1B12 [GND] vs A4B9 [VBUS] at 0.1002 mm and B1A12 vs B4A9 at 0.1000 mm, against the aiee_clearance_floor of 0.127 mm (JLC 2-layer 1 oz). J1 was never geometry-checked at P3 (fp_verify needs a datasheet-extract JSON and none exists for it). The librarian fetched the HRO Hroparts TYPE-C-31-M-12 drawing: its RECOMMEND P.C.B LAYOUT calls the four wide pads '4-0.60', i.e. 0.60 mm wide on a 0.8 mm pitch = a 0.20 mm gap, already above the floor. The pulled easyeda2kicad custom-pad polygons were the vendor's 0.60 mm, but carried a spurious 0.1 mm outline STROKE that inflated the effective copper to 0.70 mm and closed the gap to 0.100 mm. So this was a converter artifact, not a vendor deviation, and the fix RESTORES the manufacturer's land pattern rather than inventing a number: outer X vertices moved in by 0.05 mm per side on those four polygons only, pad centres / 1.30 mm length / the other 12 pads untouched. Contact tab is 0.20 mm wide (drawing callout 16-0.20+-0.05), so 0.60 mm still leaves 0.20 mm of fillet per side - the vendor's own allowance. Rationale recorded in the footprint descr, matching the P3 SHT40 die-pad precedent.",
+   "phase": "P5",
+   "ts": "2026-08-27T13:51:19"
   }
  ],
  "edits": [
@@ -496,6 +508,12 @@
    "role": "fixer",
    "model": "sonnet/medium",
    "phase": "P4"
+  },
+  {
+   "ts": "2026-08-27T13:31:23",
+   "role": "librarian",
+   "model": "sonnet/medium",
+   "phase": "P5"
   }
  ],
  "history": [
@@ -969,6 +987,40 @@
    "event": "human",
    "checkpoint": "2",
    "status": "approved"
+  },
+  {
+   "ts": "2026-08-27T13:22:17",
+   "event": "phase",
+   "phase": "P5",
+   "prev": "P4"
+  },
+  {
+   "ts": "2026-08-27T13:25:33",
+   "event": "decision",
+   "what": "unattended default: P5 runs board_init --mounting-holes 4 --mounting-hole-fp MountingHole:MountingHole_2.2mm_M2 --margin 6 --outline auto; the four holes are explicitly RELEASABLE at P6 - the placement agent may move them with place_edit to the earned corners before board_edit --outline fit"
+  },
+  {
+   "ts": "2026-08-27T13:30:54",
+   "event": "snapshot",
+   "label": "pre-fix-j1-padgap",
+   "files": 1
+  },
+  {
+   "ts": "2026-08-27T13:31:23",
+   "event": "spawn",
+   "role": "librarian",
+   "model": "sonnet/medium"
+  },
+  {
+   "ts": "2026-08-27T13:51:19",
+   "event": "decision",
+   "what": "unattended default: J1 USB-C footprint repaired at P5 - the four wide GND/VBUS pads restored to the vendor's own 0.60 mm land width, reopening the GND-VBUS gap from 0.100 mm to 0.200 mm"
+  },
+  {
+   "ts": "2026-08-27T13:52:01",
+   "event": "phase",
+   "phase": "P6",
+   "prev": "P5"
   }
  ]
 }

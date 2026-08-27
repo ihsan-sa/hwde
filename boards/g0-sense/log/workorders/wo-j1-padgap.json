@@ -1,0 +1,38 @@
+{
+  "id": "j1-padgap",
+  "domain": "library",
+  "edit_class": "swap_part_new_fp",
+  "gate": "board_init self-check (P5)",
+  "workspace": "boards/g0-sense",
+  "footprint": "boards/g0-sense/lib/aiee.pretty/USB-C_SMD-TYPE-C-31-M-12_1.kicad_mod",
+  "source": "P5 board_init self-check + kicad-cli DRC against the generated aiee_clearance_floor rule",
+  "violations": [
+    {
+      "check": "clearance", "severity": "error", "refs": ["J1"], "layer": "F.Cu",
+      "msg": "Clearance violation (rule 'aiee_clearance_floor' clearance 0.1270 mm; actual 0.1002 mm) - Pad A1B12 [GND] of J1 vs Pad A4B9 [VBUS] of J1, both on F.Cu"
+    },
+    {
+      "check": "clearance", "severity": "error", "refs": ["J1"], "layer": "F.Cu",
+      "msg": "Clearance violation (rule 'aiee_clearance_floor' clearance 0.1270 mm; actual 0.1000 mm) - Pad B1A12 [GND] of J1 vs Pad B4A9 [VBUS] of J1, both on F.Cu"
+    }
+  ],
+  "context": [
+    "J1 is the TYPE-C-31-M-12 (LCSC C165948) 16P USB-C receptacle, used POWER ONLY. Its footprint was pulled by easyeda2kicad at P3 and has never been geometry-verified (fp_verify ran on U1/U2/U3 only - there is no datasheet-extract JSON for J1).",
+    "The four wide outer pads are the ganged power pads: A1B12 and B1A12 carry GND, A4B9 and B4A9 carry VBUS. Their centre-to-centre spacing is 0.8 mm (fixed by the connector's pin pitch - it CANNOT be changed).",
+    "The board's fab floor for this build (JLC 2-layer, 1 oz, capability class 2layer_1oz) is min_clearance 0.127 mm, written as the ERROR-severity custom rule aiee_clearance_floor by rules_gen. 0.100 mm is BELOW the fab's published capability, on the VBUS/GND pair - the two nets a solder bridge would short hardest. This is a real defect, not a checker artifact."
+  ],
+  "guidance": [
+    "STEP 1 - EVIDENCE FIRST, do not just shrink numbers. Fetch the vendor drawing for TYPE-C-31-M-12 (the datasheet URL is on the J1 line of boards/g0-sense/parts/parts.json) and read its RECOMMENDED LAND PATTERN: the recommended width of the wide power pads and the resulting pad-to-pad gap. Report the vendor's own numbers. If the vendor's recommended pattern already gives >= 0.127 mm, the pulled footprint deviates from it and the fix is to restore the vendor geometry. If the vendor's own pattern is also below 0.127 mm, say so plainly - that changes the answer and you should report it rather than invent one.",
+    "STEP 2 - FIX. Bring both GND<->VBUS gaps to at least 0.15 mm (margin over the 0.127 mm floor) with the SMALLEST symmetric change that does it: reduce the width of the four wide power pads (A1B12, A4B9, B1A12, B4A9) equally, keeping every pad CENTRE exactly where it is. Do not move pads, do not change pad shape, layer set, paste or mask apertures beyond what the width change implies, and do not touch any of the other 12 pads. Preferred target: enough width off each of the two facing pads to leave >= 0.15 mm, and no more.",
+    "STEP 3 - SANITY. Confirm each shrunken pad still fully covers the connector pin it lands (the pin is narrower than the pad; the extra is solder fillet). State the before/after pad widths and the resulting gaps, and note the remaining fillet allowance. Keep the courtyard and silk as they are.",
+    "STEP 4 - RECORD. Append a line to the footprint's `descr` (the same way the SHT40 die-pad removal was recorded at P3) saying what changed, by how much, and why (fab floor 0.127 mm on VBUS/GND).",
+    "STEP 5 - PROVE IT ON THE BOARD. Re-run, in this order, from /workspace:",
+    "  .venv/bin/python .claude/skills/ai-ee/scripts/board_init.py --netlist boards/g0-sense/kicad/g0-sense.net --name g0-sense --out boards/g0-sense/kicad --layers 2 --stackup JLC2313_1.6 --outline auto --margin 6 --mounting-holes 4 --mounting-hole-fp MountingHole:MountingHole_2.2mm_M2 --schematic boards/g0-sense/kicad/g0-sense.kicad_sch --fp-lib boards/g0-sense/lib --workspace boards/g0-sense --out-report boards/g0-sense/log/board_init-P5.json",
+    "  .venv/bin/python .claude/skills/ai-ee/scripts/rules_gen.py --constraints boards/g0-sense/kicad/constraints.json --layers 2 --stackup JLC2313_1.6 --out-dru boards/g0-sense/kicad/g0-sense.kicad_dru --pro boards/g0-sense/kicad/g0-sense.kicad_pro --out boards/g0-sense/log/rules_gen-P5.json",
+    "  .venv/bin/python .claude/skills/ai-ee/scripts/kc.py drc boards/g0-sense/kicad/g0-sense.kicad_pcb --parity --out boards/g0-sense/log/drc-P5.json",
+    "  Report the counts. Target: parity 0, and ZERO non-unconnected errors. (silk_edge_clearance warnings on the H1-H4 mounting-hole refdes text are expected at P5 and belong to P6's silk sweep - leave them.)",
+    "Budget: 2 attempts. If the vendor evidence says the fix is wrong, STOP and report - do not force the number."
+  ],
+  "snapshot_label": "pre-fix-j1-padgap",
+  "remediations": []
+}

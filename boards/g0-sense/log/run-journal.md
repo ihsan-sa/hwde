@@ -216,3 +216,48 @@
   D10 and C3, not only J1 (recorded as a decision so it cannot be lost).
 - Next: P5 board setup (board_init --outline auto + rules_gen, inline), then P6
   placement + gate place.
+
+## 2026-08-27 ~14:05Z - iteration 1 (loop 2) - P5 Board Setup COMPLETE (self-check PASS)
+- Run inline. `board_init --layers 2 --stackup JLC2313_1.6 --outline auto
+  --margin 6 --mounting-holes 4 --mounting-hole-fp MountingHole_2.2mm_M2` ->
+  **parity 0, setup_violations 0**, 26 components, 16 nets, 64 unconnected
+  (expected, unrouted). `rules_gen` -> 2layer_1oz, 11 rules, netclass Pwr_0p8mm
+  for VBUS/+5V, +3V3 into Default. Sidecars beside the board.
+- Provisional outline is deliberately generous ROOM (bbox 9,9 -> 74.6,71.4), not
+  a size. Decision recorded: the four M2 holes are RELEASABLE at P6 - place_seed
+  and place_anneal treat board_only footprints as immovable obstacles, so holes
+  parked at the provisional corners would pin the fitted bbox at the provisional
+  size and defeat geometry-as-OUTPUT. They were script-placed, not owner-placed.
+- BOARD DEFECT FOUND AND FIXED AT P5 (librarian, sonnet/medium, wo-j1-padgap):
+  J1's pulled USB-C footprint had ganged GND and VBUS pads 0.100 mm apart against
+  the 0.127 mm JLC floor - on the two nets a solder bridge shorts hardest. The
+  vendor drawing (HRO, "RECOMMEND P.C.B LAYOUT", callout 4-0.60) wants 0.60 mm
+  pads on 0.8 mm pitch = 0.20 mm gap, so the pulled geometry was a CONVERTER
+  ARTIFACT: a 0.1 mm outline stroke on the custom-pad polygons inflated each wide
+  pad to 0.70 mm effective. Fix restores the manufacturer's land pattern (vertices
+  in 0.05 mm/side, centres and the other 12 pads untouched); gap 0.200 mm, fillet
+  allowance unchanged at 0.20 mm/side. Nothing had checked this footprint before:
+  fp_verify needs a datasheet-extract JSON and J1 never had one.
+- THREE TOOLCHAIN BUGS fixed to reach parity 0, each measured and each committed
+  separately from the board (never swept in):
+  * board_init had no way to state the mounting-hole SIZE - it hard-coded M3
+    while the brief asks M2. Added an additive `--mounting-hole-fp` (default
+    unchanged).
+  * a symbol's native `dnp` was not mirrored onto the footprint, so the P4 W3 fix
+    produced 2 `footprint_symbol_mismatch` parity warnings. board_init now reads
+    the netlist's valueless `(property (name "dnp"))` and ORs FP_DNP on.
+  * 18 parity warnings came from assigning KiCad's `unconnected-(...)`
+    pseudo-nets to pads. Dropping them wholesale fixed g0-sense and BROKE the
+    usbbuck4 golden, which demands the opposite ("Pad missing net given by
+    schematic"). pintype is NOT the discriminator (both boards say
+    `*+no_connect`) and sheet-path-prefixing the name does not help - both
+    measured. So board_init no longer guesses: it builds WITH the pseudo-nets,
+    asks the real parity checker, and re-runs without them only on the exact
+    rejection signature, reporting `unconnected_nets_skipped`. All three are in
+    LEARNINGS.md with the counter-experiments.
+- Gates: erc PASS (fresh). P5 has no gate.py gate - board_init's self-check is it,
+  and it is clean. Remaining DRC: 2 transient silk_edge_clearance warnings on the
+  H1/H2 refdes text, which P6's silk sweep owns.
+- Open issues: none. Next: P6 placement (seed -> anneal -> select/repair, move the
+  M2 holes, `board_edit --outline fit`, THEN gate place - that order is the
+  bb-mcu recorded pipeline defect and it is deliberate here).

@@ -1,0 +1,121 @@
+{
+  "script": "board_init",
+  "status": "pass",
+  "board": "boards/g0-sense/kicad/g0-sense.kicad_pcb",
+  "stackup": "JLC2313_1.6",
+  "layers": 2,
+  "fab_profile": "2layer_1oz",
+  "copper_oz": 1.0,
+  "fab_floors": {
+    "min_clearance": 0.127,
+    "min_track_width": 0.127,
+    "min_via_diameter": 0.6,
+    "min_through_hole_diameter": 0.3,
+    "min_via_annular_width": 0.15,
+    "min_hole_to_hole": 0.5,
+    "min_copper_edge_clearance": 0.3
+  },
+  "components": 26,
+  "nets": 16,
+  "outline_bbox": [
+    9.0,
+    9.0,
+    74.61,
+    71.402
+  ],
+  "mounting_holes": 4,
+  "mounting_hole_fp": "MountingHole:MountingHole_2.2mm_M2",
+  "corner_radius": 0.0,
+  "outline_origin": [
+    9.0,
+    9.0
+  ],
+  "cutouts": [],
+  "self_check": {
+    "drc": {
+      "total": 66,
+      "by_severity": {
+        "warning": 2,
+        "error": 64
+      },
+      "by_source": {
+        "drc": 2,
+        "unconnected": 64
+      }
+    },
+    "setup_violations": [],
+    "transient_silk": [
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          9.0,
+          8.999999
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "H1"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              9.0,
+              8.999999
+            ],
+            "uuid": "eb751038-1612-4aa6-9eab-8c93db326c04"
+          },
+          {
+            "msg": "Reference field of H1",
+            "pos": [
+              12.0,
+              8.849999
+            ],
+            "uuid": "020114e5-acec-4f14-9740-592620e76582"
+          }
+        ]
+      },
+      {
+        "check": "silk_edge_clearance",
+        "severity": "warning",
+        "pos": [
+          9.0,
+          8.999999
+        ],
+        "layer": "Edge.Cuts",
+        "net": null,
+        "refs": [
+          "H2"
+        ],
+        "msg": "Silkscreen clipped by board edge",
+        "source": "drc",
+        "items": [
+          {
+            "msg": "Rectangle on Edge.Cuts",
+            "pos": [
+              9.0,
+              8.999999
+            ],
+            "uuid": "eb751038-1612-4aa6-9eab-8c93db326c04"
+          },
+          {
+            "msg": "Reference field of H2",
+            "pos": [
+              71.61,
+              8.849999
+            ],
+            "uuid": "f81d760b-f170-42f9-8746-d714de15df94"
+          }
+        ]
+      }
+    ],
+    "parity_count": 0,
+    "unconnected_count": 64,
+    "clean": true
+  },
+  "worker_notes": [],
+  "unconnected_nets_skipped": true
+}
