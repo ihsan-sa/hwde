@@ -2,6 +2,7 @@
 # watch-run.sh <ccbox-name> <board> [interval-sec=3600] - HOST side. Polls an unattended ai-ee run in a ccbox
 # container and posts progress to the owner (cc-notify -> Slack #<repo> + ntfy): hourly digest + one final report.
 set -uo pipefail
+case ":$PATH:" in *":$HOME/bin:"*) ;; *) PATH="$HOME/bin:$PATH";; esac; export PATH   # systemd --user units lack ~/bin (cc-notify)
 NAME="${1:?ccbox name}"; BOARD="${2:?board}"; EVERY="${3:-3600}"; C="ccbox-$NAME"; WS="$HOME/dev/$NAME/boards/$BOARD"
 last=""
 digest(){
