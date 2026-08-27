@@ -4904,3 +4904,20 @@ rail yields only 439.9 mm2 inside the checker's 14.33 mm reach disc. When this f
 the vendor-anchored Tj before spending copper - and note that the fix that would satisfy it on
 2 layers (a backside island + thermal vias) carves the ground return plane, trading a passing
 check_return_path for margin the measured data may say is not needed.
+
+## 2026-08-27 [silk][drc][place_edit] KiCad's `silk_overlap` fires against a footprint's OWN reference text vs its OWN body-outline graphic
+Moving a refdes with `place_edit move_text` must treat the part's own F.SilkS body
+outline as a keepout, not just its courtyard and its neighbours. g0-sense P9: D1's
+reference was moved off its neighbour and onto D1's own silk outline, producing a real
+DRC error where there had been a warning; it was reverted. The own-part exemption people
+carry in their heads (a part's own courtyard does not collide with its own label) does
+NOT extend to silk graphics. Practical consequence for dense boards: a refdes that
+check_silk calls "misattributed" may have NO legal destination at all - g0-sense finished
+with 4 residual misattributions after an exhaustive nearest-legal-spot search, because
+J1's connector pads extend past its drawn courtyard and C10 is boxed in by four parts.
+Related measurement worth reusing: 0.1 in header per-pin labels need ~1.70 mm of clear
+run in any orientation at a 1.0 mm / 0.15 mm silk floor, so a <= 1.34 mm inter-part gap
+cannot hold one - label pin 1 and pin 4 and put the full pinout in fab/README instead.
+Script gap proposed by the fixer: `place_edit --suggest-text-spot` (pads + silk graphics
+as keepouts, own courtyard exempt, edge clearance, check_silk's own_off/nearest_other
+formula) - it hand-built that search this session.
