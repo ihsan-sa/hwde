@@ -323,3 +323,59 @@
 - Rule added to docker/run-contract.md ("Headless facts"): run agents and long
   scripts in the FOREGROUND and act on their result before stopping; never
   wait for a callback. Nothing else changed; erc + place still PASS.
+
+## 2026-08-27 ~18:15Z - iteration 3 (loop 2) - P7 Routing COMPLETE, gate drc_routed PASS 0/0
+- Iteration 3's own predecessor left NOTHING: iter-03.json and .err were both
+  empty (session died at dispatch). Iteration 2 spawned a router that died after
+  route_auto; subagents do not survive a session, so its work survived only as
+  files on disk. The resumed router found and continued from them - the reason
+  the run-contract's "journal after EVERY phase" rule exists.
+- RESUME SEAM, gates first. erc was stale for a benign reason (P5 rules_gen
+  changed .kicad_pro; schematic hash unchanged) -> re-ran, PASS (9dde508). place
+  was stale because P6's silk fixes landed AFTER the gate was recorded -> re-ran
+  on the real board, PASS 0/0 (e0582da). Both re-run rather than reasoned around.
+- Router (fable, 2L chain): planes_gen (9 zones) -> route_critical -> route_auto
+  (FR 3 rungs, best rung 1, fr 0.854; KRT finish correctly discarded) ->
+  stitch_vias (13 vias; 3 redundant removed, 1 moved for hole_to_hole) ->
+  plane_repair -> gate. route_cleanup SKIPPED (S14 2L-pour rule). **completion
+  1.0, drc_routed PASS 0/0, attempt 1.**
+- THE P6-CARRIED VBUS ITEM IS RETIRED, NOT EXECUTED. route_critical --pad-window
+  measured J1's A4B9/B4A9 escape windows at **1.315 mm**, well above the 0.8 mm
+  Pwr_0p8mm rule - so the P6 premise ("geometrically impossible at any
+  placement") was true only for a 0.8 mm TRACK leaving the pad, not for the pad's
+  escape corridor. VBUS is pour-carried with a ~1.45 mm fill band, i.e. WIDER
+  than the rule asks. Neither costed option was taken: no neck (so no
+  ERROR-severity rule exception) and no via-in-pad (so no unfilled via in a
+  mechanically loaded connector pad, and no JLC wicking remark for fab/README).
+- VERIFIED, NOT TAKEN ON THE AGENT'S WORD. (1) kicad-cli DRC direct: 0
+  violations, 0 unconnected, 0 parity. (2) The 0.8 mm B.Cu VBUS bridge crosses
+  the layer that IS the GND pour - the playbook's "viasless pour-channel"
+  blind spot, and the router's plane_repair2 was restricted to +3V3 so it never
+  re-checked GND. Re-ran plane_repair --flag-only (never writes) on the final
+  board: GND B.Cu = 1 group, split False, 813.2 mm2, 27 anchors, 0 dead islands.
+  Ground return continuous. (3) .kicad_dru and .kicad_pro are unmodified through
+  all of P7 (git) - nothing was weakened to pass.
+- ONE ROUTER NUMBER CORRECTED. It reported the U1 tab pour at 158.0 mm2
+  "connected". That is the CURRENT figure, not the HEAT figure: plane_repair
+  shows four +3V3 components (113.2 + 24.3 + 18.4 + 1.6) merged by 0.25/0.5 mm
+  bridge TRACKS, which carry 0.3 A at 13 mV but conduct no heat. Thermal
+  spreader = **113.2 mm2**. Still passes on the board's own criterion: AMS p5
+  Table 1 gives 80 C/W for ~100 mm2 top + a backside pour (B.Cu GND measured
+  813 mm2), so rise = 0.51 x 80 = **40.8 K vs the declared dt_c 45**; Tj 80.8 C
+  rated, 106 C at the abuse case, 125 C limit. The 600-1000 mm2 figure was the
+  architect's MEANS to Tj 71-76 C, not an independent requirement, and the
+  earned 35.79 x 28.34 mm outline cannot fund it. Shrinking the U3 island void
+  to buy pour area was rejected outright: the B4 isolation contract outranks it.
+- U3 island contract met in full: exactly 4 necked crossings (SDA/SCL/GND
+  0.127, +3V3 0.150 lawful minimum), zero copper and zero fill in the tongue on
+  both layers. Freerouting had routed SCL THROUGH the island as a fifth
+  crossing; removed, I2C trunk rebuilt on B.Cu. The U-slot already existed from
+  P6 (two 5.5 mm Edge.Cuts slots -> a 3-sides-open tongue), so no new cut and
+  Edge.Cuts is unchanged.
+- iter-2's route_auto placement_adjust_request was judged PREMATURE and not
+  escalated to P6: it fired before stitch_vias/plane_repair, which own three of
+  its four nets on the 2L chain. Finishing the chain closed all four.
+- Gates: erc, place, drc_routed all PASS and FRESH at board hash 0b12cafc.
+  Seven decisions recorded (six unattended defaults + the corrected thermal).
+- Open issues: none. Next: P8 verification - gate verify (8 checks), then
+  verify-reviewer in fresh context, then H4.
