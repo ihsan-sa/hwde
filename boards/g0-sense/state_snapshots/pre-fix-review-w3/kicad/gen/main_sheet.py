@@ -256,15 +256,10 @@ def build() -> schlib.Sheet:
         sh.sch.components.get(ref).set_property("LCSC", code)
 
     # J3/J4 ship UNPOPULATED (Economy PCBA is SMT-only; owner hand-solders).
-    # Both get the NATIVE KiCad dnp attribute (Sheet.mark_dnp - a saved-file
-    # text repair, since kicad-sch-api 0.5.6 cannot write it from build();
-    # LEARNINGS 2026-08-07) so native BOM/POS exports honour DNP without
-    # relying on P9's custom-field filter. on_board/in_bom stay yes (lands
-    # exist on the PCB; they belong in the documentation BOM). The Variant
-    # field stays too - belt and braces, human-readable at a glance.
+    # kicad-sch-api 0.5.6 cannot write the KiCad DNP flag (LEARNINGS
+    # 2026-08-07) - the Variant field is the machine-readable record.
     for ref in ("J3", "J4"):
         sh.sch.components.get(ref).set_property("Variant", "DNP")
-        sh.mark_dnp(ref)
 
     return sh
 

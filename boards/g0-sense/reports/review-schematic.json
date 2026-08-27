@@ -1,0 +1,37 @@
+{
+  "violations": [
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "/main/SDA",
+      "refs": ["J2", "U2", "U3"],
+      "msg": "User-facing hot-pluggable Qwiic connector J2 exposes SDA/SCL with no ESD clamps and no recorded waiver (product scope); a cable-borne strike discharges directly into U2 PA11/PA12 and U3 (2 kV HBM) - risks field damage, not first bring-up.",
+      "source": "review.schematic",
+      "kind": "qwiic-esd-unwaived"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": "+3V3",
+      "refs": ["U3", "U1", "C3"],
+      "msg": "Carried verify item 'SHT4x VDD slew <= 20 V/ms vs AMS1117 startup ramp' was assigned to P3/P4 and is still unclosed: the on-file SHT4x datasheet has no slew spec, and AMS1117 current-limit charging of ~27 uF allows ~40 V/ms worst-case on a fast attach, which could leave the sensor in an undefined state until soft-reset.",
+      "source": "review.schematic",
+      "kind": "sht4x-vdd-slew-unclosed"
+    },
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "pos": null,
+      "layer": null,
+      "net": null,
+      "refs": ["J3", "J4"],
+      "msg": "DNP intent for the THT headers lives only in a custom 'Variant=DNP' field and the value string - the KiCad-native dnp attribute is absent (in_bom yes), so native BOM/POS exports will emit them as populate lines unless P9's BOM writer filters the custom field.",
+      "source": "review.schematic",
+      "kind": "dnp-not-native"
+    }
+  ]
+}

@@ -3,20 +3,20 @@
  "board": "g0-sense",
  "workspace": "boards/g0-sense",
  "created": "2026-08-27T06:35:38",
- "updated": "2026-08-27T09:51:08",
- "phase": "P3",
+ "updated": "2026-08-27T13:18:16",
+ "phase": "P4",
  "gates": {
   "erc": {
    "phase": "P4",
    "status": "pass",
-   "attempts": 1,
+   "attempts": 2,
    "last": {
-    "ts": "2026-08-27T09:50:50",
+    "ts": "2026-08-27T13:18:16",
     "status": "pass",
     "failing_count": 0,
     "total": 0,
     "inputs": {
-     "sch": "sexpr_no_uuid:f8fbea71d7e27b46e328faf9ea4b7040e68c3b983a421f37815141686af3564c",
+     "sch": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
      "pro": "json_canonical:8ceb42980cb7a7e701710b95ac3576e9edb30ab78b2ae053742a03230a620270"
     }
    },
@@ -28,6 +28,16 @@
      "total": 0,
      "inputs": {
       "sch": "sexpr_no_uuid:f8fbea71d7e27b46e328faf9ea4b7040e68c3b983a421f37815141686af3564c",
+      "pro": "json_canonical:8ceb42980cb7a7e701710b95ac3576e9edb30ab78b2ae053742a03230a620270"
+     }
+    },
+    {
+     "ts": "2026-08-27T13:18:16",
+     "status": "pass",
+     "failing_count": 0,
+     "total": 0,
+     "inputs": {
+      "sch": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
       "pro": "json_canonical:8ceb42980cb7a7e701710b95ac3576e9edb30ab78b2ae053742a03230a620270"
      }
     }
@@ -45,14 +55,82 @@
   "sch": {
    "path": "kicad/g0-sense.kicad_sch",
    "kind": "sch",
-   "sha256": "sexpr_no_uuid:f8fbea71d7e27b46e328faf9ea4b7040e68c3b983a421f37815141686af3564c",
-   "hashed": "2026-08-27T09:50:50"
+   "sha256": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
+   "hashed": "2026-08-27T13:18:16"
   },
   "pro": {
    "path": "kicad/g0-sense.kicad_pro",
    "kind": "pro",
    "sha256": "json_canonical:8ceb42980cb7a7e701710b95ac3576e9edb30ab78b2ae053742a03230a620270",
-   "hashed": "2026-08-27T09:50:50"
+   "hashed": "2026-08-27T13:18:16"
+  },
+  "netlist": {
+   "path": "kicad/g0-sense.net",
+   "kind": "netlist",
+   "sha256": null,
+   "hashed": "2026-08-27T13:18:09",
+   "stale": [
+    {
+     "ts": "2026-08-27T13:18:09",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "J3",
+      "J4"
+     ],
+     "human_hold": 2
+    }
+   ]
+  },
+  "bom": {
+   "path": "fab/BOM.csv",
+   "kind": "bom",
+   "sha256": null,
+   "hashed": "2026-08-27T13:18:09",
+   "stale": [
+    {
+     "ts": "2026-08-27T13:18:09",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "J3",
+      "J4"
+     ],
+     "human_hold": 2
+    }
+   ]
+  },
+  "bom_full": {
+   "path": "fab/BOM-full.csv",
+   "kind": "bom_full",
+   "sha256": null,
+   "hashed": "2026-08-27T13:18:09",
+   "stale": [
+    {
+     "ts": "2026-08-27T13:18:09",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "J3",
+      "J4"
+     ],
+     "human_hold": 2
+    }
+   ]
+  },
+  "cpl": {
+   "path": "fab/CPL.csv",
+   "kind": "cpl",
+   "sha256": null,
+   "hashed": "2026-08-27T13:18:09",
+   "stale": [
+    {
+     "ts": "2026-08-27T13:18:09",
+     "edit_class": "swap_part_same_fp",
+     "refs": [
+      "J3",
+      "J4"
+     ],
+     "human_hold": 2
+    }
+   ]
   }
  },
  "open_issues": [],
@@ -174,9 +252,53 @@
    "why": "Two independent second readers read the SHT4x datasheet Table 4 slew row and quoted its condition verbatim: 'Voltage changes on the supply between VDD,min and VDD,max. Faster slew rates may lead to a reset' (min cell empty). That bounds supply changes DURING operation, not the cold-start ramp from 0 V - and a reset during power-on is the intended behaviour anyway (the part has a POR). In operation the 22 uF tantalum on +3V3 holds any load-step slew orders of magnitude below 20 V/ms. Adding bulk to slow a cold start would also fight the USB-C <=10 uF attach limit upstream. No hardware change; note it for bring-up.",
    "phase": "P3",
    "ts": "2026-08-27T09:05:28"
+  },
+  {
+   "what": "unattended default: WAIVE schematic-review W1 (no ESD array on the J2 Qwiic SDA/SCL) - ship the board without a TVS/ESD array on the I2C bus",
+   "why": "Product-scope connector checklist allows met-or-waived. Waived on four grounds: (a) the Qwiic/STEMMA-QT ecosystem norm (SparkFun/Adafruit reference boards) is a bare 4-pin JST SH with no array, so a user-facing part behaves as the ecosystem's users expect; (b) STM32G030 PA11/PA12 and the SHT40 both carry internal ESD structures and are 2 kV HBM rated, which is the standard handling rating for an indoor bench device; (c) the recorded environment is indoor bench/room ambient with no ingress rating, not a field-exposed port; (d) adding a 4-channel array now means a new Extended MPN plus setup fee, a fresh library pull and footprint verify, and re-opening a green schematic at P4 - real regression risk against a warning-severity, field-reliability-only exposure that cannot prevent bring-up. Recorded in reports/erc-waivers.md and shown at H2.",
+   "phase": "P4",
+   "ts": "2026-08-27T13:05:48"
+  },
+  {
+   "what": "unattended default: CLOSE the carried verify item 'SHT4x VDD slew <= 20 V/ms vs AMS1117 startup ramp' (schematic-review W2) as accepted risk - no hardware change",
+   "why": "Three findings close it. (1) PROVENANCE IS ON FILE, contrary to the reviewer's note: the 20 V/ms figure is research/records/sht4x-vdd-slew-power-up.yaml, sourced to research/sources/HT_DS_Datasheet_SHT4x.pdf p9 Table 4 and read visually TWICE (researcher + fresh second reader, maturity verified). The reviewer grepped parts/C2909890.json (the extraction JSON) and the LCSC PDF, which is a different artifact. (2) THE WORST-CASE NUMBER IS AN UPPER BOUND THAT CANNOT OCCUR: I_limit/C (~1 A into ~27 uF, 40-68 V/ms) assumes the LDO sources its full current limit into the output cap independently of its input. The AMS1117 is a series pass follower - during a cold start VOUT cannot rise faster than VIN minus dropout, so +3V3's edge is set by the USB source's VBUS ramp through C2 = 10 uF, not by the LDO's current limit. (3) THE NAMED FAILURE MODE IS BENIGN AT COLD START: the datasheet says only 'faster slew rates MAY lead to a reset'; the second reader explicitly flagged 'or hung until re-powered' as an unsupported clause the researcher added. A reset during the power-up ramp lands the part in exactly the state a power-up is supposed to produce - there is no state to lose at t=0. The limit's real bite is in-operation supply excursions and hot-plugging a DOWNSTREAM breakout onto a live Qwiic rail, which is the breakout's decoupling problem, not this board's. HARDWARE ALTERNATIVES REJECTED: a series R at U3 VDD to slow the local ramp is disqualified by the SHT4x on-chip heater (75 mA peak would drop 7.5 V across the 100 ohm needed for a 100 us tau); raising C3 above ~50 uF to force I_limit/C under 20 V/ms buys nothing against (2) and costs a part change on a green schematic. BELT AND BRACES (documentation, not copper): the firmware note 'issue an SHT4x soft reset (0x94) at init, per Sensirion's own recommended start-up sequence' goes into the design doc and fab/README, and the Qwiic hot-plug caveat is recorded as a known limit.",
+   "phase": "P4",
+   "ts": "2026-08-27T13:06:50"
+  },
+  {
+   "what": "unattended default: carry a P9 REQUIRED check - CPL rotation must be validated for every polarized 2-pin part (D1 TVS SOD-123, D2 power LED, D10 user LED, C3 tantalum CASE-A), not only for J1",
+   "why": "schematic-review OPEN item. decisions.md #13 carried a CPL rotation check for J1 alone; the KiCad<->JLC 0-degree-reference offset (reference/jlc_rotations.csv, LEARNINGS/S8) bites every polarized package, and a reversed tantalum on 3V3 or a reversed TVS on VBUS is a dead board, not a cosmetic error. dfm_check.py owns polarity/rotation validation - at P9 its findings for D1/D2/D10/C3 must be read explicitly and each confirmed against the footprint pin-1 marking, not just accepted as a count.",
+   "phase": "P4",
+   "ts": "2026-08-27T13:07:32"
   }
  ],
- "edits": [],
+ "edits": [
+  {
+   "ts": "2026-08-27T13:18:09",
+   "class": "swap_part_same_fp",
+   "refs": [
+    "J3",
+    "J4"
+   ],
+   "note": "schematic-review W3 fix: native KiCad dnp attribute set on J3/J4 (in_bom/on_board unchanged) + refdes_class hand_install added to the 1x4 header line in parts.json. Netlist proven electrically identical (netlist_audit --compare: identical true, 35/35 nets, 0 membership diffs).",
+   "human_hold": 2,
+   "gates": [
+    "erc",
+    "verify",
+    "sim",
+    "dfm"
+   ],
+   "gates_marked": [
+    "erc"
+   ],
+   "stale_artifacts": [
+    "netlist",
+    "bom",
+    "bom_full",
+    "cpl"
+   ]
+  }
+ ],
  "spawns": [
   {
    "ts": "2026-08-27T06:35:58",
@@ -356,6 +478,18 @@
    "ts": "2026-08-27T09:51:08",
    "role": "schematic-reviewer",
    "model": "fable/high",
+   "phase": "P4"
+  },
+  {
+   "ts": "2026-08-27T12:51:20",
+   "role": "schematic-reviewer",
+   "model": "fable/high",
+   "phase": "P4"
+  },
+  {
+   "ts": "2026-08-27T13:05:21",
+   "role": "fixer",
+   "model": "sonnet/medium",
    "phase": "P4"
   }
  ],
@@ -760,6 +894,70 @@
    "event": "spawn",
    "role": "schematic-reviewer",
    "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T12:51:04",
+   "event": "resumed",
+   "iteration": "loop-2 iter-01",
+   "from": "P4 sheets built + erc PASS fresh; schematic-reviewer spawned but killed by 429 session limit",
+   "next": "schematic-reviewer (fresh) -> waivers -> H2 -> P5"
+  },
+  {
+   "ts": "2026-08-27T12:51:20",
+   "event": "spawn",
+   "role": "schematic-reviewer",
+   "model": "fable/high"
+  },
+  {
+   "ts": "2026-08-27T12:52:14",
+   "event": "phase",
+   "phase": "P4",
+   "prev": "P3"
+  },
+  {
+   "ts": "2026-08-27T13:04:57",
+   "event": "snapshot",
+   "label": "pre-fix-review-w3",
+   "files": 5
+  },
+  {
+   "ts": "2026-08-27T13:05:21",
+   "event": "spawn",
+   "role": "fixer",
+   "model": "sonnet/medium"
+  },
+  {
+   "ts": "2026-08-27T13:05:48",
+   "event": "decision",
+   "what": "unattended default: WAIVE schematic-review W1 (no ESD array on the J2 Qwiic SDA/SCL) - ship the board without a TVS/ESD array on the I2C bus"
+  },
+  {
+   "ts": "2026-08-27T13:06:50",
+   "event": "decision",
+   "what": "unattended default: CLOSE the carried verify item 'SHT4x VDD slew <= 20 V/ms vs AMS1117 startup ramp' (schematic-review W2) as accepted risk - no hardware change"
+  },
+  {
+   "ts": "2026-08-27T13:07:32",
+   "event": "decision",
+   "what": "unattended default: carry a P9 REQUIRED check - CPL rotation must be validated for every polarized 2-pin part (D1 TVS SOD-123, D2 power LED, D10 user LED, C3 tantalum CASE-A), not only for J1"
+  },
+  {
+   "ts": "2026-08-27T13:18:09",
+   "event": "edit",
+   "edit_class": "swap_part_same_fp",
+   "refs": [
+    "J3",
+    "J4"
+   ],
+   "human_hold": 2
+  },
+  {
+   "ts": "2026-08-27T13:18:16",
+   "event": "gate",
+   "gate": "erc",
+   "status": "pass",
+   "attempt": 2,
+   "failing_count": 0
   }
  ]
 }

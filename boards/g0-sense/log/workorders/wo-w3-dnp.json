@@ -1,0 +1,35 @@
+{
+  "id": "w3-dnp",
+  "domain": "schematic-parts",
+  "edit_class": "swap_part_same_fp",
+  "gate": "erc",
+  "board": "boards/g0-sense/kicad/g0-sense.kicad_sch",
+  "workspace": "boards/g0-sense",
+  "source": "reports/review-schematic.json (WARNING 3, kind dnp-not-native)",
+  "violations": [
+    {
+      "check": "schematic-review",
+      "severity": "warning",
+      "refs": ["J3", "J4"],
+      "kind": "dnp-not-native",
+      "msg": "DNP intent for the THT headers lives only in a custom 'Variant=DNP' field and the value string - the KiCad-native dnp attribute is absent (in_bom yes), so native BOM/POS exports will emit them as populate lines unless P9's BOM writer filters the custom field."
+    }
+  ],
+  "allowed_scripts": [
+    "boards/g0-sense/kicad/gen/main_sheet.py (the generator that OWNS main.kicad_sch)",
+    "boards/g0-sense/kicad/gen/root.py (root stitch)",
+    ".claude/skills/ai-ee/scripts/kc.py (erc, netlist, sch-pdf)",
+    ".claude/skills/ai-ee/scripts/netlist_audit.py (--compare for electrical identity proof)",
+    ".claude/skills/ai-ee/scripts/schlib.py",
+    ".claude/skills/ai-ee/scripts/gate.py"
+  ],
+  "guidance": [
+    "TWO changes, nothing else.",
+    "(1) SCHEMATIC: give J3 and J4 KiCad's NATIVE dnp attribute. Keep on_board = yes (the lands must exist on the PCB) and keep in_bom = yes (they belong in the documentation BOM). Make the change in the GENERATOR kicad/gen/main_sheet.py so a rebuild reproduces it, then rebuild main.kicad_sch through that generator (and re-stitch the root with kicad/gen/root.py if the root build is what produces g0-sense.kicad_sch). Do NOT hand-edit any .kicad_sch text. Leave the existing 'Variant=DNP' field and the '(DNP)' value suffix in place - belt and braces.",
+    "(2) PARTS: in boards/g0-sense/parts/parts.json, on the line whose mpn is 'HX PZ2.54-1x4P ZZ' (the 1x4 2.54 mm header used for J3 SWD and J4 UART), add \"refdes_class\": {\"J3\": \"hand_install\", \"J4\": \"hand_install\"} and \"refdes_notes\": {\"J3\": \"<one line>\", \"J4\": \"<one line>\"} saying THT, not machine-placeable by JLC economy PCBA (SMT-only), hand-solder after reflow. hand_install is the intended class (bought, fitted by hand; BOM-full only, never in the assembler upload or CPL) - see the assembly-class table at the top of .claude/skills/ai-ee/scripts/bom_cpl.py. Change nothing else in parts.json.",
+    "PROOF OF NO COLLATERAL DAMAGE (required): export the netlist BEFORE your change to a temp path (kc.py netlist), export it again AFTER, and run netlist_audit.py --netlist <after> --compare <before>. Report the diff. Any electrical difference other than DNP/attribute metadata is a regression - restore the snapshot 'pre-fix-review-w3' and report failure.",
+    "Then run kc.py erc on the top schematic and confirm 0 errors / 0 warnings. Report the counts. Do NOT run gate.py --workspace (the orchestrator records the gate)."
+  ],
+  "snapshot_label": "pre-fix-review-w3",
+  "remediations": []
+}
