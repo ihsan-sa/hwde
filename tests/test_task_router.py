@@ -31,7 +31,7 @@ SKILL = ROOT / ".claude" / "skills" / "ai-ee"
 SCRIPTS = SKILL / "scripts"
 RECIPES = SKILL / "reference" / "recipes"
 FIXTURES = ROOT / "tests" / "fixtures" / "stages" / "pd_trigger"
-PY = ROOT / ".venv" / "Scripts" / "python.exe"
+PY = ROOT / ".venv" / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
 
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))

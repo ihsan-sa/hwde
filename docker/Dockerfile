@@ -67,10 +67,8 @@ ENV DEVCONTAINER=true \
     AIEE_FREEROUTING_JAR=/opt/freerouting/freerouting-2.2.4.jar \
     AIEE_KRT_DIR=/opt/krt/KiCadRoutingTools-0.19.0/plugins \
     AIEE_NGSPICE_DLL=/usr/lib/x86_64-linux-gnu/libngspice.so.0 \
-    KICAD10_SYMBOL_DIR=/usr/share/kicad/symbols \
-    KICAD10_FOOTPRINT_DIR=/usr/share/kicad/footprints \
-    KICAD10_TEMPLATE_DIR=/usr/share/kicad/template \
-    KICAD10_3DMODEL_DIR=/usr/share/kicad/3dmodels
+    # SWIG Specctra export/import needs an X display: Xvfb :99 is started by ccbox-project-init
+    DISPLAY=:99
 # ccbox's entrypoint + egress firewall + tmux conf come from the ccbox base image (iiks1 ccbox/)
 COPY --from=ccbox:latest /usr/local/bin/entrypoint.sh /usr/local/bin/init-firewall.sh /usr/local/bin/
 COPY --from=ccbox:latest --chown=node:node /home/node/.tmux.conf /home/node/.tmux.conf
