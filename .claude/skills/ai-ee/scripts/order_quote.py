@@ -33,6 +33,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 import yaml  # noqa: E402
 
 import geom  # noqa: E402
+import safelib  # noqa: E402
 
 PRICING = SCRIPTS.parent / "reference" / "jlc_pricing.yaml"
 
@@ -286,12 +287,12 @@ def main(argv: list[str] | None = None) -> int:
         err = {"script": "order_quote", "status": "error",
                "error": f"{type(exc).__name__}: {exc}"}
         text = json.dumps(err, indent=1)
-        (Path(args.out).write_text(text, encoding="utf-8") if args.out
+        (safelib.atomic_write_text(Path(args.out), text) if args.out
          else print(text))
         return 2
 
     text = json.dumps(rep, indent=1)
-    (Path(args.out).write_text(text, encoding="utf-8") if args.out
+    (safelib.atomic_write_text(Path(args.out), text) if args.out
      else print(text))
     return 0
 

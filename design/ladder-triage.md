@@ -35,18 +35,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at the U21 close (2026-08-20), all 314 rows
+Recomputed from the table at the U12 close (2026-09-01), all 315 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
 | L0 | 120 | 14 |
 | L1 | 16 | 13 |
-| L2 | 54 | 111 |
-| L3 | 123 | 175 |
+| L2 | 54 | 112 |
+| L3 | 125 | 176 |
 
-126 entries want to climb at least one level. Status: **done 158**,
-**open 129**, **n/a 7**, planned 18
+127 entries want to climb at least one level. Status: **done 160**,
+**open 130**, **n/a 7**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
 
@@ -433,3 +433,4 @@ the row's Now level and status in the same commit as the code.
 | 312 | 4603 | `--outline fit` on a board that was placed to FIT cannot recover the size | [board_edit][placement][build-modes] | L0 | L2 | reference/recipes/full-run.md | open | The ORDER is the fix and it is prose today: full-run's P6 step and build-modes.md both say board_init --outline auto -> place -> fit, and board_init refuses a fixed outline at a canonical binding, but nothing FAILS when a canonical run reaches fit having been placed against a tight provisional outline. The honest L2 is a board_edit warning when `fit` GROWS the board under a geometry-output mode - it means the placement was already boxed in. Measured: bb-buck 35x25 -> fit 35.9 x 25.901 |
 | 313 | 4616 | `place_anneal` RE-DERIVES every satellite slot from `place_seed` - it | [placement][anneal] | L3 | L3 | scripts/place_anneal.py | done | FIXED in U20, all three rungs: `_inherit_slots` starts stage 2 from the board's OWN satellite geometry (slot = exact inverse of `apply_cluster`, so a valid hand placement round-trips unmoved and `hpwl_input == hpwl_start` by construction); re-derivation only for an INVALID slot (wrong side / intra-cluster collision on PRECISE U5 shapes / declared `max_dist_mm` violated) and is loud - warning + `satellites_reslotted` fact (the L1 rung). L2 rung as candidate REJECTION not scoring: `placelib.declared_decap_violations` marks any candidate exceeding a declared distance illegal, so it never outranks a clean one and `--apply-best` refuses it. The gate escape closed in the same step: `check_decoupling` now treats declared `max_dist_mm`/`max_loop_nh` as the ERROR threshold itself (was: declared moved only WARN while error stayed at the class default - why bb-adc passed at 3.97 vs 2.5). Frozen fixture `tests/fixtures/bb_adc/` reproduces the exact 2.44/3.97 numbers pre-fix |
 | 314 | 4636 | `learnings.py compile` WRITES - smoke-testing a run-close verb straight | [research][process][tools] | L0 | L2 | scripts/learnings.py | open | The read-only board rule is prose and the run-close verbs mutate BY DESIGN, so nothing stands between a smoke test and a committed board: U21 pointed `learnings.py compile` at `boards/bb-amp` to watch the draft sweep fire and wrote queue.yaml + a state decision + a history event into it (reverted with `git checkout`). The L2 rung is a consent flag - a verb that writes into a workspace under `boards/` refuses unless the caller passes it, the same shape as `board_init --allow-fixed-outline` (U18). L1 alternative: report the paths a verb WOULD write before writing them. Today the only defence is copying the workspace to the scratchpad first and checking `git status -- boards/` after any smoke |
+| 315 | 4649 | Two writers, one file: the old `<name>.tmp` + os.replace pattern is NOT concurrency-safe, and a snapshot manifest is an input, not evidence | [state][order_submit][lock][snapshot][U12] | L3 | L3 | scripts/lib/safelib.py | done | FIXED in U12: `safelib.atomic_write_*` (mkstemp unique temp + fsync + os.replace + dir fsync), `writer_lock` (OS-exclusive, re-entrant per thread, bounded wait) held across state CLI load->save and the order latch load->check->create->finalize, `State.save()` base-digest compare-and-swap (`StaleWriteError`), `contained_rel` on every snapshot/restore entry, staged+verified+swapped restore, append-only `fab/order_attempts.jsonl`. Proven by `tests/test_u12_safety.py` (real-subprocess lock race + os._exit crash). Residual: board writer lock not yet wired into the four swig dispatchers (needs a KiCad host) |

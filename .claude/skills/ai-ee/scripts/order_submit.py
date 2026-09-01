@@ -123,6 +123,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 import fabhash  # noqa: E402
 import jlcapi  # noqa: E402
 import releaselib  # noqa: E402
+import safelib  # noqa: E402
 
 # JLCPCB Open API pcb/create refuses 4+ layer boards: three live attempts on
 # a 4L board all returned HTTP 200 {"code": 2, "message": "unknown_error"}
@@ -131,6 +132,7 @@ import releaselib  # noqa: E402
 # `create` is affected (LEARNINGS 2026-07-30 [ordering]). Until JLC support
 # explains code 2, 4+ layer ordering is the WEB path.
 API_CREATE_MAX_LAYERS = 2
+JOURNAL_NAME = "order_attempts.jsonl"   # U12 append-only attempt journal
 
 # pcb/audit is asynchronous on JLC's side: right after upload it returns
 # business code 2501 (no_audit_result_error) until their DFM run finishes
@@ -686,7 +688,7 @@ def _api_quote(session, man: dict, fab_dir: Path, prior_steps=None,
         "confirm_format": "<board> <qty>pcs <grand_total>",
     }
     out = fab_dir / "api_quote.json"
-    out.write_text(json.dumps(api_quote, indent=1), encoding="utf-8")
+    safelib.atomic_write_json(out, api_quote)
 
     if estimate_scope == "pcb_only":
         est_txt = (f"our PCB-only estimate {estimate}; assembly estimated "
@@ -740,7 +742,8 @@ def _load_fresh_quote(path: Path) -> dict:
 
 def _api_create(session, man: dict, quote_file: Path, confirm: str,
                 ship_json: Path | None,
-                canonical: Path | None = None) -> str:
+                canonical: Path | None = None,
+                journal: Path | None = None) -> str:
     """REAL MONEY. The only caller of session.create_order, reachable only
     past the created-latch, the ambiguous-attempt block, a fresh quote file,
     the gerber sha binding, the freight attestation, the qty cross-check and
@@ -948,19 +951,28 @@ def _api_create(session, man: dict, quote_file: Path, confirm: str,
     # success also refuses, which a portal check clears.
     attempt = {"at": _dt.datetime.now().astimezone()
                .isoformat(timespec="seconds"),
-               "state": "in_flight", "grand_total": q["grand_total"]}
+               "state": "in_flight", "grand_total": q["grand_total"],
+               "pid": os.getpid()}
     man["api"]["create_attempt"] = attempt
     if canonical is None:
         # fallback: derive the canonical fab/order.json from the gerber zip
         canonical = Path(zip_info["path"]).parent / "order.json"
-    canonical.parent.mkdir(parents=True, exist_ok=True)
-    canonical.write_text(json.dumps(man, indent=1), encoding="utf-8")
+    if journal is None:
+        journal = canonical.parent / JOURNAL_NAME
+    safelib.append_journal(journal, {
+        "event": "in_flight", "grand_total": q["grand_total"],
+        "board": man.get("board"), "qty": q.get("qty")})
+    safelib.atomic_write_json(canonical, man)   # fsync'd, unique temp
+    safelib.fault("order.pre_armed", canonical=canonical)
 
     resp = session.create_order(payload)
     cls = jlcapi.classify(resp)
     attempt["state"] = "created" if cls == "ok" else f"failed:{cls}"
     if cls != "ok":
         _record_api_failure(man, cls, resp)
+        safelib.append_journal(journal, {
+            "event": f"failed:{cls}", "message": resp.get("message"),
+            "trace_id": resp.get("trace_id")})
         raise ApiRefused(f"create rejected ({cls}): {resp.get('message')}",
                          recorded=True)
     data = resp.get("data") if isinstance(resp.get("data"), dict) else {}
@@ -973,6 +985,9 @@ def _api_create(session, man: dict, quote_file: Path, confirm: str,
                                "JLCPCB portal"})
     if order.get("batchNum"):
         man["order_number"] = str(order["batchNum"])
+    safelib.append_journal(journal, {
+        "event": "created", "orderId": order.get("orderId"),
+        "batchNum": order.get("batchNum"), "trace_id": resp.get("trace_id")})
     if not (order.get("orderId") or order.get("batchNum")):
         man["human_steps"].insert(0, (
             "WARNING: pcb/create returned ok WITHOUT orderId/batchNum - an "
@@ -1054,6 +1069,29 @@ def _load_prior_manifest(out_path: Path) -> dict | None:
         raise ApiRefused(
             f"canonical {out_path} is not a JSON object - it carries the "
             "created-latch, so refusing to proceed; repair the file first")
+    # U12: a parsable file with the wrong SHAPE is just as untrustworthy -
+    # a truncated/hand-edited latch is refused, never coerced or rewritten
+    api = prior.get("api")
+    problems = []
+    if api is not None and not isinstance(api, dict):
+        problems.append("api is not an object")
+    else:
+        for key in ("order", "create_attempt"):
+            if api and key in api and api[key] is not None \
+                    and not isinstance(api[key], dict):
+                problems.append(f"api.{key} is not an object")
+    if "human_steps" in prior and prior["human_steps"] is not None \
+            and not isinstance(prior["human_steps"], list):
+        problems.append("human_steps is not a list")
+    if "order_number" in prior and prior["order_number"] is not None \
+            and not isinstance(prior["order_number"], (str, int)):
+        problems.append("order_number is not a string")
+    if problems:
+        raise ApiRefused(
+            f"canonical {out_path} is structurally corrupt ("
+            + "; ".join(problems) + ") - it carries the created-latch, so "
+            "refusing to proceed; a human repairs or deliberately removes "
+            "the file first (it is never auto-repaired)")
     return prior
 
 
@@ -1218,6 +1256,11 @@ def main(argv: list[str] | None = None) -> int:
                          "billingAddress / taxOrVATNumber / "
                          "billingAddressFlag for the create payload")
     ap.add_argument("--order-number", help="record a placed order number")
+    ap.add_argument("--lock-timeout", type=float, default=None,
+                    help="seconds to wait for the order latch lock "
+                         f"(<fab-dir>/order.json.lock; default "
+                         f"{safelib.DEFAULT_LOCK_TIMEOUT:g}); a busy lock "
+                         "refuses (exit 2) and is journaled")
     ap.add_argument("--out",
                     help="write an ADDITIONAL copy of the payload here; the "
                          "canonical <fab-dir>/order.json is always written "
@@ -1225,8 +1268,39 @@ def main(argv: list[str] | None = None) -> int:
                          "created-latch)")
     args = ap.parse_args(argv)
 
+    fab_dir = Path(args.fab_dir)
+    if not fab_dir.is_dir():
+        print(json.dumps({"script": "order_submit", "status": "error",
+                          "error": f"FileNotFoundError: fab directory not "
+                                   f"found: {fab_dir}"}, indent=1))
+        return 2
+    # U12 order latch: ONE OS-exclusive hold across load -> check -> create
+    # -> finalize. A second creator serializes behind it and then meets the
+    # armed latch; a stuck holder makes this run refuse (journaled), never
+    # proceed unlocked.
+    canonical = fab_dir / "order.json"
+    journal = fab_dir / JOURNAL_NAME
+    mode = ("api_create" if args.api_create else "api_quote" if args.api
+            else "manifest")
     try:
-        man = run(Path(args.pcb), Path(args.fab_dir),
+        with safelib.writer_lock(canonical, timeout=args.lock_timeout,
+                                 what="order latch"):
+            return _main_locked(args, fab_dir, canonical, journal, mode)
+    except safelib.LockBusy as exc:
+        safelib.append_journal(journal, {"event": "refused", "stage": "lock",
+                                         "mode": mode, "reason": str(exc)})
+        print(json.dumps({"script": "order_submit", "status": "error",
+                          "error": str(exc)}, indent=1))
+        return 2
+
+
+def _main_locked(args, fab_dir: Path, canonical: Path, journal: Path,
+                 mode: str) -> int:
+    if mode == "api_create":
+        safelib.append_journal(journal, {"event": "begin", "mode": mode,
+                                         "argv_confirm": args.confirm})
+    try:
+        man = run(Path(args.pcb), fab_dir,
                   quote=Path(args.quote) if args.quote else None,
                   qty=args.qty, use_api=args.api or args.api_create,
                   order_number=args.order_number)
@@ -1239,12 +1313,14 @@ def main(argv: list[str] | None = None) -> int:
     # state (created-latch, api merge, preserved notes) is read from it and
     # every run writes it back, regardless of --out. --out only adds a copy
     # of the payload elsewhere - it can never sidestep the latch.
-    canonical = Path(args.fab_dir) / "order.json"
     out = Path(args.out) if args.out else canonical
     try:
         prior = _load_prior_manifest(canonical)
     except ApiRefused as exc:
         # fail closed WITHOUT rewriting the corrupt canonical record
+        safelib.append_journal(journal, {
+            "event": "refused", "stage": "latch_load", "mode": mode,
+            "reason": str(exc)})
         print(json.dumps({"script": "order_submit", "status": "error",
                           "error": str(exc)}, indent=1))
         return 2
@@ -1278,7 +1354,7 @@ def main(argv: list[str] | None = None) -> int:
                 api_verdict = _api_create(
                     session, man, Path(args.api_quote_file), args.confirm,
                     Path(args.ship_json) if args.ship_json else None,
-                    canonical=canonical)
+                    canonical=canonical, journal=journal)
             else:
                 api_verdict = _api_quote(
                     session, man, Path(args.fab_dir),
@@ -1289,9 +1365,17 @@ def main(argv: list[str] | None = None) -> int:
             if not exc.recorded:
                 man["api"].update({"verdict": "refused", "note": str(exc)})
             api_verdict = "refused"
+            if args.api_create:
+                safelib.append_journal(journal, {
+                    "event": "refused", "stage": "create", "mode": mode,
+                    "recorded": bool(exc.recorded), "reason": str(exc)})
         except jlcapi.JlcApiError as exc:
             man["api"].update({"verdict": "transport", "note": str(exc)})
             api_verdict = "transport"
+            if args.api_create:
+                safelib.append_journal(journal, {
+                    "event": "transport", "stage": "create", "mode": mode,
+                    "reason": str(exc)})
 
         # a recorded created order is never downgraded by later runs: the
         # fresh outcome lands in last_quote_verdict / last_create_verdict,
@@ -1311,22 +1395,29 @@ def main(argv: list[str] | None = None) -> int:
                      or "api_quote_json" in man["api"]):
             man["api"]["quote_stale"] = True
 
-    canonical.parent.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(man, indent=1)
-    canonical.write_text(text, encoding="utf-8")
+    text = safelib.atomic_write_json(canonical, man)
     if out.resolve() != canonical.resolve():
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(text, encoding="utf-8")
+        safelib.atomic_write_text(out, text)
         man["order_json_copy"] = str(out)
     man["order_json"] = str(canonical)
+    man["attempt_journal"] = str(journal) if journal.exists() else None
     print(json.dumps(man, indent=1))
 
     if args.api or args.api_create:
         if not man["api"]["available"]:
-            return 2
-        if api_verdict not in ("ok", "scope_pending", "created", "skipped"):
-            return 2
-    return 1 if man["status"] in ("incomplete", "not_order_ready") else 0
+            code = 2
+        elif api_verdict not in ("ok", "scope_pending", "created", "skipped"):
+            code = 2
+        else:
+            code = 1 if man["status"] in ("incomplete",
+                                          "not_order_ready") else 0
+    else:
+        code = 1 if man["status"] in ("incomplete", "not_order_ready") else 0
+    if args.api_create:
+        safelib.append_journal(journal, {
+            "event": "end", "mode": mode, "verdict": api_verdict,
+            "status": man["status"], "exit": code})
+    return code
 
 
 if __name__ == "__main__":

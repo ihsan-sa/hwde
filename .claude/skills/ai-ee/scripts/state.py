@@ -69,8 +69,16 @@ run stored paragraphs as event names; prose belongs in --data {"msg": ...}).
 `log --event spawn --data {...}` additionally appends the data to the
 first-class `spawns` ledger (the SKILL.md step-5 form keeps working).
 
-Writes are atomic (tmp file + os.replace, same directory). Single-writer by
-design: the orchestrator serializes all state mutations (SPEC 4 concurrency).
+Writes are atomic (unique temp + fsync + os.replace, same directory; U12
+safelib). Writer safety (U12, codex C5/C6): every CLI mutation holds the
+OS-exclusive writer lock <state.json>.lock across load->mutate->save, and
+State.save() is a base-digest compare-and-swap - a State loaded from bytes X
+refuses to overwrite a file that is no longer X (StaleWriteError, exit 2).
+`--if-digest SHA` lets an orchestrator pin its own read (show/resume report
+`digest`). Snapshot/restore are CONTAINED (no absolute/traversal/symlink
+entries, in either direction) and restore is transactional: stage every file
+beside its target, verify every hash, then swap - a crash before the swap
+phase leaves the workspace untouched.
 Snapshot labels/dirs are STABLE interfaces - bench fixture provenance points
 at state_snapshots/<label> paths (T5).
 """
@@ -89,6 +97,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 import checklib  # noqa: E402
 import modeslib  # noqa: E402
+import safelib  # noqa: E402
 import statelib  # noqa: E402
 from checklib import CheckError  # noqa: E402
 
@@ -158,18 +167,32 @@ def applicable_gate_order(ws: Path, board: str,
 
 
 def _atomic_write(path: Path, text: str) -> None:
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(text, encoding="utf-8")
-    os.replace(tmp, path)
+    safelib.atomic_write_text(path, text)
+
+
+LABEL_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}")
+
+
+def _check_label(label) -> str:
+    if not isinstance(label, str) or not LABEL_RE.fullmatch(label) \
+            or ".." in label:
+        raise safelib.ContainmentError(
+            f"snapshot label {label!r} refused: labels are a single path "
+            "component [A-Za-z0-9][A-Za-z0-9._-]*")
+    return label
 
 
 class State:
     """In-memory view of one state.json. Mutators record history themselves;
     call save() (atomic) after a batch of mutations."""
 
-    def __init__(self, path: Path, data: dict):
+    def __init__(self, path: Path, data: dict,
+                 base_digest: str | None = None):
         self.path = Path(path)
         self.data = data
+        # sha256 of the exact bytes this view was loaded from (None for a
+        # fresh init); save() refuses when the file no longer matches (CAS)
+        self.base_digest = base_digest
 
     # ---- lifecycle -------------------------------------------------------
     @classmethod
@@ -203,17 +226,48 @@ class State:
     @classmethod
     def load(cls, path: Path) -> "State":
         path = Path(path)
-        data = checklib.load_json(path, "state file")
+        try:
+            raw = path.read_bytes()
+        except OSError as exc:
+            raise CheckError(f"cannot read state file {path}: {exc}") from exc
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise CheckError(f"state file {path} is not valid JSON: {exc}") \
+                from exc
+        if not isinstance(data, dict):
+            raise CheckError(f"state file {path} is not a JSON object")
         if data.get("version") != VERSION:
             raise CheckError(
                 f"{path}: state version {data.get('version')!r} unsupported "
                 f"(this build reads v{VERSION}; upgrade v1 with "
                 f"state_migrate.py --workspace {path.parent})")
-        return cls(path, data)
+        return cls(path, data, base_digest=safelib.sha256_bytes(raw))
+
+    def current_digest(self) -> str | None:
+        try:
+            return safelib.sha256_file(self.path)
+        except OSError:
+            return None
 
     def save(self) -> None:
-        self.data["updated"] = now()
-        _atomic_write(self.path, json.dumps(self.data, indent=1))
+        """Atomic + compare-and-swap: under the writer lock, refuse when the
+        on-disk bytes no longer match the bytes this view was loaded from
+        (another writer landed in between). Never merges, never retries -
+        the caller reloads and redoes its mutation on the fresh state."""
+        with safelib.writer_lock(self.path, what="state.json"):
+            if self.base_digest is not None:
+                cur = self.current_digest()
+                if cur != self.base_digest:
+                    raise safelib.StaleWriteError(
+                        f"{self.path} changed since it was loaded (base "
+                        f"{self.base_digest[:12]}, now "
+                        f"{(cur or 'missing')[:12]}) - another writer landed; "
+                        "reload and redo the mutation, nothing was written")
+            self.data["updated"] = now()
+            text = json.dumps(self.data, indent=1)
+            _atomic_write(self.path, text)
+            self.base_digest = safelib.sha256_bytes(text.encode("utf-8"))
 
     def _log(self, event: str, **detail) -> None:
         self.data["history"].append({"ts": now(), "event": event, **detail})
@@ -588,46 +642,106 @@ class State:
         return Path(self.data["workspace"])
 
     def snapshot(self, label: str, files: list[str] | None = None) -> dict:
+        """Contained copy of workspace files into state_snapshots/<label>.
+        Every entry is proven inside the workspace (no absolute/traversal/
+        symlink entries, U12) before a byte is copied."""
         ws = self._workspace()
+        label = _check_label(label)
         dest = ws / SNAP_DIR / label
-        if dest.exists():
-            shutil.rmtree(dest)
+        if dest.is_symlink():
+            raise safelib.ContainmentError(
+                f"snapshot dir {dest} is a symlink - refusing")
         rels = files or [a["path"] for a in self.data["artifacts"].values()
                          if isinstance(a, dict) and a.get("path")
                          and (ws / a["path"]).is_file()]
-        manifest = []
+        plan = []
         for rel in rels:
-            src = ws / rel
-            if not src.is_file():
-                raise CheckError(f"snapshot source missing: {src}")
-            out = dest / rel
+            rel_norm = str(rel).replace("\\", "/")
+            src = safelib.contained_rel(ws, rel_norm, what="snapshot entry")
+            if src.is_symlink() or not src.is_file():
+                raise CheckError(
+                    f"snapshot source missing or not a regular file: {src}")
+            if rel_norm.split("/")[0] == SNAP_DIR:
+                raise safelib.ContainmentError(
+                    f"snapshot entry {rel_norm!r} lies inside {SNAP_DIR}/")
+            plan.append((rel_norm, src))
+        if dest.exists():
+            shutil.rmtree(dest)
+        manifest = []
+        for rel_norm, src in plan:
+            out = safelib.contained_rel(dest, rel_norm, what="snapshot copy")
             out.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, out)
-            manifest.append({"path": str(rel).replace("\\", "/"),
-                             "sha256": hashlib.sha256(
-                                 src.read_bytes()).hexdigest()})
-        (dest / "manifest.json").write_text(
-            json.dumps({"label": label, "ts": now(), "files": manifest},
-                       indent=1), encoding="utf-8")
+            manifest.append({"path": rel_norm,
+                             "sha256": safelib.sha256_file(out)})
+        safelib.atomic_write_json(
+            dest / "manifest.json",
+            {"label": label, "ts": now(), "files": manifest})
         self._log("snapshot", label=label, files=len(manifest))
         return {"label": label, "files": manifest}
 
     def restore(self, label: str) -> dict:
+        """Transactional restore: validate + stage + verify EVERY file
+        beside its target, then swap each into place with os.replace. Any
+        failure (bad entry, missing file, hash mismatch, crash) before the
+        swap phase leaves the workspace byte-for-byte untouched."""
         ws = self._workspace()
+        label = _check_label(label)
         dest = ws / SNAP_DIR / label
+        if dest.is_symlink():
+            raise safelib.ContainmentError(
+                f"snapshot dir {dest} is a symlink - refusing")
         man = checklib.load_json(dest / "manifest.json",
                                  f"snapshot {label} manifest")
+        files = man.get("files") if isinstance(man, dict) else None
+        if not isinstance(files, list):
+            raise CheckError(f"snapshot {label} manifest has no files list")
+        plan = []
+        for f in files:
+            if not isinstance(f, dict) or not isinstance(f.get("path"), str) \
+                    or not isinstance(f.get("sha256"), str):
+                raise CheckError(f"snapshot {label} manifest entry malformed: "
+                                 f"{f!r}")
+            rel = f["path"]
+            src = safelib.contained_rel(dest, rel, what="snapshot file")
+            if src.is_symlink() or not src.is_file():
+                raise CheckError(f"snapshot file missing or not a regular "
+                                 f"file: {src}")
+            target = safelib.contained_rel(ws, rel, what="restore target")
+            if target.exists() and (target.is_symlink()
+                                    or not target.is_file()):
+                raise safelib.ContainmentError(
+                    f"restore target {target} is not a regular file")
+            safelib.sweep_stale_stage_temps(target)
+            plan.append((rel, src, target, f["sha256"]))
+        staged: list[tuple[Path, Path, str, str]] = []
         restored = []
-        for f in man["files"]:
-            src = dest / f["path"]
-            if not src.is_file():
-                raise CheckError(f"snapshot file missing: {src}")
-            target = ws / f["path"]
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, target)
-            if hashlib.sha256(target.read_bytes()).hexdigest() != f["sha256"]:
-                raise CheckError(f"restore hash mismatch for {f['path']}")
-            restored.append(f["path"])
+        try:
+            for rel, src, target, sha in plan:
+                tmp = safelib.stage_copy(src, target)
+                staged.append((tmp, target, sha, rel))
+                safelib.fault("restore.staged", rel=rel, n=len(staged))
+            for tmp, target, sha, rel in staged:
+                got = safelib.sha256_file(tmp)
+                if got != sha:
+                    raise CheckError(
+                        f"restore hash mismatch for {rel} (snapshot {label} "
+                        f"is corrupt: {got[:12]} != {sha[:12]}) - nothing "
+                        "restored")
+            safelib.fault("restore.verified", label=label)
+            for tmp, target, sha, rel in staged:
+                if target.is_symlink():
+                    raise safelib.ContainmentError(
+                        f"restore target {target} became a symlink")
+                os.replace(tmp, target)
+                restored.append(rel)
+        finally:
+            for tmp, _t, _s, _r in staged:
+                try:
+                    if tmp.exists():
+                        tmp.unlink()
+                except OSError:
+                    pass
         self._log("restore", label=label, files=len(restored))
         return {"label": label, "restored": restored}
 
@@ -715,6 +829,10 @@ def run(argv=None):
         p.add_argument("--state", help="path to state.json")
         p.add_argument("--workspace", help="workspace dir (state.json inside)")
         p.add_argument("--out", help="write result JSON here instead of stdout")
+        p.add_argument("--if-digest",
+                       help="compare-and-swap pin: refuse unless the current "
+                            "state.json sha256 equals this (show/resume "
+                            "report `digest`)")
 
     p = sub.add_parser("init", help="create a new state.json")
     p.add_argument("--workspace", required=True)
@@ -829,15 +947,37 @@ def run(argv=None):
                 "board": args.board, "phase": args.phase,
                 "subdirs": list(SUBDIRS)}, args.out
 
-    st = State.load(_find_state(args))
+    state_path = _find_state(args)
     result: dict = {"script": SCRIPT, "cmd": args.cmd}
 
-    if args.cmd == "show":
-        return {**result, **st.data}, args.out
-    if args.cmd == "resume":
-        return {**result, **st.resume_summary()}, args.out
-    if args.cmd == "freshness":                     # read-only: never saves
+    if args.cmd in ("show", "resume", "freshness"):  # read-only: never saves
+        st = State.load(state_path)
+        _check_pin(st, args)
+        if args.cmd == "show":
+            return {**result, **st.data, "digest": st.base_digest}, args.out
+        if args.cmd == "resume":
+            return {**result, **st.resume_summary(),
+                    "digest": st.base_digest}, args.out
         return {**result, **st.freshness()}, args.out
+
+    # U12: one OS-exclusive hold across load -> mutate -> save, so two CLI
+    # writers on one workspace serialize instead of losing an update
+    with safelib.writer_lock(state_path, what="state.json"):
+        st = State.load(state_path)
+        _check_pin(st, args)
+        return _mutate(st, args, result)
+
+
+def _check_pin(st: "State", args) -> None:
+    want = getattr(args, "if_digest", None)
+    if want and want != st.base_digest:
+        raise safelib.StaleWriteError(
+            f"{st.path} digest {(st.base_digest or '')[:12]} != --if-digest "
+            f"{want[:12]} - the state changed since that read; nothing "
+            "written")
+
+
+def _mutate(st: "State", args, result: dict):
 
     if args.cmd == "set-phase":
         warnings = st.set_phase(args.phase, require_gates=not args.force)
@@ -905,6 +1045,7 @@ def run(argv=None):
 
     st.save()
     result["phase"] = st.data["phase"]
+    result["digest"] = st.base_digest
     return result, args.out
 
 
