@@ -58,6 +58,10 @@ OP_FIELDS = {  # op -> (required, optional)
     # (add_text matches on the TARGET position, so it can never move one).
     "remove_text": ({"text", "x", "y", "layer"}, set()),
     "move_text": ({"ref", "field", "x", "y"}, {"deg"}),
+    # footprint-INTERNAL silk graphics on an already-placed board: a library
+    # edit cannot reach one without re-running board_init (and losing the
+    # placement), so this is the only scripted route. Never touches text.
+    "silk_clear": ({"ref"}, {"layer", "only_offboard"}),
 }
 TEXT_LAYERS = {"F.SilkS", "B.SilkS", "F.Fab", "B.Fab"}
 POS_TOL = 1e-3   # mm
@@ -111,6 +115,12 @@ def validate_ops(doc: dict) -> list[dict]:
                     raise CheckError(f"ops[{i}]: {k} out of range")
         if kind == "move_text" and op["field"] not in ("reference", "value"):
             raise CheckError(f"ops[{i}]: field must be reference|value")
+        if kind == "silk_clear":
+            if op.get("layer", "F.SilkS") not in ("F.SilkS", "B.SilkS"):
+                raise CheckError(f"ops[{i}]: layer must be F.SilkS|B.SilkS")
+            if "only_offboard" in op and not isinstance(op["only_offboard"],
+                                                        bool):
+                raise CheckError(f"ops[{i}]: only_offboard must be a boolean")
     return ops
 
 
@@ -120,6 +130,8 @@ def _expected_state(ops: list[dict]) -> dict[str, dict]:
     for op in ops:
         if op["op"] in ("add_text", "remove_text", "move_text"):
             continue  # verified independently by _verify_texts
+        if op["op"] == "silk_clear":
+            continue  # moves nothing; the worker reports what it removed
         w = want.setdefault(op["ref"], {})
         if op["op"] in ("place", "move"):
             w["x"], w["y"] = op["x"], op["y"]
@@ -301,11 +313,23 @@ def apply_ops(pcb: Path, ops: list[dict]) -> dict:
         cp = subprocess.run([str(bp), str(WORKER), str(jf)],
                             capture_output=True, text=True, encoding="utf-8",
                             errors="replace", timeout=180)
-        out = (cp.stdout or "").strip().splitlines()
-        try:
-            result = json.loads(out[-1]) if out else {}
-        except json.JSONDecodeError:
-            result = {}
+        # Scan BACKWARDS for the last parseable JSON object rather than
+        # trusting the last line: KiCad's SWIG runtime prints
+        # "swig/python detected a memory leak of type 'PCB_SHAPE *'" lines at
+        # interpreter shutdown - i.e. AFTER the worker's own output - whenever
+        # an op detached an item from the board (silk_clear), and taking
+        # out[-1] then reported a clean run as "worker exit 0 (rolled back)".
+        # Same shape as board_init._last_json.
+        result = {}
+        for line in reversed((cp.stdout or "").strip().splitlines()):
+            line = line.strip()
+            if not line.startswith("{"):
+                continue
+            try:
+                result = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            break
         if cp.returncode != 0 or not result.get("ok"):
             detail = result.get("error") or (cp.stderr or "").strip()[-300:] \
                 or f"worker exit {cp.returncode}"

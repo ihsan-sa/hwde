@@ -1,0 +1,52 @@
+{
+  "script": "review.board",
+  "board": "g0-sense.kicad_pcb",
+  "input_digest": "sexpr_no_uuid:9fa76a1beecfa20e380a17e3bf188514aa4d99689258c9117302bb923aa7fc96",
+  "generated_at": "2026-08-27",
+  "violations": [
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [36.9, 29.2],
+      "layer": "F.Silkscreen",
+      "net": null,
+      "refs": ["J3", "J4"],
+      "msg": "Per-pin silk labels promised by architecture (GND/3V3/SWDIO/SWCLK and GND/3V3/TX/RX) are absent on the two owner-hand-wired headers; only refdes + pin-1 square pad/dot exist. Consequence: pin-order or SWD-vs-UART mixup when hand-wiring the bare board (3V3/GND swap risk). Fix: add eight text items along the top edge at P9.",
+      "source": "review.board",
+      "kind": "silk_pin_labels_missing",
+      "domain": "silk"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [24.822, 41.65],
+      "layer": "F.Silkscreen",
+      "net": null,
+      "refs": ["R1", "R2", "C10", "D1", "D2", "R10", "C13"],
+      "msg": "The 6 check_silk misattributed refdes are real and four are also covered by parts after assembly (R1/R2 under the J1 shell, C10 inside the U2 body outline, D1 inside U1's outline); D2 reads as C3's label, R10 as D10's; C13's label is cut off from its part by the top slot and crowds H2. Consequence: rework/debug misidentifies parts (assembly unaffected - CPL-driven). Fix: one place_edit.py move_text batch at P9; do not waive.",
+      "source": "review.board",
+      "kind": "silk_misattributed_batch",
+      "domain": "silk"
+    },
+    {
+      "check": "board-review",
+      "severity": "warning",
+      "pos": [54.75, 41.5],
+      "layer": null,
+      "net": null,
+      "refs": ["U3"],
+      "msg": "Sensor tongue outer face (x=54.75, y 38.05-44.95) is a board edge JLC's internal panelizer may land a break-off tab on; snap force through the tongue root while U3 rides the beam. Tongue is stubby (5.5 x 6.9 mm root, aspect < 1) so this is tab-placement only. Fix: JLC order remark at P9 'no break-off tabs / mouse bites on the right-edge sensor tongue', alongside the owed Sensirion no-wash remark.",
+      "source": "review.board",
+      "kind": "panelization_tab_on_tongue",
+      "domain": "fab"
+    }
+  ],
+  "warnings_triage": [
+    {"check": "check_silk", "kind": "silk_misattributed", "refs": ["R2", "C10", "D2", "R10", "R1", "D1"], "verdict": "real - fix at P9 (see silk_misattributed_batch), warning severity stands, no waiver"},
+    {"check": "check_pdn", "kind": "pdn_no_bulk", "refs": ["C1"], "verdict": "justified - Type-C TC2.0 10 uF attach limit is a binding CAP RULE in constraints.json; the 10 uF bulk (C2) deliberately lives one series element downstream on +5V; nothing draws current from VBUS itself"}
+  ],
+  "waiver_review": [
+    {"check": "check_thermal", "kind": "thermal_area", "refs": ["U1"], "verdict": "RATIFY recommended - model anchors independently recomputed (144.4 C/W where AMS measured 80; 123.3 where TI measured 84), 810.9 mm2 uncredited B.Cu GND spreader verified present, Tj arithmetic checks (82.8 C governing / 109.7 C abuse vs 125 C limit), pass-area 446.8 mm2 exceeds the 439.9 mm2 whole-board ceiling"}
+  ],
+  "counts": {"total": 3, "by_severity": {"error": 0, "warning": 3}}
+}

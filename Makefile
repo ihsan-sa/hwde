@@ -1,5 +1,5 @@
-# POSIX entry points (CI / Linux / macOS). This Windows host has no make:
-# use check.cmd, which runs the same steps.
+# POSIX entry points (CI / Linux / macOS / the docker/ container). The Windows host has
+# no make: use check.cmd, which runs the same steps.
 PY ?= .venv/bin/python
 
 check:

@@ -4,7 +4,7 @@ Append-only, non-obvious gotchas. Recall by tag/keyword before touching an area.
 Entries sourced from prior attempts are marked; re-verify at first use here. Renamed 2026-09-04: the skill is `/hwde` (tree `.claude/skills/hwde/`, env vars `HWDE_*`, the old `AIEE_*` spelling still read); entries below keep their original `ai-ee` wording. Entry line numbers are cited by `design/ladder-triage.md` and asserted by `tests/test_remediations.py`, so nothing above the first entry may gain or lose a line.
 
 ## Tags
-[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git] [latex] [spice]
+[windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git] [latex] [spice] [linux] [docker] [kicad-sch-api]
 
 ## 2026-07-06 [windows] cp1252 console crashes on non-ASCII output
 Printing degree signs, ohms, plus-minus, emoji to a default Windows console raises
@@ -4646,6 +4646,353 @@ status`. Rule for smoking a mutating verb: copy the workspace into the scratchpa
 a synthetic tmp_path workspace, and run `git status -- boards/` after ANY script smoke - the
 mutation is silent and a board's state.json is the one file a later run trusts absolutely.
 
+## 2026-08-27 [linux][docker] The whole toolchain runs in one container built on the official KiCad image
+`docker/Dockerfile` (FROM `kicad/kicad:10.0.5`, Debian 13) gives kicad-cli 10.0.5, the bundled python
+3.13.5 WITH the SWIG pcbnew module at `/usr/bin/python3` (env.find_kicad_python resolves it as
+`cli.parent/python3`), symbol+footprint libs under `/usr/share/kicad`, and libngspice at
+`/usr/lib/x86_64-linux-gnu/libngspice.so.0` (NOT beside kicad-cli - pin it with AIEE_NGSPICE_DLL). No
+10.0.3 image is published; 10.0.x share the file format. `check_env.py --full` is all-pass except the
+known ipc-headless warn. `kicad-cli pcb render` works headless with NO display/xvfb (Mesa EGL in the
+image). Freerouting 2.2.4 on Temurin 25 runs headless with the verified `--gui.enabled=false` flag set
+(the "Couldn't get screen resolution" line is a warning, not a failure). KRT's prebuilt
+`grid_router-linux-x86_64.so` (abi3) imports in the venv once copied to `rust_router/grid_router.so`.
+Pins are env vars there (`AIEE_KICAD_CLI/JAVA/FREEROUTING_JAR/KRT_DIR/NGSPICE_DLL`); `tools/` unused.
+
+## 2026-08-27 [linux][tests][fab] Fixture CSVs come out LF on a Linux checkout - byte-compare normalized
+`bom_cpl` writes CRLF (csv module default, what JLC gets). `.gitattributes` (`* text=auto eol=lf`)
+stores the shipped `fab/*.csv` as LF, so every FRESH checkout has LF; the Windows working tree still
+held the CRLF bytes the writer had produced in place (git never re-checked them out), which is the only
+reason `test_assembly`'s byte-identity asserts passed there. Compare with `\r\n`->`\n` normalized on
+both sides (`_lf` helper); never make the writer platform-dependent.
+
+## 2026-08-27 [linux][tests][bench] bench baselines are pinned to KiCad 10.0.3 - they fail on 10.0.5 by design
+`bench.py` refuses to score against a baseline recorded on a different kicad-cli ("scores across
+toolchains are not comparable; re-record the baselines deliberately"). In the 10.0.5 container every
+`test_live_fixture_matches_baseline[...]` case fails for that reason alone; re-recording is an owner
+decision (a deliberate `bench.py --freeze` pass), not something a Linux port does on the side.
+
+## 2026-08-27 [linux][docker][skill] Unattended runs: `ai-ee-loop` + `docker/run-contract.md`
+`claude -p "/ai-ee ..."` loads the skill in headless mode (verified: the front-door verbs and the
+Linux venv path come back). `ai-ee-loop <board>` iterates fresh contexts (`--max-turns` cuts them),
+resuming through `/ai-ee --resume` from state.json + `log/run-journal.md`; the contract delegates
+H1-H4, forbids ordering, and defines DONE. Launch: `docker build -t hwde-run:latest -f
+docker/Dockerfile .`, then run `hwde-loop <board>` in that image over the repo (docker/README.md).
+
+## 2026-08-27 [linux][docker][research] st.com is unreachable from the run container - ST RMs/ANs cannot be acquired
+Every fetch of an `st.com/resource/...` PDF fails here: `curl` over HTTP/2 dies with
+`(92) stream 1 was not closed cleanly: INTERNAL_ERROR`, HTTP/1.1 with a browser UA hangs past 120 s,
+and a researcher agent saw 0 bytes at 280 s. `lcsc.com` (allowlisted) mirrors ST **datasheets**
+(DS12991 came through that way) but NOT reference manuals or application notes, so RM0454 / AN2606 /
+AN5096 / AN4989 are simply unavailable in an unattended container run. Consequence for the pipeline:
+a record whose load-bearing claim lives only in an ST RM/AN cannot be verified here and stays draft -
+the right move is to change the DESIGN so it does not depend on the claim (g0-sense fitted a 10k BOOT0
+pull-down instead of trusting a forum-sourced option-byte default), not to lower the evidence bar.
+mouser.com is also bot-blocked (PerimeterX). Off-list RM mirrors exist (embedded.fel.cvut.cz,
+aliyuncs) - allowlisting one is an owner decision, not a workaround a run may take.
+
+## 2026-08-27 [research][skill] jlcpcb.com part attributes: use the per-part URL, not componentSearch
+`https://jlcpcb.com/parts/componentSearch?searchTxt=<code>` renders 0 results when fetched headlessly
+(client-side search). `https://jlcpcb.com/partdetail/<vendor-slug>/<LCSC>` works and carries the fields
+that settle assembly questions - "Assembly Process" (SMT/THT) and which tiers (Economic / Standard) can
+place the part. That is how g0-sense resolved whether JLC Economic PCBA can place a Type-C receptacle
+with THT shield legs (C165948: Assembly Process SMT, Economic supported - so the legs are not a blocker).
+
+## 2026-08-27 [librarian][easyeda2kicad][parts] lib_pull footprint_verified:false, deterministic: symbol's Footprint property drops a name suffix that the actual .kicad_mod keeps
+g0-sense P3, pulling SHT40-AD1B-R2 (C2909890, DFN-4-EP 1.5x1.5). `lib_pull.py --parts ...` (batch)
+and a solo `--lcsc C2909890 --overwrite` retry both ended with the SAME error, byte-for-byte:
+`symbol 'SHT40-AD1B-R2' names footprint 'aiee:DFN-4_L1.5-W1.5-P0.8' but no such file exists in
+aiee.pretty | log: .8-TL-EP.kicad_mod` - i.e. easyeda2kicad wrote the real footprint file as
+`DFN-4_L1.5-W1.5-P0.8-TL-EP.kicad_mod` (TL-EP = thermal-land/exposed-pad suffix it appends for
+parts with a center pad) but stamped the symbol's `(property "Footprint" "aiee:DFN-4_L1.5-W1.5-P0.8")`
+without that suffix - a genuine generator-side name-derivation mismatch between its symbol writer and
+footprint writer, not a rate-limit/network flake (retry does not fix it; it is 100% reproducible for
+this part). Net effect: the symbol-to-footprint link is broken even though both halves individually
+exist and load fine (`--verify-load` passes for the .kicad_mod on its own; `fp_verify.py --footprint
+<the real path>.kicad_mod` runs fine too - only the symbol's Footprint *property string* is wrong).
+`lib_pull.py`'s own footprint_verified check IS what catches this - do not ignore an `"error"` entry
+in the per-part results just because `footprint`/`symbol` blocks look present elsewhere in the JSON.
+The fix (one line: correct the Footprint property value in the .kicad_sym to the real filename) is a
+SYMBOL edit, not a footprint geometry edit - the librarian role's "don't hand-edit footprints without
+approval" rule is about pad/silk/courtyard geometry, but this fix was still left for the orchestrator
+since no established repair pattern for this class of bug existed in LEARNINGS.md yet. Likely trigger:
+any pulled part whose footprint name gets a generator-appended suffix (EP/TL-EP/multi-land-class
+disambiguators) is a candidate to re-check the same way.
+
+## 2026-08-27 [librarian][easyeda2kicad][polarity][parts] Determining polarized-2-pin-part anode/cathode when the pulled symbol only has generic "1"/"2" pins: re-fetch the EasyEDA source, don't trust pad numbering
+g0-sense P3, C3 = CA45-A010K226T tantalum cap (C122643). Orchestrator required settling anode/cathode
+from the datasheet, explicitly forbidding inferring it from pad numbering alone (a prior board's
+LEARNINGS entry, "RVT V-chip electrolytic CHAMFERED corners mark the ANODE," already burned that
+shortcut once). The manufacturer spec PDF (fetched from the LCSC-hosted URL in parts.json) gives the
+PHYSICAL marking convention (Sec.9 "Marking": dark/copper case stripe = positive-electrode marking)
+but, being a generic case-level spec sheet, has no pin-number table - 2-terminal chip caps don't carry
+manufacturer-assigned pin numbers, "1"/"2" is purely an easyeda2kicad library-generation artifact.
+The resolution: re-fetch the RAW EasyEDA CAD source directly (`EasyedaApi().get_cad_data_of_component
+(lcsc_id=...)`, the same call `lib_pull.py` makes) and read `dataStr.shape` - the schematic symbol's
+own polarity "+" graphic survives as two short `PL~` (polyline) primitives forming a plus-sign, at a
+position that sits unambiguously on one pin's side (here, next to the pin-1 plate). This is PART-
+SPECIFIC hard evidence, not a generic convention - and it independently matches what's already sitting
+un-labeled in the pulled `.kicad_sym` (the "+" polylines survive the symbol conversion; only their
+semantic tag as "this is a plus sign" is lost, so `grep`-ing the .kicad_sym for a literal "+" property
+finds nothing - you have to look at the raw polyline geometry). Cross-check the SAME conclusion two
+ways before trusting it with hardware safety on the line.
+
+## 2026-08-27 [librarian][connector][parts] Settling connector pin-1 physical location: KiCad's own system-library footprint for the identical part number is strong corroboration, but fetch the manufacturer drawing too
+g0-sense P3, J2 = JST SM04B-SRSS-TB (Qwiic 4P, C160404). Two independent checks, both confirming the
+pulled easyeda2kicad footprint's pad "1" (leftmost of the 4 signal pads) was correct, not flipped:
+(1) `/usr/share/kicad/footprints/Connector_JST.pretty/JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal
+.kicad_mod` - KiCad's OWN system library ships a footprint for this exact MPN, its `descr` cites JST's
+own `eSH.pdf` datasheet URL, and its pad-1-through-4 geometry matches the pulled footprint almost
+exactly (same left-to-right order, same offset mounting-tab row). (2) The official datasheet itself is
+directly fetchable: `curl http://www.jst-mfg.com/product/pdf/eng/eSH.pdf` (no lcsc.com redirect
+needed, jst-mfg.com is un-gated) - page 1 "PC board layout and Assembly layout / Side entry type"
+explicitly states "the PC board layout figure shown is viewed from the connector mounting surface"
+(i.e. the same top-down view as a KiCad footprint) and labels "No. 1 circuit" at the leftmost pad.
+Three independent sources (pulled footprint, KiCad system lib, manufacturer PDF) agreeing is what
+"settled, not guessed" looks like for a connector pin-1 call.
+
+## 2026-08-27 [kicad-sch-api][schlib][schematic][bom] Native KiCad `dnp` from a generator is now `Sheet.mark_dnp()` - and the saved-file patch MUST run last, after `write_placements`
+kicad-sch-api 0.5.6 exposes no writable `dnp` field on a schematic symbol: its writer hard-codes
+`(dnp no)` on every instance it emits (the 2026-08-07 entry recorded this as "DNP is unreachable from
+a generator"; g0-sense P4 needed it, because DNP carried only in a custom `Variant` field lets a
+native `kicad-cli bom`/POS export emit THT headers as populate lines into an SMT-only JLC order).
+`schlib.py` now carries `Sheet.mark_dnp(ref)` + `apply_native_dnp(refs, path)`, a saved-file text
+repair in the same shape as the existing `apply_pin_number_fixups` (nearest preceding `(dnp no)`
+before that instance's own `(property "Reference" "<ref>" ...)`; raises on a missing or non-unique
+reference rather than guessing). It is a no-op when nothing is marked, so other boards are unaffected.
+THE ORDERING IS THE TRAP, and it cost one failed attempt: `Sheet.save()` calls
+`schem_refdes.write_placements()` for field placement, and that function round-trips the whole file
+back through `ksa.Schematic.load().save()` whenever ANY field actually moved - which silently
+re-hardcodes `(dnp no)` and erases a dnp patch applied earlier in `save()`. Measured: with the call
+placed before `_place_fields`, J3/J4 came back `(dnp no)` with no error anywhere. Any future
+saved-file repair of a field ksa also writes has the same hazard - apply it AFTER the last ksa
+round-trip in the save path, and grep the written file to prove it stuck.
+Corollary for the BOM side: `bom_cpl.py` resolves assembly class parts.json-first
+(`refdes_class` > line `assembly_class` > the board footprint's own `dnp` attr > `smt_placed`), and
+`refdes_class` is keyed by refdes independently of whether the line carries a `refs` list - so a
+hand-fitted THT header is `refdes_class: {"J3": "hand_install"}` on the part line, and the native
+`dnp` attribute is belt-and-braces for third-party exporters, not the mechanism this pipeline reads.
+
+## 2026-08-27 [board_init][kicad][parity] KiCad's `unconnected-(...)` pseudo-nets: a FLAT schematic wants them on the pads, a HIERARCHICAL one refuses them - so board_init measures instead of guessing
+g0-sense P5. `kicad-cli sch export netlist` invents a net named `unconnected-(REF-PIN-PadN)` for
+every pin the schematic leaves unconnected, and board_swig faithfully assigned it to the pad. On
+g0-sense (hierarchical: root + `/power/` + `/main/`) that produced 18 parity warnings, one per
+deliberately-NC pad of J1/J2/U2: `net_conflict` "No corresponding pin found in schematic". Dropping
+those pseudo-nets wholesale took g0-sense parity 20 -> 0 - and broke `tests/golden/usbbuck4` (FLAT,
+sheetpath "/"), which then reported the OPPOSITE message on its 31 NC pads: "Pad missing net given
+by schematic". Two boards, contradictory requirements, same KiCad 10.0.5.
+What is NOT the discriminator, measured: `pintype`. Both boards spell these pins `*+no_connect`
+(g0-sense 19 x `passive+no_connect`; usbbuck4 1 x `passive+no_connect` + 30 x
+`bidirectional+no_connect`), so an explicit-NC-flag rule is wrong. Prefixing the component's sheet
+path onto the pseudo-net name (`unconnected-(/main/U2-PA0-Pad7)`) does NOT fix the hierarchical case
+either - still 18. The only structural difference left is flat vs hierarchical, and the underlying
+KiCad reason is not established here.
+Resolution shipped: do not encode a guessed rule. `board_init` builds WITH the pseudo-nets, runs the
+real parity checker, and only if EVERY parity violation is `net_conflict` + "No corresponding pin
+found in schematic" + a pad whose net literally contains `unconnected-` does it re-run the worker
+with `job["skip_unconnected_nets"]` and re-check, reporting `unconnected_nets_skipped: true`. The
+`unconnected-` guard is what stops a genuine pad-not-in-symbol defect from being retried away. Cost
+is one extra DRC pass on affected boards; the payoff is that it is correct on both shapes without
+anyone having to know which shape they have.
+
+## 2026-08-27 [board_init][kicad][bom] A symbol's native `dnp` must be MIRRORED onto the footprint or parity fails
+Same P5. Once J3/J4 carried KiCad's native `(dnp yes)` in the schematic, `drc --schematic-parity`
+reported `footprint_symbol_mismatch` "Footprint attributes don't match symbol: 'Do not populate'
+settings differ" - board_swig copies symbol FIELDS onto footprints but never copied attributes. The
+netlist exposes it as a valueless `(property (name "dnp"))` on the comp (not a `(fields ...)` entry,
+so `_comp_fields` never sees it). board_init now parses that property and board_swig ORs `FP_DNP`
+onto the footprint. Set ONLY FP_DNP: touching `exclude_from_bom` here trades one parity mismatch for
+another (LEARNINGS 2026-07-29 says the same for mounting holes - fix at the symbol, and let the
+footprint mirror it).
+
+## 2026-08-27 [librarian][footprint][easyeda] An easyeda2kicad custom pad's outline STROKE inflates effective copper - measure with GetEffectivePolygon, not the vertex list
+g0-sense P5, J1 = TYPE-C-31-M-12 (C165948). DRC found the ganged GND and VBUS pads 0.100 mm apart
+against a 0.127 mm fab floor. The polygon vertices were the vendor's own 0.60 mm width (HRO drawing,
+"RECOMMEND P.C.B LAYOUT", callout `4-0.60`, 0.8 mm pitch -> 0.20 mm gap), but the converted
+`gr_poly` carried a `(width 0.1)` outline stroke, and KiCad grows the copper by half that on every
+edge: 0.60 -> 0.70 mm effective, gap 0.20 -> 0.10 mm. Reading the vertex list would have said the
+footprint matched the datasheet; `pcbnew`'s `GetEffectivePolygon` is what tells the truth. The fix
+is to shrink the VERTICES until effective width equals the vendor number (here -0.05 mm per side),
+not to delete the stroke. Check this on every pulled custom-pad footprint whose pads look
+suspiciously fat, and remember that fp_verify cannot catch it without a datasheet-extract JSON -
+J1 had none, so nothing checked this footprint until board_init's own DRC did.
+
+## 2026-08-27 [place_edit][swig][silk] Footprint-internal silk on a PLACED board is now `{"op": "silk_clear"}` - and two SWIG traps come with it
+g0-sense P6. A dense 35 x 28 mm layout finished with 13 silk DRC warnings, 12 of them
+footprint-INTERNAL graphics (a 0603's body outline wedged between two ICs; a flush edge
+connector's mouth-end outline hanging off the board). `drc_routed` fails at errors+warnings = 0,
+so they had to go - but the librarian fixes the LIBRARY, and a library edit cannot reach a board
+that is already placed without re-running `board_init` and losing the placement. Nothing in the
+pipeline could edit footprint graphics on a board. `place_edit` now carries
+`{"op": "silk_clear", "ref": R, ["layer": "F.SilkS"], ["only_offboard": true]}`: deletes a
+footprint's own graphic silk (never its Reference/Value text - those are `move_text`'s), and
+`only_offboard` keeps the items whose bbox is inside the board outline, which is exactly the
+flush-connector case.
+TRAP 1, SWIG GARBAGE COLLECTION. `fp.Remove(item)` inside a FUNCTION corrupts the board when the
+function returns: the next `board.FindFootprintByReference()` comes back as a bare `SwigPyObject`
+with no FOOTPRINT methods. It is the wrappers going out of scope, not ownership - `thisown` is
+False on the footprint before AND after, and setting `item.thisown = 1` changes nothing. The same
+code inlined at module scope works, which is what makes this so easy to mis-diagnose. Fix: hold
+every touched FOOTPRINT and PCB_SHAPE wrapper in a module-level `_KEEPALIVE` list for the life of
+the (short, single-job) worker process. Related: `board.GetBoardEdgesBoundingBox()` SEGFAULTS once
+any footprint has had an item removed, so cache it as plain ints BEFORE the first removal.
+TRAP 2, THE LEAK LINES ARE ON STDOUT. After any detach, KiCad's SWIG runtime prints
+`swig/python detected a memory leak of type 'PCB_SHAPE *', no destructor found.` at interpreter
+shutdown - i.e. AFTER the worker's result JSON. `place_edit` was reading `stdout.splitlines()[-1]`
+and reported a clean run as "worker exit 0 (rolled back)". It now scans BACKWARDS for the last
+parseable JSON object, the same shape `board_init._last_json` already used. Any bundled-python
+worker that mutates the board needs that parser.
+TRAP 3, LIBRARY PARITY. Clearing silk on the board alone trades 12 warnings for 2
+`lib_footprint_mismatch` ("Footprint 'C0603' does not match copy in library 'aiee'") - also
+warnings, so also fatal to drc_routed. Whatever you clear on the board must be deleted from
+lib/<lib>.pretty/<fp>.kicad_mod too, AND cleared on every other board instance of that footprint.
+Budget the fix as "one footprint, all its instances, plus the library", never "one refdes".
+
+## 2026-08-27 [silk_place][gates] `silk_place --apply --verify-drc` APPLIES FIRST and reports the regression afterwards - it does not roll back, and its model cannot see text-over-pad
+g0-sense P6, after the board was already silk-clean (0 non-unconnected DRC). Re-running
+`silk_place.py --pcb <board> --apply --verify-drc` proposed and APPLIED 8 refdes moves, one of
+which put D1's Reference field back at (27.76, 38.3) - exactly the spot a fixer had just moved it
+out of - re-creating `silk_over_copper` "Silkscreen clipped by solder mask" against J1's VBUS pad.
+The report is honest about it (`status: violations`, `drc_silk_total: 1`,
+`kind: silk_drc_regression`) but `applied` is ALSO true: the DRC runs POST-apply and nothing
+restores. Two consequences. (1) Never point `--apply` at a board you have already cleaned by hand
+without a snapshot, or better, run it on a COPY first and diff the DRC - the solver optimises
+`beyond_extent_mm` (label near its part) and has no term for a label sitting over another
+footprint's pad mask, so on a dense board it will happily trade a real DRC violation for a
+cosmetic gain (median_beyond_extent_mm was 0.85 before AND after here - it gained nothing).
+(2) A `<board dir>/silk_ops.json` left on disk is a PROPOSAL, not a record of what was applied;
+after a hand fix it can be actively regressive. g0-sense deletes it at P6 close rather than leave
+a file whose contents, if replayed, would undo a verified fix. Related: `state.py snapshot` only
+covers the files you name (the `.kicad_pcb`), so a restore silently desyncs companion files like
+this one.
+
+## 2026-08-27 [check_current][gates][planes_gen] `pour_neck` runs PER ZONE FILL, so a pour tiled across abutting same-net zones reports its own tiling seam as a neck
+`check_current.py` erodes each zone fill in isolation (check_current.py:283) and reports a
+neck when the fill's attached vias split. But `planes_gen.assign_priorities` deliberately
+tiles one electrical pour across several abutting same-net zones at distinct priorities, so
+the seam between two abutting fills reads as a 0.10 mm neck even where the copper is
+continuous and wide. g0-sense P8: VBUS reported "necks to ~0.10 mm" against a 0.800 mm
+IPC-2152 requirement; the physical union of the same-net fills plus the connector pad copper,
+eroded by 0.4 mm (the full 0.8 mm test at the conservative 1.5 A basis), left EVERY J1 VBUS
+pad connected to all three of its vias. Real minimum in that copper was 0.680 mm, found by
+bisection, and the feature it gates is a 0.33 mm2 dead lobe holding no via and no pad.
+HOW TO TELL THEM APART without trusting either the checker or the fixer: union the same-net
+fills for the layer (shapely `unary_union` over `GetFilledPolysList(layer)` outlines), add the
+relevant pad polygons (`pad.GetEffectivePolygon(layer)` - it REQUIRES the layer argument on
+10.0.5), erode by required/2, and ask whether each source pad still reaches its vias. That is
+the question IPC-2152 actually asks; the per-zone test is a proxy for it.
+Two related traps measured the same session: (a) nothing in the toolchain can delete or
+reshape an EXISTING zone - `planes_gen` only adds, and skips any region already >=80% covered
+by same-net fill - so the `pour_neckdown` remediation ladder's "grow the zone polygon" /
+"second lobe" rungs are unreachable on an already-poured board; an annex zone at a distinct
+priority is the only lever. (b) An annex zone added with planes_gen's DEFAULT connect mode
+produced a `starved_thermal` DRC error (J2 pad 2 dropped to 1 spoke, min 2) and had to be
+rolled back and re-added with `connect: "solid"` - default a power-spreader lobe to solid.
+
+## 2026-08-27 [check_thermal][gates] the theta_JA model credits only same-net TOP copper - no backside-pour credit, so it is ~40-60 C/W pessimistic in the 100-200 mm2 band
+`check_thermal.py:47,55` uses theta_JA(A) = 55 + (174-55)*exp(-A/350) for 1 oz / 2-layer.
+Checked against the vendor tables that the ai-ee knowledge base already carries for the same
+package (record `ldo-sot223-thermal-copper-sets-current`): the model returns 144 C/W where
+AMS1117 datasheet p5 Table 1 MEASURED 80 (100 mm2 top + backside pour), and 123 C/W where TI
+LM1117 Table 9-2 measured 84 (0.3 in2). It converges with the vendors only past ~600 mm2.
+The gap is backside copper: the model counts only the pour on the dissipator's own net, while
+the AMS row credits a 2500 mm2 back pour, and the knowledge record states explicitly that the
+spreading layer NEED NOT BE ELECTRICALLY CONNECTED. On a 2-layer board with a solid GND pour
+under the regulator the model therefore understates reality badly. g0-sense P8 waived it with
+both vendor rows plus a measured proof of unreachability: satisfying the model needed 446.4
+mm2 of credited copper, and assigning EVERY free mm2 of front copper on the whole board to the
+rail yields only 439.9 mm2 inside the checker's 14.33 mm reach disc. When this fires, compute
+the vendor-anchored Tj before spending copper - and note that the fix that would satisfy it on
+2 layers (a backside island + thermal vias) carves the ground return plane, trading a passing
+check_return_path for margin the measured data may say is not needed.
+
+## 2026-08-27 [silk][drc][place_edit] KiCad's `silk_overlap` fires against a footprint's OWN reference text vs its OWN body-outline graphic
+Moving a refdes with `place_edit move_text` must treat the part's own F.SilkS body
+outline as a keepout, not just its courtyard and its neighbours. g0-sense P9: D1's
+reference was moved off its neighbour and onto D1's own silk outline, producing a real
+DRC error where there had been a warning; it was reverted. The own-part exemption people
+carry in their heads (a part's own courtyard does not collide with its own label) does
+NOT extend to silk graphics. Practical consequence for dense boards: a refdes that
+check_silk calls "misattributed" may have NO legal destination at all - g0-sense finished
+with 4 residual misattributions after an exhaustive nearest-legal-spot search, because
+J1's connector pads extend past its drawn courtyard and C10 is boxed in by four parts.
+Related measurement worth reusing: 0.1 in header per-pin labels need ~1.70 mm of clear
+run in any orientation at a 1.0 mm / 0.15 mm silk floor, so a <= 1.34 mm inter-part gap
+cannot hold one - label pin 1 and pin 4 and put the full pinout in fab/README instead.
+Script gap proposed by the fixer: `place_edit --suggest-text-spot` (pads + silk graphics
+as keepouts, own courtyard exempt, edge clearance, check_silk's own_off/nearest_other
+formula) - it hand-built that search this session.
+
+## 2026-08-27 [attest][p10][linux] `attest.py build` crashes on a RELATIVE --workspace when a waiver sidecar exists
+`attest.py build --workspace boards/<b>` exits 2 with
+`ValueError: '/workspace/boards/<b>/reports/verify-waivers.json' is not in the subpath of
+'boards/<b>'`: the waiver path is resolved to absolute while the workspace stays relative,
+so the containment check compares an absolute path against a relative one. Every other
+script in the pipeline takes a relative --workspace happily, so this is easy to trip after
+a whole run of relative paths. WORKAROUND: pass the workspace absolute -
+`--workspace /workspace/boards/<b>` - which succeeds immediately with the identical inputs.
+Only boards carrying a `reports/verify-waivers.json` hit it; a waiver-free board builds
+either way, which is why it survived earlier runs. Fix belongs in attest.py: resolve the
+workspace before the containment test.
+
+## 2026-08-27 [attest][p10] the attestation refuses on STALE ARTIFACT MARKS, not just gate freshness - `state.py rehash` is the intended clear
+`attest.py build` listed five blockers of the form "artifact bom: carries 1 stale mark(s) -
+regenerate it first" alongside the expected "gate place: passed but not fresh". The marks
+came from a P4 `state.py edit --class swap_part_same_fp` and had been carried, correctly,
+all the way to P10 - the derived artifacts HAD since been regenerated (fab_export + bom_cpl
+at P9), but regenerating a file does not clear the mark that says it was invalidated.
+`state.py rehash --workspace <ws> --names bom bom_full cpl gerbers netlist` re-hashes them
+from disk and drops the marks. Do this only AFTER genuinely regenerating each artifact -
+rehash is a "I have rebuilt these, re-measure them" statement, not a way to silence a
+blocker. Also note `report_gen.py` looks for `reports/bom_cpl.json`, `reports/fab_export.json`
+and `reports/verify_all.json` specifically, so writing those reports only into `fab/` leaves
+report_gen at exit 1 with `missing`/`warnings` entries.
+
+## 2026-08-27 [dfm][gates][sidecars] a missing `parts.json` beside the board makes the dfm gate PASS with its bom leg silently skipped
+The SKILL's sidecar rule (constraints/decoupling/parts/schematic resolve from the BOARD's
+directory, kept beside it from P5) is not decorative: g0-sense had parts.json only at
+`parts/parts.json`, so the recorded dfm gate ran 7 of 8 legs with
+`skipped_error {'bom': 'no parts.json'}` and still reported **PASS** - a skipped leg is not
+a failed one. An attestation was then built on that result. Nothing in the gate path flags
+it; what caught it was `state.py freshness` reporting the registered artifact `parts`
+(path `kicad/parts.json`) as `exists=False`. CHECK THE ARTIFACT SWEEP, not just the gate
+verdict, and read `coverage.skipped_error` on every gate result you record.
+Established convention (verified by diff on bb-amp / bb-buck / bb-mcu): parts.json exists
+BOTH at `parts/parts.json` (source) and `kicad/parts.json` (sidecar beside the board).
+Two adjacent traps found the same session: (a) `gate.py` resolves the parts sidecar from the
+board directory but bare `dfm_check.py` does NOT - without an explicit `--parts` a
+hand-generated `--strict` release report drops the bom leg, then `attest.py` refuses it with
+"--report refused: status 'error' is not a completed run"; (b) the attestation's input
+binding DOES catch the repair - adding parts.json invalidated rev 1 with "input parts:
+changed since attestation (recorded 'None')", which is the machinery working correctly.
+## 2026-08-27 [kicad-sch-api][kicad][linux] KiCad-10 stock libs carry `(property private ...)` - ksa 0.5.6 mangles it and kicad-cli refuses the schematic
+The 10.0.5 symbol libraries (format 20251024) write KLC notes as `(property private "KLC_S3.3"
+"text" ...)` - a bare `private` flag BEFORE the name (419 of them; Device:Crystal_GND24 is one).
+kicad-sch-api 0.5.6 reads the flag as the name and the name as the value and emits the note as bare
+atoms: `(property "private" "KLC_S3.3" The rectangle is not ...`. kicad-cli 10.0.5 then fails the
+WHOLE file with the only message it gives, "Failed to load schematic" (exit 3) - bisect by splicing
+lib_symbols entries one at a time into a known-good file. `schem_refdes.strip_private_properties`
+removes each balanced block after every ksa save (schlib.Sheet.save, write_placements); the notes
+have no electrical meaning. Version-bumping the schematic header does NOT help. The 10.0.3 Windows
+libs predate the token, which is why S7 never saw it.
+
+## 2026-08-27 [swig][freerouting][linux] SWIG Specctra export/import needs an X display on Linux - Xvfb :99
+`route_swig` (export_dsn, dedup_copper, import_ses) under the bundled python fails on Linux with
+"Unable to access the X Display, is $DISPLAY set properly?" - the pcbnew Specctra path is
+wx-backed. Plain LoadBoard/SaveBoard (check_env's round trip) and `kicad-cli pcb render` need no
+display. The container starts `Xvfb :99` (docker/project-init) and bakes `DISPLAY=:99`;
+`env.py` also exports it to children when the caller has no DISPLAY and the :99 socket exists.
+kicad-cli has no `pcb export specctra` subcommand (checked), so SWIG stays the only DSN path.
+
+## 2026-08-27 [kicad][drc][erc][linux] KiCad 10.0.5 vs 10.0.3 deltas seen through the suite (fixture-recorded numbers move)
+Same boards, same rules, different kicad-cli: (1) `hole_clearance` errors between a footprint's OWN
+pads and its NPTH holes (USB-C receptacle: 0.18-0.21 mm vs the 0.25 mm rule) - 4 on the pd_trigger
+stage fixture, so every board_update DRC==0 assert fails; expect it on any USB-C J1 at drc_routed
+and judge it against the vendor geometry + jlc_capabilities, do not move pads; (2) the pristine
+easyeda footprint fixture DRCs 18, not 16, and a second field-placement pass moves 1 field
+(test_lib_hygiene); (3) the blinky2 regen carries one 0.0254 mm wire stub (unconnected_wire_endpoint
+warning) against the 10.0.5 Crystal_GND24 geometry while the committed golden ERCs clean. None of
+these are Linux defects; the assert numbers are 10.0.3 recordings. Re-baseline deliberately or keep
+10.0.3 as the scoring toolchain - the bench refusal (row 317) is the same decision.
 ## 2026-09-01 [state][order_submit][lock][snapshot][U12] Two writers, one file: the old `<name>.tmp` + os.replace pattern is NOT concurrency-safe, and a snapshot manifest is an input, not evidence
 
 `state.py`, `order_submit.py` and `order_track.py` all wrote `<file>.tmp` then `os.replace`.

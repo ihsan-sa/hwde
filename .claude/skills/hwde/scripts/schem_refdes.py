@@ -628,6 +628,55 @@ def _lib_symbol_names(text: str) -> set[str]:
                           r'exclude_from_sim|in_bom|power|property)', text))
 
 
+_PRIVATE_PROP_RE = re.compile(r'\n[ \t]*\(property "private" ')
+
+
+def strip_private_properties(sch_path: Path) -> int:
+    """Drop `private` symbol properties from lib_symbols after a kicad-sch-api save.
+
+    KiCad 10 symbol libraries (format 20251024, e.g. the 10.0.5 stock libs) write
+    KLC notes as `(property private "KLC_S3.3" "text" ...)` - a bare `private`
+    flag BEFORE the name. kicad-sch-api 0.5.6 reads the flag as the name, the
+    name as the value and keeps the text as bare atoms, so its save() emits
+    `(property "private" "KLC_S3.3" The rectangle is not ...` - not an
+    s-expression, and kicad-cli 10.0.5 refuses the whole file ("Failed to load
+    schematic", exit 3; Device:Crystal_GND24 is one of 419 such properties in
+    the stock libraries). The notes carry no electrical meaning: remove each
+    balanced block. Returns the number removed. LEARNINGS [kicad-sch-api][linux].
+    """
+    text = sch_path.read_text(encoding="utf-8")
+    out: list[str] = []
+    pos = 0
+    n = 0
+    for m in _PRIVATE_PROP_RE.finditer(text):
+        if m.start() < pos:
+            continue
+        i = text.index("(", m.start())
+        depth = 0
+        j = i
+        while j < len(text):
+            c = text[j]
+            if c == '"':                      # skip a quoted string (escapes included)
+                j += 1
+                while j < len(text) and text[j] != '"':
+                    j += 2 if text[j] == "\\" else 1
+            elif c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        out.append(text[pos:m.start()])       # drop the newline before the block too
+        pos = j + 1
+        n += 1
+    if not n:
+        return 0
+    out.append(text[pos:])
+    sch_path.write_text("".join(out), encoding="utf-8")
+    return n
+
+
 def write_placements(sch_path: Path, result: dict) -> dict:
     """Apply the chosen positions through kicad-sch-api, then verify the file."""
     quiet = io.StringIO()
@@ -651,6 +700,7 @@ def write_placements(sch_path: Path, result: dict) -> dict:
             applied += 1
         if applied:
             sch.save()
+    stripped = strip_private_properties(sch_path)   # KiCad-10 lib notes ksa mangles
     after = _lib_symbol_names(sch_path.read_text(encoding="utf-8"))
     if before - after:
         raise RefdesError(
@@ -658,6 +708,7 @@ def write_placements(sch_path: Path, result: dict) -> dict:
             f"({sorted(before - after)[:3]}...) - the project symbol library was "
             f"not resolvable. Registered: {libs or 'none'}")
     return {"applied": applied, "libs_registered": libs,
+            "private_props_stripped": stripped,
             "lib_symbols": len(after)}
 
 

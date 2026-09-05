@@ -1,0 +1,85 @@
+{
+  "mpn": "SHT40-AD1B-R2",
+  "lcsc": "C2909890",
+  "package": "DFN-4, 1.5 x 1.5 x 0.54 mm, 0.8 mm pitch, 2x2 corner-pad layout (Sensirion SHT4x datasheet Fig. 9, p.12/17)",
+  "description": "Sensirion SHT40, 4th-generation digital I2C relative-humidity & temperature sensor, base RH&T accuracy class (SHT40), I2C address 0x44 (AD1B suffix), open-cavity DFN-4 SMD package with a top-side humidity-sensor opening and an integrated power-trimmed heater. Source PDF (LCSC-hosted, C2909890) is itself the Sensirion SHT4x datasheet 'D1 Version 2 - July 2021'; page numbers below cite its printed footer (N/17).",
+  "source_pdf": "boards/g0-sense/parts/U3_SHT40-AD1B-R2_C2909890.pdf",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "SDA",
+      "type": "bidirectional",
+      "notes": "Serial data, bidirectional (Sec 5.4 Pin Assignment table, p.13). Needs an external ~10 kOhm pull-up to VDD per Sensirion's own typical application circuit (Fig. 1, p.3)."
+    },
+    {
+      "pin": "2",
+      "name": "SCL",
+      "type": "input",
+      "notes": "Serial clock, unidirectional input (datasheet's own wording, Sec 5.4 Pin Assignment table, p.13). Sensor does NOT support clock stretching (Sec 4.1, p.8). Needs an external ~10 kOhm pull-up to VDD per Fig. 1 (p.3)."
+    },
+    {
+      "pin": "3",
+      "name": "VDD",
+      "type": "power_in",
+      "notes": "Supply voltage, 1.08 V ... 3.6 V (Typ 3.3 V), Table 3 Electrical Characteristics p.7. Power-up time tPU = 1 ms max after VDD reaches VPOR (Table 4, p.8). (Sec 5.4 Pin Assignment table, p.13.)"
+    },
+    {
+      "pin": "4",
+      "name": "VSS",
+      "type": "ground",
+      "notes": "Ground (Sec 5.4 Pin Assignment table, p.13)."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": ["3"],
+      "value": "100 nF",
+      "placement": "close to the sensor's VDD/VSS pins, ceramic bypass cap",
+      "notes": "From Fig. 1 'Typical application circuit' (p.3): a 100 nF cap is drawn across VDD-GND right at the sensor, plus two 10 kOhm pull-ups (SDA-to-VDD, SCL-to-VDD). No separate bulk/reservoir capacitor is specified. The on-chip heater draws up to ~75 mA at its highest power setting; the supply must be strong enough to avoid large voltage drops during heater pulses that could provoke a sensor reset (Sec 4.8, p.11-12)."
+    }
+  ],
+  "land_pattern": {
+    "package": "DFN-4, 1.5 x 1.5 mm body x 0.54 mm height; 0.8 mm labeled 'Pitch' on the Fig. 9 package-outline side view (p.12)",
+    "pad_count": 4,
+    "pitch_mm": 0.8,
+    "row_spacing_mm": 1.4,
+    "pad_size_mm": [0.5, 0.3],
+    "pin1": "1",
+    "notes": "Recommended land pattern is Fig. 10 (p.13), a 2x2 CORNER-pad array, not a linear 4-in-a-row DFN: 4 discrete rectangular pads only, with NO footprint for the central die pad (see exposed_pad). Dimensions read off Fig. 10: 1.4 mm spans the two pad COLUMNS (X, top label), 0.8 mm spans the two pad ROWS (Y, left label - matches the 'Pitch 0.8' callout on the Fig. 9 outline view), each pad is individually dimensioned ~0.5 mm x 0.3 mm (bottom-right / right labels). A further '(0.2)' dimension appears in parentheses (bottom-left) whose exact referent (pad notch/step vs. something else) is not labeled in the flattened drawing - re-view Fig. 10 (p.13) directly before cutting a footprint, and confirm edge-vs-center-to-center convention for the 1.4/0.8 spans. Figure 10 caption: 'There shall be no copper under the sensor other than at the pin pads.' Pin-1 orientation (Fig. 11, p.13, transparent top view): pin 1 = TOP-LEFT pad, pin 4 = TOP-RIGHT, pin 3 = BOTTOM-RIGHT, pin 2 = BOTTOM-LEFT. The physical pin-1 indicator is a laser-marked FILLED CIRCLE dot printed immediately left of 'SH4x' on the package top marking (first marking line); do not confuse it with the small (0.6 mm dia.) humidity-sensor opening, which is a separate feature centered on the package top (Sec 5.1/Fig. 9, p.12)."
+  },
+  "exposed_pad": {
+    "present": true,
+    "connect_to": "NC - the central die pad is a physically real leadframe pad ('the die pad is not directly connected to any pin', Fig. 11 caption, p.13) and is EXCLUDED from Sensirion's own recommended land pattern (Fig. 10, p.13, shows only the 4 corner pads, no center pad). Soldering of the central die pad is OPTIONAL and Sensirion RECOMMENDS AGAINST soldering it, 'because the sensor can reach higher temperatures upon heater activation' (Sec 5.3 Land Pattern, p.12). Thermal Information table (Table 8, p.14) gives RthJA = 246 K/W (heater off) / 308 K/W (heater on) if the die pad IS soldered, vs 297 K/W (heater off) / 357 K/W (heater on) if NOT soldered; the datasheet bolds the two NOT-soldered columns as its recommendation despite their higher RthJA.",
+    "thermal_vias": 0
+  },
+  "layout_notes": [
+    "No copper under the sensor other than at the 4 pin pads (Fig. 10 caption, Land Pattern, p.13); do not add a soldered die-pad footprint - see exposed_pad for the documented tradeoff.",
+    "Thermal isolation from the rest of the board matters for RH/T accuracy, not just for the heater: at 90 %RH a 1 C temperature deviation causes ~5 %RH reading error (Design Guide 'Sensirion_Humidity_Temperature_Design_Guide.pdf' Sec 3, p.8).",
+    "Recommended PCB thermal-isolation technique (Design Guide Fig. 8, p.8): connect the sensor's 4 pads to the rest of the circuit with THIN, NECKED-DOWN copper traces (minimize trace cross-section/width), keep SUFFICIENT DISTANCE from heat sources (power electronics, microprocessors, displays), and mill/etch relief SLOTS or SLITS in the PCB around the sensor footprint to break the direct copper thermal path to the rest of the board. Unnecessarily thick metal connections or close-proximity heat sources are called out as bad practice.",
+    "Board-edge / corner placement is shown as a recommended pattern (Design Guide Fig. 8b, p.8, marked GOOD): the sensor sits at a board edge/corner with a cutout/notch isolating it, vs. an interior placement with thick traces (marked BAD).",
+    "At the mechanical/enclosure level, shield the sensor from heated convective air and radiant heat from nearby components - do not let the sensor opening sit in the direct airflow path leaving a hot component; a small wall/baffle around the sensor with a vent to ambient air is recommended (Design Guide Fig. 9, p.9).",
+    "The humidity-sensor opening is centered on the TOP side of the package (Sec 5.1 Package Description, p.12) - keep it fully uncovered: no solder mask, conformal coating, adhesive, or tape over the opening. If conformal coating is applied elsewhere on the board, use a high-viscosity coating/potting material and keep the sensor's top surface free of coating, or use Sensirion's removable protective cover during the coating process (Handling Instructions Sec 2, Instruction 5, p.5-6).",
+    "I2C bus: both SDA and SCL need external pull-up resistors (10 kOhm to VDD each in Sensirion's own typical application circuit, Fig. 1 p.3); size per target bus speed and total bus capacitance: Cb <= 400 pF for fast mode with Rp <= 820 Ohm, or Cb <= 340 pF for fast mode plus with Rp = 390 Ohm and VDD > 1.62 V (Table 3, p.7). The sensor does NOT support clock stretching (Sec 4.1, p.8).",
+    "ASSEMBLY / HANDLING constraints (from 'HT_Handling_Instructions_SHTxx.pdf', D1 Version 9, June 2025, quarantined at research/sources/ - these must reach the fab package as-is):",
+    "  - Standard reflow soldering only, profile per IPC/JEDEC J-STD-020: peak Tp <= 260 C for <= 30 s above 255 C (Pb-free), TL < 220 C for < 150 s, ramp-up rate < 3 C/s, ramp-down rate < 6 C/s (Handling Instructions Sec 2, p.4, Figure 1).",
+    "  - Max 3 solder-reflow cycles per sensor; if the board goes through multiple reflow passes, place/assemble the sensor in the LAST cycle.",
+    "  - VAPOR-PHASE SOLDERING is NOT recommended for this part; if unavoidable, requires a dedicated end-user compatibility qualification (Handling Instructions Sec 2, p.4, footnote 5).",
+    "  - Use 'no-clean' type >= 3 solder paste; this is REQUIRED because it eliminates the need for a board wash. DO NOT APPLY BOARD WASH, cleaning agents/solvents, or strong air-pistol blasts to an unprotected sensor (Handling Instructions Sec 1.3 and Sec 2, p.4-5) - all are called out as harmful/potentially damaging.",
+    "  - Target solder-paste stand-off height: 50-75 um. Standard pick & place equipment / vacuum nozzles for standard QFN packages are usable.",
+    "  - Manual/hand soldering is NOT recommended; rework soldering is limited to <= 5 seconds at <= 350 C, and the sensor should be covered with an approved tape during repair/rework (Handling Instructions Sec 2, p.5 and p.8).",
+    "  - Moisture Sensitivity Level 1 per IPC/JEDEC J-STD-020: process within 1 year of date of delivery (stated in both the SHT4x datasheet Sec 5.1 p.12, and the Handling Instructions Sec 2 p.5).",
+    "  - No mechanical force on any part of the sensor during assembly or use.",
+    "  - ESD-protected handling is mandatory (EPA, wrist straps, grounded floor); do NOT use polyethylene antistatic bags; store parts in the original sealed ESD bag at 10-50 C / 20-60 %RH ambient prior to assembly (Handling Instructions Sec 1.1-1.2, p.2-3).",
+    "  - After reflow, expect a transient -1..-2 %RH negative humidity reading offset that self-clears within 1-3 days at ambient conditions; account for this if functional-testing immediately after reflow (Handling Instructions Sec 2, p.5).",
+    "The absolute-max pin-voltage rule is defined RELATIVE to VDD (VSS - 0.3 V ... VDD + 0.3 V, Table 5 p.8), not as a fixed number - re-check headroom whenever the VDD rail choice changes."
+  ],
+  "abs_max": [
+    { "param": "Max. voltage on any pin (relative to VSS/VDD)", "value": "VSS-0.3 to VDD+0.3", "unit": "V" },
+    { "param": "Operating temperature range", "value": "-40 to 125", "unit": "C" },
+    { "param": "Storage temperature range", "value": "-40 to 150", "unit": "C" },
+    { "param": "ESD HBM", "value": 2, "unit": "kV" },
+    { "param": "ESD CDM", "value": 500, "unit": "V" },
+    { "param": "Latch-up (JESD78 Class II, 125C)", "value": 100, "unit": "mA" },
+    { "param": "VDD supply voltage (operating range, Table 3 p.7 - not a separate stress rating in Table 5)", "value": "1.08 to 3.6", "unit": "V" }
+  ]
+}

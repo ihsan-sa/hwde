@@ -1,0 +1,53 @@
+id: usbc-sink-receptacle-land-all-shell-bond
+classes: [selection, emi]
+applies:
+  topologies: [usbc-sink]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  vbus_contacts_landed: A4, A9, B4, B9 - all four, ganged in one copper
+  gnd_contacts_landed: A1, A12, B1, B12 - all four
+  shell: GND - bond with multiple solder tails to PCB GND, own vias
+  land_pattern: vendor recommended PCB layout, mating face at board edge
+prose: >
+  16-pin USB-C receptacle current ratings are COLLECTIVE, so land and gang
+  every contact of a group. GCT USB4105 drawing p1 (read: pin table +
+  Electrical spec + Recommended PCB Layout): current rating "5.00 A
+  collectively for VBUS pins, 6.25 A collectively for GND pins, 1.25 A for
+  A5/B5 pin, 0.25 A per pin for all other pins"; pin table maps A4/A9/B4/B9
+  = VBUS, A1/A12/B1/B12 = GND, SHELL = GND, with GND and VBUS mating first.
+  Stuffing only two of the four VBUS lands halves the nameplate and
+  concentrates the attach arc on fewer contacts - gang all four into one
+  copper pour at the pads (mirror for GND). Use the vendor's Recommended PCB
+  Layout as drawn: +/-0.05 mm pad tolerance, two 0.65 mm locating holes, and
+  four oblong shield-tab slots that all sit entirely INBOARD of the marked
+  "PCB Edge" line - the lower pair (1.80 mm pad, 1.40 mm hole) clears it by
+  ~1.7 mm as drawn; no plated slot breaks the edge - put the marked line at
+  the board edge. Shell/shield: spec p135 (3.10.1 bullets + Fig 3-77) -
+  connect the receptacle shell to system PCB GND with multiple solder tails
+  and keep apertures as small as possible; the through-board shield tabs
+  double as retention, so solder them and give them their own GND vias.
+  Mating geometry: Fig 3-80 (p136, informative 3.10.3) recommends 0.05 mm
+  minimum plug-overmold clearance to the exterior product surface; Fig 3-79
+  (p136, informative) recommends 12.85 mm between connectors - keep that
+  edge swath clear of tall parts so the overmold seats.
+sources:
+  - {file: research/sources/usb4105.pdf, page: 1, section: pin table / Electrical / Recommended PCB Layout, note: "read the drawing: collective current nameplate (5.00 A VBUS pins, 6.25 A GND pins, 1.25 A CC, 0.25 A others), pin map with SHELL = GND and GND/VBUS mate-first, and the recommended land pattern: locating holes plus four shield-tab slots all inboard of the PCB Edge line (lower 1.80/1.40 mm slots clear it by ~1.7 mm as drawn)"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 135, section: 3.10.1 + Figure 3-77, note: "read EMC bullets and Fig 3-77: receptacle shell connected to system PCB GND via multiple solder tails, apertures as small as possible"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 136, section: Figures 3-79 / 3-80, note: "read: 3.10.2/3.10.3 both headed (Informative); Fig 3-79 recommended 12.85 mm connector spacing; Fig 3-80 titled Recommended Minimum Plug Overmold Clearance, 0.05 MIN. to the exterior product surface"}
+status: active
+origin: research:block-usbc-sink-1
+level: topology
+envelope:
+  iout_a: {max: 5.0}
+envelope_note: >
+  Bound by the read family nameplate: 5.00 A collectively on the VBUS
+  contacts (GCT USB4105 drawing, representative 16-pin USB 2.0
+  receptacle). Above that the 16-pin power-only receptacle class is out of
+  rating regardless of how the lands are drawn; below it the gang-all-
+  contacts and shell-bond rules hold at any current.
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "The repaired geometry claim was re-measured, not accepted. usb4105.pdf p1 rendered at 600 dpi and the Recommended PCB Layout examined at about 4.6x on-page magnification. Calibration done twice and independently: the lower-left oblong measures 195 px outer / 151 px inner against its own '2x 1.80' and '2x 1.40' dims (108.3 and 107.9 px/mm), and the upper-left oblong measures 224 / 182 px against '2x 2.10' and '2x 1.70' (about 107 px/mm); horizontally the two Dia 0.65 locating-hole centres are 626.5 px apart against the printed 5.78 (108.4 px/mm). So x and y scales agree at 108.2 px/mm and the 1.80/1.40 pair really is the LOWER slot (swapping it with the 2.10/1.70 upper slot would have been the easy misread). The thick horizontal 'PCB Edge' line, the one the 'PCB Edge' leader arrow lands on, is a single 5 px run spanning x 321-1557 in the same frame - it passes under both lower slots horizontally, so the comparison is real and not an artefact of a truncated line. Lower slot outer bottom sits at y 1246.5, PCB Edge at y 1431: 184.5 px = 1.71 mm of clear board between the pad outline and the edge (1.66 mm even measured line-outer-edge to line-near-edge, 1.91 mm from the 1.40 hole), so the record's '~1.7 mm as drawn' is right. The upper pair clears by about 5.7 mm. All four slots are wholly on the pad side of the line - confirmed numerically and by eye on a zoomed crop of the band between them; nothing straddles, so 'no plated slot breaks the edge' holds. The softening is also correct: spec p136 shows '3.10.2 Stacked and Side-by-Side Connector Physical Spacing (Informative)' and '3.10.3 Cable Mating Considerations (Informative)' as printed headings, Fig 3-79 is titled 'Recommended Minimum Spacing between Connectors' (12.85 dim) and Fig 3-80 'Recommended Minimum Plug Overmold Clearance' with '0.05 MIN.' to '(EXTERIOR SURFACE OF PRODUCT)' and 'PLUG FULLY SEATED IN RECEPTACLE' - 'recommends' is the accurate verb and 'requires' was rightly dropped. Checked the parent too: 3.10.1 is 'EMC Management (Informative)', so the p135 bullets the record leans on are recommendations as well, and the record does not claim otherwise. p135 re-read: 'The receptacle shell should have sufficient connection points to the system PCB GND plane with apertures as small as possible. Figure 3-77 illustrates an example with multiple solder tails to connect the receptacle shell to system PCB GND', and Fig 3-77 is captioned 'EMC Pad Connections to Receptacle Shell' with the callout 'Connect receptacle shell to PCB ground'. The rest re-verified on the drawing rather than inherited: Electrical block reads '5.00A collectively for VBUS pins / 6.25A collectively for GND pins / 1.25A for A5/B5 pin / 0.25A per pin for all other pins', so envelope iout_a max 5.0 is the printed collective VBUS nameplate, not an assumption; pin table gives A4/A9/B4/B9 = VBUS and A1/A12/B1/B12 = GND with Mating Sequence 'First' on every one of those eight, CC1/CC2/Dp/Dn/SBU 'Second', and two SHELL rows both reading GND; 16 signal pins listed, product description 'USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount'; layout is labelled 'As viewed from component side  Tolerance:+/-0.05mm' with '2x Dia 0.65' locating holes and the hatched slots inside the 'Solder Area' legend. Two interpretive nits, neither refuting: 'halves the nameplate' when only two VBUS lands are stuffed is a first-order inference (the drawing states no per-VBUS-pin rating), and 'the shield tabs double as retention' is not stated on any cited page, though the ordering grid's Shell Stake Length option and the Unmated Force 6-20 N spec make it a fair read."}

@@ -1,0 +1,24 @@
+2026-08-27T12:49:54Z start board=g0-sense model=claude-opus-5 effort=xhigh max-iter=12 turns=600 iter-timeout=21600s
+2026-08-27T12:49:54Z iter 1/12 start (/ai-ee --resume boards/g0-sense)
+2026-08-27T16:30:16Z iter 1 end rc=1 err=true turns=257 cost=$98.5547141 total=$98.55 phase=P7 commits=yes journal=updated
+  | You've hit your session limit · resets 5:20pm (UTC)
+2026-08-27T16:30:16Z LIMIT: usage limit hit (You've hit your session limit · resets 5:20pm (UTC) ); waiting 3104s until 17:22Z, then probing
+2026-08-27T17:22:05Z LIMIT: cleared, resuming
+2026-08-27T17:22:05Z iter 2/12 start (/ai-ee --resume boards/g0-sense)
+2026-08-27T17:36:16Z iter 2 end rc=0 err=false turns=31 cost=$6.761599499999999 total=$105.31 phase=P7 commits=yes journal=unchanged
+  |  router finishes (its `gate --commit` writes `state.json`, so concurrent `state.py` writes would race):
+  | 
+  | 1. **`erc` reads stale for a benign reason** — its `.kicad_pro` input hash changed at P5 when `rules_gen` added the `Pwr_0p8mm` netclass. The schematic hash is unchanged. I'll re-run the gate rather than reason around it. `place` is stale because routing is changing the board; I'll re-run it once copper is final.
+  | 2. **No sim bench exists** (`kicad/sims/` absent) and no decision records why. The `sim` gate is conditional on a bench existing, so nothing is being skipped against the contract — but the absence should be a recorded judgment, not a silent gap. I'll record it with the reasoning once state is writable.
+  | 
+  | I'll report the routing result and journal P7 when the router returns.
+2026-08-27T17:36:16Z iter 3/12 start (/ai-ee --resume boards/g0-sense)
+2026-08-27T20:10:26Z iter 3 end rc=0 err=false turns=224 cost=$58.15938880000003 total=$163.47 phase=P10 commits=yes journal=updated
+  | orktree; all 15 pre-date my work, so the `releaselib` fix I committed introduced no regressions.
+  | 
+  | ## One caveat on the waiver
+  | 
+  | The single error-severity finding on the board (`check_thermal` on U1) is waived, not fixed. I believe it's honest — the checker ignores the 810.9 mm² backside spreader, two vendor tables put the rise inside budget, and no geometry on this outline can satisfy the model — and an independent reviewer ratified it. But it is a judgment call resting on vendor tables rather than a measurement of your board, and it's question 2 in `log/H5.md` for exactly that reason.
+  | 
+  | `fab/README.md` carries the ordering checklist, including two remarks that are unrecoverable if missed: the Sensirion no-wash rules, and asking JLC not to land break-off tabs on the sensor tongue edge.
+2026-08-27T20:10:26Z DONE after 3 iteration(s), $163.47

@@ -358,6 +358,42 @@ def test_transient_silk_partition():
     assert board_init._is_transient_silk(suffixed)  # R2B extracted (kc fix)
 
 
+def _parity(msg="No corresponding pin found in schematic", items=None):
+    if items is None:                       # [] means "no items", not "the default"
+        items = ["unconnected-(U1-PA0)"]
+    return {"source": "parity", "check": "net_conflict", "msg": msg,
+            "items": [{"msg": m} for m in items]}
+
+
+def test_rejects_unconnected_nets_needs_every_signal():
+    """The retry trigger. "True when EVERY parity violation is KiCad refusing a
+    pad that carries an `unconnected-(...)` pseudo-net" - so anything that is
+    not that exact signature must come back False and let the real defect fail
+    init, and an empty parity list is not a match either."""
+    ok = {"setup_violations": [_parity(), _parity(items=["unconnected-(U2-PB1)"]),
+                               {"source": "drc", "check": "clearance"}]}
+    assert board_init._rejects_unconnected_nets(ok)
+
+    # "The `unconnected-` guard is what keeps a genuine pad-not-in-symbol defect
+    # from being silently retried away": same msg, but no pseudo-net in items.
+    assert not board_init._rejects_unconnected_nets(
+        {"setup_violations": [_parity(items=["/main/SDA"])]})
+    assert not board_init._rejects_unconnected_nets(
+        {"setup_violations": [_parity(items=[])]})
+    # one good, one genuine -> not every violation matches
+    assert not board_init._rejects_unconnected_nets(
+        {"setup_violations": [_parity(), _parity(items=["+3V3"])]})
+    # right items, wrong message / wrong check
+    assert not board_init._rejects_unconnected_nets(
+        {"setup_violations": [_parity(msg="Pad missing net given by schematic")]})
+    assert not board_init._rejects_unconnected_nets(
+        {"setup_violations": [dict(_parity(), check="missing_footprint")]})
+    # no parity violations at all is not a reason to rebuild
+    assert not board_init._rejects_unconnected_nets({"setup_violations": []})
+    assert not board_init._rejects_unconnected_nets(
+        {"setup_violations": [{"source": "drc", "check": "net_conflict"}]})
+
+
 def test_build_stackup_block():
     block = board_init.build_stackup_block(_stackup())
     assert block.lstrip().startswith("(stackup")

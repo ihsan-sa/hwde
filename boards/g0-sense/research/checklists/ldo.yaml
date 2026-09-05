@@ -1,0 +1,36 @@
+# Coverage checklist for an LDO (linear post-regulator) block slot.
+# First research pass on this topology (task block-ldo-1, g0-sense B2:
+# 5.0 V USB -> 3.3 V / 0.3 A / 0.51 W, 2 layers, integrated pass device).
+# Rows are the classes a designer must hold BEFORE designing the block;
+# all four are populated by this pass's draft records.
+id: ldo
+kind: coverage-checklist
+applies:
+  topologies: [ldo]
+requires:
+  - {class: selection, min_level: topology, note: "dropout-headroom budget at the source's worst-case LOW corner (series PTC/connector/trace drops subtract), current-limit and Iq fit, and the LDO-vs-buck dissipation sanity check"}
+  - {class: feedback, min_level: topology, note: "output-capacitor stability window: minimum C AND the ESR band matched to the part's compensation kind (ESR-zero families vs ceramic-stable); cap-type substitution discipline"}
+  - {class: decoupling, min_level: topology, note: "input capacitor per the family datasheet (value, kind, when it is mandatory), plus the effect of extra small ceramics on the output rail on loop phase margin"}
+  - {class: thermal, min_level: topology, note: "Tj = Ta + PD*thetaJA vs the 125 C ceiling; thetaJA is set by package tab + copper pour area on the board, not the datasheet headline current"}
+maturity: draft
+sources:
+  - {file: research/sources/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf, page: 4, note: "Application Hints / Stability: output cap is part of the frequency compensation - why feedback is a mandatory class"}
+  - {file: research/sources/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf, page: 5, note: "Thermal Considerations + Table 1 copper-area vs thetaJA - why thermal is a mandatory class on 2-layer FR-4"}
+  - {file: research/sources/lm1117.pdf, page: 15, note: "s9.2.2.1.3 output cap ESR window + Fig 9-2 dropout vs load/temp - feedback and selection rows"}
+  - {file: research/sources/snva167a.pdf, page: 7, note: "s7: stray 0.01-0.1 uF ceramics on the rail can destabilize an ESR-zero LDO - decoupling row includes the output side"}
+prose: >
+  Before designing an LDO block the pipeline must hold: (1) selection - the
+  dropout budget closes at the source's worst-case low corner with every
+  series element counted, and the part's current limit/Iq fit the load; (2)
+  feedback - the output capacitor is a loop component; its C and ESR must sit
+  inside the part's published stability window, which INVERTS between
+  ESR-zero-compensated families (tantalum class) and ceramic-stable CMOS
+  parts; (3) decoupling - input cap per the family datasheet, and stray small
+  ceramics on the output rail checked against phase margin; (4) thermal -
+  usable current is set by thetaJA(copper area) and Tj<=125 C, not the
+  headline rating. Sequencing/EN rows are deliberately absent: the 1117-class
+  3-terminal parts this checklist was cut against have no enable pin - add an
+  EN row when a part with sequencing appears. A constraints-emission row
+  (thermal pour area, output-cap ESR class into constraints.json) is a
+  pipeline contract for the owner to author, per the buck precedent.
+origin: research:block-ldo-1

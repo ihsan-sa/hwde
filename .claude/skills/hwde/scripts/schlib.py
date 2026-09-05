@@ -134,6 +134,7 @@ class Sheet:
         self.hier_pins: dict[str, str] = {}   # net -> shape (stitch contract)
         self.place_report: dict | None = None  # save-time field placement
         self._fixups: list[dict] = []         # saved-file pin-number repairs
+        self._dnp: list[str] = []             # saved-file native-dnp repairs
         self._api_num: dict[tuple[str, str], str] = {}  # (lib_id, right)->wrong
         self._lib_ids: dict[str, str] = {}    # ref -> lib_id
         self._rotations: dict[str, float] = {}
@@ -177,6 +178,18 @@ class Sheet:
                     raise ValueError(
                         f"{ref} pin {pad}: expected name ~'{want}', got '{got}'")
         return c
+
+    def mark_dnp(self, ref: str) -> None:
+        """Set KiCad's NATIVE do-not-populate flag on `ref`'s placed
+        instance. kicad-sch-api 0.5.6 exposes no writable `dnp` field on a
+        schematic symbol - its writer hard-codes `(dnp no)` on every
+        instance (LEARNINGS [kicad-sch-api][schematic][bom] 2026-08-07) - so
+        this only records intent here; `save()` repairs the saved file text
+        via `apply_native_dnp`, the same saved-file-repair pattern
+        `apply_pin_number_fixups` already uses for alphanumeric pin
+        renumbering. Does not touch in_bom/on_board (still caller's choice
+        via add_component fields) or any custom field (e.g. `Variant`)."""
+        self._dnp.append(ref)
 
     def _api_pad(self, ref: str, pad: str) -> str:
         return self._api_num.get((self._lib_ids.get(ref, ""), pad), pad)
@@ -435,9 +448,19 @@ class Sheet:
         path = out_dir / f"{self.name}.kicad_sch"
         with _quiet():
             self.sch.save(str(path))
+        import schem_refdes as sr  # sibling script; deferred (shapely)
+        sr.strip_private_properties(path)   # KiCad-10 stock-lib notes ksa mangles (exit 3 at ERC)
         apply_pin_number_fixups(self._fixups, path)
         if place_fields:
             self._place_fields(path)
+        # native dnp LAST: write_placements() may round-trip the file
+        # through kicad-sch-api (schem_refdes.write_placements ->
+        # ksa.Schematic.load().save() when any field actually moved), and
+        # ksa's writer hard-codes `(dnp no)` on every symbol instance
+        # regardless of what it parsed - an earlier dnp patch would be
+        # silently wiped by that later whole-file re-save (measured: with
+        # the call before place_fields, J3/J4 came back `(dnp no)`).
+        apply_native_dnp(self._dnp, path)
         if project:
             write_project(self.name, out_dir)
         return path
@@ -560,6 +583,36 @@ def apply_pin_number_fixups(fixups: list[dict], sch_path: Path) -> None:
                 f'(pin "{fx["wrong"]}"', f'(pin "{fx["right"]}"')
             text = text[:li] + seg + text[end:]
             pos = li + len(seg)
+    sch_path.write_text(text, encoding="utf-8")
+
+
+def apply_native_dnp(refs: list[str], sch_path: Path) -> None:
+    """kicad-sch-api 0.5.6 hard-codes `(dnp no)` on every saved symbol
+    instance - there is no writable `dnp` field on a schematic symbol in
+    this library version (LEARNINGS [kicad-sch-api][schematic][bom]
+    2026-08-07). Repair the saved file text for `refs`: flip that instance's
+    own `(dnp no)` to `(dnp yes)`. Each symbol block emits `(dnp no)`
+    shortly BEFORE its own `(property "Reference" "REF" ...)` (only
+    `fields_autoplaced`/`uuid` in between, neither containing the substring
+    `(dnp `), so the nearest preceding `(dnp no)` before that property
+    belongs unambiguously to this instance - the same nearest-neighbour
+    technique `apply_pin_number_fixups` uses. Leaves in_bom/on_board and
+    every custom field (e.g. `Variant`) untouched."""
+    if not refs:
+        return
+    text = sch_path.read_text(encoding="utf-8")
+    for ref in refs:
+        needle = f'(property "Reference" "{ref}"'
+        ri = text.find(needle)
+        if ri < 0:
+            raise ValueError(f"dnp fixup: reference {ref} not found")
+        if text.find(needle, ri + 1) >= 0:
+            raise ValueError(f"dnp fixup: reference {ref} is not unique")
+        old = "(dnp no)"
+        dn = text.rfind(old, 0, ri)
+        if dn < 0:
+            raise ValueError(f"dnp fixup: no preceding '{old}' for {ref}")
+        text = text[:dn] + "(dnp yes)" + text[dn + len(old):]
     sch_path.write_text(text, encoding="utf-8")
 
 

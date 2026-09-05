@@ -1,0 +1,172 @@
+{
+ "id": "block-ldo-1",
+ "slot": "block:B2",
+ "kind": "block",
+ "token": "ldo",
+ "phase": "P2",
+ "status": "closed",
+ "outcome": "verified",
+ "opened": "2026-08-27T07:20:36",
+ "closed": "2026-08-27T08:42:36",
+ "coverage_report": "boards/g0-sense/log/coverage-P2.json",
+ "gap": {
+  "slot": "block:B2",
+  "kind": "block",
+  "topology": "ldo",
+  "operating_point": {
+   "vin_v": 5.0,
+   "vout_v": 3.3,
+   "iout_a": 0.3,
+   "pdiss_w": 0.51,
+   "board_layers": 2,
+   "source_kind": "usb",
+   "integration_kind": "integrated-fet"
+  },
+  "missing": [
+   {
+    "class": "coverage-checklist",
+    "min_level": null
+   }
+  ],
+  "reasons": [
+   "no coverage checklist for block 'ldo' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+  ],
+  "related_records": [],
+  "principle_parents": [],
+  "task": "research block 'ldo': produce its coverage checklist, then populate it"
+ },
+ "checklist_needed": true,
+ "caps": {
+  "depth_per_gap": 4,
+  "attempt_factor": 3
+ },
+ "sources": [
+  {
+   "n": 1,
+   "url": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf",
+   "final_url": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf",
+   "host": "wmsc.lcsc.com",
+   "domain": "lcsc.com",
+   "domain_kind": "distributor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "AMS1117-3.3",
+   "file": "research/sources/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf",
+   "sha256": "189a2651878a87d590b768eaa9b44217a3fdf460352ce6ecaff127221282a3f0",
+   "bytes": 95151,
+   "content_type": "application/pdf",
+   "pages": 8,
+   "fetched": "2026-08-27T07:23:22",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 2,
+   "url": "https://www.ti.com/lit/ds/symlink/lm1117.pdf",
+   "final_url": "https://www.ti.com/lit/ds/symlink/lm1117.pdf",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "LM1117",
+   "file": "research/sources/lm1117.pdf",
+   "sha256": "35892f3a8673fae91fe0c925b7be54b5d5dc3f7f8b67d1b4b5e00e4bfb0253d4",
+   "bytes": 2791217,
+   "content_type": "application/pdf",
+   "pages": 46,
+   "fetched": "2026-08-27T07:23:23",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 3,
+   "url": "https://www.ti.com/lit/an/snva167a/snva167a.pdf",
+   "final_url": "https://www.ti.com/lit/an/snva167a/snva167a.pdf",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "AMS1117-3.3",
+   "file": "research/sources/snva167a.pdf",
+   "sha256": "30ea0a571b2218e9c9fe8f327ec97ca8f63679c52c14d4b541e641906b017a24",
+   "bytes": 173116,
+   "content_type": "application/pdf",
+   "pages": 10,
+   "fetched": "2026-08-27T07:24:34",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 4,
+   "url": "https://www.diodes.com/assets/Datasheets/AP2112.pdf",
+   "final_url": "https://www.diodes.com/assets/Datasheets/AP2112.pdf",
+   "host": "www.diodes.com",
+   "domain": "diodes.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": "AP2112K-3.3",
+   "file": "research/sources/AP2112.pdf",
+   "sha256": "ef8d376f2ec356e29172eb9e053819a0ebdcc576dba7fc9ab0505c568427920f",
+   "bytes": 755270,
+   "content_type": "application/pdf",
+   "pages": 18,
+   "fetched": "2026-08-27T07:24:35",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  }
+ ],
+ "attempts": [],
+ "verdicts": {
+  "ldo-output-cap-esr-window-principle": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Re-read snva167a (AN-1482) p5-p8 visually. p5 s5 + Fig 4 confirm verbatim: Z_ESR = 1/(2 pi ESR Cout); \"a typical 10 uF Tantalum ... ESR ... about 0.5 ohm, giving a zero ... about 30 kHz\"; \"increased phase margin from 11 deg up to about 68 deg\"; and the two-boundary reasoning (max-ESR boundary sets the lower zero limit / over-extends bandwidth, min-ESR boundary sets the max zero frequency / zero lands past crossover). s6 on the same page confirms 5 mohm ceramic ESR and a zero above 3 MHz. p6: Fig 5 is indeed the ceramic-stable topology with series R_COMP in the error amp, text gives 0.1-10 ohm electrolytic-stable vs 0 to about 0.5 ohm ceramic-stable, Fig 6 is COUT 4.7 uF / VOUT 3 V reproduced from the LP2987/LP2988 datasheet. p7: Fig 7 boundaries 0 to ~0.5 ohm, text \"lower limit of stable operation is approximately 50 mohm, which is too high to allow the use of ceramic output capacitors unless some external resistance is added\", s7 names the .01-0.1 uF bypass caps as the oscillation cause. p8: the worked example (COUT 10 uF tantalum / ESR 0.5 ohm, zero 30 kHz, crossover ~600 kHz) plus Fig 8 confirm ten 0.1 uF ceramics = 1 uF drops phase margin 68 deg -> about 9 deg. No refutation found. Two nits for the author, neither load-bearing: (a) prose calls Fig 6 measured floor \"roughly 0.1 ohm\" while p7 text puts that same curve at about 50 mohm - the 0.1-10 ohm pair is p6 generic text, not the figure, and the error is in the conservative direction; (b) the \"keep stray small ceramics away from the output terminal (s8)\" clause is true but lives on p9 (s8 Minimizing Effect of Bypass Capacitors), which is not in the record sources list although it is inside the acquired PDF.",
+   "ts": "2026-08-27T07:53:07"
+  },
+  "ldo-1117-family-output-cap-esr": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "AMS1117 p4 opened: the Stability paragraph really does say the circuit design \"requires the use of an output capacitor as part of the device frequency compensation\" and that \"The addition of 22uF solid tantalum on the output will ensure stability for all operating conditions\", that ADJ bypassing raises the requirement and 22uF tantalum covers all cases, and that larger values further improve stability; Fig 1 shows a polarized 22uF COUT (plus CADJ 10uF and D1). So the 22 uF solid-tantalum figure the board commits to is on the subject datasheet page, not imported. The absence claim was tested rather than trusted: I swept all 8 AMS1117 pages - p1 features/description, p2-p3 electrical tables, p4-p5 Application Hints, p6 typical performance curves, p7-p8 package drawings - no numeric ESR window anywhere, so \"publishes NO ESR window\" holds datasheet-wide, not just on p4. LM1117 p15 s9.2.2.1.3 confirmed verbatim: minimum 10 uF if tantalum, \"The ESR of the output capacitor should range between 0.3 ohm to 22 ohm\", 22-uF tantalum when CADJ is used. AN-1482 p5 s6 confirms the mohm-ESR ceramic point. AP2112 p1 feature line \"Stable with 1.0uF Flexible Cap: Ceramic, Tantalum and Aluminum Electrolytic\" and p2 Typical Applications Circuit CIN 1uF / COUT 1uF with Note 4 (X7R or X5R if a 1.0uF ceramic is used) both confirmed. Not refuted, but two things the author should keep visible: (1) the rule esr_min/max 0.3-22 ohm is TI LM1117 data applied to AMS silicon - the AMS page supports only the class membership (cap IS the compensation, solid tantalum), and the prose does say so, but a downstream agent reading rule: alone will not see the cross-vendor carry; (2) the prose omits the AMS sentence \"Without bypassing the adjustment terminal smaller capacitors can be used with equally good results\", so cout_min_uf 22 is the conservative all-cases reading rather than a stated floor.",
+   "ts": "2026-08-27T07:53:20"
+  },
+  "ldo-sot223-thermal-copper-sets-current": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Repair re-read on the pages, not on the author's word. lm1117 p18 opened visually: Table 9-2 'RthetaJA Different Heat Sink Area', LAYOUT row 1 = Top Side 0.0123 in2, Bottom Side 0, SOT-223 column 136 C/W - exactly as the repaired rule.theta_ja_min_copper_c_per_w now says. It IS the minimum-copper case: footnote (1) 'Tab of device attached to topside copper', 0.0123 in2 is the smallest area in the table and 136 is the largest thetaJA of all 16 rows (I read the continuation on p19: rows 8-16 top to 0.5/0.5 in2 -> 70, and row 7 0 top / 0.2 bottom -> 115, none worse than 136). AMS p2 opened: Thermal Resistance SOT-223 package phi-JA = 90 C/W with an asterisk whose footnote reads 'With package soldering to copper area over backside ground plane or internal power plane phi-JA can vary from 46C/W to >90C/W depending on mounting technique and the size of the copper area' - so 90 is the headline for a part ALREADY on plane copper and the footnote itself allows worse than 90; relabelling it theta_ja_ams1117_headline_c_per_w and moving the disagreement into prose is the correct fix, and the prose's '46 to >90' and 'even over a backside/internal plane' both match the footnote wording. No residue of the old defect anywhere in rule or prose, and no new claim slipped in: the other rule numbers still check out (66 = p18 Table 9-2 row 6, 1 in2 top / 0 bottom; 55 = AMS p5 Table 1 row 2500/2500 mm2; 125 C from both vendors). Envelope pdiss_w <= 1.5 confirmed independently, not taken on trust: p20 Fig 9-15 'Maximum Allowable Power Dissipation vs 1-oz Copper Area for SOT-223', TA = 25 C still air, Top Cu curve reaches about 1.50 W at 1 in2 and the curve is already bending over; (125-40)/55 = 1.55 W matches. AMS Table 1 re-read row by row on p5 - 2500/2500 -> 55, 1000/2500 -> 55, 225/2500 -> 65, 100/2500 -> 80, 1000/1000 -> 60, 1000/0 -> 65, on 1/16 in FR-4 with 1 oz foil - so the record's '2500+2500 -> 55', '1000 mm2 top -> 65' (the back = 0 row) and '100 top + 2500 back -> 80' are all real rows; p5 also states junction-to-tab 15 C/W, tab-to-ambient as low as 30 C/W, total as low as 45 C/W (with 'reasonable sized PC board'), PD = (VIN-VOUT)(IOUT), TJ = TA(MAX) + PD*thetaJA, 125 C ceiling, and 'the heat spreading copper layer does not need to be electrically connected to the tab'. p3 Note 2 verbatim: line and load regulation guaranteed up to 1.2 W for SOT-223. Arithmetic spot-checked: 0.51*136 = 69 C, 0.51*55 = 28 C, 0.51*66 = 34 C. Two nits, neither refuting: (a) rule.pd_check omits the VIN*IG term that lm1117 p18 eq 3 adds (about 11 percent at IQ 11 mA / VIN 5 V) - the prose flags it and the rule matches AMS p5's own formula, so it is a sourced simplification; (b) the field name theta_ja_large_pour_c_per_w does not carry its condition (2500 mm2 top PLUS 2500 mm2 back), which a downstream agent reading rule: alone would not see, though the prose states it.",
+   "ts": "2026-08-27T08:20:42"
+  },
+  "ldo-dropout-headroom-budget": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "The 1.3 V figure was checked against the row and the test condition, not just the number. AMS1117 p3: the Dropout Voltage (VIN - VOUT) row for the -1.5/-1.8/-2.5/-2.85/-3.3/-5.0 devices, conditions \"dVOUT, dVREF = 1%, IOUT = 0.8A (Note 4)\", typ 1.1 / max 1.3 V, printed boldface so it applies over the full operating temperature range - right row, right condition, and the record states the 0.8 A condition explicitly rather than hiding it. Note 4 confirmed verbatim (\"Dropout voltage is specified up to 0.8A load. For currents over 0.8A dropout will be higher\"), as is Current Limit min 900 mA. lm1117 p15 Fig 9-2 opened visually: x-axis 0-800 mA, y 0-1.4 V, the TJ = 25 C curve runs about 1.02 V at no load to about 1.17 V at 800 mA and the TJ = 125 C curve sits BELOW it (about 0.85 to 1.13) - so the records \"roughly 1.0-1.15 V rising with load at Tj 25 C, lower at 125 C\" matches the plot including the counterintuitive temperature ordering, and at 300 mA the 25 C curve reads about 1.1 V, which means \"~1.1 V typ at 0.3 A\" is read off the curve rather than the 0.8 A table cell misapplied. The accompanying text (\"the dropout voltage will vary with output current and temperature. Care should be taken during design to ensure the dropout voltage requirement is met across the entire operating temperature and output current range\") is on the same page. lm1117 p17 s9.4 verbatim: \"The minimum dropout voltage must also be met with extra headroom when possible to keep the LM1117 in regulation.\" AP2112 p1 Features verbatim: \"Low Dropout Voltage (3.3V): 250mV (Typ.) @IOUT = 600mA\". Arithmetic checks: 3.3 + 1.3 = 4.6, 3.3 + 1.1 = 4.4, and 0.3 A across 100 mohm = 30 mV. Envelope iout_a <= 0.8 is exactly what AMS Note 4 and the Fig 9-2 axis support, no more. One nit, not refuting: the 4.6 V demand uses a max spec taken at 0.8 A on a 0.3 A design, i.e. deliberately conservative - AMS p1 (not cited by the record) independently says the dropout is \"guaranteed maximum 1.3V, decreasing at lower load currents\", which corroborates rather than undercuts the record.",
+   "ts": "2026-08-27T07:53:52"
+  },
+  "ldo-1117-input-cap-and-protection": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "All four cited pages opened. lm1117 p14: s9.2.1 Design Requirements and s9.2.2.1.1 Input Bypass Capacitor both say verbatim \"An input capacitor is recommended. A 10-uF tantalum on the input is a suitable input capacitor for almost all applications\", and Fig 9-1 does show 10 uF at VIN. p16 Fig 9-3 Fixed Output Regulator shows a 10 uF Tantalum at the input carrying the footnote \"* Required if the regulator is located far from the power supply filter\" - exactly the records cin_required_when wording, so that field is source text, not a gloss. p17 s9.5.1 confirmed verbatim on all four layout points: load-current traces wide to reduce parasitic trace inductance, VOUT-to-ADJ feedback loop as short as possible, ADJ bypass cap as close as possible to the IC, and an external VOUT-to-VIN diode placed close to the corresponding IC pins for the case where VIN shorts to ground. The AMS1117 absence claim was tested, not trusted: p4 Application Hints (Stability, Protection Diodes, Output Voltage, Load Regulation) names no input-capacitor value or ESR condition, its continuation on p5 (Thermal Considerations, Ripple Rejection) names none either, p1 has no application circuit, p6 is typical performance curves and p7-p8 are package drawings - the silence is real datasheet-wide, and Fig 2 on p4 does show only an unlabeled cap at VIN. The Protection Diodes paragraph on p4 confirms the rest: \"Microsecond surge currents of 50A to 100A can be handled by the internal diode\", damage needs \"high value output capacitors ... such as 1000uF to 5000uF and the input pin ... instantaneously shorted to ground\", and the OUT-to-IN diode is recommended when an input crowbar is used - so \"not needed at 22 uF scale\" is a fair reading of \"In normal operations it is difficult to get those values of surge currents even with the use of large output capacitances\". Two nits, neither refuting: envelope vin_v <= 15 is true (AMS p2 Absolute Maximum Ratings, Input Voltage 15V - I opened it) but p2 is not in the records sources list, only named inline in envelope_note; and \"the caps job is local source impedance\" is interpretation rather than page wording, though the Fig 9-3 footnote implies it.",
+   "ts": "2026-08-27T07:54:05"
+  }
+ },
+ "queue_entry": "2026-08-27-research-task-block-ldo-1-5-verified",
+ "updated": "2026-08-27T08:42:36",
+ "accepted_drafts": null,
+ "summary": {
+  "verified": 5,
+  "refuted": 0,
+  "checklists": 1,
+  "sources": 4
+ }
+}

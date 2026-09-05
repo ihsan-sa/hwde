@@ -1,0 +1,176 @@
+{
+ "id": "block-sht4x-1",
+ "slot": "block:B4",
+ "kind": "block",
+ "token": "sht4x",
+ "phase": "P2",
+ "status": "closed",
+ "outcome": "verified",
+ "opened": "2026-08-27T07:20:36",
+ "closed": "2026-08-27T08:42:36",
+ "coverage_report": "boards/g0-sense/log/coverage-P2.json",
+ "gap": {
+  "slot": "block:B4",
+  "kind": "block",
+  "topology": "sht4x",
+  "operating_point": {
+   "vin_v": 3.3,
+   "pdiss_w": 0.25,
+   "board_layers": 2,
+   "source_kind": "usb"
+  },
+  "missing": [
+   {
+    "class": "coverage-checklist",
+    "min_level": null
+   }
+  ],
+  "reasons": [
+   "no coverage checklist for block 'sht4x' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+  ],
+  "related_records": [],
+  "principle_parents": [],
+  "task": "research block 'sht4x': produce its coverage checklist, then populate it"
+ },
+ "checklist_needed": true,
+ "caps": {
+  "depth_per_gap": 4,
+  "attempt_factor": 3
+ },
+ "sources": [
+  {
+   "n": 1,
+   "url": "https://sensirion.com/media/documents/33FD6951/661CD142/HT_DS_Datasheet_SHT4x.pdf",
+   "final_url": "https://sensirion.com/media/documents/33FD6951/661CD142/HT_DS_Datasheet_SHT4x.pdf",
+   "host": "sensirion.com",
+   "domain": "sensirion.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "SHT40",
+   "file": "research/sources/HT_DS_Datasheet_SHT4x.pdf",
+   "sha256": "2d471eb9d9f57f619f697118a579240eaf160b8aa49275e0170ccf33eda16e93",
+   "bytes": 974515,
+   "content_type": "application/pdf",
+   "pages": 24,
+   "fetched": "2026-08-27T07:24:09",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 2,
+   "url": "https://sensirion.com/media/documents/FC5BED84/662B494D/Sensirion_Humidity_Temperature_Design_Guide.pdf",
+   "final_url": "https://sensirion.com/media/documents/FC5BED84/662B494D/Sensirion_Humidity_Temperature_Design_Guide.pdf",
+   "host": "sensirion.com",
+   "domain": "sensirion.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-appnote",
+   "declared_tier": "vendor-appnote",
+   "about": "SHT40",
+   "file": "research/sources/Sensirion_Humidity_Temperature_Design_Guide.pdf",
+   "sha256": "b7db78c1e8a80000411c258b9a86b2c588fbf6ee5b315cc05c728f3ab2a20662",
+   "bytes": 841796,
+   "content_type": "application/pdf",
+   "pages": 21,
+   "fetched": "2026-08-27T07:24:15",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 3,
+   "url": "https://sensirion.com/media/documents/6D95AA80/6840311F/HT_Handling_Instructions_SHTxx.pdf",
+   "final_url": "https://sensirion.com/media/documents/6D95AA80/6840311F/HT_Handling_Instructions_SHTxx.pdf",
+   "host": "sensirion.com",
+   "domain": "sensirion.com",
+   "domain_kind": "vendor",
+   "tier": "vendor-appnote",
+   "declared_tier": "vendor-appnote",
+   "about": "SHT40",
+   "file": "research/sources/HT_Handling_Instructions_SHTxx.pdf",
+   "sha256": "80be25deb1b1539668fb7dd6b15285f6e8c8fccd0be95b71c9deb13256231060",
+   "bytes": 481502,
+   "content_type": "application/pdf",
+   "pages": 12,
+   "fetched": "2026-08-27T07:24:16",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 4,
+   "url": "https://www.nxp.com/docs/en/user-guide/UM10204.pdf",
+   "final_url": "https://www.nxp.com/docs/en/user-guide/UM10204.pdf",
+   "host": "www.nxp.com",
+   "domain": "nxp.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": null,
+   "file": "research/sources/UM10204.pdf",
+   "sha256": "dc91f00f65584e06ef36e26c93bf9d91a95fb3c8a1830a9223e53caf678b36af",
+   "bytes": 750958,
+   "content_type": "application/pdf",
+   "pages": 62,
+   "fetched": "2026-08-27T07:24:17",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  }
+ ],
+ "attempts": [],
+ "verdicts": {
+  "sht4x-rht-pcb-conduction-principle": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "DG p8 sec 3 re-read visually: text is verbatim 'In extreme cases such as at 90 %RH, a deviation of 1 degC will result in a deviation of the humidity signal of 5 %RH' - the record keys the 5 to 90 pct RH in the rule field, so the figure is not restated outside its condition. 'more severe and most common source of temperature deviations' + 'Mostly it occurs through the PCB' are exact quotes; mitigations (sufficient distances, trough milling/etching slits, metal connections as thin as possible, flex workaround) all on the page. Fig 8 panels confirmed by eye: a) thin connections + distance green check, b) white milled slits green check, c) thick/unnecessary metal red X, d) heat source in close proximity red X - matches the record panel-for-panel. DG p11 sec 3.3 verbatim 'as isolated as possible and as exposed to the environment as possible', Fig 11 a thin PCB connection / b milled slits / c flex confirmed. Level principle with no envelope is correct per schema (nothing bounds it).",
+   "ts": "2026-08-27T07:53:37"
+  },
+  "sht4x-thermal-isolation-island": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Both halves check out. Rules: DS p16 Fig 17 caption verbatim 'There shall be no copper under the sensor other than at the pin pads'; Fig 18 'The die pad is not directly connected to any pin' - the four-trace island claim is exactly the pinout. DS p15 sec 5.3 verbatim 'Soldering of the central die pad, as well as an exposed copper pad underneath it, is not recommended by Sensirion due to it acting as a heat sink which prevents the heater from functioning according to its specifications'. DS p17 Table 10 read row by row: RthJA 246 soldered / 297 not soldered heater off, 308 / 357 heater on - correct, and 'recommended' is NOT inferred from bold: the caption states 'Soldering of the die pad is not recommended, therefore the two right hand side columns are bold'. DG p8/p17 figures opened at 220 dpi: Fig 17 shows exactly four thin traces from the heat source to the sensor, white milled slits bracketing it, the orange shielding wall and the top-left housing opening; caption 'The milled slits around the sensor reduce thermal conduction through the PCB'. Honesty half: no mm figure is asserted as vendor-sourced - the only mm numbers in the prose (0.5x0.3 pads, 1.4/0.8 spans, 1.5x1.5 body) are real DS Fig 15/17 dimensions, and numeric_mm_published:false plus the closing sentence correctly flag slot width/trace width/clearance as designer judgement. Two nits, not refutations: Fig 17 actually places the sensor at the right board EDGE (the 'corner' in the caption is the housing air opening), and the pdiss_w max 1 envelope is author judgement - Sensirion publishes no wattage - though envelope_note says so in substance.",
+   "ts": "2026-08-27T07:53:37"
+  },
+  "sht4x-assembly-fab-contract": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Spot-checked seven of the listed claims individually on their own pages, all hold. HI p1 Key Instructions verbatim: 'Do not apply board wash', 'Protection against ESD is mandatory', 'Do not use polyethylene antistatic bags', 'Do not apply spray to an unprotected sensor', 'Avoid exposing the sensor to VOCs', 'Cover the sensing element during coating'; doc applicable to all SHTxx. HI p4 sec 2 + Fig 1 caption: 'Tp <= 260 degC and tp <= 30 sec above 255 degC for Pb-free assembly. TL < 220 degC and tL < 150 sec. Ramp-up rate <3 degC and ramp-down rate <6 degC/sec' in IR/Convection ovens - the record's 260 C / 30 s pair is correctly bound to 'above 255 C', not to peak dwell. Vapor phase: footnote 5 says 'may not be recommended ... it is advised that the end-user or a qualified party conducts a compatibility qualification' - the prose preserves the 'may'; the rule field's flat 'not recommended without compatibility qualification' is a fair machine encoding, not an overreach. HI p5: 'no clean type >=3 solder paste is strongly recommended as it eliminates the need for a board wash, which can be harmful to the sensors' (record keeps 'strongly recommended'); footnote 6 'Max. 3 solder cycles per sensor' + 'assembling in the last solder cycle'; 'Manual soldering is not recommended, and rework soldering should be limited to five seconds at up to 350 degC'; stand-off 50-75 um; -1..-2 pct RH post-reflow offset clearing in one to three days; MSL 1 per IPC/JEDEC J-STD-020, process within 1 year - also confirmed independently at DS p14 sec 5.1. Instruction 4 figure confirmed by eye (wash bottle over a PCB, red crossed circle). Level principle is correct here under this schema's definition (level+envelope are one decision; an emission contract carries no quantity varying with the operating point) - it matches the library's own buck-constraints-emission precedent, so a vendor handling instruction at 'principle' is not a level error.",
+   "ts": "2026-08-27T07:53:57"
+  },
+  "sht4x-vdd-decoupling-heater-transient": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "DS p3 Fig 1 read visually: exactly one 100 nF from VDD to GND at the sensor plus two pull-ups, nothing else, and the text 'After reaching the minimal supply voltage and allowing for the maximal power-up time of 1 ms the sensor is ready for I2C communication' - so 'no bulk cap is datasheet-mandated' is right. DS p9 Table 4 rows confirmed: IDD measurement 320 typ / 500 max uA; heater-on IDD 60 typ / 100 max mA at nominal 200 mW, 33/55 at 110 mW, 6/10 at 20 mW, comment 'see section 4.9'. The flagged internal disagreement is real and both halves are on the pages: DS p14 heater note 5 verbatim 'The heater draws a large amount of current once enabled (up to ~75 mA in the highest power setting)' and 'the power supply must be strong enough to avoid large voltage drops that could provoke a sensor reset', against the 100 mA Table 4 max - sizing for 100 mA is the conservative in-document choice and the record states the conflict with both citations, as the disagreement rule requires. Heater duty 10 pct (note 1) and 'shall only be operated in ambient temperatures below 65 degC' (note 6) both on p14. Envelope 1.08-3.6 V matches the Table 4 supply-voltage row.",
+   "ts": "2026-08-27T07:53:57"
+  },
+  "sht4x-vdd-slew-power-up": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "DS p9 Table 4 read visually: the 'Slew rate of the supply voltage' row is VDD,slew, min '-', typ '-', max 20, unit V/ms, comment verbatim 'Voltage changes on the supply between VDD,min and VDD,max. Faster slew rates may lead to a reset.' - so 20 V/ms is the datasheet's own stated limit, on the cited page, with exactly the conditions the record claims, and 'no minimum slew is published' matches the empty min cell. VPOR 0.6-1.08 V with condition 'Static power supply' confirmed on the same table; VDD range 1.08/3.3/3.6 V confirmed; DS p3 confirms ready for I2C after minimal supply voltage plus maximal power-up time of 1 ms. Arithmetic re-derived: (3.3-1.08)/20 V/ms = 0.111 ms = 111 us - correct, and it is a legitimate application of the Table 4 comment because the comment scopes the limit to excursions between VDDmin and VDDmax, which is the band a 3.3 V rail traverses. The derivation is labelled as such ('For a 3.3 V rail that means...') rather than presented as a vendor number, so it belongs. One unsupported clause worth trimming, not enough to refute: the datasheet says only 'may lead to a reset' - 'or hung until re-powered' in the hot-plug scenario is a failure mode no cited page states, and the hot-plug/Qwiic edge argument itself is inference, not a Sensirion statement.",
+   "ts": "2026-08-27T07:54:18"
+  },
+  "sht4x-i2c-pullup-bus-cap": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Re-derived Eq 1 independently from UM10204 p50 (sec 7.1, resistive pull-up; T=0.8473RC from the 0.3/0.7 VDD thresholds): Rp(max)=tr/(0.8473*Cb) with tr=300ns gives 354.1/Cb[pF] kohm - 2.36k at 150pF, 1.770k at 200pF (rule field 1770 exact), and 1.5k holds to 236.1pF. p44 Table 11 confirms tr max 1000/300/120 ns and Cb max 400/400/550 pF; p43 Table 10 confirms VOL1 0.4V at 3mA sink for VDD>2V, so Eq 2 floor = (3.3-0.4)/3mA = 967 ohm (record rounds up to 970, conservative for a floor) and 1.5k sinks 1.93mA - clears it, and clears the SHT4x 390 ohm floor (DS p9 Table 4, VDD>=1.62V). 1.5k is inside the whole declared 150-200pF window (allowed band at 200pF is 0.97-1.77k) with ~18pct ceiling headroom; the old 2.2k defect (ceiling breached above 161pF) is gone. 365pF window-close and 3.3x Sm relaxation both check out. New envelope max 3.6V is supported by DS p9 Table 4 (VDD max 3.6, VIH max = VDD). DS p3 Fig 1 does show 10k pull-ups plus 100nF as claimed.",
+   "ts": "2026-08-27T08:20:19"
+  }
+ },
+ "queue_entry": "2026-08-27-research-task-block-sht4x-1-6-verified",
+ "updated": "2026-08-27T08:42:36",
+ "accepted_drafts": null,
+ "summary": {
+  "verified": 6,
+  "refuted": 0,
+  "checklists": 1,
+  "sources": 4
+ }
+}

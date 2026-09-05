@@ -83,6 +83,7 @@ Plans are historical once their steps are done: `ai-ee-implementation-plan.md`
     boards/               board workspaces (see boards/README.md)
     tests/                pytest suite incl. the golden corpus + mutants
     design/               knowledge-ladder triage and stage evaluations
+    docker/               Linux container image + the unattended run loop
     tools/                gitignored: portable JRE + Freerouting jar
 
 Run the suite with `check.cmd` (the `make check` equivalent on this host).

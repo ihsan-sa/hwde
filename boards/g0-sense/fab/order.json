@@ -1,0 +1,97 @@
+{
+ "script": "order_submit",
+ "status": "ready_for_human",
+ "board": "g0-sense.kicad_pcb",
+ "generated": "2026-08-27T19:48:25+00:00",
+ "order_number": null,
+ "payment": "HUMAN - this script never submits payment (SPEC P10)",
+ "artifacts": {
+  "gerber_zip": {
+   "path": "boards/g0-sense/fab/g0-sense_gerbers.zip",
+   "sha256": "da0db18bb3b0f39afdd991b334f6b9acc8984a9d3874a6b22ca1351ad9f503de",
+   "design_sha256": "be7ac05e764cff39fdef78d17f6ae98d96194bbe90cc7c6f64a26a3ea5f872c1",
+   "bytes": 41858
+  },
+  "bom": {
+   "path": "boards/g0-sense/fab/BOM.csv",
+   "sha256": "81bf8b0635a9b695be4328615a659b0f578908a6da4251202d3abe701e7fefe6",
+   "bytes": 834
+  },
+  "cpl": {
+   "path": "boards/g0-sense/fab/CPL.csv",
+   "sha256": "d4f0ddba9e69d0007bbd1a099c6fd947a80152342ef3028343b3980667293fe2",
+   "bytes": 836
+  }
+ },
+ "missing": [],
+ "quote": {
+  "selected": {
+   "qty": 5,
+   "surface_finish": "HASL",
+   "solder_mask_color": "green",
+   "pcb": {
+    "base": 2.0,
+    "base_at_qty": 5,
+    "oversize": 0.0,
+    "options": 0.0,
+    "total": 2.0
+   },
+   "total": 42.68,
+   "assembly": {
+    "setup": 8.0,
+    "feeders": 24.0,
+    "joints": 0.68,
+    "stencil": 8.0,
+    "n_parts": 26,
+    "n_joints": 80,
+    "n_extended_parts": 8,
+    "total": 40.68
+   },
+   "unit_cost": 8.54
+  },
+  "estimate_note": null,
+  "estimated": true,
+  "source": "boards/g0-sense/fab/quote.json",
+  "authoritative_quote_url": "https://cart.jlcpcb.com/quote"
+ },
+ "spec_snapshot": {
+  "layers": 2,
+  "width_mm": 35.79,
+  "height_mm": 28.34,
+  "thickness_mm": 1.6,
+  "copper_weight_oz": null,
+  "qty": 5,
+  "surface_finish": "HASL",
+  "solder_mask_color": "green",
+  "assembly": true
+ },
+ "release": {
+  "governed": true,
+  "attested": true,
+  "valid": true,
+  "problems": [],
+  "attestation_sha256": "2a0035ebf9fcbbb63f87f1436959909e7fe05052d498fe3a4725cd22ba913f25",
+  "manufacturing": {
+   "layers": 2,
+   "copper_weight_oz": 1.0,
+   "copper_weight_source": "stackups.yaml[JLC2313_1.6].stack[0].copper_oz",
+   "inner_copper_weight_oz": null,
+   "thickness_mm": 1.6,
+   "surface_finish": null,
+   "solder_mask_color": null
+  },
+  "fab_design_sha256": "be7ac05e764cff39fdef78d17f6ae98d96194bbe90cc7c6f64a26a3ea5f872c1",
+  "disposition": "order-ready"
+ },
+ "api": {
+  "attempted": false,
+  "available": false,
+  "note": "JLCPCB Open API credentials incomplete - missing AIEE_JLCPCB_APPID and AIEE_JLCPCB_KEY and AIEE_JLCPCB_SECRET. AIEE_JLCPCB_KEY/AIEE_JLCPCB_SECRET come from the api.jlcpcb.com console API key page (may already be set as user env vars); AIEE_JLCPCB_APPID is the console application's App ID. Service scopes also need portal approval (Permission Setting)"
+ },
+ "human_steps": [
+  "Upload boards/g0-sense/fab/g0-sense_gerbers.zip to https://jlcdfm.com/ and review the DFM report (V6: no public API).",
+  "Upload the same zip at https://cart.jlcpcb.com/quote and confirm the real price against the estimate above.",
+  "If assembling: upload BOM.csv and CPL.csv, then CHECK THE RENDERED PART PREVIEW for every polarized part (LED/diode/electrolytic) - rotation corrections are the classic failure mode.",
+  "Review, then pay. Payment is always the human's action."
+ ]
+}

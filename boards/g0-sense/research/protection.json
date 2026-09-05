@@ -1,0 +1,170 @@
+{
+ "block": "protection",
+ "candidates": [
+  {
+   "mpn": "SMAJ5.0A",
+   "lcsc": "C113952",
+   "package": "DO-214AC (SMA)",
+   "basic": false,
+   "stock": 738576,
+   "price": 0.041,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407101109_MDD-Microdiode-Semiconductor-SMAJ5-0A_C113952.pdf",
+   "rank": 1,
+   "fit": "tvs: unidirectional, VRWM 5V/VBR 6.4V min/Vc 9.2V@43.5A(10/1000us), 400W, huge stock+cheap; the industry-standard VBUS TVS choice, but Vc exceeds the 6V downstream abs-max under a real surge (see risks)."
+  },
+  {
+   "mpn": "SMF5.0A",
+   "lcsc": "C284108",
+   "package": "SOD-123",
+   "basic": false,
+   "stock": 239023,
+   "price": 0.0192,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811011929_DOWO-SMF5-0A_C284108.pdf",
+   "rank": 2,
+   "fit": "tvs: same electricals as SMAJ5.0A (5V/6.4V/9.2V) in a much smaller SOD-123 footprint, cheapest option; lower surge-power rating (200W@10/1000us vs 400W) - adequate given this board has no external cabling beyond a compliant USB-C cord."
+  },
+  {
+   "mpn": "SMBJ5.0A",
+   "lcsc": "C113974",
+   "package": "DO-214AA (SMB)",
+   "basic": false,
+   "stock": 167477,
+   "price": 0.0585,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407291859_MDD-Microdiode-Semiconductor-SMBJ5-0A_C113974.pdf",
+   "rank": 3,
+   "fit": "tvs: same 5V/6.4V/9.2V electricals as SMAJ5.0A with more surge headroom (600W), bigger SMB footprint - pick if board area allows and extra surge margin is wanted over SMAJ5.0A."
+  },
+  {
+   "mpn": "PESD5V0U1UA",
+   "lcsc": "C19829579",
+   "package": "SOD-323",
+   "basic": false,
+   "stock": 19085,
+   "price": 0.0618,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2401191739_TECH-PUBLIC-PESD5V0U1UA_C19829579.pdf",
+   "rank": 4,
+   "fit": "tvs: Nexperia low-cap ESD-array-class part, VRWM 5V/VBR 7.5V/Vc 10V@4A(8/20us); MPN 'U' infix suggests unidirectional but polarity must be confirmed against the datasheet before use - lower surge-energy rating than the SM*J/SMF families, better suited to ESD duty than sustained power-line surge."
+  },
+  {
+   "mpn": "SM05T1G-N",
+   "lcsc": "C2929246",
+   "package": "SOT-23",
+   "basic": false,
+   "stock": 6307,
+   "price": 0.0616,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2201121400_BORN-SM05T1G-N_C2929246.pdf",
+   "rank": 5,
+   "fit": "tvs: unidirectional (datasheet description confirms), 5V/7V standoff-breakdown, SOT-23 alternate package; lower stock than the SMA/SOD-123 picks - single-source-style risk if this exact reel runs out."
+  },
+  {
+   "mpn": "BSMD1206-075-16V",
+   "lcsc": "C883128",
+   "package": "1206",
+   "basic": false,
+   "stock": 28114,
+   "price": 0.0551,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2305121423_BHFUSE-BSMD1206-075-16V_C883128.pdf",
+   "rank": 1,
+   "fit": "ptc: Ihold 750mA / Itrip 1.5A / Vmax 16V / Ri(initial) 90mOhm. 750mA is 2.14x the ~350mA worst-case load, clearing both the 1.2-1.5x margin rule and the ~0.75 hot-derating rule (350/0.75=467mA floor) with room to spare; 1206 is a common, well-stocked package."
+  },
+  {
+   "mpn": "BSMD0805-075-16V",
+   "lcsc": "C976303",
+   "package": "0805",
+   "basic": false,
+   "stock": 58154,
+   "price": 0.059,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2305121424_BHFUSE-BSMD0805-075-16V_C976303.pdf",
+   "rank": 2,
+   "fit": "ptc: same 750mA hold / 16V rating as the 1206 pick but smaller 0805 footprint and lower Ri (70mOhm, less LDO headroom eaten) and deeper stock; pick this over the 1206 if board area or dropout margin is tight."
+  },
+  {
+   "mpn": "nSMD100-16V",
+   "lcsc": "C70082",
+   "package": "1206",
+   "basic": false,
+   "stock": 75637,
+   "price": 0.0488,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304041600_TECHFUSE-nSMD100-16V_C70082.pdf",
+   "rank": 3,
+   "fit": "ptc: Ihold 1A / Itrip 1.8A / Vmax 16V / Ri 55mOhm - lowest resistance and cheapest/highest-stock of the 16V family, but 1A hold is 2.86x worst-case load, so a partial fault in the 350mA-1A range would never trip; trade sensitivity for headroom and stock depth."
+  },
+  {
+   "mpn": "JK-SMD0805-050-16V",
+   "lcsc": "C968441",
+   "package": "0805",
+   "basic": false,
+   "stock": 16334,
+   "price": 0.026,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Jinrui-Electronic-Materials-Co--JK-SMD0805-050-16V_C968441.pdf",
+   "rank": 4,
+   "fit": "ptc: Ihold 500mA / Itrip 1A / Vmax 16V / Ri 150mOhm - cheapest PTC found and meets the literal >=0.5A hold floor, but 500/350=1.43x margin is thinner than the 750mA picks per the 1.2-1.5x design-margin rule; higher Ri also eats more LDO dropout budget."
+  },
+  {
+   "mpn": "BSMD1206-050-16V",
+   "lcsc": "C883124",
+   "package": "1206",
+   "basic": false,
+   "stock": 49550,
+   "price": 0.0517,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2305121423_BHFUSE-BSMD1206-050-16V_C883124.pdf",
+   "rank": 5,
+   "fit": "ptc: same 500mA/16V/150mOhm electricals as the 0805 JK part in a 1206 footprint - alternate-package/alternate-vendor sourcing if the 0805 part is unavailable."
+  },
+  {
+   "mpn": "SS34",
+   "lcsc": "C8678",
+   "package": "SMA (DO-214AC)",
+   "basic": true,
+   "stock": 4895137,
+   "price": 0.0351,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407101107_MDD-Microdiode-Semiconductor-SS34_C8678.pdf",
+   "rank": 1,
+   "fit": "reverse: JLC Basic Schottky, 3A/40V rated (Vf 550mV@3A, well under that at the board's ~350mA), single-part series reverse-polarity block if the architect wants one - simplest option, no gate-drive support parts needed."
+  },
+  {
+   "mpn": "SS14",
+   "lcsc": "C2480",
+   "package": "SMA (DO-214AC)",
+   "basic": true,
+   "stock": 1558894,
+   "price": 0.019,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407101109_MDD-Microdiode-Semiconductor-SS14_C2480.pdf",
+   "rank": 2,
+   "fit": "reverse: JLC Basic Schottky, 1A/40V (Vf 550mV@1A), cheapest series-diode option; same package as SS34 for negligible cost delta, SS34's extra current headroom is preferred unless BOM cost is the tiebreaker."
+  },
+  {
+   "mpn": "B5819W SL",
+   "lcsc": "C8598",
+   "package": "SOD-123",
+   "basic": true,
+   "stock": 602062,
+   "price": 0.0301,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Jiangsu-Changjing-Electronics-Technology-Co---Ltd--B5819W-SL_C8598.pdf",
+   "rank": 3,
+   "fit": "reverse: JLC Basic Schottky, 1A/40V, smaller SOD-123 footprint than SS14/SS34 if board area is the priority over current headroom."
+  },
+  {
+   "mpn": "AO3401A",
+   "lcsc": "C15127",
+   "package": "SOT-23",
+   "basic": true,
+   "stock": 634056,
+   "price": 0.0968,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2412061733_Alpha---Omega-Semicon-AO3401A_C15127.pdf",
+   "rank": 4,
+   "fit": "reverse: JLC Basic P-channel MOSFET (30V/4A, Rds 47-85mOhm) for an ideal-diode/eFuse reverse-block - near-zero drop (~16mV@350mA vs ~0.35-0.55V for a Schottky) but needs 1-2 support passives (gate pull-down, optional gate-source clamp) and correct body-diode orientation; more design/validation burden than a plain Schottky for a low-value protection feature on this board. Note: this Basic-tagged listing prices higher per unit ($0.0968) than non-Basic dupes of the same MPN (~$0.037) - the Extended-part fee tradeoff should be checked by the part-sourcer at BOM time."
+  },
+  {
+   "mpn": "SI2301CDS-T1-GE3",
+   "lcsc": "C10487",
+   "package": "SOT-23",
+   "basic": true,
+   "stock": 199019,
+   "price": 0.0946,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1808272021_Vishay-Intertech-SI2301CDS-T1-GE3_C10487.pdf",
+   "rank": 5,
+   "fit": "reverse: alternate JLC Basic P-channel MOSFET (20V/2.2-3.1A, Rds 110-142mOhm) if AO3401A stock/price is unfavorable at BOM time; 20V rating still clears the 5.5V VBUS max with margin."
+  }
+ ]
+}

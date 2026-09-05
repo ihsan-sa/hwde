@@ -1,0 +1,59 @@
+id: mcu-nrst-internal-pullup-and-cap
+classes: [sequencing]
+applies:
+  topologies: [mcu]
+  packages: []
+  interfaces: []
+  parts: [STM32G030F6P6]
+rule:
+  enforced_by: null
+  external_pullup: false
+  nrst_cap_nf: 100
+  cap_placement: "as close as possible to the device"
+  do_not_oversize_cap: true
+prose: >
+  For the STM32G030, ST's documented reset network needs no external pull-up:
+  NRST 'is connected to a permanent pull-up resistor, RPU' (DS12991 5.3.15 +
+  Table 52, read p.65: 25-55 kohm, typ 40; <70 ns pulses filtered, >350 ns
+  resets). Fig 19 (read p.66): internal RPU on-chip; ONE dashed 'External
+  reset circuit' block holds the push-button AND the 0.1 uF cap to GND
+  (button straight across the cap, no series R); notes: external circuit must
+  pull NRST below VIL(NRST)max = 0.3 x VDDIO1; the cap 'must be placed as
+  close as possible to the device'. 3.7.2 (read p.15): integrated POR/PDR,
+  'without the need for an external reset circuit'; 3.7.5 (read p.17)
+  qualifies 'permanent' - the pull-up is deactivated when the reset source is
+  internal. This is ST practice, NOT cross-vendor: Microchip's AN2519 (read
+  p.7) documents the opposite for AVR - the internal pull-up 'can be
+  insufficient' in noisy environments; an external pull-up (>= 4.7 kohm; >=
+  10 kohm for DebugWIRE) is recommended (Fig 3-1), plus an ESD/Zener diode
+  Reset-to-Vcc when HVPP is unused. Debug caveat: AN2519 p7 says only that
+  the reset cap 'cannot be used when DebugWIRE or PDI is used'. The G030
+  pages read show no NRST debug constraint; none sourced for SWD. Cap sizing:
+  fit ST's 100 nF; AN2519's Fig 3-1 note calls its R/C 'typical values' that
+  'must be changed accordingly'. Cross-vendor practice only, not ST's: AN2519
+  3.1 (read p.8) puts ~330 ohm between button and cap to limit the L*di/dt
+  spike when the switch shorts the cap.
+sources:
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 65, section: "5.3.15 Table 52", note: "permanent internal RPU 25/40/55 kohm; VIL(NRST) 0.3xVDDIO1; 70 ns filtered / 350 ns unfiltered pulse"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 66, section: "Fig 19", note: "recommended NRST protection: internal RPU on-chip (no external pull-up); ONE dashed 'External reset circuit' block = push-button + 0.1 uF to GND, button directly across the cap, no series R; note 2: must pull below VIL(NRST) max; note 3: cap as close as possible to the device"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 15, section: "3.7.2 Power supply supervisor", note: "integrated POR/PDR, no external reset circuit needed"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 17, section: "3.7.5 Reset mode", note: "when the reset source is internal, the built-in pull-up resistor on NRST pin is deactivated - qualifies 'permanent' RPU without changing the no-external-pull-up conclusion"}
+  - {file: research/sources/AN2519-AVR-Microcontroller-Hardware-Design-Considerations-00002519B.pdf, page: 7, section: "3 + Fig 3-1", note: "CONTRARY to ST: internal pull-up 'can be insufficient' in noisy env; external pull-up 4.7k-or-larger recommended (>= 10k for DebugWIRE), drawn in Fig 3-1 with diode + 100n; ESD/Zener recommended when HVPP unused; extra cap 'cannot be used when DebugWIRE or PDI is used' (page states the restriction only, no mechanism); figure note: values 'must be changed accordingly'"}
+  - {file: research/sources/AN2519-AVR-Microcontroller-Hardware-Design-Considerations-00002519B.pdf, page: 8, section: "3.1 Fig 3-2", note: "series R (330R) between reset switch and cap to limit discharge current spike - AVR practice, absent from ST Fig 19"}
+status: active
+origin: research:block-mcu-1
+level: family
+envelope:
+  vin_v: {min: 2.0, max: 3.6}
+envelope_note: >
+  Family-bound: the no-external-pull-up rule holds only where the vendor
+  documents a permanent internal RPU plus POR/PDR - ST's STM32G0 here (Fig 19
+  read p.66; 3.7.2 read p.15). NOT topology-wide: AN2519 p7 recommends the
+  contrary for AVR (external >= 4.7 kohm pull-up vs noise), an mcu at the
+  same 2.0-3.6 V operating point, so the bound is the vendor family, not the
+  mcu topology. vin_v 2.0-3.6 V is Table 52's validity range for the
+  RPU/VIL/pulse numbers; re-read Table 52 (and the Fig 19 equivalent) outside
+  STM32G0.
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "Fourth read, fresh context, all six cited pages reopened; every page now carries what the record says. p17 CHECKED FIRST because the previous refutation put 3.7.5 on p16: section 3.7.5 Reset mode is on PDF page 17 = printed 17/93 (PDF page == printed page throughout this file), verbatim \"when the reset source is internal, the built-in pull-up resistor on NRST pin is deactivated\" - the record's citation page is right and the earlier p16 was the error; the qualification is correctly reported as narrowing \"permanent\" without touching the conclusion. p66 Figure 19 rendered at 400 dpi and read as an image, not as text: ONE dashed ellipse labelled \"External reset circuit(1)\" encloses BOTH a normally-open push-button to GND AND the 0.1 uF to GND, the two hung in parallel on the NRST node with NO series resistor between them; RPU sits inside the solid device box from VDD into NRST -> Schmitt trigger -> Filter -> Internal reset, and no external pull-up is drawn anywhere. The repaired one-block description is exactly what the figure draws. Notes 2 and 3 verbatim. p65: 5.3.15 \"It is connected to a permanent pull-up resistor, RPU\"; Table 52 row by row - VIL(NRST) max 0.3 x VDDIO1, VIH min 0.7 x VDDIO1, Vhys typ 200 mV, RPU 25/40/55 kohm at VIN=VSS, VF(NRST) filtered pulse max 70 ns, VNF(NRST) not-filtered pulse min 350 ns carrying the row condition 2.0 V <= VDD <= 3.6 V. p15 3.7.2 verbatim: POR/PDR maintains reset below VPOR/PDR \"without the need for an external reset circuit\". AN2519 p7 re-read: \"If the environment is noisy, it can be insufficient and Reset may occur sporadically\", \"4.7 kOhm or larger\", \"must not be less than 10 kOhm\" for DebugWIRE, and the weakened debug claim now matches the page word for word (\"such extra capacitor cannot be used when DebugWIRE or PDI is used\") with no mechanism smuggled in - the previous over-claim is gone and the repair did not over-correct in the other direction either; Fig 3-1 note \"typical values ... must be changed accordingly\" verbatim. AN2519 p8: pulled the Figure 3-2 bitmap out of the PDF - GND - SW (4-pin tact) - R 330R - RESET, so the 330 ohm really is in series between the switch and the RESET-node cap of Fig 3-1, and the record now carries it as prose explicitly labelled AVR-only. METADATA CLEARS ON ALL THREE POINTS. (1) level: family is correct and is the right stopping point: the ledger's own counterexample (AN2519 p7 recommending an external pull-up) is an mcu, not a different supply voltage, so the bound is the vendor family, not the topology and not the envelope; and it costs no coverage - knowledgelib LEVELS = principle<topology<family<part<instance, the checklist mcu.yaml sequencing row is min_level topology, and _evaluate blocks only LEVEL_RANK[lv] < LEVEL_RANK[min_level], so family (rank 2) still satisfies topology (rank 1). ENVELOPE_REQUIRED_AT includes family, and the record has one. (2) envelope vin_v 2.0-3.6 is supported: Table 52's VNF(NRST) row states 2.0 V <= VDD <= 3.6 V explicitly, and 5.3.15's preamble inherits the remaining rows from Table 21 General operating conditions, whose VDD/VDDA row is exactly 2.0 to 3.6 V - same numbers by either route, so the envelope_note's description is accurate. (3) no rule field still smuggles a cross-vendor generalization: button_series_r_ohm is gone, and external_pullup false / nrst_cap_nf 100 / cap_placement \"as close as possible to the device\" all trace to Fig 19 plus note 3 on p66. Also re-checked the debug silence rather than assuming it: full-text search of DS12991 finds 32 NRST occurrences and not one of them sits in a debug/SWD context, so \"the G030 pages read show no NRST debug constraint; none sourced for SWD\" is an accurate statement of the source's silence. Residual imprecisions, all in the cross-vendor prose aside, none in a rule field, none changing a design action on this board: (a) \"ESD/Zener diode Reset-to-Vcc\" - p7 puts the ESD diode Reset-to-VCC but the Zener \"relative to GND\"; (b) \">= 4.7 kohm\" drops p7's condition \"when using STK600 for programming\", though Fig 3-1, titled Recommended Reset Pin Connection, draws 4.7k unconditionally; (c) rule do_not_oversize_cap: true has no single supporting sentence - it holds the design to ST's own 0.1 uF, which is the conservative direction and what the checklist row asked for; (d) envelope_note's \"an mcu at the same 2.0-3.6 V operating point\" for AVR is uncited, though AN2519 p10 (in the ledger, uncited) works its example at VCC 3.3 V. VERIFIED."}

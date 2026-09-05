@@ -33,6 +33,7 @@ Usage:
   board_init.py --netlist n.net --name board --out dir --layers 4
                 [--copper-oz 1] [--stackup NAME]
                 [--outline auto|WxH] [--mounting-holes N]
+                [--mounting-hole-fp LIB:NAME]
                 [--corner-radius R] [--cutout X,Y,W,H ...]
                 [--workspace DIR] [--allow-fixed-outline]
                 [--schematic s.kicad_sch]   # copy next to board -> enables parity
@@ -108,7 +109,7 @@ def _comp_fields(comp) -> dict[str, str]:
 
 
 def parse_netlist(path: Path) -> tuple[list[dict], dict]:
-    """kicadsexpr netlist -> ([{ref, value, fp, fields}], {"REF.PAD": net})."""
+    """kicadsexpr netlist -> ([{ref, value, fp, dnp, fields}], {"REF.PAD": net})."""
     data = sexpdata.loads(path.read_text(encoding="utf-8"))
     components: list[dict] = []
     netmap: dict[str, str] = {}
@@ -120,7 +121,13 @@ def parse_netlist(path: Path) -> tuple[list[dict], dict]:
                 value = _sym(vnode[1]) if vnode and len(vnode) > 1 else ""
                 fnode = _find1(comp, "footprint")
                 fp = _sym(fnode[1]) if fnode and len(fnode) > 1 else None
+                # `(property (name "dnp"))` - valueless, present only when the
+                # symbol carries KiCad's native do-not-populate attribute. It
+                # is a property, not a field, so _comp_fields never sees it.
+                dnp = any(_sym(_find1(pr, "name")[1]) == "dnp"
+                          for pr in _find(comp, "property"))
                 components.append({"ref": ref, "value": value, "fp": fp,
+                                   "dnp": dnp,
                                    "fields": _comp_fields(comp)})
         elif _head(section) == "nets":
             for net in _find(section, "net"):
@@ -230,6 +237,36 @@ SETUP_IGNORE_SOURCES = {"unconnected"}  # unrouted board -> unconnected expected
 # A SINGLE-footprint silk violation (own silk over own pad) is a library
 # defect and still fails (S14 finding: easyeda2kicad ships such footprints).
 _TRANSIENT_SILK_CHECKS = {"silk_overlap", "silk_over_copper"}
+
+
+def _rejects_unconnected_nets(check: dict) -> bool:
+    """True when EVERY parity violation is KiCad refusing a pad that carries an
+    `unconnected-(...)` pseudo-net.
+
+    The netlist exporter invents that name for a pin the schematic leaves
+    unconnected, and whether the PCB is supposed to carry it is NOT uniform:
+    measured on KiCad 10.0.5, a FLAT schematic (tests/golden/usbbuck4) reports
+    "Pad missing net given by schematic" if the pad is netless, while a
+    HIERARCHICAL one (g0-sense, sheets /power/ + /main/) reports "No
+    corresponding pin found in schematic" if the pad HAS it - 18 pads, and
+    prefixing the sheet path onto the name does not help (measured). Rather
+    than guess KiCad's rule, board_init builds with the pseudo-nets, asks the
+    real checker, and rebuilds without them only when it sees this exact
+    signature. The `unconnected-` guard is what keeps a genuine
+    pad-not-in-symbol defect from being silently retried away."""
+    parity = [v for v in check["setup_violations"]
+              if v.get("source") == "parity"]
+    if not parity:
+        return False
+    for v in parity:
+        if v.get("check") != "net_conflict":
+            return False
+        if "No corresponding pin found in schematic" not in (v.get("msg") or ""):
+            return False
+        if not any("unconnected-" in (it.get("msg") or "")
+                   for it in v.get("items", ())):
+            return False
+    return True
 
 
 def _is_transient_silk(v: dict) -> bool:
@@ -378,6 +415,14 @@ def main(argv: list[str] | None = None) -> int:
                          "board outline downstream).")
     ap.add_argument("--mounting-holes", type=int, default=0,
                     help="corner mounting holes (0..4)")
+    ap.add_argument("--mounting-hole-fp",
+                    default="MountingHole:MountingHole_3.2mm_M3",
+                    help="footprint for --mounting-holes (LIB:NAME). Default is "
+                         "the M3 3.2 mm NPTH hole; a small board asked for M2 "
+                         "wants MountingHole:MountingHole_2.2mm_M2 (2.2 mm "
+                         "drill, 4.9 mm courtyard) - the hole SIZE is a "
+                         "mechanical requirement, so state it rather than "
+                         "inheriting M3.")
     ap.add_argument("--workspace", help="workspace holding state.json "
                     "(default: the first parent of --out that has one) - the "
                     "recorded build mode decides whether a fixed --outline is "
@@ -460,22 +505,29 @@ def main(argv: list[str] | None = None) -> int:
             "components": components, "netmap": netmap,
             "fp_paths": args.fp_lib, "margin": args.margin, "outline": outline,
             "corner_radius": args.corner_radius, "cutouts": cutouts,
-            "mounting_holes": ({"count": args.mounting_holes, "inset": args.margin / 2.0}
+            "mounting_holes": ({"count": args.mounting_holes,
+                                "inset": args.margin / 2.0,
+                                "fp": args.mounting_hole_fp}
                                if args.mounting_holes else None),
         }
         import tempfile
-        with tempfile.TemporaryDirectory(prefix="aiee_binit_") as td:
-            jf = Path(td) / "job.json"
-            jf.write_text(json.dumps(job), encoding="utf-8")
-            cp = subprocess.run([str(bp), str(WORKER), str(jf)],
-                                capture_output=True, text=True,
-                                encoding="utf-8", errors="replace", timeout=300)
-        worker = _last_json(cp.stdout)
-        if worker is None or worker.get("status") != "pass":
-            raise RuntimeError(f"board_swig worker failed: "
-                               f"{(cp.stdout or cp.stderr)[-600:]}")
 
-        inject_stackup(pcb_path, stackup)
+        def run_worker() -> dict:
+            with tempfile.TemporaryDirectory(prefix="aiee_binit_") as td:
+                jf = Path(td) / "job.json"
+                jf.write_text(json.dumps(job), encoding="utf-8")
+                cp = subprocess.run([str(bp), str(WORKER), str(jf)],
+                                    capture_output=True, text=True,
+                                    encoding="utf-8", errors="replace",
+                                    timeout=300)
+            w = _last_json(cp.stdout)
+            if w is None or w.get("status") != "pass":
+                raise RuntimeError(f"board_swig worker failed: "
+                                   f"{(cp.stdout or cp.stderr)[-600:]}")
+            inject_stackup(pcb_path, stackup)
+            return w
+
+        worker = run_worker()
         floors = write_pro(out_dir / f"{args.name}.kicad_pro", cap)
 
         has_sch = False
@@ -489,6 +541,13 @@ def main(argv: list[str] | None = None) -> int:
             has_sch = True
 
         check = self_check(cli, pcb_path, has_sch)
+        unconnected_nets_skipped = False
+        if _rejects_unconnected_nets(check):
+            # Measured, not assumed - see _rejects_unconnected_nets.
+            job["skip_unconnected_nets"] = True
+            worker = run_worker()
+            unconnected_nets_skipped = True
+            check = self_check(cli, pcb_path, has_sch)
 
         worker_notes = list(worker.get("notes", []))
         fresh = stackup_freshness(stackup)
@@ -503,10 +562,12 @@ def main(argv: list[str] | None = None) -> int:
             "fab_floors": floors,
             "components": len(components), "nets": worker["nets"],
             "outline_bbox": worker["bbox"], "mounting_holes": args.mounting_holes,
+            "mounting_hole_fp": args.mounting_hole_fp if args.mounting_holes else None,
             "corner_radius": worker.get("corner_radius", 0.0),
             "outline_origin": worker.get("outline_origin"),
             "cutouts": worker.get("cutouts", []),
             "self_check": check, "worker_notes": worker_notes,
+            "unconnected_nets_skipped": unconnected_nets_skipped,
         }
         if fresh:
             result["stackup_freshness"] = fresh

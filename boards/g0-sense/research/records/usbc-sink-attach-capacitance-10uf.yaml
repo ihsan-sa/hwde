@@ -1,0 +1,46 @@
+id: usbc-sink-attach-capacitance-10uf
+classes: [inrush, decoupling]
+applies:
+  topologies: [usbc-sink]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  vbus_cap_at_receptacle_uf_max: 10
+  measured: between VBUS and GND pins on receptacle when not in Attached.SNK
+  bulk_beyond_limit: behind a series element or regulator only
+prose: >
+  Table 4-3 VBUS Sink Characteristics (read on p142): "VBUS Capacitance,
+  maximum 10 uF - capacitance between VBUS and GND pins on receptacle when
+  not in Attached.SNK." The limit bounds the inrush charge slug a freshly
+  attached, discharged sink dumps through the plug at attach; sources
+  budget against it (the symmetric source-side rule, Table 4-2 on p141,
+  caps an unpowered DRP source port's own VBUS capacitance at 10 uF).
+  Design consequence: everything electrically visible from the receptacle
+  pins BEFORE any series element counts against the 10 uF - TVS junction
+  capacitance, ceramics on the PTC input side, the regulator input cap if
+  no series element separates it. Keep the receptacle-side bank at one
+  nominal 10 uF class ceramic (X5R at 5 V DC bias derates to well under
+  the limit) plus a small HF cap; any larger bulk must live downstream of
+  a series element (PTC, switch or regulator) so the attach transient
+  never sees it. Note 4.4.2 (p141): VBUS may reach 5.5 V at light loads -
+  rate/derate the receptacle-side capacitors for that, not for 5.0 V
+  nominal.
+sources:
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 142, section: Table 4-3, note: "read Table 4-3 VBUS Sink Characteristics: VBUS Capacitance max 10 uF between VBUS and GND pins on receptacle when not in Attached.SNK"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 141, section: 4.4.2 + Table 4-2, note: "read 4.4.2: VBUS light-load max 5.5 V; Table 4-2 VBUS Source Characteristics: DRP port capacitance max 10 uF when not sourcing - the symmetric attach budget"}
+status: active
+origin: research:block-usbc-sink-1
+level: topology
+envelope:
+  source_kind: {in: [usb]}
+envelope_note: >
+  The 10 uF number is the Type-C attach-state limit for a plain (non-PD)
+  USB source. Under a USB PD contract sink bulk is governed by the
+  contract mechanics instead (not covered by the pages read here), and
+  behind a bench supply or barrel jack there is no attach test at all -
+  the record applies only to source_kind usb.
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "Re-read spec p142 visually: the table there is titled 'Table 4-3 VBUS Sink Characteristics' (sink side, not source side) and its last row is 'VBUS Capacitance | Maximum 10 uF | Capacitance between VBUS and GND pins on receptacle when not in Attached.SNK' - verbatim what the record quotes, so the 10 uF really is a limit on SINK capacitance at attach. Checked the PD question the researcher flagged: the PD-qualified rows in that same table (vSinkDisconnect, vSinkPD_min, vSinkDisconnectPD) all say 'This applies for USB PD' in their Notes, while the VBUS Capacitance row carries no PD qualifier - so the kept 10 uF is the plain Type-C attach limit and dropping the PD-only bulk figure was correct for this non-PD sink. p141 confirms both supporting claims: 4.4.2 'NOTE that due to higher currents allowed, legacy devices may experience a higher voltage (up to 5.5V maximum) at light loads', and Table 4-2 VBUS Source Characteristics gives 3000 uF for source-only ports but 10 uF for DRP ports when VBUS is not being sourced - the record correctly restricts its 'symmetric' remark to DRP. Envelope source_kind usb is right. One prose caveat, not refutation-grade because the rule field and the recommended part size are both correct: the parenthetical 'X5R at 5 V DC bias derates to well under the limit' is the wrong physics for this limit - the limit is specified 'when not in Attached.SNK', i.e. with VBUS discharged, where a ceramic sits at ~0 V bias and shows close to its full nominal value. Do not use DC-bias derating as headroom against this number."}

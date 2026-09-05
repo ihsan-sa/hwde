@@ -1,0 +1,460 @@
+{
+ "script": "place_metrics",
+ "status": "pass",
+ "board": "g0-sense.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "metrics": {
+  "counts": {
+   "footprints": 30,
+   "movable": 26,
+   "nets": 16
+  },
+  "hpwl": {
+   "total_mm": 242.95,
+   "by_net": {
+    "+3V3": 44.43,
+    "+5V": 5.33,
+    "/main/LED_A": 2.0,
+    "/main/LED_USER": 2.2,
+    "/main/NRST": 18.02,
+    "/main/SCL": 26.26,
+    "/main/SDA": 26.12,
+    "/main/SWCLK": 11.81,
+    "/main/SWDIO": 9.92,
+    "/main/UART_RX": 10.3,
+    "/main/UART_TX": 12.19,
+    "/power/CC1": 2.97,
+    "/power/CC2": 2.67,
+    "/power/PWR_LED_K": 1.95,
+    "GND": 54.01,
+    "VBUS": 12.77
+   }
+  },
+  "crossings": {
+   "count": 26,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "GND"
+     ],
+     "crossings": 3
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/SDA"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/UART_RX"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/UART_TX"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/main/UART_RX",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "/main/UART_TX",
+      "GND"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "GND",
+      "VBUS"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/NRST"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/SCL"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/SWCLK"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/SWDIO"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/main/NRST",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/main/SCL",
+      "/main/SDA"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/main/SCL",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/main/SDA",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/main/SWCLK",
+      "/main/SWDIO"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/main/SWDIO",
+      "GND"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/main/UART_RX",
+      "/main/UART_TX"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "crossings_signal": {
+   "count": 13,
+   "pairs": [
+    {
+     "nets": [
+      "+3V3",
+      "/main/SDA"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/UART_RX"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/UART_TX"
+     ],
+     "crossings": 2
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/NRST"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/SCL"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/SWCLK"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "+3V3",
+      "/main/SWDIO"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/main/SCL",
+      "/main/SDA"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/main/SWCLK",
+      "/main/SWDIO"
+     ],
+     "crossings": 1
+    },
+    {
+     "nets": [
+      "/main/UART_RX",
+      "/main/UART_TX"
+     ],
+     "crossings": 1
+    }
+   ]
+  },
+  "congestion": {
+   "cell_mm": 2.0,
+   "cols": 18,
+   "rows": 15,
+   "max": 6,
+   "mean_nonzero": 2.0268,
+   "hotspots": [
+    {
+     "cell": [
+      7,
+      4
+     ],
+     "center": [
+      33.96,
+      36.149
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      12,
+      5
+     ],
+     "center": [
+      43.96,
+      38.149
+     ],
+     "demand": 6
+    },
+    {
+     "cell": [
+      3,
+      5
+     ],
+     "center": [
+      25.96,
+      38.149
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      3,
+      8
+     ],
+     "center": [
+      25.96,
+      44.149
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      5,
+      8
+     ],
+     "center": [
+      29.96,
+      44.149
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      6,
+      4
+     ],
+     "center": [
+      31.96,
+      36.149
+     ],
+     "demand": 5
+    },
+    {
+     "cell": [
+      6,
+      2
+     ],
+     "center": [
+      31.96,
+      32.149
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      6,
+      3
+     ],
+     "center": [
+      31.96,
+      34.149
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      7,
+      5
+     ],
+     "center": [
+      33.96,
+      38.149
+     ],
+     "demand": 4
+    },
+    {
+     "cell": [
+      11,
+      9
+     ],
+     "center": [
+      41.96,
+      46.149
+     ],
+     "demand": 4
+    }
+   ]
+  },
+  "congestion_signal_max": 6,
+  "decoupling": [
+   {
+    "cap": "C2",
+    "pin": "U1.3",
+    "rail": "+5V",
+    "class": "bulk",
+    "manhattan_mm": 5.33,
+    "euclid_mm": 3.7875,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.731
+   },
+   {
+    "cap": "C3",
+    "pin": "U1.2",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 9.22,
+    "euclid_mm": 9.22,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 9.454
+   },
+   {
+    "cap": "C10",
+    "pin": "U2.4",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 2.4,
+    "euclid_mm": 2.1911,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.68
+   },
+   {
+    "cap": "C11",
+    "pin": "U2.4",
+    "rail": "+3V3",
+    "class": "bulk",
+    "manhattan_mm": 5.65,
+    "euclid_mm": 4.098,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 6.955
+   },
+   {
+    "cap": "C13",
+    "pin": "U3.3",
+    "rail": "+3V3",
+    "class": "mid",
+    "manhattan_mm": 1.52,
+    "euclid_mm": 1.2563,
+    "gnd_leg_mm": 0.0,
+    "vias_in_loop": 3,
+    "loop_nh": 4.064
+   }
+  ],
+  "utilization": {
+   "component_mm2": 419.181,
+   "board_mm2": 1001.1244,
+   "ratio": 0.419
+  }
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-27T15:09:03+00:00",
+ "input": "kicad/g0-sense.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:625cb743eb5fd10eaacfa488efb04d86db23598290cb78cdbef2f7bda30862f4",
+ "coverage": {
+  "strict": false,
+  "required": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "ran": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "passed": [
+   "courtyard",
+   "outline",
+   "edges",
+   "keepouts",
+   "decoupler_distance"
+  ],
+  "failed": [],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ }
+}

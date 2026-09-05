@@ -1,0 +1,104 @@
+{
+ "block": "mcu-sensor",
+ "candidates": [
+  {
+   "mpn": "STM32G030F6P6",
+   "lcsc": "C724040",
+   "package": "TSSOP-20",
+   "basic": false,
+   "stock": 8398,
+   "price": 1.369,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_STMicroelectronics-STM32G030F6P6_C724040.pdf",
+   "rank": 1,
+   "fit": "mcu: brief-named MCU, TSSOP-20, 32 KB flash / 8 KB RAM; ~1.6 mA typ at 16 MHz HSI Range1, VDD=3.0V, fetch-from-flash, 25C (DS12991 Rev3 Table 25, p.44/93); Extended part - JLC per-unique-part setup fee applies."
+  },
+  {
+   "mpn": "STM32G031F8P6",
+   "lcsc": "C529334",
+   "package": "TSSOP-20",
+   "basic": false,
+   "stock": 11970,
+   "price": 1.3414,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2211080800_STMicroelectronics-STM32G031F8P6_C529334.pdf",
+   "rank": 2,
+   "fit": "mcu: pin-compatible TSSOP-20 fallback, same family/pinout, 64 KB flash / 8 KB RAM (2x named part's flash), deeper stock and lower price than the named part; adds LPUART + 32-bit timer; ~1.5 mA typ at 16 MHz HSI Range1, VDD=3.0V, 25C (DS12992 Rev3 Table 25, p.50-51/120); Extended."
+  },
+  {
+   "mpn": "STM32G031F6P6",
+   "lcsc": "C529333",
+   "package": "TSSOP-20",
+   "basic": false,
+   "stock": 358,
+   "price": 2.8321,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_STMicroelectronics-STM32G031F6P6_C529333.pdf",
+   "rank": 3,
+   "fit": "mcu: same 32 KB flash / 8 KB RAM as named part, TSSOP-20 pin-compatible, adds LPUART; thinner stock (358) and higher price than G031F8P6 fallback; ~1.5 mA typ at 16 MHz HSI Range1 (same silicon family as DS12992 Table 25); Extended."
+  },
+  {
+   "mpn": "STM32G041F8P6",
+   "lcsc": "C724065",
+   "package": "TSSOP-20",
+   "basic": false,
+   "stock": 27,
+   "price": 3.0254,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_STMicroelectronics-STM32G041F8P6_C724065.pdf",
+   "rank": 4,
+   "fit": "mcu: TSSOP-20 pin-compatible, 64 KB flash / 8 KB RAM, adds AES-128 + true RNG vs G030/G031 (DS12993 Rev2 Table 2); ~1.5 mA typ at 16 MHz HSI Range1 (DS12993 Rev2 Table 25, p.51/118, identical numbers to G031F8); stock only 27 units today - thin margin for qty 5 + rework, last-resort fallback. STM32G041F6P6 (32 KB variant) is 0 stock today, not orderable."
+  },
+  {
+   "mpn": "SHT40-AD1B-R2",
+   "lcsc": "C2909890",
+   "package": "DFN-4-EP(1.5x1.5)",
+   "basic": false,
+   "stock": 23700,
+   "price": 1.9016,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2110211930_Sensirion-SHT40-AD1B-R2_C2909890.pdf",
+   "rank": 1,
+   "fit": "sensor: brief-preferred SHT40, I2C address 0x44 (Sensirion SHT4x datasheet D1 v2 2021, p.1 Products Details + p.15 Table 9 nomenclature); highest stock of the whole SHT4x family on JLC today; DFN-4 1.5x1.5 mm; Extended - JLC setup fee applies."
+  },
+  {
+   "mpn": "SHT40-AD1B-R3",
+   "lcsc": "C2848306",
+   "package": "DFN-4(1.5x1.5)",
+   "basic": false,
+   "stock": 13981,
+   "price": 1.7425,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Sensirion-SHT40-AD1B-R3_C2848306.pdf",
+   "rank": 2,
+   "fit": "sensor: electrically identical die to the R2 above; MPN suffix -R3 denotes a 10k-piece tape reel vs -R2's 2.5k-piece reel (datasheet Table 9) - packaging only, still 0x44, cheaper qty-1/5 price; Extended."
+  },
+  {
+   "mpn": "SHT40-BD1B-R2",
+   "lcsc": "C7461849",
+   "package": "DFN-4(1.5x1.5)",
+   "basic": false,
+   "stock": 2184,
+   "price": 1.939,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2110211930_Sensirion-SHT40-AD1B-R2_C2909890.pdf",
+   "rank": 3,
+   "fit": "sensor: same SHT40 die, alternate I2C address 0x45 (same SHT4x family datasheet, p.1 Products Details + p.15 Table 9: 'B' = 0x45); useful only if the bus needs a second SHT4x or an address clash with a Qwiic downstream device; lower stock than AD1B; Extended."
+  },
+  {
+   "mpn": "SHT41-AD1B-R2",
+   "lcsc": "C7461861",
+   "package": "DFN-4(1.5x1.5)",
+   "basic": false,
+   "stock": 927,
+   "price": 3.0903,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2110211930_Sensirion-SHT40-AD1B-R2_C2909890.pdf",
+   "rank": 4,
+   "fit": "sensor: intermediate-accuracy SHT4x tier (0.2C/1.8%RH typ, same as SHT40 typ but tighter max-error envelope per datasheet Fig.2-7), I2C addr 0x44 unchanged; lower stock and ~1.6x price of SHT40; Extended."
+  },
+  {
+   "mpn": "SHT45-AD1B-R2",
+   "lcsc": "C5221601",
+   "package": "DFN-4(1.5x1.5)",
+   "basic": false,
+   "stock": 9278,
+   "price": 6.1254,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2110211930_Sensirion-SHT40-AD1B-R2_C2909890.pdf",
+   "rank": 5,
+   "fit": "sensor: best-accuracy SHT4x tier (0.1C/1.5%RH typ), I2C addr 0x44 unchanged, good stock; ~3.2x the SHT40 price for accuracy the brief does not ask for; Extended."
+  }
+ ]
+}

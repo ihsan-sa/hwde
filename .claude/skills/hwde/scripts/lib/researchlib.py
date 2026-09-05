@@ -1394,17 +1394,25 @@ def promote_record(root: Path, record_id: str,
         f = str(s.get("file") or "")
         if not f.startswith(f"{knowledgelib.WS_RESEARCH}/sources/"):
             continue      # already a library/repo path - leave it
-        sp = ws / f
-        if not sp.is_file():
-            return {"status": "error",
-                    "error": f"cited source {f} missing from the workspace"}, 2
         name = Path(f).name
-        target = lsd / name
+        sp = ws / f
+        side = ""
+        if not sp.is_file():
+            # A source that may not be redistributed lives as its sidecar
+            # (url + sha256, knowledgelib.NOT_REDISTRIBUTED_SUFFIX): the
+            # sidecar travels to the library in place of the bytes and the
+            # citation keeps naming the source itself.
+            sc = sp.with_name(name + knowledgelib.NOT_REDISTRIBUTED_SUFFIX)
+            if not sc.is_file():
+                return {"status": "error",
+                        "error": f"cited source {f} missing from the workspace"}, 2
+            sp, side = sc, knowledgelib.NOT_REDISTRIBUTED_SUFFIX
+        target = lsd / (name + side)
         if target.exists() and knowledgelib.sha256_file(target) != \
                 knowledgelib.sha256_file(sp):
             stem, dot, ext = name.rpartition(".")
             name = f"{stem or ext}-{knowledgelib.sha256_file(sp)[:8]}{dot}{ext if stem else ''}"
-            target = lsd / name
+            target = lsd / (name + side)
         copies.append((sp, target))
         new_text = new_text.replace(f, f"{lib_prefix}/{name}")
     if dry_run:

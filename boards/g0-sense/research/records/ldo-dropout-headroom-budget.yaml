@@ -1,0 +1,49 @@
+id: ldo-dropout-headroom-budget
+classes: [selection]
+applies:
+  topologies: [ldo]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  check: "Vsource_worst_low - sum(series drops at Iout) >= Vout + Vdropout_max(Iout, Tj)"
+  vdo_1117_max_v: 1.3
+  corner: "source worst-case LOW x Iout max x dropout MAX spec"
+prose: >
+  Everything in series ahead of the LDO input subtracts from dropout
+  headroom: PTC/polyfuse resistance, connector and cable contact resistance,
+  input filter and trace resistance, any ORing diode. The check is run at
+  the SOURCE's worst-case low corner with the dropout MAX spec at the real
+  load - never at nominals. Dropout is load- and temperature-dependent:
+  AMS1117 specs 1.1 V typ / 1.3 V max at 0.8 A, and Note 4 warns dropout is
+  HIGHER above 0.8 A and unspecified there (p3); LM1117 Fig 9-2 shows the
+  curve - roughly 1.0-1.15 V rising with load at Tj 25 C, lower at 125 C
+  (p15) - and TI 9.4 says the minimum dropout "must also be met with extra
+  headroom when possible" (p17). Worked at this class of operating point:
+  Vout 3.3 + 1.3 max = 4.6 V required by the family's own max spec; ~1.1 V
+  typ at 0.3 A gives 4.4 V. From a nominal 5.0 V USB source that leaves only
+  0.4-0.6 V for ALL series elements before the VBUS low corner is even
+  counted, and every 100 mohm of PTC+connector resistance at 0.3 A eats
+  another 30 mV. If the budget does not close, the fix is a genuinely
+  low-dropout class - e.g. CMOS AP2112: 250 mV typ at 600 mA (p1) - or a
+  different topology; a bigger thermal pour does not buy headroom.
+sources:
+  - {file: research/sources/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf, page: 3, note: "Dropout Voltage row: 1.1 typ / 1.3 max V at Iout 0.8 A; Note 4: specified up to 0.8 A load, higher above; current limit 900 min mA"}
+  - {file: research/sources/lm1117.pdf, page: 15, note: "Fig 9-2 Dropout Voltage (VIN-VOUT) vs output current at Tj 25 C and 125 C, 0-800 mA; text: dropout varies with current and temperature, check across the whole range"}
+  - {file: research/sources/lm1117.pdf, page: 17, note: "s9.4 Power Supply Recommendations: minimum dropout voltage must be met with extra headroom when possible to keep the part in regulation"}
+  - {file: research/sources/AP2112.pdf, page: 1, note: "Features: Low Dropout Voltage (3.3 V): 250 mV typ at Iout = 600 mA - the escape class when a 1117-style budget fails"}
+status: active
+origin: research:block-ldo-1
+level: topology
+envelope:
+  iout_a: {max: 0.8}
+maturity: verified
+generalizes: []
+envelope_note: >
+  The budget equation is general to any series-pass regulator; what bounds
+  THIS record is the dropout data grounding it - the 1117-class numbers are
+  specified only up to 0.8 A (AMS1117 Note 4: above 0.8 A dropout is higher
+  and unspecified; LM1117's curve ends at 0.8 A). Above 0.8 A re-derive from
+  a curve that actually covers the load.
+verification: {by: "second-reader", date: "2026-08-27", note: "The 1.3 V figure was checked against the row and the test condition, not just the number. AMS1117 p3: the Dropout Voltage (VIN - VOUT) row for the -1.5/-1.8/-2.5/-2.85/-3.3/-5.0 devices, conditions \"dVOUT, dVREF = 1%, IOUT = 0.8A (Note 4)\", typ 1.1 / max 1.3 V, printed boldface so it applies over the full operating temperature range - right row, right condition, and the record states the 0.8 A condition explicitly rather than hiding it. Note 4 confirmed verbatim (\"Dropout voltage is specified up to 0.8A load. For currents over 0.8A dropout will be higher\"), as is Current Limit min 900 mA. lm1117 p15 Fig 9-2 opened visually: x-axis 0-800 mA, y 0-1.4 V, the TJ = 25 C curve runs about 1.02 V at no load to about 1.17 V at 800 mA and the TJ = 125 C curve sits BELOW it (about 0.85 to 1.13) - so the records \"roughly 1.0-1.15 V rising with load at Tj 25 C, lower at 125 C\" matches the plot including the counterintuitive temperature ordering, and at 300 mA the 25 C curve reads about 1.1 V, which means \"~1.1 V typ at 0.3 A\" is read off the curve rather than the 0.8 A table cell misapplied. The accompanying text (\"the dropout voltage will vary with output current and temperature. Care should be taken during design to ensure the dropout voltage requirement is met across the entire operating temperature and output current range\") is on the same page. lm1117 p17 s9.4 verbatim: \"The minimum dropout voltage must also be met with extra headroom when possible to keep the LM1117 in regulation.\" AP2112 p1 Features verbatim: \"Low Dropout Voltage (3.3V): 250mV (Typ.) @IOUT = 600mA\". Arithmetic checks: 3.3 + 1.3 = 4.6, 3.3 + 1.1 = 4.4, and 0.3 A across 100 mohm = 30 mV. Envelope iout_a <= 0.8 is exactly what AMS Note 4 and the Fig 9-2 axis support, no more. One nit, not refuting: the 4.6 V demand uses a max spec taken at 0.8 A on a 0.3 A design, i.e. deliberately conservative - AMS p1 (not cited by the record) independently says the dropout is \"guaranteed maximum 1.3V, decreasing at lower load currents\", which corroborates rather than undercuts the record."}

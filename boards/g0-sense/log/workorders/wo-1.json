@@ -1,0 +1,136 @@
+{
+ "id": 1,
+ "created": "2026-08-27T18:15:01",
+ "gate": "verify",
+ "phase": "P8",
+ "board": "boards/g0-sense/kicad/g0-sense.kicad_pcb",
+ "fixer": "router",
+ "role_prompt": "/workspace/.claude/skills/ai-ee/agents/fixer.md",
+ "allowed_scripts": [
+  "route_edit.py",
+  "kc.py",
+  "render.py",
+  "stitch_vias.py",
+  "route_cleanup.py"
+ ],
+ "guidance": [
+  "Read the remediation reference(s) listed in `remediations` FIRST: what the measurement means, the known false-positive classes for this finding type, the cheapest-first fix ladder, and the traps this project already hit. They are keyed to your cluster's kinds.",
+  "Edit copper ONLY via route_edit.py ops (add_track/add_via/remove-by-uuid); never raw file edits.",
+  "DRC violations carry the item uuid (items[].uuid) - remove by uuid, then re-add corrected geometry. Check violations carry coordinates; locate the uuid by matching start/end in the board file text (read-only grounding).",
+  "Repair width rule: match the same-net copper abutting the segment's endpoints, never below the check's required minimum.",
+  "If an edit crosses a zone fill, refill before re-gating: kicad-cli pcb drc --refill-zones --save-board (kc.run_drc refill=True)."
+ ],
+ "remediations": [
+  "/workspace/.claude/skills/ai-ee/reference/remediations/insufficient_transition_vias.md",
+  "/workspace/.claude/skills/ai-ee/reference/remediations/pour_neckdown.md"
+ ],
+ "cluster": {
+  "net": "VBUS",
+  "kinds": [
+   "insufficient_transition_vias",
+   "pour_neckdown"
+  ],
+  "checks": [
+   "check_current"
+  ],
+  "severity": "error",
+  "count": 3,
+  "region": {
+   "bbox": [
+    26.9785,
+    38.8709,
+    28.075,
+    44.3
+   ],
+   "center": [
+    27.7095,
+    40.6903
+   ]
+  },
+  "violations": [
+   {
+    "check": "check_current",
+    "severity": "error",
+    "pos": [
+     26.9785,
+     38.8709
+    ],
+    "layer": "F.Cu",
+    "net": "VBUS",
+    "refs": [],
+    "msg": "VBUS pour on F.Cu necks to ~0.10 mm between via attachments; IPC-2152 needs 0.800 mm for 1.50 A at dT=10C",
+    "source": "check_current",
+    "items": [
+     {
+      "msg": "VBUS pour on F.Cu necks to ~0.10 mm between via attachments; IPC-2152 needs 0.800 mm for 1.50 A at dT=10C",
+      "pos": [
+       26.9785,
+       38.8709
+      ]
+     }
+    ],
+    "kind": "pour_neckdown",
+    "neck_mm": 0.1,
+    "required_mm": 0.8,
+    "current_a": 1.5
+   },
+   {
+    "check": "check_current",
+    "severity": "error",
+    "pos": [
+     28.075,
+     38.9
+    ],
+    "layer": null,
+    "net": "VBUS",
+    "refs": [],
+    "msg": "VBUS layer transition at (28.07, 38.90) has 2 via(s); 1.50 A needs 3 (>= 1 via per 0.5 A)",
+    "source": "check_current",
+    "items": [
+     {
+      "msg": "VBUS layer transition at (28.07, 38.90) has 2 via(s); 1.50 A needs 3 (>= 1 via per 0.5 A)",
+      "pos": [
+       28.075,
+       38.9
+      ]
+     }
+    ],
+    "kind": "insufficient_transition_vias",
+    "vias": 2,
+    "required": 3
+   },
+   {
+    "check": "check_current",
+    "severity": "error",
+    "pos": [
+     28.075,
+     44.3
+    ],
+    "layer": null,
+    "net": "VBUS",
+    "refs": [],
+    "msg": "VBUS layer transition at (28.07, 44.30) has 2 via(s); 1.50 A needs 3 (>= 1 via per 0.5 A)",
+    "source": "check_current",
+    "items": [
+     {
+      "msg": "VBUS layer transition at (28.07, 44.30) has 2 via(s); 1.50 A needs 3 (>= 1 via per 0.5 A)",
+      "pos": [
+       28.075,
+       44.3
+      ]
+     }
+    ],
+    "kind": "insufficient_transition_vias",
+    "vias": 2,
+    "required": 3
+   }
+  ]
+ },
+ "artifacts": {
+  "board": "boards/g0-sense/kicad/g0-sense.kicad_pcb",
+  "schematic": "boards/g0-sense/kicad/g0-sense.kicad_sch",
+  "constraints": "boards/g0-sense/kicad/constraints.json",
+  "decoupling": "boards/g0-sense/kicad/decoupling.json"
+ },
+ "scope": "fix ONLY these violations; do not touch unrelated nets/regions; re-run the failed gate when done"
+}

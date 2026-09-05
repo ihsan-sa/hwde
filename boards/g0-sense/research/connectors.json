@@ -1,0 +1,203 @@
+{
+ "block": "connectors",
+ "candidates": [
+  {
+   "mpn": "TYPE-C-31-M-12",
+   "lcsc": "C165948",
+   "package": "SMD 16P receptacle, 4x THT shield legs",
+   "basic": false,
+   "stock": 371004,
+   "price": 0.1855,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2205251630_Korean-Hroparts-Elec-TYPE-C-31-M-12_C165948.pdf",
+   "rank": 1,
+   "fit": "usbc: 16P power-only pinout (CC1/CC2, SBU1/2, DP1/DN1, VBUS x4, GND x4) at 20V/5A, deep stock, and the ONLY candidate with a ready-made KiCad footprint (Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod, verified in this image), which removes the pulled-footprint DRC-error class this repo's LEARNINGS documents for 16P USB-C parts. That footprint's own pads confirm the shield/ground return is 4x plated THT oval pads (\"SH\") plus 2x NPTH alignment holes, not full SMD."
+  },
+  {
+   "mpn": "TYPE-C16PIN",
+   "lcsc": "C393939",
+   "package": "SMD 16P receptacle, 2x THT shield legs",
+   "basic": false,
+   "stock": 439594,
+   "price": 0.0686,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1912111437_SHOU-HAN-TYPE-C16PIN_C393939.pdf",
+   "rank": 2,
+   "fit": "usbc: cheapest and highest-stock 16P option (30V/3A, still >>1A design current), but no vendor-specific KiCad footprint ships in the library - would need a pulled/custom footprint. Vendor drawing (pulled and read directly) shows the same hybrid construction as the HRO part: 16 SMD signal pads plus 2x 0.65mm-dia THT shield/mounting legs at the housing ends."
+  },
+  {
+   "mpn": "TYPE-C-3.1-16PIN",
+   "lcsc": "C7507405",
+   "package": "SMD 16P receptacle",
+   "basic": false,
+   "stock": 13772,
+   "price": 0.0705,
+   "datasheet": "",
+   "rank": 3,
+   "fit": "usbc: same SHOU HAN 16P family as C393939 (3A/5V), alternate SKU with no datasheet on file at LCSC; single-source risk is the same pulled-footprint gap as C393939 with less stock depth, kept only as a price-tier alternate."
+  },
+  {
+   "mpn": "TYPE-C-16PIN-0",
+   "lcsc": "C53207865",
+   "package": "SMD 16P receptacle",
+   "basic": false,
+   "stock": 903,
+   "price": 0.0665,
+   "datasheet": "",
+   "rank": 4,
+   "fit": "usbc: BXCONN clone, cheapest unit price found but stock (903) is thin for a part with no datasheet on file; adequate for a 5-board build, not a reorder-safe choice."
+  },
+  {
+   "mpn": "SM04B-SRSS-TB(LF)(SN)",
+   "lcsc": "C160404",
+   "package": "SMD, right-angle, P=1.0mm",
+   "basic": false,
+   "stock": 39690,
+   "price": 0.2131,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_JST-SM04B-SRSS-TB-LF-SN_C160404.pdf",
+   "rank": 1,
+   "fit": "jst_sh: genuine JST SH 1.0mm 4-pin, right-angle/horizontal (correct Qwiic/STEMMA-QT mating orientation); exact KiCad footprint ships in Connector_JST.pretty as JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal. Highest price of the three but the reference part the clones are copied from."
+  },
+  {
+   "mpn": "XY-SM04B-SRSS-TB",
+   "lcsc": "C51940130",
+   "package": "SMD, right-angle, P=1.0mm",
+   "basic": false,
+   "stock": 5425,
+   "price": 0.0392,
+   "datasheet": "",
+   "rank": 2,
+   "fit": "jst_sh: XYECONN clone of the JST part, same body/pinout family so it should sit in the genuine-part KiCad footprint; 5.4x cheaper than JST-branded, moderate stock. No datasheet on file - JST's own drawing is the fallback reference for dimension checks."
+  },
+  {
+   "mpn": "HX SH-1.0-4PWT",
+   "lcsc": "C22461259",
+   "package": "SMD, right-angle, P=1.0mm",
+   "basic": false,
+   "stock": 4778,
+   "price": 0.0395,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2409272003_hanxia-HX-SH-1-0-4PWT_C22461259.pdf",
+   "rank": 3,
+   "fit": "jst_sh: hanxia clone, near-identical price/stock to the XYECONN clone; kept as a second-source alternate in case one clone line goes out of stock."
+  },
+  {
+   "mpn": "HX PZ2.54-1x4P ZZ",
+   "lcsc": "C32713270",
+   "package": "THT, 1x4, P=2.54mm",
+   "basic": false,
+   "stock": 158769,
+   "price": 0.0335,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407231541_hanxia-HX-PZ2-54-1x4P-ZZ_C32713270.pdf",
+   "rank": 1,
+   "fit": "header: 1x4 THT male pin header for SWD/UART, ships DNP (JLC economy PCBA is SMT-only per requirements.md 7); generic part, matches KiCad's standard PinHeader_1x04_P2.54mm_Vertical footprint (any 2.54mm 1x4 header is mechanically interchangeable). Best stock of the three checked."
+  },
+  {
+   "mpn": "PZ2.54-1X4P-H25",
+   "lcsc": "C42431787",
+   "package": "THT, 1x4, P=2.54mm",
+   "basic": false,
+   "stock": 24411,
+   "price": 0.0212,
+   "datasheet": "",
+   "rank": 2,
+   "fit": "header: JXTCONN generic 1x4 header, cheapest of the three (moot for a DNP line item); listed for the BOM do-not-populate reference only."
+  },
+  {
+   "mpn": "B-2100S04P-A110",
+   "lcsc": "C124378",
+   "package": "THT, 1x4, P=2.54mm",
+   "basic": false,
+   "stock": 116170,
+   "price": 0.0559,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Ckmtw-Shenzhen-Cankemeng-B-2100S04P-A110_C124378.pdf",
+   "rank": 3,
+   "fit": "header: Ckmtw generic 1x4 header, higher-temp rated (-40..105C) alternate with a real datasheet on file if a documented part is preferred for the DNP BOM line."
+  },
+  {
+   "mpn": "TS-1187A-B-A-B",
+   "lcsc": "C318884",
+   "package": "SMD 5.1x5.1mm, height 1.5mm",
+   "basic": true,
+   "stock": 962845,
+   "price": 0.0205,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_XKB-Connection-TS-1187A-B-A-B_C318884.pdf",
+   "rank": 1,
+   "fit": "button: only JLC Basic tactile switch found (no assembly setup fee), huge stock, cheapest of the four; footprint is 5.1x5.1mm, larger than the brief's named 3x2.5/4.2x3.2mm classes - flagged size trade-off, but this is one of the most heavily reused JLC Basic buttons with no known footprint/DRC issues."
+  },
+  {
+   "mpn": "HX 3x4x2-2P-1.6N",
+   "lcsc": "C49234124",
+   "package": "SMD 4x3mm, height 2mm",
+   "basic": false,
+   "stock": 230605,
+   "price": 0.0254,
+   "datasheet": "",
+   "rank": 2,
+   "fit": "button: closest match to the brief's small-size class (4x3mm vs the named 3x2.5/4.2x3.2mm), Extended but deep stock and cheap; 2-pin SPST tab-terminal part, no datasheet on file at LCSC."
+  },
+  {
+   "mpn": "TS263065A 340gf SX BD SMD Tactile Switch",
+   "lcsc": "C49023761",
+   "package": "SMD 3x2.6mm, height 0.65mm",
+   "basic": false,
+   "stock": 7241,
+   "price": 0.0572,
+   "datasheet": "",
+   "rank": 3,
+   "fit": "button: smallest footprint AND lowest profile (0.65mm) of the four, closely matches the brief's 3x2.5mm class - but this exact MPN is a documented risk in this repo's LEARNINGS (2026-07-28, easyeda2kicad/parts): its name (spaces + slash-unsafe characters) has caused lib_pull to silently fail the symbol pull while reporting success. If picked, verify the pulled symbol by hand before relying on lib_pull's status."
+  },
+  {
+   "mpn": "HX 2.75x3x1.4-4P-1.6N",
+   "lcsc": "C55200584",
+   "package": "SMD 3.4x2.75mm, height 1.4mm",
+   "basic": false,
+   "stock": 86,
+   "price": 0.0596,
+   "datasheet": "",
+   "rank": 4,
+   "fit": "button: smallest footprint of the four and 4-pin (more mechanically stable than 2-pin tab types), but stock is only 86 pieces - covers a 5-board build with zero margin for rework/rejects, not reorder-safe."
+  },
+  {
+   "mpn": "KT-0603R",
+   "lcsc": "C2286",
+   "package": "0603",
+   "basic": true,
+   "stock": 5413261,
+   "price": 0.0074,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1810231112_Hubei-KENTO-Elec-KT-0603R_C2286.pdf",
+   "rank": 1,
+   "fit": "led: red, JLC Basic, huge stock, cheapest of the family. Vf 1.8-2.4V typ (spec'd at IF=20mA only: Iv 145-300mcd, typ ~220mcd). Datasheet's Iv-vs-If curve is sub-linear at low current; reading it gives roughly 80-110mcd @ 5mA and 30-45mcd @ 2mA (curve-read estimate, not a bin spec) - architect should size the series resistor from the 1.8-2.4V Vf range, not the 20mA Iv number, since this board should run LEDs well below 20mA."
+  },
+  {
+   "mpn": "KT-0603W",
+   "lcsc": "C2290",
+   "package": "0603",
+   "basic": true,
+   "stock": 1542923,
+   "price": 0.0122,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2305091500_Hubei-KENTO-Elec-KT-0603W_C2290.pdf",
+   "rank": 2,
+   "fit": "led: white (CCT 40000-100000K, i.e. very cool/bluish-white), JLC Basic, deep stock. Directly spec'd at IF=5mA: Iv 145-360mcd (typ ~250mcd), Vf 2.6-3.1V typ. At 2mA expect roughly 40-60% of the 5mA value (InGaN dies are closer to linear at low current than the red AlGaInP die) - no direct 2mA point in the datasheet."
+  },
+  {
+   "mpn": "KT-0603G",
+   "lcsc": "C12624",
+   "package": "0603",
+   "basic": false,
+   "stock": 278476,
+   "price": 0.0122,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1806151818_Hubei-KENTO-Elec-KT-0603G_C12624.pdf",
+   "rank": 3,
+   "fit": "led: emerald green, Extended, same family/price as white. Directly spec'd at IF=5mA: Iv 210-430mcd (typ ~300mcd), Vf 2.6-3.1V typ - the brightest of the family at 5mA, good user-LED candidate if Extended is acceptable (brief allows Extended for brief-named connector/indicator parts)."
+  },
+  {
+   "mpn": "KT-0603B",
+   "lcsc": "C2288",
+   "package": "0603",
+   "basic": false,
+   "stock": 213979,
+   "price": 0.0103,
+   "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1810220913_Hubei-KENTO-Elec-KT-0603B_C2288.pdf",
+   "rank": 4,
+   "fit": "led: blue, Extended, same family. Directly spec'd at IF=5mA: Iv 70-175mcd (typ ~120mcd), Vf 2.6-3.1V typ - dimmest of the family at 5mA; listed for color-choice completeness only."
+  }
+ ]
+}

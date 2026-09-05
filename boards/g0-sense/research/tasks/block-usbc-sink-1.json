@@ -1,0 +1,185 @@
+{
+ "id": "block-usbc-sink-1",
+ "slot": "block:B1",
+ "kind": "block",
+ "token": "usbc-sink",
+ "phase": "P2",
+ "status": "closed",
+ "outcome": "verified",
+ "opened": "2026-08-27T07:20:36",
+ "closed": "2026-08-27T08:42:35",
+ "coverage_report": "boards/g0-sense/log/coverage-P2.json",
+ "gap": {
+  "slot": "block:B1",
+  "kind": "block",
+  "topology": "usbc-sink",
+  "operating_point": {
+   "source_kind": "usb",
+   "vin_v": 5.0,
+   "vout_v": 5.0,
+   "iout_a": 0.5,
+   "pdiss_w": 0.003,
+   "board_layers": 2
+  },
+  "missing": [
+   {
+    "class": "coverage-checklist",
+    "min_level": null
+   }
+  ],
+  "reasons": [
+   "no coverage checklist for block 'usbc-sink' - the first research pass on a new topology/interface produces one (reference/knowledge/checklists/)"
+  ],
+  "related_records": [],
+  "principle_parents": [],
+  "task": "research block 'usbc-sink': produce its coverage checklist, then populate it"
+ },
+ "checklist_needed": true,
+ "caps": {
+  "depth_per_gap": 4,
+  "attempt_factor": 3
+ },
+ "sources": [
+  {
+   "n": 1,
+   "url": "https://www.usb.org/sites/default/files/USB%20Type-C%20Spec%20R2.0%20-%20August%202019.pdf",
+   "final_url": "https://www.usb.org/sites/default/files/USB%20Type-C%20Spec%20R2.0%20-%20August%202019.pdf",
+   "host": "www.usb.org",
+   "domain": "usb.org",
+   "domain_kind": "standards",
+   "tier": "vendor-appnote",
+   "declared_tier": "vendor-appnote",
+   "about": null,
+   "file": "research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf",
+   "sha256": "87d15160bf8bd25129b27e0b7c5e261ed0b1806b3b0d3a7b5d8b1eb783dc9981",
+   "bytes": 10980886,
+   "content_type": "application/pdf",
+   "pages": 373,
+   "fetched": "2026-08-27T07:23:37",
+   "via": "http",
+   "note": "not redistributed - USB-IF specification, redistribution is not permitted; download the PDF from the url above (sha256 pins the copy that was read) and drop it at research/sources/ to re-read a cited page",
+   "deduplicated": false
+  },
+  {
+   "n": 2,
+   "url": "https://gct.co/files/drawings/usb4105.pdf",
+   "final_url": "https://gct.co/files/drawings/usb4105.pdf",
+   "host": "gct.co",
+   "domain": "gct.co",
+   "domain_kind": "vendor",
+   "tier": "vendor-layout",
+   "declared_tier": "vendor-layout",
+   "about": "USB4105",
+   "file": "research/sources/usb4105.pdf",
+   "sha256": "fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5",
+   "bytes": 164547,
+   "content_type": "application/pdf",
+   "pages": 2,
+   "fetched": "2026-08-27T07:23:43",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 3,
+   "url": "https://www.semtech.com/uploads/design-support/TVS_App_Notes-SI21-03-ESD_Protection_of_USB_Type-C_Interfaces_New_Template.pdf",
+   "final_url": "https://www.semtech.com/uploads/design-support/TVS_App_Notes-SI21-03-ESD_Protection_of_USB_Type-C_Interfaces_New_Template.pdf",
+   "host": "www.semtech.com",
+   "domain": "semtech.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": null,
+   "file": "research/sources/TVS_App_Notes-SI21-03-ESD_Protection_of_USB_Type-C_Interfaces_New_Template.pdf",
+   "sha256": "cb7fb1ce0edc52279fd833248b9ff1cfd29437f1fc4b03e0448573ef45115b09",
+   "bytes": 270290,
+   "content_type": "application/pdf",
+   "pages": 4,
+   "fetched": "2026-08-27T07:23:43",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  },
+  {
+   "n": 4,
+   "url": "https://www.ti.com/lit/pdf/slva680",
+   "final_url": "https://www.ti.com/lit/an/slva680a/slva680a.pdf?ts=1787759132752",
+   "host": "www.ti.com",
+   "domain": "ti.com",
+   "domain_kind": "vendor",
+   "tier": "cross-vendor",
+   "declared_tier": "cross-vendor",
+   "about": null,
+   "file": "research/sources/slva680a.pdf",
+   "sha256": "414236c18903e2489c6564c36718ed3743be9c595f4543098f167259b5ba8635",
+   "bytes": 1447747,
+   "content_type": "application/pdf",
+   "pages": 11,
+   "fetched": "2026-08-27T07:28:12",
+   "via": "http",
+   "note": null,
+   "deduplicated": false
+  }
+ ],
+ "attempts": [],
+ "verdicts": {
+  "usbc-sink-cc-independent-rd-principle": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Re-read spec p170 (4.5.2.2.3.1 Unattached.SNK Requirements): 'Both CC1 and CC2 pins shall be independently terminated to ground through Rd' - verbatim, this is the record's normative rule. p236 Table 4-26 Powered Cable Termination: Ra 800 ohm min / 1.2 kohm max on VCONN in powered cables - matches. p182 4.5.2.2.15.2: 'shall transition to AudioAccessory when the state of both the CC1 and CC2 pins is SRC.Ra for at least tCCDebounce' and 4.5.2.2.16.1 AudioAccessory Requirements: 'The port shall not drive VBUS or VCONN' - matches (record truncates 'or VCONN', harmless). Two soft links checked against uncited pages and both hold: shared Rd 5.1k in parallel with Ra 0.8-1.2k gives 690-970 ohm, which at Rp 80uA/180uA/330uA yields 55-320 mV, under vRa max 0.15/0.35/0.75 V (p239 tables), so both source pins really do read SRC.Ra; and the p182 transition is conditioned on 'If the port supports Audio Adapter Accessory Mode', which the record drops - but the conclusion survives anyway because 4.5.2.2.8.2 Exiting AttachWait.SRC requires SRC.Rd on EXACTLY ONE pin to reach Attached.SRC, so a non-accessory source also never drives VBUS. Not refutable.",
+   "ts": "2026-08-27T07:56:16"
+  },
+  "usbc-sink-rd-5k1-per-pin": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Re-read spec p236 Table 4-25 Sink CC Termination (Rd) Requirements visually: three rows - '+/-20% voltage clamp | 1.1 V | No | 1.32 V', '+/-20% resistor to GND | 5.1 kohm | No | 2.18 V', '+/-10% resistor to GND | 5.1 kohm | Yes | 2.04 V'. The record's tolerance (rd_tolerance_pct_max 20), nominal (5.1k), 'can detect power capability No' and max-pin-voltage 2.18 V all match the table row exactly, and the +/-10% row is indeed the 'Yes' (detecting) variant. p235 Table 4-24 Source CC Termination (Rp): Default 80 uA +/-20% / 56 kohm +/-20% / 36 kohm +/-20%; 1.5 A 180 uA / 22 k / 12 k; 3.0 A 330 uA / 10 k / 4.7 k - matches the record's 22k/10k shorthand; Note 1 does put the 56 kohm value in Type-C-to-Standard-A / Micro-B / captive plugs as the record says (note 1 actually tightens it to +/-5% there, a detail the record's citation note glosses as +/-20% but nothing in the rule depends on it). p170 confirms the two-separate-resistors requirement. Envelope iout_a max 0.5 is supported: p193 4.5.2.3.1.1 requires vRd monitoring above default USB power, and Table 4-25 says the +/-20% implementation cannot detect capability. Not refutable.",
+   "ts": "2026-08-27T07:56:16"
+  },
+  "usbc-sink-default-current-entitlement": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Attacked this one hardest since the whole power budget rests on it. Spec p218 (4.6.2.1 USB Type-C Current) read visually: the four sink behaviors under a Default advertisement are listed, and the last is verbatim 'It attaches as a USB Type-C Power Sinking Device (PSD), after which the Sink may draw up to 500 mA.' The 900 mA / 1500 mA numbers on the same page belong to the 'Default is the as-configured for high-power operation current value' bullet and are explicitly USB 3.2 port values - not available to a PSD. p219 confirms 'A PSD shall not have a USB or USB Type-C Alternate Mode communications function', so the USB 3.2 rows cannot apply here, and Table 4-18 reads Default 500 mA (USB 2.0) = 2.5 W / 900 mA (USB 3.2 single-lane) = 4.5 W / 1500 mA (USB 3.2 dual-lane) = 7.5 W / 1.5 A = 7.5 W / 3.0 A = 15 W - the record picked the correct row. p219 also carries verbatim 'A Sink that takes advantage of the additional current offered (e.g., 1.5 A or 3.0 A) shall monitor the CC pins and shall adjust its current consumption within tSinkAdj' and the source-self-protection sentence. p193 4.5.2.3.1.1 PowerDefault.SNK Requirements: 'The port shall draw no more than the default USB power from VBUS' / 'If the port wants to consume more than the default USB power, it shall monitor vRd' - verbatim. So 500 mA, not 900 mA and not the source's 3.0 A advertisement, is the right ceiling and envelope iout_a max 0.5 is what the pages support. One tension worth recording but not refuting: p219 also says 'A PSD shall fully support USB Type-C Current operation', which could be read as demanding CC awareness - but 4.5.2.3.1 PowerDefault.SNK explicitly exists for 'Sinks consuming current within the lowest range (default)' and only conditions monitoring on wanting more, so the record's reading stands.",
+   "ts": "2026-08-27T07:56:36"
+  },
+  "usbc-sink-attach-capacitance-10uf": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Re-read spec p142 visually: the table there is titled 'Table 4-3 VBUS Sink Characteristics' (sink side, not source side) and its last row is 'VBUS Capacitance | Maximum 10 uF | Capacitance between VBUS and GND pins on receptacle when not in Attached.SNK' - verbatim what the record quotes, so the 10 uF really is a limit on SINK capacitance at attach. Checked the PD question the researcher flagged: the PD-qualified rows in that same table (vSinkDisconnect, vSinkPD_min, vSinkDisconnectPD) all say 'This applies for USB PD' in their Notes, while the VBUS Capacitance row carries no PD qualifier - so the kept 10 uF is the plain Type-C attach limit and dropping the PD-only bulk figure was correct for this non-PD sink. p141 confirms both supporting claims: 4.4.2 'NOTE that due to higher currents allowed, legacy devices may experience a higher voltage (up to 5.5V maximum) at light loads', and Table 4-2 VBUS Source Characteristics gives 3000 uF for source-only ports but 10 uF for DRP ports when VBUS is not being sourced - the record correctly restricts its 'symmetric' remark to DRP. Envelope source_kind usb is right. One prose caveat, not refutation-grade because the rule field and the recommended part size are both correct: the parenthetical 'X5R at 5 V DC bias derates to well under the limit' is the wrong physics for this limit - the limit is specified 'when not in Attached.SNK', i.e. with VBUS discharged, where a ceramic sits at ~0 V bias and shows close to its full nominal value. Do not use DC-bias derating as headroom against this number.",
+   "ts": "2026-08-27T07:56:37"
+  },
+  "usbc-sink-vbus-tvs-before-series-element": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Checked the over-reach worry directly. SLVA680A p4 read visually: it is section 2 'PCB Layout Guidelines for Optimizing Dissipation of ESD' / 2.1, a GENERIC ESD layout note (running head 'ESD Protection Layout Guide'), not a USB data-interface note, so nothing to generalize. Figure 2-1 'PCB Inductance around a Single-channel TVS' does model L1-L4 between ESD source, TVS, protected IC and ground exactly as the record says, the 8 kV IEC 61000-4-2 arithmetic is verbatim ('(30 A)/(0.8x10-9 s) = 4 x 10^10 A/s. So even with 0.25 nH of inductance an additional 10 V is presented to the system'), and the Summary bullets read 'Place the TVS as near to the connector as design rules allow', 'Place the Protected IC much further from the TVS than the TVS is to the connector', 'Do not use stubs between the TVS and the Protected Line, route directly from the ESD Source to the TVS', 'Minimizing inductance between the TVS and ground is critical'. p5 confirms 2.2 / Figure 2-2 'EMI Coupling onto an Adjacent Unprotected Trace', the connector-to-TVS keep-out for unprotected traces, and 45 degrees as the maximum corner angle. Semtech SI21-03 p3 confirms the 'VBus pin protection' paragraph ('the VBus voltage can reach up to 20V, thus protecting VBus pin requires a TVS diode with a minimum 22V working voltage', 'Low capacitance is not a consideration for the protection of VBus line') and Figure 2 does draw the TVS parts hanging directly on the connector pins. The record only borrows the VBUS-pin half of that figure and correctly parks the 22 V number outside its envelope; the 5 V-only numbers come from spec p141 (5.5 V light-load max), re-read and confirmed. Envelope vin_v max 5.5 is source-supported. One prose defect to fix on the next pass, not refutation-grade because the machine-readable rule field tvs_standoff_v_min 5.5 is correct: the parenthetical 'stand-off >= 5.5 V (5.0 V nominal parts)' is self-contradictory - a 5.0 V-class TVS has a 5.0 V reverse standoff, below the 5.5 V the spec allows, and Semtech's own method (20 V bus -> 22 V working) applied to a 5.5 V bus lands on a 6 V-class part.",
+   "ts": "2026-08-27T07:56:59"
+  },
+  "usbc-sink-constraints-emission": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "Re-read all three cited pages. p218 4.6.2.1 carries the PSD bullet verbatim ('the Sink may draw up to 500 mA'), so the 500 mA power-entry ceiling this record emits is the same number the entitlement record was verified on. p219 carries 'A PSD shall not have a USB or USB Type-C Alternate Mode communications function' verbatim, which does ground omitting diff_pairs for a board whose D+/D- are unconnected. p136 read visually: Figure 3-80 'Recommended Minimum Plug Overmold Clearance' shows '0.05 MIN.' to the '(EXTERIOR SURFACE OF PRODUCT)' with the plug fully seated, and Figure 3-79 'Recommended Minimum Spacing between Connectors' shows 12.85 - I checked the extension lines at high zoom and they land on the two side-by-side connector centrelines, so 12.85 really is a centre-to-centre pitch and the record's 'about one connector pitch wide' swath is a fair reading. Nothing refutable. Two wording caveats: both p136 figures sit in sections 3.10.2 and 3.10.3, each headed '(Informative)' and each titled 'Recommended', so the record's 'Fig 3-80 requires >= 0.05 mm' overstates the spec's normative force - it is a recommendation; and 'a bare board gets zero setback' is the record's own design inference, the figure says nothing about enclosure-less boards. Neither changes an emitted value.",
+   "ts": "2026-08-27T07:56:59"
+  },
+  "usbc-sink-receptacle-land-all-shell-bond": {
+   "verdict": "verified",
+   "by": "second-reader",
+   "date": "2026-08-27",
+   "note": "The repaired geometry claim was re-measured, not accepted. usb4105.pdf p1 rendered at 600 dpi and the Recommended PCB Layout examined at about 4.6x on-page magnification. Calibration done twice and independently: the lower-left oblong measures 195 px outer / 151 px inner against its own '2x 1.80' and '2x 1.40' dims (108.3 and 107.9 px/mm), and the upper-left oblong measures 224 / 182 px against '2x 2.10' and '2x 1.70' (about 107 px/mm); horizontally the two Dia 0.65 locating-hole centres are 626.5 px apart against the printed 5.78 (108.4 px/mm). So x and y scales agree at 108.2 px/mm and the 1.80/1.40 pair really is the LOWER slot (swapping it with the 2.10/1.70 upper slot would have been the easy misread). The thick horizontal 'PCB Edge' line, the one the 'PCB Edge' leader arrow lands on, is a single 5 px run spanning x 321-1557 in the same frame - it passes under both lower slots horizontally, so the comparison is real and not an artefact of a truncated line. Lower slot outer bottom sits at y 1246.5, PCB Edge at y 1431: 184.5 px = 1.71 mm of clear board between the pad outline and the edge (1.66 mm even measured line-outer-edge to line-near-edge, 1.91 mm from the 1.40 hole), so the record's '~1.7 mm as drawn' is right. The upper pair clears by about 5.7 mm. All four slots are wholly on the pad side of the line - confirmed numerically and by eye on a zoomed crop of the band between them; nothing straddles, so 'no plated slot breaks the edge' holds. The softening is also correct: spec p136 shows '3.10.2 Stacked and Side-by-Side Connector Physical Spacing (Informative)' and '3.10.3 Cable Mating Considerations (Informative)' as printed headings, Fig 3-79 is titled 'Recommended Minimum Spacing between Connectors' (12.85 dim) and Fig 3-80 'Recommended Minimum Plug Overmold Clearance' with '0.05 MIN.' to '(EXTERIOR SURFACE OF PRODUCT)' and 'PLUG FULLY SEATED IN RECEPTACLE' - 'recommends' is the accurate verb and 'requires' was rightly dropped. Checked the parent too: 3.10.1 is 'EMC Management (Informative)', so the p135 bullets the record leans on are recommendations as well, and the record does not claim otherwise. p135 re-read: 'The receptacle shell should have sufficient connection points to the system PCB GND plane with apertures as small as possible. Figure 3-77 illustrates an example with multiple solder tails to connect the receptacle shell to system PCB GND', and Fig 3-77 is captioned 'EMC Pad Connections to Receptacle Shell' with the callout 'Connect receptacle shell to PCB ground'. The rest re-verified on the drawing rather than inherited: Electrical block reads '5.00A collectively for VBUS pins / 6.25A collectively for GND pins / 1.25A for A5/B5 pin / 0.25A per pin for all other pins', so envelope iout_a max 5.0 is the printed collective VBUS nameplate, not an assumption; pin table gives A4/A9/B4/B9 = VBUS and A1/A12/B1/B12 = GND with Mating Sequence 'First' on every one of those eight, CC1/CC2/Dp/Dn/SBU 'Second', and two SHELL rows both reading GND; 16 signal pins listed, product description 'USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount'; layout is labelled 'As viewed from component side  Tolerance:+/-0.05mm' with '2x Dia 0.65' locating holes and the hatched slots inside the 'Solder Area' legend. Two interpretive nits, neither refuting: 'halves the nameplate' when only two VBUS lands are stuffed is a first-order inference (the drawing states no per-VBUS-pin rating), and 'the shield tabs double as retention' is not stated on any cited page, though the ordering grid's Shell Stake Length option and the Unmated Force 6-20 N spec make it a fair read.",
+   "ts": "2026-08-27T08:21:07"
+  }
+ },
+ "queue_entry": "2026-08-27-research-task-block-usbc-sink-1-7",
+ "updated": "2026-08-27T08:42:35",
+ "accepted_drafts": null,
+ "summary": {
+  "verified": 7,
+  "refuted": 0,
+  "checklists": 1,
+  "sources": 4
+ }
+}

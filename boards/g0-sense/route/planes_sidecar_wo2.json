@@ -1,0 +1,6 @@
+{
+  "_note": "P8 fix loop, work order 2 (thermal_area U1): planes-only sidecar adding ONE annex to the F.Cu +3V3 spreader in the board's south strip. priority 2 = distinct from the existing +3V3 zones (0 and 1) which it abuts at y=48.4 (KiCad 10 zones_intersect flags same-priority touching zones even on one net). connect solid: this is a heat-spreading pour and thermal relief on J2 pad 2 starved to 1 spoke (starved_thermal DRC error on the first attempt). Region stops at x=48.55 so it never approaches the U3 isolation tongue (root x=49.25) and at y=55.19 for the 0.3 mm copper-to-edge floor.",
+  "planes": [
+    {"net": "+3V3", "layer": "F.Cu", "region": [30.95, 48.40, 48.55, 55.19], "priority": 2, "connect": "solid"}
+  ]
+}

@@ -1,0 +1,48 @@
+id: usbc-sink-default-current-entitlement
+classes: [selection]
+applies:
+  topologies: [usbc-sink]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  budget_ma_max: 500
+  cc_monitoring: false
+  basis: USB Type-C Power Sinking Device at default USB power
+prose: >
+  A sink that never reads CC may legally draw only default USB power.
+  4.5.2.3.1.1 PowerDefault.SNK requirements (read on p193): "The port
+  shall draw no more than the default USB power from VBUS... If the port
+  wants to consume more than the default USB power, it shall monitor vRd."
+  4.6.2.1 (p218) enumerates the default-advertisement sink behaviors; the
+  one open to a CC-blind board is "It attaches as a USB Type-C Power
+  Sinking Device (PSD), after which the Sink may draw up to 500 mA."
+  P219: a PSD shall not have a USB or Alternate Mode communications
+  function, and Table 4-18 maps Default to 500 mA (USB 2.0) / 2.5 W; "A
+  Sink that takes advantage of the additional current offered (e.g., 1.5 A
+  or 3.0 A) shall monitor the CC pins and shall adjust its current
+  consumption within tSinkAdj," and a source shall protect itself from a
+  sink drawing beyond its advertisement. Design consequence: budget the
+  ENTIRE board (regulator load, LEDs, expansion reserves) to <= 500 mA and
+  size protection/copper to that number, never to the source's advertised
+  1.5 A / 3.0 A capability - the advertisement is a superset a CC-blind
+  design must not exploit, and coexisting with higher-Rp sources needs
+  nothing extra.
+sources:
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 193, section: 4.5.2.3.1.1, note: "read PowerDefault.SNK requirements: draw no more than default USB power; consuming more requires monitoring vRd"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 218, section: 4.6.2.1, note: "read the sink-behavior bullets under a Default advertisement: PSD attach path allows the sink to draw up to 500 mA with no data function"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 219, section: Table 4-18 + text, note: "read Table 4-18 (Default = 500 mA USB 2.0 / 2.5 W; 1.5 A = 7.5 W; 3.0 A = 15 W) and the requirement that a sink using 1.5/3.0 A shall monitor CC and adjust within tSinkAdj; PSD shall not have a communications function"}
+status: active
+origin: research:block-usbc-sink-1
+level: topology
+envelope:
+  iout_a: {max: 0.5}
+envelope_note: >
+  Entitlement scales with CC monitoring, not with the source: up to 0.5 A
+  a CC-blind sink is legal everywhere. Above 0.5 A the design must add vRd
+  monitoring and tSinkAdj-compliant load adjustment (or PD), which is a
+  different topology - this record stops there.
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "Attacked this one hardest since the whole power budget rests on it. Spec p218 (4.6.2.1 USB Type-C Current) read visually: the four sink behaviors under a Default advertisement are listed, and the last is verbatim 'It attaches as a USB Type-C Power Sinking Device (PSD), after which the Sink may draw up to 500 mA.' The 900 mA / 1500 mA numbers on the same page belong to the 'Default is the as-configured for high-power operation current value' bullet and are explicitly USB 3.2 port values - not available to a PSD. p219 confirms 'A PSD shall not have a USB or USB Type-C Alternate Mode communications function', so the USB 3.2 rows cannot apply here, and Table 4-18 reads Default 500 mA (USB 2.0) = 2.5 W / 900 mA (USB 3.2 single-lane) = 4.5 W / 1500 mA (USB 3.2 dual-lane) = 7.5 W / 1.5 A = 7.5 W / 3.0 A = 15 W - the record picked the correct row. p219 also carries verbatim 'A Sink that takes advantage of the additional current offered (e.g., 1.5 A or 3.0 A) shall monitor the CC pins and shall adjust its current consumption within tSinkAdj' and the source-self-protection sentence. p193 4.5.2.3.1.1 PowerDefault.SNK Requirements: 'The port shall draw no more than the default USB power from VBUS' / 'If the port wants to consume more than the default USB power, it shall monitor vRd' - verbatim. So 500 mA, not 900 mA and not the source's 3.0 A advertisement, is the right ceiling and envelope iout_a max 0.5 is what the pages support. One tension worth recording but not refuting: p219 also says 'A PSD shall fully support USB Type-C Current operation', which could be read as demanding CC awareness - but 4.5.2.3.1 PowerDefault.SNK explicitly exists for 'Sinks consuming current within the lowest range (default)' and only conditions monitoring on wanting more, so the record's reading stands."}

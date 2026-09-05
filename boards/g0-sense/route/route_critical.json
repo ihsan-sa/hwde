@@ -1,0 +1,104 @@
+{
+ "script": "route_critical",
+ "status": "pass",
+ "board": "g0-sense.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "facts": {
+  "routed": [
+   {
+    "kind": "power",
+    "nets": [
+     "VBUS"
+    ],
+    "plane_carried": true,
+    "current_a": 1.5,
+    "plane_layers": [
+     "F.Cu",
+     "F.Cu",
+     "F.Cu",
+     "F.Cu"
+    ],
+    "note": "plane is the trunk; SMD pads stitched by stitch_vias, PTH pads via thermal spokes",
+    "width_normalization": {
+     "widened": 0,
+     "crumbs_removed": 0
+    }
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "+3V3"
+    ],
+    "plane_carried": true,
+    "current_a": 0.3,
+    "plane_layers": [
+     "F.Cu",
+     "F.Cu"
+    ],
+    "note": "plane is the trunk; SMD pads stitched by stitch_vias, PTH pads via thermal spokes"
+   },
+   {
+    "kind": "power",
+    "nets": [
+     "+5V"
+    ],
+    "current_a": 1.5,
+    "width_mm": 1.2,
+    "ipc_min_mm": 0.8,
+    "neckdown": false,
+    "layers_used": [
+     "F.Cu"
+    ],
+    "krt": {
+     "successful": 1,
+     "failed": 0,
+     "multipoint_pads_connected": 3,
+     "multipoint_pads_total": 3,
+     "total_vias": 0,
+     "total_time": 0.03
+    }
+   }
+  ],
+  "skipped": [],
+  "drc_delta": {
+   "before": {
+    "starved_thermal": 2,
+    "lib_footprint_issues": 26,
+    "unconnected_items": 41
+   },
+   "after": {
+    "starved_thermal": 2,
+    "lib_footprint_issues": 26,
+    "unconnected_items": 39
+   },
+   "new": {},
+   "new_warnings": {}
+  },
+  "diffpair_check": "pass",
+  "diffpair_facts": [],
+  "floors": {
+   "clearance": 0.2,
+   "track_width": 0.127,
+   "via_diameter": 0.6,
+   "via_drill": 0.3,
+   "edge_clearance": 0.3
+  },
+  "net_clearances": {
+   "+3V3": 0.127,
+   "+5V": 0.2,
+   "VBUS": 0.2
+  },
+  "board_updated": true,
+  "work_dir": "/workspace/boards/g0-sense/route/work/critical"
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-27T17:30:21+00:00",
+ "input": "/workspace/boards/g0-sense/kicad/g0-sense.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:abee74a7e6f8bf3d9aec7fa3e3437c57855e7adf2a41cd51a891ed259cc9603c"
+}

@@ -1,0 +1,51 @@
+id: sht4x-vdd-slew-power-up
+classes:
+- sequencing
+applies:
+  topologies:
+  - sht4x
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  vdd_slew_max_v_per_ms: 20
+  vpor_v_min: 0.6
+  vpor_v_max: 1.08
+  power_up_ready_ms: 1
+prose: 'DS p9 Table 4 (read visually): ''Slew rate of the supply voltage'' VDD,slew
+  max 20 V/ms, comment: ''Voltage changes on the supply between VDD,min and VDD,max.
+  Faster slew rates may lead to a reset.'' Power-up/down threshold VPOR is 0.6-1.08
+  V static. DS p3: the sensor is ready for I2C at most 1 ms after VDD reaches minimum.
+  The design check this enables: the upstream regulator, load switch or hot-plug
+  edge at the sensor''s VDD pin must not traverse the 1.08-3.6 V band faster than
+  20 V/ms. For a 3.3 V rail that means the ramp from 1.08 V to 3.3 V must take at
+  least (3.3-1.08)/20 V/ms = 111 us. An LDO with soft-start in the hundreds-of-us
+  to ms range passes with margin; a fast load switch or a hot-plugged sensor board
+  (e.g. an SHT4x breakout plugged into a live Qwiic connector, which sees the near-instant
+  cable edge) can violate the limit and leave the sensor reset or hung until re-powered.
+  Action: read the actual startup ramp or soft-start time from the upstream regulator''s
+  datasheet and verify >= 111 us equivalent at 3.3 V; slower is always safe - no
+  minimum slew is published. Note this is a supply-quality limit, not a sequencing
+  order requirement: the SHT4x has only VDD/VSS plus the bus, and no enable pin.'
+sources:
+- file: research/sources/HT_DS_Datasheet_SHT4x.pdf
+  page: 9
+  note: 'Table 4: VDD,slew max 20 V/ms with reset warning comment; VPOR 0.6-1.08
+    V; VDD range 1.08-3.6 V'
+- file: research/sources/HT_DS_Datasheet_SHT4x.pdf
+  page: 3
+  note: 'Quick Start text: ready for I2C after reaching minimal supply voltage plus
+    maximal power-up time of 1 ms'
+status: active
+origin: research:block-sht4x-1
+level: topology
+envelope:
+  vin_v:
+    max: 3.6
+envelope_note: The limit governs supply excursions inside the part's 1.08-3.6 V
+  operating band; rails above 3.6 V are outside the part's spec entirely and this
+  record says nothing there.
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "DS p9 Table 4 read visually: the 'Slew rate of the supply voltage' row is VDD,slew, min '-', typ '-', max 20, unit V/ms, comment verbatim 'Voltage changes on the supply between VDD,min and VDD,max. Faster slew rates may lead to a reset.' - so 20 V/ms is the datasheet's own stated limit, on the cited page, with exactly the conditions the record claims, and 'no minimum slew is published' matches the empty min cell. VPOR 0.6-1.08 V with condition 'Static power supply' confirmed on the same table; VDD range 1.08/3.3/3.6 V confirmed; DS p3 confirms ready for I2C after minimal supply voltage plus maximal power-up time of 1 ms. Arithmetic re-derived: (3.3-1.08)/20 V/ms = 0.111 ms = 111 us - correct, and it is a legitimate application of the Table 4 comment because the comment scopes the limit to excursions between VDDmin and VDDmax, which is the band a 3.3 V rail traverses. The derivation is labelled as such ('For a 3.3 V rail that means...') rather than presented as a vendor number, so it belongs. One unsupported clause worth trimming, not enough to refute: the datasheet says only 'may lead to a reset' - 'or hung until re-powered' in the hot-plug scenario is a failure mode no cited page states, and the hot-plug/Qwiic edge argument itself is inference, not a Sensirion statement."}

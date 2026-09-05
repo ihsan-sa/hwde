@@ -1,0 +1,16 @@
+#!/bin/bash
+# hwde container entrypoint: per-start workspace setup, then exec the command.
+# Runs before whatever the container was started with (a shell, `hwde-loop <board>`,
+# `make check`, ...). Safe to run twice.
+set -u
+REPO="${HWDE_REPO_DIR:-/workspace}"
+if cd "$REPO" 2>/dev/null; then
+  [ -e .venv ] || ln -s /opt/venv .venv                     # repo scripts run as .venv/bin/python (Makefile, SKILL.md)
+  git config --global --add safe.directory "$REPO" 2>/dev/null
+  mkdir -p tools; [ -f tools/CONTAINER.txt ] || printf 'In the container the toolchain lives under /opt (JRE 25, Freerouting 2.2.4, KRT 0.19.0)\nand is pinned through HWDE_* env vars - nothing is vendored here. See docker/README.md.\n' > tools/CONTAINER.txt
+fi
+if command -v Xvfb >/dev/null && [ ! -e /tmp/.X11-unix/X99 ]; then   # KiCad SWIG (Specctra DSN/SES, wx paths) needs a display
+  (Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &); sleep 1
+fi
+echo "project-init: .venv -> /opt/venv, tools/CONTAINER.txt, safe.directory, Xvfb :99 ($(pgrep -c Xvfb 2>/dev/null || echo 0) running)" >&2
+exec "$@"

@@ -1,0 +1,65 @@
+{
+  "mpn": "AMS1117-3.3",
+  "lcsc": "C6186",
+  "package": "SOT-223",
+  "description": "AMS1117 series, 1A LOW DROPOUT VOLTAGE REGULATOR; AMS1117-3.3 is the fixed 3.3V, 3-terminal SOT-223 variant (Advanced Monolithic Systems datasheet, ordering table).",
+  "pinout": [
+    {
+      "pin": "1",
+      "name": "GND",
+      "type": "ground",
+      "notes": "Datasheet's shared 3-pin diagram (page 1, 'PIN CONNECTIONS > 3 PIN FIXED/ADJUSTABLE VERSION') labels this pin 'Ground/Adjust' - one drawing covers both the adjustable and fixed-voltage AMS1117 variants. For the fixed AMS1117-3.3 (this part) the pin functions as Ground; the ADJ/CADJ function and R1/R2 divider described in Application Hints apply only to the adjustable variant. Load Regulation section: 'In the case of fixed voltage devices the top of R1 is connected Kelvin internally, and the ground pin can be used for negative side sensing.'"
+    },
+    {
+      "pin": "2",
+      "name": "VOUT",
+      "type": "power_out",
+      "notes": "Regulated 3.3V output (fixed AMS1117-3.3). Requires the 22uF solid-tantalum output capacitor per Application Hints > Stability (device frequency compensation)."
+    },
+    {
+      "pin": "3",
+      "name": "VIN",
+      "type": "power_in"
+    },
+    {
+      "pin": "TAB",
+      "name": "TAB",
+      "type": "unspecified",
+      "notes": "Large metal tab/lead-frame paddle on the SOT-223 package (PACKAGE DIMENSIONS > '3 LEAD SOT-223 PLASTIC PACKAGE', last datasheet page). Thermal Considerations states junction-to-tab thermal resistance = 15C/W and tab-to-ambient can be as low as 30C/W, i.e. the tab is the primary heat-sink path from the die ('Table 1' footnote: 'Tab of device attached to topside copper'). HOWEVER: the Pin Connections diagram's explicit 'TAB IS OUTPUT' label (page 1) is positioned against the TO-252 FRONT VIEW drawing only - the adjacent SOT-223 Top View drawing carries no such label, and no other text in this datasheet restates the tab's electrical function specifically for the SOT-223 package. Do not assume tab=VOUT for SOT-223 from this document alone; see OPEN."
+    }
+  ],
+  "decoupling": [
+    {
+      "pins": ["2"],
+      "value": "22uF solid tantalum",
+      "placement": "output (VOUT to GND)",
+      "notes": "Verbatim, Application Hints > Stability: 'The circuit design used in the AMS1117 series requires the use of an output capacitor as part of the device frequency compensation. The addition of 22uF solid tantalum on the output will ensure stability for all operating conditions.' The capacitor TYPE (solid tantalum) is part of the stability requirement, not just the value - substituting a different capacitor type (e.g. ceramic) is not validated by this datasheet. 'To further improve stability and transient response of these devices larger values of output capacitor can be used.' Ripple-rejection test conditions elsewhere in the datasheet also use COUT = 22uF tantalum. The adjust-pin bypass capacitor (CADJ, ~10uF in Figure 1) and its ripple-rejection tradeoff discussion apply only to the ADJUSTABLE variant (pin 1 = ADJ) - not applicable to this fixed AMS1117-3.3 part (pin 1 = GND). No input capacitor is specified anywhere in this datasheet (see OPEN)."
+    }
+  ],
+  "layout_notes": [
+    "Output capacitor: 22uF SOLID TANTALUM on VOUT is required for frequency compensation/loop stability, not merely recommended ('will ensure stability for all operating conditions') - Application Hints > Stability.",
+    "No input capacitor (CIN) is specified anywhere in this datasheet, in text or in the Figure 1 application circuit.",
+    "Protection diodes: none needed between ADJ-and-OUT or OUT-and-IN under normal operation - internal diode handles 50-100A microsecond surge currents. A diode from OUTPUT to INPUT (Figure 1, D1) is recommended only if a crowbar circuit is used at the input together with a large output capacitor (1000uF-5000uF).",
+    "Dropout voltage (1.1V typ / 1.3V max) is specified only up to IOUT = 0.8A (Note 4: 'Dropout voltage is specified up to 0.8A load. For currents over 0.8A dropout will be higher') - not characterized above 0.8A even though rated output current is 1A.",
+    "Thermal shutdown trips when junction temperature exceeds 165C at the sense point (Application Hints, intro paragraph).",
+    "Line/Load regulation for SOT-223 is only guaranteed up to a maximum power dissipation of 1.2W (Note 2); guaranteed max power dissipation is not available over the full input/output range.",
+    "Thermal path: junction-to-tab = 15C/W (Thermal Resistance, Junction-to-Case, 'All packages', datasheet max spec); tab-to-ambient can be as low as 30C/W, giving total junction-to-ambient as low as 45C/W with a well-spread copper layer.",
+    "The heat-spreading copper layer does NOT need to be electrically connected to the tab for effective thermal coupling - PC board dielectric conducts heat well over the short pad-to-plane distance even though not electrically bonded.",
+    "Table 1 (copper area vs thermal resistance, measured on 1/16in FR-4, 1oz copper foil, tab soldered to topside copper) - copper area TOP SIDE / BACK SIDE / BOARD AREA -> thermal resistance junction-to-ambient: 2500/2500/2500 sq.mm -> 55C/W; 1000/2500/2500 -> 55C/W; 225/2500/2500 -> 65C/W; 100/2500/2500 -> 80C/W; 1000/1000/1000 -> 60C/W; 1000/0/1000 -> 65C/W.",
+    "Abs-max rating table headline phi-JA for SOT-223 = 90C/W carries a footnote: 'With package soldering to copper area over backside ground plane or internal power plane phi-JA can vary from 46C/W to >90C/W depending on mounting technique and the size of the copper area.'",
+    "Best load regulation (adjustable variant): connect R1 to the case/tab, R2 to the load (Kelvin sensing, Figure 3). For fixed-voltage devices the top of R1 is Kelvin-connected internally and the GND pin doubles as the negative-side Kelvin sense point.",
+    "Tab electrical function is explicitly labeled 'TAB IS OUTPUT' only next to the TO-252 FRONT VIEW drawing in the Pin Connections figure (page 1); the SOT-223 Top View drawing on the same page has no such label - see pinout TAB entry and OPEN."
+  ],
+  "abs_max": [
+    { "param": "Power Dissipation", "value": "Internally limited" },
+    { "param": "Input Voltage", "value": 15, "unit": "V" },
+    { "param": "Operating Junction Temperature", "value": "-40 to 125", "unit": "C" },
+    { "param": "Storage Temperature", "value": "-65 to 150", "unit": "C" },
+    { "param": "Lead Temperature (soldering, 25 sec)", "value": 265, "unit": "C" },
+    { "param": "Thermal Resistance, SOT-223 package (phi-JA)", "value": 90, "unit": "C/W" }
+  ],
+  "exposed_pad": {
+    "present": true
+  },
+  "source_pdf": "boards/g0-sense/parts/U1_AMS1117-3.3_C6186.pdf"
+}

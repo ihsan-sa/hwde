@@ -1,0 +1,58 @@
+id: ldo-sot223-thermal-copper-sets-current
+classes: [thermal]
+applies:
+  topologies: [ldo]
+  packages: [SOT-223]
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  tj_max_c: 125
+  pd_check: "Tj = Ta_max + PD*thetaJA <= 125 C, PD = (Vin-Vout)*Iout"
+  theta_ja_min_copper_c_per_w: 136
+  theta_ja_ams1117_headline_c_per_w: 90
+  theta_ja_1in2_top_1oz_c_per_w: 66
+  theta_ja_large_pour_c_per_w: 55
+prose: >
+  A linear regulator's usable output current on a given board is set by
+  thermal resistance and copper area, NOT by the datasheet headline current:
+  check Tj = Ta(max) + PD*thetaJA <= 125 C, PD = (Vin-Vout)*Iout (AMS1117 p5
+  gives the pair; LM1117 p18 adds Vin*Ignd and the inverse RthetaJA_allowed
+  = (125-Ta)/PD). thetaJA is a board property tied to the SOT-223 tab pour.
+  At the minimum-copper end the sources disagree: TI LM1117 p18 Table 9-2
+  row 1 measures 136 C/W (0.0123 in2 top, 0 bottom); AMS's 90 C/W headline
+  is an unqualified nameplate - its own p2 footnote concedes phi-JA varies
+  46 to >90 C/W with mounting and copper size even over a backside/internal
+  plane. Budget minimal copper at the measured 136 C/W. With real pours the
+  vendors converge: TI Table 9-2 / Fig 9-11 - 0.3 in2 -> 84, 1 in2 top 1 oz
+  -> 66, flattening past ~0.5 in2; AMS p5 Table 1 (1/16 in FR-4, 1 oz) -
+  2500+2500 mm2 top+back -> 55, 1000 mm2 top -> 65, 100 mm2 top + 2500 back
+  -> 80; junction-to-tab is 15 C/W and the spreading layer need not be
+  electrically connected. AMS's 'as low as 45 C/W' is its optimistic corner
+  - size the pour from a table row you can actually place. At 0.51 W a bare
+  footprint at 136 C/W costs a 69 C rise; a real tab pour at 55-66 C/W costs
+  28-34 C - the pour IS the design margin. AMS1117 p3 Note 2: regulation
+  guaranteed only to 1.2 W in SOT-223; TI Fig 9-15 (p20): allowable PD tops
+  out near 1.5 W (1 in2, 25 C still air).
+sources:
+  - {file: research/sources/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf, page: 2, note: "Abs max table: SOT-223 thetaJA 90 C/W with footnote - copper area over backside/internal plane moves thetaJA between 46 and >90 C/W depending on mounting technique and copper size"}
+  - {file: research/sources/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf, page: 5, note: "Thermal Considerations: junction-to-tab 15 C/W, total as low as 45 C/W; PD and Tj formulas; Table 1 copper-area vs thetaJA on 1/16 in FR-4 1 oz (2500/2500 mm2 -> 55 C/W ... 100 mm2 top -> 80 C/W); spreading layer need not be electrically connected"}
+  - {file: research/sources/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf, page: 3, note: "Note 2 under electrical table: line/load regulation guaranteed only up to 1.2 W dissipation for SOT-223"}
+  - {file: research/sources/lm1117.pdf, page: 18, note: "s9.5.1.1: PD=(Vin-Vout)IL+Vin*IG, TR(max)=125-Ta, RthetaJA=TR/PD; Table 9-2 SOT-223 1-oz rows: 0.0123 in2 -> 136 C/W, 0.3 -> 84, 1.0 -> 66"}
+  - {file: research/sources/lm1117.pdf, page: 19, note: "Table 9-2 continued (both-sides 0.5/0.5 in2 -> 70 C/W); Fig 9-11 thetaJA vs 1-oz copper area for SOT-223 - curves flatten past ~0.5 in2; Fig 9-13 allowable PD vs ambient"}
+  - {file: research/sources/lm1117.pdf, page: 20, note: "Fig 9-15: maximum allowable power dissipation vs 1-oz copper area for SOT-223 - tops out near 1.5 W at 1 in2, 25 C still air; Fig 9-17 thermal test pattern at actual scale"}
+status: active
+origin: research:block-ldo-1
+level: topology
+envelope:
+  pdiss_w: {max: 1.5}
+maturity: verified
+generalizes: []
+envelope_note: >
+  Scales with dissipated power against copper area, not with output current
+  itself. With the best tabulated pours (55-66 C/W) and Ta 40 C, Tj = 125 C
+  caps PD near (125-40)/55 = 1.5 W, matching TI Fig 9-15's ~1.5 W ceiling at
+  1 in2 / 25 C still air - above that a SOT-223 on 1-oz 2-layer FR-4 has no
+  in-envelope answer regardless of pour size. Both vendors' tables are
+  still-air FR-4 data; forced air or heavier copper re-opens the envelope.
+verification: {by: "second-reader", date: "2026-08-27", note: "Repair re-read on the pages, not on the author's word. lm1117 p18 opened visually: Table 9-2 'RthetaJA Different Heat Sink Area', LAYOUT row 1 = Top Side 0.0123 in2, Bottom Side 0, SOT-223 column 136 C/W - exactly as the repaired rule.theta_ja_min_copper_c_per_w now says. It IS the minimum-copper case: footnote (1) 'Tab of device attached to topside copper', 0.0123 in2 is the smallest area in the table and 136 is the largest thetaJA of all 16 rows (I read the continuation on p19: rows 8-16 top to 0.5/0.5 in2 -> 70, and row 7 0 top / 0.2 bottom -> 115, none worse than 136). AMS p2 opened: Thermal Resistance SOT-223 package phi-JA = 90 C/W with an asterisk whose footnote reads 'With package soldering to copper area over backside ground plane or internal power plane phi-JA can vary from 46C/W to >90C/W depending on mounting technique and the size of the copper area' - so 90 is the headline for a part ALREADY on plane copper and the footnote itself allows worse than 90; relabelling it theta_ja_ams1117_headline_c_per_w and moving the disagreement into prose is the correct fix, and the prose's '46 to >90' and 'even over a backside/internal plane' both match the footnote wording. No residue of the old defect anywhere in rule or prose, and no new claim slipped in: the other rule numbers still check out (66 = p18 Table 9-2 row 6, 1 in2 top / 0 bottom; 55 = AMS p5 Table 1 row 2500/2500 mm2; 125 C from both vendors). Envelope pdiss_w <= 1.5 confirmed independently, not taken on trust: p20 Fig 9-15 'Maximum Allowable Power Dissipation vs 1-oz Copper Area for SOT-223', TA = 25 C still air, Top Cu curve reaches about 1.50 W at 1 in2 and the curve is already bending over; (125-40)/55 = 1.55 W matches. AMS Table 1 re-read row by row on p5 - 2500/2500 -> 55, 1000/2500 -> 55, 225/2500 -> 65, 100/2500 -> 80, 1000/1000 -> 60, 1000/0 -> 65, on 1/16 in FR-4 with 1 oz foil - so the record's '2500+2500 -> 55', '1000 mm2 top -> 65' (the back = 0 row) and '100 top + 2500 back -> 80' are all real rows; p5 also states junction-to-tab 15 C/W, tab-to-ambient as low as 30 C/W, total as low as 45 C/W (with 'reasonable sized PC board'), PD = (VIN-VOUT)(IOUT), TJ = TA(MAX) + PD*thetaJA, 125 C ceiling, and 'the heat spreading copper layer does not need to be electrically connected to the tab'. p3 Note 2 verbatim: line and load regulation guaranteed up to 1.2 W for SOT-223. Arithmetic spot-checked: 0.51*136 = 69 C, 0.51*55 = 28 C, 0.51*66 = 34 C. Two nits, neither refuting: (a) rule.pd_check omits the VIN*IG term that lm1117 p18 eq 3 adds (about 11 percent at IQ 11 mA / VIN 5 V) - the prose flags it and the rule matches AMS p5's own formula, so it is a sourced simplification; (b) the field name theta_ja_large_pour_c_per_w does not carry its condition (2500 mm2 top PLUS 2500 mm2 back), which a downstream agent reading rule: alone would not see, though the prose states it."}

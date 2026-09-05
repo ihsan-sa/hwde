@@ -88,6 +88,23 @@ def test_lint_rejects_missing_source_file(tmp_path):
     assert any("not found" in p for p in knowledgelib.validate(tmp_path))
 
 
+def test_lint_accepts_a_not_redistributed_sidecar(tmp_path):
+    """A source whose licence forbids redistribution is committed as
+    `<file>.not-redistributed.md` (url + sha256) instead of the bytes: the
+    citation still resolves, a citation with neither still fails."""
+    ws, recs = tmp_path / "ws", tmp_path / "recs"
+    (ws / "research" / "sources").mkdir(parents=True)
+    recs.mkdir()
+    rel = "research/sources/spec.pdf"
+    write_record(recs, "r-a", sources=[{"file": rel}])
+    assert any("not found" in p
+               for p in knowledgelib.validate(recs, source_roots=(ws,)))
+    (ws / (rel + knowledgelib.NOT_REDISTRIBUTED_SUFFIX)).write_text(
+        "download: https://example.invalid/spec.pdf sha256 deadbeef\n",
+        encoding="utf-8")
+    assert knowledgelib.validate(recs, source_roots=(ws,)) == []
+
+
 def test_lint_rejects_id_stem_mismatch(tmp_path):
     p = write_record(tmp_path, "r-a")
     p.rename(tmp_path / "r-b.yaml")

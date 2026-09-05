@@ -1,0 +1,57 @@
+id: mcu-internal-rc-accuracy-vs-interface-budget
+classes: [selection]
+applies:
+  topologies: [mcu]
+  packages: []
+  interfaces: [uart]
+  parts: [STM32G030F6P6]
+rule:
+  enforced_by: null
+  hsi16_trim_pct_at_30c: "-0.75/+0.5"
+  hsi16_drift_pct_0_to_85c: 1.0
+  hsi16_drift_pct_minus40_to_85c: "-2/+1.5"
+  hsi16_drift_pct_over_vdd: "-0.1/+0.05"
+  uart_rx_error_budget_pct_8n1: 2.0
+  crystal_less_uart_ok: true
+prose: >
+  Crystal-less operation is a budget comparison: the internal RC's total
+  accuracy (trim + temperature + supply drift) against the clock-tolerance
+  budget of each clocked interface. Subject-part numbers, DS12991 Table 38
+  (read p.54-55): HSI16 factory-trimmed to 15.88-16.08 MHz at 30 C / 3.0 V
+  (-0.75/+0.5 pct); drift +-1 pct over 0..85 C, -2/+1.5 pct over -40..85 C,
+  -0.1/+0.05 pct over VDD; start-up 1.2 us max, stabilization 5 us max.
+  Worst-case sum 0..85 C is about -1.85/+1.55 pct. The UART budget,
+  cross-vendor (AVR16EA DS 25.3.3.2.3, Tables 25-4/25-5, read): the
+  recommended maximum receiver baud-rate error - assuming transmitter and
+  receiver split the total error equally - is +-2.0 pct for a D=8 frame
+  (8N1) in 16x-oversampling mode, tightening to +-1.5 pct at D=10 and in
+  8x (double-speed) mode. Verdict for the class: an RC-clocked UART at a
+  standard baud rate is acceptable against a crystal-timed link partner
+  over 0..85 C (RC error stays inside the +-2 pct half-budget, with little
+  margin at the extremes); it is marginal at industrial cold (-40 C blows
+  the 8N1 budget on drift alone) and when BOTH ends run on RC (they consume
+  the whole split). Interfaces whose specified clock tolerance is tighter
+  than the RC spec - USB full-speed is the canonical case - are out of
+  reach without a crystal or a closed-loop trim source; not live here
+  (G030 has no USB peripheral). Longer frames (parity, 9-bit) tighten the
+  budget one step.
+sources:
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 54, section: "5.3.8 Table 38", note: "fHSI16 15.88-16.08 MHz at 30C/3.0V; dTemp +-1 pct (0..85C), -2/+1.5 pct (-40..85C); dVDD -0.1/+0.05 pct; trim steps"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 55, section: "Table 38 cont", note: "HSI16 start-up 0.8/1.2 us, stabilization 3/5 us, consumption 155/190 uA"}
+  - {file: research/sources/GUID-3FD21524-1116-412C-8139-B7FBEA62950A.html, page: 1, section: "25.3.3.2.3 Error Tolerance, Tables 25-4/25-5", note: "recommended max receiver baud error: +-3.0 (D=5) .. +-2.0 (D=8) .. +-1.5 pct (D=10) normal speed; tighter in double-speed; budget assumes TX/RX split total error equally"}
+status: active
+origin: research:block-mcu-1
+level: family
+envelope:
+  ambient_c: {min: 0, max: 85}
+  vin_v: {min: 2.0, max: 3.6}
+envelope_note: >
+  Scales with temperature range (the +-1 pct drift band is 0..85 C; at
+  -40 C drift alone reaches -2 pct and consumes the whole 8N1 receiver
+  half-budget), with frame length (D=10 tightens the budget to +-1.5 pct)
+  and with the link partner's clock source (budget assumes the partner is
+  crystal-timed and error splits equally). HSI16 numbers are STM32G0x0
+  family silicon; re-read the equivalent table for any other family.
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "DS12991 Table 38 p.54 re-read row by row: fHSI16 15.88-16.08 MHz at VDD=3.0 V / TA=30 C (= -0.75/+0.5 pct of 16 MHz, arithmetic correct), dTemp(HSI16) -1/+1 pct for TA=0 to 85 C and -2/+1.5 pct for TA=-40 to 85 C, dVDD(HSI16) -0.1/+0.05 pct over VDD(min) to 3.6 V, tsu 0.8 typ / 1.2 us max; p.55 tstab 3/5 us and IDD 155/190 uA. Every rule field matches the table including its stated test conditions, and the -1.85/+1.55 pct worst-case sum over 0-85 C is the correct addition. Microchip AVR16EA 25.3.3.2.3 re-read: Table 25-4 (Normal-Speed, S=16) gives D=5 +-3.0, D=7/D=8 +-2.0, D=9/D=10 +-1.5 pct; Table 25-5 (Double-Speed, S=8) gives D=8 +-1.5 pct; the page states verbatim that the recommendations assume receiver and transmitter equally divide the maximum total error, and defines D as character size + parity size, so 8N1 = D=8 is the right row and 16x/8x oversampling is the page's own S=16/S=8. The AVR data recovery (majority vote of samples SF=8, SM=9) is the same receiver architecture the number is transferred to, and using the AVR half-budget for an ST receiver errs conservative (the page's own maximum TOTAL error at D=8 is -4.54/+4.58 pct). Two soft spots noted but not refuting: the prose's '-40 C blows the 8N1 budget on drift alone' overstates - -2 pct equals the +-2.0 pct half-budget and only exceeds it once the -0.75 pct trim is added (the envelope_note's 'consumes the whole half-budget' is the accurate phrasing); and 'USB full-speed is the canonical case' has no source in this ledger, though it is hedged as not live and drives no rule field."}

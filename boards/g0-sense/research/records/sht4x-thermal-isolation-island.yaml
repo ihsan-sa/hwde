@@ -1,0 +1,74 @@
+id: sht4x-thermal-isolation-island
+classes:
+- thermal
+applies:
+  topologies:
+  - sht4x
+  packages:
+  - DFN-4
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  copper_under_sensor: pin pads only
+  die_pad_soldered: false
+  island_connections: the four signal/supply traces only, as thin as the fab allows
+  slot_or_slits: mill around the sensor island to cut the copper path
+  placement: board edge or corner, heat sources as far away as possible
+  numeric_mm_published: false
+prose: 'Layout rule set for the SHT4x block on a shared board. DS p16 Fig 17 (read
+  visually): recommended land pattern, four 0.5 x 0.3 mm pads on a 1.4 x 0.8 mm
+  grid; caption states ''There shall be no copper under the sensor other than at
+  the pin pads.'' DS p15 sec 5.3: do not solder the central die pad and do not place
+  an exposed copper pad beneath it - it acts as a heat sink and prevents the heater
+  from meeting spec. DS p17 Table 10: RthJA 246 K/W die-pad-soldered vs 297 K/W
+  not-soldered (heater off; 308 vs 357 heater on) - Sensirion bolds the not-soldered
+  columns as the recommended, higher-isolation configuration. DG p8 + p17: mitigate
+  conduction by distance and removing unnecessary metal (milled/etched slits); DG
+  Fig 17 worked example puts the sensor in a board corner with milled slits around
+  it, a shielding wall and a housing opening for air exchange; Fig 18 simpler variant
+  notes added PCB slits shield against external heating. Concrete rule: place the
+  sensor on a board-edge/corner island reached only by its four necked traces (SDA,
+  SCL, VDD, VSS), keep pours off the island, and mill a slot/slits across the remaining
+  connection to break conduction from LDO/MCU. Sensirion publishes NO numeric mm
+  slot width, trace width or clearance in DS/DG/HI - wording is qualitative (''as
+  thin as possible'', ''sufficient distances'') - so mm values are designer judgement,
+  not vendor numbers.'
+sources:
+- file: research/sources/HT_DS_Datasheet_SHT4x.pdf
+  page: 16
+  note: 'Fig 17 land pattern drawing (0.5x0.3 mm pads, 1.4/0.8 mm spans) + caption:
+    no copper under the sensor other than at the pin pads; Fig 18 pinout, die pad
+    connected to no pin'
+- file: research/sources/HT_DS_Datasheet_SHT4x.pdf
+  page: 15
+  note: 'sec 5.3 Land Pattern: soldering the central die pad / exposed copper pad
+    under it not recommended - heat sink defeats heater; Fig 15/16 package outline
+    1.5 x 1.5 mm'
+- file: research/sources/HT_DS_Datasheet_SHT4x.pdf
+  page: 17
+  note: 'Table 10 thermal metrics: RthJA 246 (pad soldered) vs 297 K/W (not soldered)
+    heater off, 308 vs 357 heater on; bold = not-soldered recommended'
+- file: research/sources/Sensirion_Humidity_Temperature_Design_Guide.pdf
+  page: 8
+  note: 'sec 3: conduction mostly through the PCB; mitigations distance, slit milling,
+    thin connections; Fig 8 panels read'
+- file: research/sources/Sensirion_Humidity_Temperature_Design_Guide.pdf
+  page: 17
+  note: 'Fig 17 most-recommended design-in: sensor in corner, milled slits around
+    it, wall, corner opening; Fig 18 simpler variant with PCB slits'
+status: active
+origin: research:block-sht4x-1
+level: topology
+envelope:
+  pdiss_w:
+    max: 1
+envelope_note: Scales with the neighbour heat the board copper carries. Sensirion's
+  island/slit/thin-trace guidance is drawn for consumer boards with sub-watt aggregate
+  sources (LDO + MCU class, this op point 0.25 W); at multi-watt neighbour dissipation
+  slits stop sufficing and Sensirion's own escalation is flex mounting or a separate
+  sensor PCB (DG Fig 11c).
+maturity: verified
+generalizes:
+- sht4x-rht-pcb-conduction-principle
+verification: {by: "second-reader", date: "2026-08-27", note: "Both halves check out. Rules: DS p16 Fig 17 caption verbatim 'There shall be no copper under the sensor other than at the pin pads'; Fig 18 'The die pad is not directly connected to any pin' - the four-trace island claim is exactly the pinout. DS p15 sec 5.3 verbatim 'Soldering of the central die pad, as well as an exposed copper pad underneath it, is not recommended by Sensirion due to it acting as a heat sink which prevents the heater from functioning according to its specifications'. DS p17 Table 10 read row by row: RthJA 246 soldered / 297 not soldered heater off, 308 / 357 heater on - correct, and 'recommended' is NOT inferred from bold: the caption states 'Soldering of the die pad is not recommended, therefore the two right hand side columns are bold'. DG p8/p17 figures opened at 220 dpi: Fig 17 shows exactly four thin traces from the heat source to the sensor, white milled slits bracketing it, the orange shielding wall and the top-left housing opening; caption 'The milled slits around the sensor reduce thermal conduction through the PCB'. Honesty half: no mm figure is asserted as vendor-sourced - the only mm numbers in the prose (0.5x0.3 pads, 1.4/0.8 spans, 1.5x1.5 body) are real DS Fig 15/17 dimensions, and numeric_mm_published:false plus the closing sentence correctly flag slot width/trace width/clearance as designer judgement. Two nits, not refutations: Fig 17 actually places the sensor at the right board EDGE (the 'corner' in the caption is the housing air opening), and the pdiss_w max 1 envelope is author judgement - Sensirion publishes no wattage - though envelope_note says so in substance."}

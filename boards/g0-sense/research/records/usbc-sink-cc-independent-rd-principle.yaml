@@ -1,0 +1,39 @@
+id: usbc-sink-cc-independent-rd-principle
+classes: [selection]
+applies:
+  topologies: [usbc-sink]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  rd_per_cc_pin: one dedicated resistor to GND per CC pin
+  cc1_cc2_shared_resistor: never
+prose: >
+  Each CC pin of a Type-C sink is an independent connection-detection line
+  and shall be terminated on its own. Spec 4.5.2.2.3.1 (Unattached.SNK
+  requirements): "Both CC1 and CC2 pins shall be independently terminated
+  to ground through Rd." Why independence matters: only ONE CC wire runs
+  through a cable; in an electronically marked cable the plug's other CC
+  position carries Ra (0.8 k to 1.2 k, Table 4-26) loading VCONN. Gang
+  CC1+CC2 into one shared Rd and the two detection nodes merge: through an
+  e-marked cable the plug's Ra lands in parallel with the shared Rd, both
+  source-side pins then read SRC.Ra, and per 4.5.2.2.15.2 the source
+  transitions to AudioAccessory when both CC1 and CC2 are SRC.Ra for
+  tCCDebounce. AudioAccessory requirements (4.5.2.2.16.1): "The port shall
+  not drive VBUS" - the board never powers, and only with the better
+  (e-marked, e.g. all 5 A) cables; plain lab cables have no Ra, so the
+  fault ships silently. With two independent Rds the same cable is
+  harmless: Ra parallels only the unused pin's Rd, the CC wire still
+  presents a clean Rd, and the source supplies VBUS. One resistor stuffed
+  instead of two is a dead-board field failure, not a lab failure.
+sources:
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 170, section: 4.5.2.2.3.1, note: "read the Unattached.SNK requirements text: 'Both CC1 and CC2 pins shall be independently terminated to ground through Rd'"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 182, section: 4.5.2.2.15.2 / 4.5.2.2.16.1, note: "read AttachWait.Accessory exit: transition to AudioAccessory when BOTH CC pins are SRC.Ra for tCCDebounce; AudioAccessory requirements: the port shall not drive VBUS - the failure consequence of a shared Rd"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 236, section: Table 4-26, note: "read Table 4-26 Powered Cable Termination: Ra 800 ohm min to 1.2 kohm max - the impedance an e-marked cable adds on the second CC position"}
+status: active
+origin: research:block-usbc-sink-1
+level: principle
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "Re-read spec p170 (4.5.2.2.3.1 Unattached.SNK Requirements): 'Both CC1 and CC2 pins shall be independently terminated to ground through Rd' - verbatim, this is the record's normative rule. p236 Table 4-26 Powered Cable Termination: Ra 800 ohm min / 1.2 kohm max on VCONN in powered cables - matches. p182 4.5.2.2.15.2: 'shall transition to AudioAccessory when the state of both the CC1 and CC2 pins is SRC.Ra for at least tCCDebounce' and 4.5.2.2.16.1 AudioAccessory Requirements: 'The port shall not drive VBUS or VCONN' - matches (record truncates 'or VCONN', harmless). Two soft links checked against uncited pages and both hold: shared Rd 5.1k in parallel with Ra 0.8-1.2k gives 690-970 ohm, which at Rp 80uA/180uA/330uA yields 55-320 mV, under vRa max 0.15/0.35/0.75 V (p239 tables), so both source pins really do read SRC.Ra; and the p182 transition is conditioned on 'If the port supports Audio Adapter Accessory Mode', which the record drops - but the conclusion survives anyway because 4.5.2.2.8.2 Exiting AttachWait.SRC requires SRC.Rd on EXACTLY ONE pin to reach Attached.SRC, so a non-accessory source also never drives VBUS. Not refutable."}

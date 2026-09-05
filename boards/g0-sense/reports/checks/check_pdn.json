@@ -1,0 +1,84 @@
+{
+ "script": "check_pdn",
+ "status": "violations",
+ "board": "g0-sense.kicad_pcb",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check_pdn": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "check_pdn",
+   "severity": "warning",
+   "pos": null,
+   "layer": null,
+   "net": "VBUS",
+   "refs": [
+    "C1"
+   ],
+   "msg": "power rail VBUS has 1 cap(s) but no bulk reservoir (>= 1 uF); only ceramics hold it",
+   "source": "check_pdn",
+   "items": [
+    {
+     "msg": "power rail VBUS has 1 cap(s) but no bulk reservoir (>= 1 uF); only ceramics hold it",
+     "pos": null
+    }
+   ],
+   "kind": "pdn_no_bulk",
+   "rail": "VBUS",
+   "cap_count": 1,
+   "bulk_count": 0
+  }
+ ],
+ "checked": [
+  {
+   "rail": "VBUS",
+   "current_a": 1.5,
+   "on_board": true,
+   "caps": [
+    "C1"
+   ],
+   "cap_count": 1,
+   "bulk_count": 0,
+   "ceramic_count": 1,
+   "total_uf": 0.1
+  },
+  {
+   "rail": "+5V",
+   "current_a": 1.5,
+   "on_board": true,
+   "caps": [
+    "C2"
+   ],
+   "cap_count": 1,
+   "bulk_count": 1,
+   "ceramic_count": 0,
+   "total_uf": 10.0
+  },
+  {
+   "rail": "+3V3",
+   "current_a": 0.3,
+   "on_board": true,
+   "caps": [
+    "C10",
+    "C11",
+    "C13",
+    "C3"
+   ],
+   "cap_count": 4,
+   "bulk_count": 2,
+   "ceramic_count": 2,
+   "total_uf": 26.9
+  }
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-27T18:52:25+00:00",
+ "input": "boards/g0-sense/kicad/g0-sense.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:9fa76a1beecfa20e380a17e3bf188514aa4d99689258c9117302bb923aa7fc96"
+}
