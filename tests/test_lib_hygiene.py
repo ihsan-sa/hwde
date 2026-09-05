@@ -219,6 +219,140 @@ def test_lib_pull_declares_the_new_flags():
     assert "out_dir.resolve()" in src, "relative --out-dir bakes dead 3D model paths"
 
 
+# ------------------------------------------------- schlib.apply_native_dnp
+
+def _instance(ref, value="10n", dnp="no", extra=""):
+    """One saved symbol instance, in the order kicad-sch-api 0.5.6 emits it:
+    `(dnp no)` then fields_autoplaced/uuid then the Reference property."""
+    return (f'\t(symbol\n\t\t(lib_id "Device:C")\n\t\t(at 100 100 0)\n'
+            f'\t\t(in_bom yes)\n\t\t(on_board yes)\n\t\t(dnp {dnp})\n'
+            f'\t\t(fields_autoplaced no)\n\t\t(uuid "u-{ref}")\n'
+            f'\t\t(property "Reference" "{ref}"\n\t\t\t(at 1 2 0)\n\t\t)\n'
+            f'\t\t(property "Value" "{value}"\n\t\t\t(at 1 4 0)\n\t\t)\n'
+            f'{extra}\t)\n')
+
+
+def _sch(tmp_path, *blocks, name="dnp.kicad_sch"):
+    p = tmp_path / name
+    p.write_text("(kicad_sch\n" + "".join(blocks) + ")\n", encoding="utf-8")
+    return p
+
+
+def test_apply_native_dnp_flips_only_the_named_instance(tmp_path):
+    """"the nearest preceding `(dnp no)` before that property belongs
+    unambiguously to this instance" - so C2's own flag must be untouched, and
+    in_bom/on_board/custom fields survive."""
+    sch = _sch(tmp_path, _instance("C1"),
+               _instance("C2", extra='\t\t(property "Variant" "DNF"\n\t\t)\n'))
+    schlib.apply_native_dnp(["C2"], sch)
+    text = sch.read_text(encoding="utf-8")
+    # the flag sits BEFORE its own Reference property, so slice at the instance
+    # boundary, not at the property
+    _, c1, c2 = text.split("\t(symbol\n")
+    assert '"C1"' in c1 and '"C2"' in c2
+    assert "(dnp no)" in c1 and "(dnp yes)" not in c1      # C1 untouched
+    assert "(dnp yes)" in c2 and "(dnp no)" not in c2      # C2 flipped
+    assert text.count("(in_bom yes)") == 2                 # left alone
+    assert text.count("(on_board yes)") == 2
+    assert '(property "Variant" "DNF"' in c2               # custom field survives
+
+
+def test_apply_native_dnp_flips_several_and_is_order_independent(tmp_path):
+    a = _sch(tmp_path, *(_instance(r) for r in ("C1", "C2", "C3")), name="a.kicad_sch")
+    b = _sch(tmp_path, *(_instance(r) for r in ("C1", "C2", "C3")), name="b.kicad_sch")
+    schlib.apply_native_dnp(["C1", "C3"], a)
+    schlib.apply_native_dnp(["C3", "C1"], b)
+    assert a.read_text(encoding="utf-8") == b.read_text(encoding="utf-8")
+    _, c1, c2, c3 = a.read_text(encoding="utf-8").split("\t(symbol\n")
+    assert "(dnp yes)" in c1 and "(dnp yes)" in c3
+    assert "(dnp no)" in c2 and "(dnp yes)" not in c2   # the one not named
+
+
+def test_apply_native_dnp_refuses_absent_and_duplicate_refs(tmp_path):
+    """A ref that is missing, or that appears twice, has no unambiguous
+    `(dnp no)` of its own - raise rather than flip a neighbour's."""
+    sch = _sch(tmp_path, _instance("C1"), _instance("C2"))
+    before = sch.read_text(encoding="utf-8")
+    with pytest.raises(ValueError, match="not found"):
+        schlib.apply_native_dnp(["C9"], sch)
+    assert sch.read_text(encoding="utf-8") == before   # nothing written
+
+    dup = _sch(tmp_path, _instance("C1"), _instance("C1"), name="dup.kicad_sch")
+    with pytest.raises(ValueError, match="not unique"):
+        schlib.apply_native_dnp(["C1"], dup)
+
+    orphan = _sch(tmp_path, _instance("C1").replace("(dnp no)\n\t\t", ""),
+                  name="orphan.kicad_sch")
+    with pytest.raises(ValueError, match="no preceding"):
+        schlib.apply_native_dnp(["C1"], orphan)
+
+
+def test_apply_native_dnp_empty_list_is_a_noop(tmp_path):
+    sch = _sch(tmp_path, _instance("C1"))
+    before = sch.read_text(encoding="utf-8")
+    schlib.apply_native_dnp([], sch)
+    assert sch.read_text(encoding="utf-8") == before
+
+
+# ------------------------------------ schem_refdes.strip_private_properties
+
+_PRIVATE = (
+    '\t\t(property "private" "KLC_S3.3" The rectangle is not (a) quoted string\n'
+    '\t\t\t(at 0 0 0)\n'
+    '\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n'
+    '\t\t)\n')
+_PRIVATE_UNBALANCED_QUOTE = (
+    '\t\t(property "private" "KLC_S4.1" note with a "quoted ) paren" in it\n'
+    '\t\t\t(at 0 0 0)\n\t\t)\n')
+_KEEP = ('\t\t(property "Value" "Crystal_GND24"\n\t\t\t(at 0 -3.81 0)\n\t\t)\n')
+_KEEP_REF = ('\t\t(property "Reference" "Y"\n\t\t\t(at 0 3.81 0)\n\t\t)\n')
+
+
+def _lib(tmp_path, body, name="lib.kicad_sch"):
+    p = tmp_path / name
+    p.write_text('(kicad_sch\n\t(lib_symbols\n\t\t(symbol "Device:Crystal_GND24"\n'
+                 + body + "\t\t)\n\t)\n)\n", encoding="utf-8")
+    return p
+
+
+def test_strip_private_properties_counts_and_keeps_the_others(tmp_path):
+    """Returns the number removed; every non-private property survives whole."""
+    sch = _lib(tmp_path, _KEEP_REF + _PRIVATE + _KEEP + _PRIVATE_UNBALANCED_QUOTE)
+    assert sr.strip_private_properties(sch) == 2
+    text = sch.read_text(encoding="utf-8")
+    assert '"private"' not in text
+    assert "KLC_S3.3" not in text and "KLC_S4.1" not in text
+    assert _KEEP.strip() in text and _KEEP_REF.strip() in text
+    # the balanced-block walk must not eat past its own closing paren
+    assert text.count("(property") == 2
+    assert text.rstrip().endswith(")")
+
+
+def test_strip_private_properties_removes_a_balanced_block_exactly(tmp_path):
+    """Removing the block leaves the file byte-identical to one written
+    without it - no stray blank line, no swallowed neighbour."""
+    with_ = _lib(tmp_path, _KEEP_REF + _PRIVATE + _KEEP, name="with.kicad_sch")
+    without = _lib(tmp_path, _KEEP_REF + _KEEP, name="without.kicad_sch")
+    assert sr.strip_private_properties(with_) == 1
+    assert with_.read_text(encoding="utf-8") == without.read_text(encoding="utf-8")
+
+
+def test_strip_private_properties_leaves_a_clean_file_alone(tmp_path):
+    sch = _lib(tmp_path, _KEEP_REF + _KEEP)
+    before = sch.read_text(encoding="utf-8")
+    assert sr.strip_private_properties(sch) == 0
+    assert sch.read_text(encoding="utf-8") == before
+
+
+def test_strip_private_properties_does_not_match_a_private_named_field(tmp_path):
+    """The pattern is the bare `private` FLAG that kicad-sch-api mis-reads as a
+    name. A field whose value happens to say 'private' is ordinary data."""
+    keep = '\t\t(property "Note" "private" \n\t\t\t(at 0 0 0)\n\t\t)\n'
+    sch = _lib(tmp_path, _KEEP_REF + keep)
+    assert sr.strip_private_properties(sch) == 0
+    assert '"Note" "private"' in sch.read_text(encoding="utf-8")
+
+
 # ------------------------------------------------------------- schem_refdes
 
 @pytest.fixture

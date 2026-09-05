@@ -6,7 +6,9 @@
 # assumes nothing about the host). Env: HWDE_REPO_DIR (repo checkout, default /workspace),
 # HWDE_RUN_CONTRACT (rules file, default docker/run-contract.md, relative to the repo).
 # Needs: the repo checkout, boards/<board>/brief/brief.md in place, and the contract file.
-# Exit: 0 done | 3 blocked | 4 stalled | 5 errors | 6 max-iter. Per-iteration transcripts: boards/<b>/log/run/.
+# Exit: 0 done | 3 blocked | 4 stalled | 5 errors | 6 max-iter. Per-iteration records:
+# boards/<b>/log/run/iter-NN.json - how the iteration ended, what it cost, the phase it left the
+# board in, and its result text. The raw claude result is scratch and is never committed.
 set -uo pipefail
 cd "${HWDE_REPO_DIR:-/workspace}" || exit 2
 BOARD="${1:?board name}"; shift
@@ -22,6 +24,24 @@ mkdir -p "$RUNS"; touch "$J"; LOG="$RUNS/loop.log"
 log(){ printf '%s %s\n' "$(date -u +%FT%TZ)" "$*" | tee -a "$LOG" >&2; }
 commit_all(){ git add -A . >/dev/null 2>&1; git diff --cached --quiet || git commit -q -m "$1" >/dev/null 2>&1; }
 status_file(){ printf '%s\n' "$1" > "$RUNS/STATUS"; }
+# reduce_result <raw> <out> <iter> <rc> <phase> - the committed per-iteration record. Keeps what the
+# run is evidence FOR (how it ended, how much it took, where it left the board, what it said) and
+# drops everything that is account activity rather than board evidence: session_id, uuid, usage and
+# modelUsage token counts, permission_denials, subagent_stats. A public repo has no use for those.
+# Total: claude's stdout is not reliably one clean JSON value - a stray line has followed the result
+# ("Client.listTools() called but ...", run.1-limit iter-03), which makes a whole-file parse fail. So
+# take the LAST line that parses as an object, and fall back to nulls when there is none at all.
+reduce_result(){
+  local raw="$1" out="$2" iter="$3" rc="$4" phase="$5"
+  jq -R 'fromjson? | objects' "$raw" 2>/dev/null | jq -s \
+    --argjson iter "$iter" --argjson rc "$rc" --arg phase "$phase" \
+    '(last // {}) as $x | {iteration: $iter, rc: $rc, phase: $phase,
+      is_error: ($x.is_error // null), subtype: ($x.subtype // null),
+      num_turns: ($x.num_turns // null), duration_ms: ($x.duration_ms // null),
+      total_cost_usd: ($x.total_cost_usd // null), stop_reason: ($x.stop_reason // null),
+      terminal_reason: ($x.terminal_reason // null),
+      api_error_status: ($x.api_error_status // null), result: ($x.result // null)}' > "$out"
+}
 parse_reset(){ # "…resets 11:40am (UTC)…" -> epoch (never in the past); fails if unparsable
   local t d now; t=$(grep -oiE 'resets? [^()]*\(UTC\)' <<<"$1" | head -1 | sed -E 's/^resets? +//; s/ *\(UTC\)//; s/·//g')
   [ -n "$t" ] || return 1; d=$(date -u -d "$t" +%s 2>/dev/null) || return 1; now=$(date -u +%s)
@@ -38,6 +58,7 @@ wait_for_limit(){ # $1 = result text; $2 = consecutive limit hits. Sleep to the 
   done
   log "LIMIT: cleared, resuming"
 }
+raw=$(mktemp "${TMPDIR:-/tmp}/hwde-loop.XXXXXX"); trap 'rm -f "$raw"' EXIT   # scratch, outside the repo
 log "start board=$BOARD model=$MODEL effort=$EFFORT max-iter=$MAXI turns=$TURNS iter-timeout=${ITO}s"
 status_file "RUNNING"
 i=0; errs=0; stall=0; spent=0; limits=0
@@ -54,19 +75,25 @@ while [ $i -lt "$MAXI" ]; do
     "$(cat "$CONTRACT")" "$BRIEF" "$(cat "$BRIEF")" "$J" "$(tail -c 8000 "$J")" "$i" "$MAXI" "$task" "$step" "$J")
   out="$RUNS/iter-$(printf '%02d' "$i").json"
   log "iter $i/$MAXI start ($task)"
+  # The raw result goes to a scratch file OUTSIDE the repo and is never committed: it carries account
+  # telemetry (session_id, uuid, per-model token counts and spend) that is not board evidence. $out
+  # gets the reduced record below - the same fields loop.log already prints.
   timeout "$ITO" claude -p "$prompt" --dangerously-skip-permissions --model "$MODEL" --effort "$EFFORT" \
-      --max-turns "$TURNS" --output-format json > "$out" 2> "$out.err"; rc=$?
-  cost=$(jq -r '.total_cost_usd // 0' "$out" 2>/dev/null); iserr=$(jq -r '.is_error // false' "$out" 2>/dev/null); turns=$(jq -r '.num_turns // 0' "$out" 2>/dev/null)
+      --max-turns "$TURNS" --output-format json > "$raw" 2> "$out.err"; rc=$?
+  cost=$(jq -r '.total_cost_usd // 0' "$raw" 2>/dev/null); iserr=$(jq -r '.is_error // false' "$raw" 2>/dev/null); turns=$(jq -r '.num_turns // 0' "$raw" 2>/dev/null)
   spent=$(awk -v a="$spent" -v b="${cost:-0}" 'BEGIN{printf "%.2f", a+b}')
+  # Read the phase before commit_all so the record is complete when it is committed; commit_all does
+  # not touch state.json, so this is the same value the old post-commit read produced.
+  phase=$(jq -r '.phase // "?"' "$WS/state.json" 2>/dev/null)
+  reduce_result "$raw" "$out" "$i" "$rc" "$phase"
   commit_all "hwde $BOARD: run iteration $i checkpoint"
   after_head=$(git rev-parse HEAD 2>/dev/null); after_off=$(stat -c%s "$J" 2>/dev/null || echo 0)
-  phase=$(jq -r '.phase // "?"' "$WS/state.json" 2>/dev/null)
   log "iter $i end rc=$rc err=$iserr turns=$turns cost=\$${cost:-0} total=\$$spent phase=$phase commits=$([ "$before_head" != "$after_head" ] && echo yes || echo no) journal=$([ "$before_off" != "$after_off" ] && echo updated || echo unchanged)"
-  jq -r '.result // ""' "$out" 2>/dev/null | tail -c 800 | sed 's/^/  | /' >> "$LOG"
+  jq -r '.result // ""' "$raw" 2>/dev/null | tail -c 800 | sed 's/^/  | /' >> "$LOG"
   newj=$(tail -c +"$((before_off+1))" "$J" 2>/dev/null)
   if grep -qE '^STATUS: DONE' <<<"$newj"; then log "DONE after $i iteration(s), \$$spent"; status_file "DONE"; exit 0; fi
   if q=$(grep -E '^STATUS: BLOCKED' <<<"$newj" | tail -1) && [ -n "$q" ]; then log "BLOCKED: $q"; status_file "BLOCKED: $q"; exit 3; fi
-  api_status=$(jq -r '.api_error_status // empty' "$out" 2>/dev/null); res=$(jq -r '.result // ""' "$out" 2>/dev/null)
+  api_status=$(jq -r '.api_error_status // empty' "$raw" 2>/dev/null); res=$(jq -r '.result // ""' "$raw" 2>/dev/null)
   if [ "$api_status" = 429 ] || grep -qiE "hit your (session|usage) limit|rate limit" <<<"$res"; then   # not the run's fault: wait, retry, no error/stall credit
     limits=$((limits+1)); [ "${turns:-0}" -le 1 ] && i=$((i-1))   # a hit before any work does not consume an iteration
     wait_for_limit "$res" "$limits"; continue

@@ -21,7 +21,7 @@ Verified records (second reader signed). Promotion = the research verb's promote
 Draft coverage checklist(s) for the owner to approve:
 - usbc-sink boards/g0-sense/research/checklists/usbc-sink.yaml (6 classes)
 Sources (quarantined, sha-pinned in the task ledger):
-- research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf tier vendor-appnote sha256 87d15160bf8b <https://www.usb.org/sites/default/files/USB%20Type-C%20Spec%20R2.0%20-%20August%202019.pdf> (USB-IF spec: NOT redistributed in this repo - download it from that url; see research/sources/NOT-REDISTRIBUTED.md)
+- research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf tier vendor-appnote sha256 87d15160bf8b <https://www.usb.org/sites/default/files/USB%20Type-C%20Spec%20R2.0%20-%20August%202019.pdf> (USB-IF spec: NOT redistributed in this repo - download it from that url; see research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf.not-redistributed.md for the url and the full sha256)
 - research/sources/usb4105.pdf tier vendor-layout sha256 fb331fbabee8 <https://gct.co/files/drawings/usb4105.pdf>
 - research/sources/TVS_App_Notes-SI21-03-ESD_Protection_of_USB_Type-C_Interfaces_New_Template.pdf tier cross-vendor sha256 cb7fb1ce0edc <https://www.semtech.com/uploads/design-support/TVS_App_Notes-SI21-03-ESD_Protection_of_USB_Type-C_Interfaces_New_Template.pdf>
 - research/sources/slva680a.pdf tier cross-vendor sha256 414236c18903 <https://www.ti.com/lit/pdf/slva680>

@@ -8,7 +8,7 @@ sessions and for unattended board runs.
 |---|---|---|
 | `Dockerfile` | image `hwde-run:latest` (any name works) | FROM `kicad/kicad:10.0.5` (Debian 13, kicad-cli 10.0.5, python 3.13.5 + SWIG pcbnew, symbol/footprint libs, libngspice) + Node + Claude Code + venv (`requirements.lock` minus pywin32) + Temurin 25 JRE + Freerouting 2.2.4 + KiCadRoutingTools 0.19.0 + TeX Live + xvfb |
 | `project-init` | the image's entrypoint | links `/workspace/.venv -> /opt/venv`, marks `tools/` as unused, git safe.directory, starts Xvfb `:99`, then execs the command |
-| `hwde-loop` | `/usr/local/bin/hwde-loop <board>` | unattended run: `claude -p "/hwde ..."` per iteration, fresh context, resumes from `state.json`; journal `boards/<b>/log/run-journal.md`; transcripts `boards/<b>/log/run/` |
+| `hwde-loop` | `/usr/local/bin/hwde-loop <board>` | unattended run: `claude -p "/hwde ..."` per iteration, fresh context, resumes from `state.json`; journal `boards/<b>/log/run-journal.md`; per-iteration records `boards/<b>/log/run/` (reduced - no session ids or token counts) |
 | `run-contract.md` | read by the loop every iteration | the delegation rules + Done criteria for an unattended run |
 
 Toolchain pins in the container are env vars read by `scripts/lib/env.py`:

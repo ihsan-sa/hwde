@@ -20,7 +20,7 @@ rev 2 VALID / order-ready, H1-H4 delegated and recorded, H5 (pay) not taken.
 
 ## Timeline / cost
 
-- 06:35Z launch (ccbox `ai-ee-run`, Opus 5 xhigh, bypass, open egress) -> 09:59Z P4 erc PASS (loop 1: 136 turns, $120).
+- 06:35Z launch (run container, Opus 5 xhigh, bypass, open egress) -> 09:59Z P4 erc PASS (loop 1: 136 turns, $120).
 - 10:00Z killed by a Claude usage limit (3 x 429 tripped the loop's error cap); revived 12:50Z with limit-aware loop.
 - 12:50Z -> 20:10Z loop 2: P4 review/H2 -> P5 -> P6 (place PASS, size earned) -> P7 (drc_routed PASS; one 52-min limit wait, one iteration lost to a backgrounded agent) -> P8 (verify PASS after 5 errors, H4) -> P9 (dfm PASS) -> P10 (package, attestation, quote). 3 iterations, $163.
 - Wall clock 13.6 h, ~3.4 h of it lost to limits/relaunch. Nominal spend $291 (subscription accounting).

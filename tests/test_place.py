@@ -377,6 +377,31 @@ def test_validate_ops_rejects(doc):
         place_edit.validate_ops(doc)
 
 
+def test_validate_silk_clear_ops_good():
+    """silk_clear takes only `ref`, with optional `layer` (F/B.SilkS, default
+    F.SilkS) and boolean `only_offboard`; it moves nothing."""
+    ops = place_edit.validate_ops({"version": 1, "ops": [
+        {"op": "silk_clear", "ref": "U1"},                       # layer defaults
+        {"op": "silk_clear", "ref": "U2", "layer": "B.SilkS"},
+        {"op": "silk_clear", "ref": "U3", "layer": "F.SilkS",
+         "only_offboard": True},
+    ]})
+    assert len(ops) == 3
+    assert place_edit._expected_state(ops) == {}   # nothing to re-verify
+
+
+@pytest.mark.parametrize("op", [
+    {"op": "silk_clear"},                                        # no ref
+    {"op": "silk_clear", "ref": "U1", "layer": "F.Cu"},
+    {"op": "silk_clear", "ref": "U1", "layer": "F.Fab"},
+    {"op": "silk_clear", "ref": "U1", "only_offboard": "yes"},
+    {"op": "silk_clear", "ref": "U1", "x": 1.0},                 # unknown key
+])
+def test_validate_silk_clear_ops_reject(op):
+    with pytest.raises(CheckError):
+        place_edit.validate_ops({"version": 1, "ops": [op]})
+
+
 def _fp_with_courtyard(ref, cx, cy, courtyard, pads):
     return placelib.Footprint(
         ref=ref, fpid="t:X", pos=(cx, cy), angle=0, side="front",

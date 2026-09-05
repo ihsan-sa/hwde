@@ -4675,8 +4675,8 @@ decision (a deliberate `bench.py --freeze` pass), not something a Linux port doe
 `claude -p "/ai-ee ..."` loads the skill in headless mode (verified: the front-door verbs and the
 Linux venv path come back). `ai-ee-loop <board>` iterates fresh contexts (`--max-turns` cuts them),
 resuming through `/ai-ee --resume` from state.json + `log/run-journal.md`; the contract delegates
-H1-H4, forbids ordering, and defines DONE. Launch on the box: `ccbox build ai-ee-run` then
-`ccbox ai-ee-run --open-egress --cmd "ai-ee-loop <board>"`; `docker/watch-run.sh` posts progress.
+H1-H4, forbids ordering, and defines DONE. Launch: `docker build -t hwde-run:latest -f
+docker/Dockerfile .`, then run `hwde-loop <board>` in that image over the repo (docker/README.md).
 
 ## 2026-08-27 [linux][docker][research] st.com is unreachable from the run container - ST RMs/ANs cannot be acquired
 Every fetch of an `st.com/resource/...` PDF fails here: `curl` over HTTP/2 dies with
@@ -4979,7 +4979,7 @@ libs predate the token, which is why S7 never saw it.
 `route_swig` (export_dsn, dedup_copper, import_ses) under the bundled python fails on Linux with
 "Unable to access the X Display, is $DISPLAY set properly?" - the pcbnew Specctra path is
 wx-backed. Plain LoadBoard/SaveBoard (check_env's round trip) and `kicad-cli pcb render` need no
-display. The container starts `Xvfb :99` (docker/ccbox-project-init) and bakes `DISPLAY=:99`;
+display. The container starts `Xvfb :99` (docker/project-init) and bakes `DISPLAY=:99`;
 `env.py` also exports it to children when the caller has no DISPLAY and the :99 socket exists.
 kicad-cli has no `pcb export specctra` subcommand (checked), so SWIG stays the only DSN path.
 
