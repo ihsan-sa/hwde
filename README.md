@@ -89,4 +89,5 @@ Run the suite with `check.cmd` (the `make check` equivalent on this host).
 
 ## License
 
-MIT - see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE). Vendor datasheets, component 3D models and footprints
+pulled from LCSC/EasyEDA are third-party material, not under MIT - see [NOTICE](NOTICE).
