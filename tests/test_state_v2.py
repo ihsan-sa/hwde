@@ -20,7 +20,7 @@ import pytest
 import yaml
 
 REPO = Path(__file__).resolve().parents[1]
-SCRIPTS = REPO / ".claude" / "skills" / "ai-ee" / "scripts"
+SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
@@ -30,7 +30,7 @@ import statelib  # noqa: E402
 from checklib import CheckError  # noqa: E402
 
 FIXTURES = REPO / "tests" / "fixtures" / "stages" / "pd_trigger"
-GATES_YAML = REPO / ".claude" / "skills" / "ai-ee" / "reference" / "gates.yaml"
+GATES_YAML = REPO / ".claude" / "skills" / "hwde" / "reference" / "gates.yaml"
 IMAP = statelib.load_map()
 
 

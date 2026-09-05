@@ -41,7 +41,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-SCRIPTS = REPO / ".claude" / "skills" / "ai-ee" / "scripts"
+SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
 GOLDEN = REPO / "tests" / "golden" / "blinky2"
 BOARD = "blinky2"
 PY = sys.executable

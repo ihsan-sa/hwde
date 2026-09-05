@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / ".claude" / "skills" / "ai-ee"
+SKILL = ROOT / ".claude" / "skills" / "hwde"
 SCRIPTS = SKILL / "scripts"
 REMED = SKILL / "reference" / "remediations"
 TRIAGE = ROOT / "design" / "ladder-triage.md"

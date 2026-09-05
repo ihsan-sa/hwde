@@ -1,8 +1,8 @@
-# ai-ee3
+# hwde
 
 An AI PCB engineer for KiCad + JLCPCB, packaged as a Claude Code skill
-(`.claude/skills/ai-ee/`) and invoked as `/ai-ee <task>` or
-`/ai-ee --resume <workspace>`. It takes a task in any project state - review
+(`.claude/skills/hwde/`) and invoked as `/hwde <task>` or
+`/hwde --resume <workspace>`. It takes a task in any project state - review
 this board, fix these findings, move a part, re-route a net, make a footprint,
 DFM, order, resume - and the full brief-to-order pipeline is one of those tasks.
 
@@ -10,7 +10,7 @@ Everything it produces lives in a per-board workspace under `boards/<name>/`
 (brief, research, architecture, parts, lib, kicad, routing, reports, fab, log,
 `state.json`). The design work is done by subagents; the deterministic work is
 done by 57 scripts (plus 24 library modules) under
-`.claude/skills/ai-ee/scripts/`, each with the same CLI contract (argparse,
+`.claude/skills/hwde/scripts/`, each with the same CLI contract (argparse,
 JSON out, exit 0/1/2, no interactivity).
 
 ## Maturity: supervised engineering assistant, not an unattended release system
@@ -42,12 +42,12 @@ here wins.
 | Question | Authority |
 |---|---|
 | Environment, toolchain pins, host facts, session protocol | `CLAUDE.md` |
-| How the skill operates (verbs, stages, gates, agent contracts) | `.claude/skills/ai-ee/SKILL.md` + `reference/tasks.yaml` |
-| Task recipes and their exact commands | `.claude/skills/ai-ee/reference/recipes/` |
-| Gate definitions and pass criteria | `.claude/skills/ai-ee/reference/gates.yaml` |
-| What goes stale when something changes | `.claude/skills/ai-ee/reference/invalidation.yaml` |
+| How the skill operates (verbs, stages, gates, agent contracts) | `.claude/skills/hwde/SKILL.md` + `reference/tasks.yaml` |
+| Task recipes and their exact commands | `.claude/skills/hwde/reference/recipes/` |
+| Gate definitions and pass criteria | `.claude/skills/hwde/reference/gates.yaml` |
+| What goes stale when something changes | `.claude/skills/hwde/reference/invalidation.yaml` |
 | Per-board truth (phase, gates, decisions, holds, artifacts) | `boards/<name>/state.json` |
-| Fab capability, stackups, pricing assumptions | `.claude/skills/ai-ee/reference/jlc_capabilities.yaml`, `stackups.yaml`, `jlc_pricing.yaml` |
+| Fab capability, stackups, pricing assumptions | `.claude/skills/hwde/reference/jlc_capabilities.yaml`, `stackups.yaml`, `jlc_pricing.yaml` |
 | Non-obvious gotchas, dated and tagged | `LEARNINGS.md` (index: `design/ladder-triage.md`) |
 | Build state of the skill itself | `PROGRESS.md` |
 | Original architecture and rationale | `SPEC.md` - **historical**, not normative |
@@ -58,7 +58,7 @@ materialised; see the verify-later register in `PROGRESS.md`). Read it for
 intent; take facts from `CLAUDE.md` and `SKILL.md`.
 
 Plans are historical once their steps are done: `ai-ee-implementation-plan.md`
-(v1, frozen), `ai-ee-v2-plan.md` (v2), `ai-ee-v3-plan.md` (v3, in progress).
+(v1, frozen), `ai-ee-v2-plan.md` (v2), `hwde-v3-plan.md` (v3, in progress).
 
 ## Safety boundary
 
@@ -79,10 +79,14 @@ Plans are historical once their steps are done: `ai-ee-implementation-plan.md`
 
 ## Repo layout
 
-    .claude/skills/ai-ee/   the skill: SKILL.md, agents/, scripts/, reference/, templates/
-    boards/                 board workspaces (see boards/README.md)
-    tests/                  pytest suite incl. the golden corpus + mutants
-    design/                 knowledge-ladder triage and stage evaluations
-    tools/                  gitignored: portable JRE + Freerouting jar
+    .claude/skills/hwde/  the skill: SKILL.md, agents/, scripts/, reference/, templates/
+    boards/               board workspaces (see boards/README.md)
+    tests/                pytest suite incl. the golden corpus + mutants
+    design/               knowledge-ladder triage and stage evaluations
+    tools/                gitignored: portable JRE + Freerouting jar
 
 Run the suite with `check.cmd` (the `make check` equivalent on this host).
+
+## License
+
+MIT - see [LICENSE](LICENSE).

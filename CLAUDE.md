@@ -1,6 +1,6 @@
-# ai-ee3 - AI PCB design skill (staged build)
+# hwde - AI PCB design skill (staged build)
 
-Building the `/ai-ee` Claude Code skill per `SPEC.md` + `ai-ee-implementation-plan.md`,
+Building the `/hwde` Claude Code skill per `SPEC.md` + `ai-ee-implementation-plan.md`,
 **one plan step per isolated session** to preserve context. `PROGRESS.md` tracks state.
 
 ## "run step N" protocol
@@ -10,7 +10,7 @@ When the user says `run step N` (or just `step N`):
 1. Read `PROGRESS.md` (status board + interface notes of completed steps) and the step's
    plan entry: S<N> steps live in `ai-ee-implementation-plan.md` (v1, complete); T<N>
    steps live in `ai-ee-v2-plan.md` (v2 - same protocol, plus its own Conventions);
-   **U<N> steps live in `ai-ee-v3-plan.md`** (v3 - same protocol, waves + owner-present
+   **U<N> steps live in `hwde-v3-plan.md`** (v3 - same protocol, waves + owner-present
    steps marked there).
    Read ONLY the spec sections / files that entry lists (S13 alone reads the whole spec).
    Do not load prior steps' code beyond what the entry needs.
@@ -28,7 +28,7 @@ When the user says `run step N` (or just `step N`):
 ## Environment (S0-verified on this Windows 11 host)
 
 - venv: `.venv\Scripts\python.exe` (Python 3.13.5). Pins: `requirements.txt` / `requirements.lock`.
-- KiCad **pinned 10.0.3** through `.claude/skills/ai-ee/scripts/lib/env.py` - always resolve
+- KiCad **pinned 10.0.3** through `.claude/skills/hwde/scripts/lib/env.py` - always resolve
   kicad-cli/bundled-python through it (kicad-cli is NOT on PATH; 9.0.5 installed as fallback;
   never mix versions - formats are not forward-compatible).
 - `check.cmd` = the `make check` equivalent (host has no make). Tests: `.venv\Scripts\python -m pytest`.

@@ -1,5 +1,7 @@
 # ai-ee — Implementation Plan (session-sized steps)
 
+> **Renamed 2026-09-04:** the skill is `/hwde`, its tree is `.claude/skills/hwde/`, and its env vars are `HWDE_*` (the old `AIEE_*` spelling still works). This file is a log and keeps its original `ai-ee` wording below.
+
 Companion to `ai-ee-spec.md`. Each step is scoped to one fresh Claude Code session to keep context clean. Kick off each with: `Implement Step N of ai-ee-implementation-plan.md. Read only the files listed under "Read" for that step, plus PROGRESS.md.`
 
 ## Conventions (apply to every session)

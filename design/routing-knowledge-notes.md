@@ -1,4 +1,4 @@
-# AI-EE PCB Skill — Routing, Placement, Verification, and Knowledge Architecture
+# hwde PCB Skill — Routing, Placement, Verification, and Knowledge Architecture
 
 > **Provenance:** external design notes from an owner conversation with another
 > agent (received 2026-08-06). Kept verbatim below the adoption block. Tool
