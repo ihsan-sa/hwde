@@ -21,7 +21,7 @@ import pytest
 import yaml
 
 REPO = Path(__file__).resolve().parents[1]
-SCRIPTS = REPO / ".claude" / "skills" / "ai-ee" / "scripts"
+SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
 SIMS = REPO / "tests" / "sims"
 PD_NET = REPO / "boards" / "pd-trigger" / "kicad" / "pd-trigger.net"
 BLINKY_NET = REPO / "boards" / "stm32-blinky" / "kicad" / "stm32-blinky.net"
@@ -312,7 +312,7 @@ def test_run_report_assembly(tmp_path, monkeypatch):
 
 def test_run_without_dll_is_clean_error(monkeypatch):
     monkeypatch.setattr(sim_run.env, "find_ngspice_dll", lambda: None)
-    with pytest.raises(checklib.CheckError, match="AIEE_NGSPICE_DLL"):
+    with pytest.raises(checklib.CheckError, match="HWDE_NGSPICE_DLL"):
         sim_run.run(SIMS)
 
 
@@ -337,10 +337,10 @@ def test_cli_error_paths(tmp_path):
     assert r.returncode == 2
     assert json.loads(r.stdout)["status"] == "error"
     r = run_cli("--testbench", str(FLAGSHIP),    # loud wrong pin, exact grammar
-                extra_env={"AIEE_NGSPICE_DLL": r"C:\nonexistent\ng.dll"})
+                extra_env={"HWDE_NGSPICE_DLL": r"C:\nonexistent\ng.dll"})
     assert r.returncode == 2
     err = json.loads(r.stdout)
-    assert "AIEE_NGSPICE_DLL does not exist" in err["error"]
+    assert "HWDE_NGSPICE_DLL does not exist" in err["error"]
     r = run_cli("--fragment")                    # fragment needs --net
     assert r.returncode == 2
 
@@ -358,8 +358,8 @@ def test_gates_yaml_sim_gate_wired():
 
 def test_check_env_registers_inspice():
     assert check_env.REQUIRED_PACKAGES.get("InSpice") == "InSpice"
-    assert "AIEE_NGSPICE_DLL" in check_env.NGSPICE_HELP or \
-           "AIEE_NGSPICE_DLL" in env.find_ngspice_dll.__doc__
+    assert "HWDE_NGSPICE_DLL" in check_env.NGSPICE_HELP or \
+           "HWDE_NGSPICE_DLL" in env.find_ngspice_dll.__doc__
 
 
 # ------------------------------------------------------------------- smoke
@@ -368,7 +368,7 @@ def test_check_env_registers_inspice():
 def ngspice_dll():
     dll = env.find_ngspice_dll()
     if dll is None:
-        pytest.skip("no ngspice shared library (KiCad bundle or AIEE_NGSPICE_DLL)")
+        pytest.skip("no ngspice shared library (KiCad bundle or HWDE_NGSPICE_DLL)")
     return dll
 
 

@@ -24,7 +24,7 @@ import pytest
 import yaml
 
 REPO = Path(__file__).resolve().parents[1]
-SKILL = REPO / ".claude" / "skills" / "ai-ee"
+SKILL = REPO / ".claude" / "skills" / "hwde"
 SCRIPTS = SKILL / "scripts"
 REFERENCE = SKILL / "reference"
 GOLDEN = REPO / "tests" / "golden"

@@ -67,7 +67,7 @@ Criteria -> tests:
 
 All hermetic tests run zero live HTTP (injectable transport / mocked
 session). The single @pytest.mark.net probe runs only when all three
-AIEE_JLCPCB_* env vars are present.
+HWDE_JLCPCB_* env vars are present.
 """
 from __future__ import annotations
 
@@ -83,7 +83,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SCRIPTS = REPO / ".claude" / "skills" / "ai-ee" / "scripts"
+SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
 PYTHON = sys.executable
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
@@ -93,7 +93,7 @@ import jlcapi  # noqa: E402
 import order_submit  # noqa: E402
 import order_track  # noqa: E402
 
-API_ENV = ("AIEE_JLCPCB_APPID", "AIEE_JLCPCB_KEY", "AIEE_JLCPCB_SECRET")
+API_ENV = ("HWDE_JLCPCB_APPID", "HWDE_JLCPCB_KEY", "HWDE_JLCPCB_SECRET")
 
 # The OFFICIAL doc-sample signing vector (contract section 1, reproduced
 # locally by the research and again here - the auth recipe's regression pin).
@@ -638,9 +638,9 @@ def test_track_batch_flag_overrides(tmp_path):
 
 @pytest.fixture
 def api_env(monkeypatch):
-    monkeypatch.setenv("AIEE_JLCPCB_APPID", "APP")
-    monkeypatch.setenv("AIEE_JLCPCB_KEY", "KEY")
-    monkeypatch.setenv("AIEE_JLCPCB_SECRET", "SECRET")
+    monkeypatch.setenv("HWDE_JLCPCB_APPID", "APP")
+    monkeypatch.setenv("HWDE_JLCPCB_KEY", "KEY")
+    monkeypatch.setenv("HWDE_JLCPCB_SECRET", "SECRET")
 
 
 def make_fab(tmp_path, stackup="JLC2313_1.6"):
@@ -832,7 +832,7 @@ def test_api_missing_creds_exits_2(tmp_path, monkeypatch, capsys):
     assert code == 2
     order = json.loads((fab / "order.json").read_text(encoding="utf-8"))
     assert order["api"]["available"] is False
-    assert "AIEE_JLCPCB_APPID" in order["api"]["note"]
+    assert "HWDE_JLCPCB_APPID" in order["api"]["note"]
 
 
 # ===================================== order_submit --api-create (mocked)
@@ -1692,7 +1692,7 @@ def test_api_quote_refuses_underivable_copper(tmp_path, monkeypatch, api_env,
 
 @pytest.mark.net
 @pytest.mark.skipif(not all(os.environ.get(v) for v in API_ENV),
-                    reason="AIEE_JLCPCB_* env vars absent")
+                    reason="HWDE_JLCPCB_* env vars absent")
 def test_net_probe_live(tmp_path):
     """The day-one auth validation: one cheap signed call. Exit 0 (live or
     scope_pending - both prove signing) or 1 (classified auth problem)."""

@@ -23,7 +23,7 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / ".claude" / "skills" / "ai-ee"
+SKILL = ROOT / ".claude" / "skills" / "hwde"
 SCRIPTS = SKILL / "scripts"
 RF_DE = ROOT / "boards" / "rf-de-20m"
 

@@ -1,5 +1,7 @@
 # ai-ee — v2 Plan (session-sized T-steps)
 
+> **Renamed 2026-09-04:** the skill is `/hwde`, its tree is `.claude/skills/hwde/`, and its env vars are `HWDE_*` (the old `AIEE_*` spelling still works). This file is a log and keeps its original `ai-ee` wording below.
+
 Companion to `ai-ee-implementation-plan.md` (v1, S-steps, complete). Same protocol:
 one fresh session per step, kicked off with **"run step T<N>"** (repo `CLAUDE.md`).
 Sources folded in: the post-order repo/LEARNINGS audit (2026-08-06), the external

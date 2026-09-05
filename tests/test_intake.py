@@ -1,4 +1,4 @@
-"""T9 tests: intake.py - external-board import into an ai-ee workspace.
+"""T9 tests: intake.py - external-board import into an hwde workspace.
 
 Pure tests build a synthetic "foreign" KiCad project in tmp_path (project
 discovery, sheet hierarchy, lib-table URI classification, the copy plan,
@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SCRIPTS = REPO / ".claude" / "skills" / "ai-ee" / "scripts"
+SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
@@ -231,7 +231,7 @@ def test_plan_copy_renames_stem_keeps_sheets_and_imports_libs(tmp_path):
     assert "kicad/sub.kicad_sch" in dests          # sub-sheets keep their name
     assert "kicad/local.pretty" in dests
     assert "kicad/imported_libs/foo.pretty" in dests
-    assert "kicad/constraints.json" in dests       # ai-ee sidecars travel
+    assert "kicad/constraints.json" in dests       # hwde sidecars travel
     assert "kicad/decoupling.json" in dests
     by_name = {lib["name"]: lib for lib in libs}
     assert by_name["local"]["disposition"] == "copied"
@@ -383,7 +383,7 @@ def test_intake_refuses_an_existing_workspace_unless_forced(tmp_path):
     other = tmp_path / "not-a-workspace"
     other.mkdir()
     (other / "keep.txt").write_text("mine", encoding="utf-8")
-    with pytest.raises(CheckError, match="not an ai-ee workspace"):
+    with pytest.raises(CheckError, match="not an hwde workspace"):
         hermetic(pdir, other, "--force")
     assert (other / "keep.txt").is_file()
 

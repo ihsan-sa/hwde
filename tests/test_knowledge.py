@@ -22,7 +22,7 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / ".claude" / "skills" / "ai-ee"
+SKILL = ROOT / ".claude" / "skills" / "hwde"
 SCRIPTS = SKILL / "scripts"
 RECORDS = SKILL / "reference" / "knowledge" / "records"
 SOURCES = SKILL / "reference" / "knowledge" / "sources"
@@ -258,7 +258,7 @@ def test_app_note_grounding_payload(tmp_path):
     assert code == 0
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["mode"] == "app_note"
-    assert payload["record_schema"]["title"] == "ai-ee knowledge record"
+    assert payload["record_schema"]["title"] == "hwde knowledge record"
     assert payload["record_template"]["applies"] == {
         "topologies": [], "packages": [], "interfaces": [], "parts": []}
     # U13: the template carries the schema-v2 coverage fields too

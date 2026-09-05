@@ -4,9 +4,9 @@ PY ?= .venv/bin/python
 
 check:
 	$(PY) -m pytest
-	$(PY) .claude/skills/ai-ee/scripts/check_env.py --quiet > /dev/null
+	$(PY) .claude/skills/hwde/scripts/check_env.py --quiet > /dev/null
 
 env:
-	$(PY) .claude/skills/ai-ee/scripts/check_env.py --full
+	$(PY) .claude/skills/hwde/scripts/check_env.py --full
 
 .PHONY: check env

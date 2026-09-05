@@ -19,7 +19,7 @@ Criteria -> tests:
                                      -> test_tex_only_pass
   - pdflatex not installed -> auto tex-only, warning, exit 1
                                      -> test_no_pdflatex_degrades
-  - set-but-invalid AIEE_PDFLATEX -> EnvError -> exit 2, .tex still written
+  - set-but-invalid HWDE_PDFLATEX -> EnvError -> exit 2, .tex still written
                                      -> test_bad_pin_exit2
   - [ ] * brace-wrapped: a line-initial [ after the line-join is a fatal
     "Missing number", item labels swallow [x] content (adversarial F1/F2)
@@ -50,7 +50,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SCRIPTS = REPO / ".claude" / "skills" / "ai-ee" / "scripts"
+SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
@@ -476,7 +476,7 @@ def test_no_pdflatex_degrades(tmp_path, capsys, monkeypatch):
 def test_bad_pin_exit2(tmp_path):
     ws = make_workspace(tmp_path)
     e = dict(os.environ)
-    e["AIEE_PDFLATEX"] = r"C:\nonexistent\pdflatex.exe"
+    e["HWDE_PDFLATEX"] = r"C:\nonexistent\pdflatex.exe"
     r = subprocess.run(
         [sys.executable, str(SCRIPTS / "report_gen.py"),
          "--workspace", str(ws)],
@@ -484,7 +484,7 @@ def test_bad_pin_exit2(tmp_path):
     assert r.returncode == 2, r.stdout + r.stderr
     payload = json.loads(r.stdout)
     assert payload["status"] == "error"
-    assert "AIEE_PDFLATEX" in payload["error"]
+    assert "HWDE_PDFLATEX" in payload["error"]
     # F4: the loud exit must not discard the already-built document
     assert (ws / "reports" / "design_doc" / "synth-design-doc.tex").is_file()
 
@@ -596,26 +596,26 @@ def test_compile_failure_adds_warning(tmp_path, capsys, monkeypatch):
 def test_find_pdflatex_pin(monkeypatch, tmp_path):
     exe = tmp_path / "pdflatex.exe"
     exe.write_bytes(b"x")
-    monkeypatch.setenv("AIEE_PDFLATEX", str(exe))
+    monkeypatch.setenv("HWDE_PDFLATEX", str(exe))
     assert env.find_pdflatex() == exe
 
 
 def test_find_pdflatex_pin_invalid(monkeypatch):
-    monkeypatch.setenv("AIEE_PDFLATEX", r"C:\nonexistent\pdflatex.exe")
-    with pytest.raises(env.EnvError, match="AIEE_PDFLATEX does not exist"):
+    monkeypatch.setenv("HWDE_PDFLATEX", r"C:\nonexistent\pdflatex.exe")
+    with pytest.raises(env.EnvError, match="HWDE_PDFLATEX does not exist"):
         env.find_pdflatex()
 
 
 def test_find_pdflatex_path(monkeypatch, tmp_path):
     exe = tmp_path / "pdflatex.EXE"        # PATH hits may be uppercase
     exe.write_bytes(b"x")
-    monkeypatch.delenv("AIEE_PDFLATEX", raising=False)
+    monkeypatch.delenv("HWDE_PDFLATEX", raising=False)
     monkeypatch.setattr(env.shutil, "which", lambda name: str(exe))
     assert env.find_pdflatex() == exe
 
 
 def test_find_pdflatex_none(monkeypatch, tmp_path):
-    monkeypatch.delenv("AIEE_PDFLATEX", raising=False)
+    monkeypatch.delenv("HWDE_PDFLATEX", raising=False)
     monkeypatch.setattr(env.shutil, "which", lambda name: None)
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))   # no MiKTeX inside
     assert env.find_pdflatex() is None
@@ -626,15 +626,15 @@ def test_find_pdflatex_miktex_default(monkeypatch, tmp_path):
     exe = tmp_path / "Programs" / "MiKTeX" / "miktex" / "bin" / "x64" / "pdflatex.exe"
     exe.parent.mkdir(parents=True)
     exe.write_bytes(b"x")
-    monkeypatch.delenv("AIEE_PDFLATEX", raising=False)
+    monkeypatch.delenv("HWDE_PDFLATEX", raising=False)
     monkeypatch.setattr(env.shutil, "which", lambda name: None)
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
     assert env.find_pdflatex() == exe
 
 
 def test_check_env_pdflatex_unit(monkeypatch):
-    # F3: hermetic against an ambient AIEE_PDFLATEX pin in the caller's env
-    monkeypatch.delenv("AIEE_PDFLATEX", raising=False)
+    # F3: hermetic against an ambient HWDE_PDFLATEX pin in the caller's env
+    monkeypatch.delenv("HWDE_PDFLATEX", raising=False)
     resolved: dict = {}
     c = check_env.check_pdflatex(resolved)
     assert c["name"] == "pdflatex"
@@ -643,14 +643,14 @@ def test_check_env_pdflatex_unit(monkeypatch):
     monkeypatch.setattr(check_env.env, "find_pdflatex", lambda: None)
     c_absent = check_env.check_pdflatex({})
     assert c_absent["status"] == "warn"        # absent branch, deterministic
-    assert "AIEE_PDFLATEX" in c_absent["remediation"]
+    assert "HWDE_PDFLATEX" in c_absent["remediation"]
 
     def raiser():
-        raise env.EnvError("AIEE_PDFLATEX does not exist: bad")
+        raise env.EnvError("HWDE_PDFLATEX does not exist: bad")
     monkeypatch.setattr(check_env.env, "find_pdflatex", raiser)
     c2 = check_env.check_pdflatex({})
     assert c2["status"] == "fail"              # bad pin fails loudly
-    assert "AIEE_PDFLATEX" in c2["detail"]
+    assert "HWDE_PDFLATEX" in c2["detail"]
 
 
 # ------------------------------------------------------------------ smoke

@@ -26,7 +26,7 @@ import sys
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SCRIPTS = REPO / ".claude" / "skills" / "ai-ee" / "scripts"
+SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 import attest  # noqa: E402
@@ -581,9 +581,9 @@ def _ok(data):
 
 @pytest.fixture
 def api_env(monkeypatch):
-    monkeypatch.setenv("AIEE_JLCPCB_APPID", "APP")
-    monkeypatch.setenv("AIEE_JLCPCB_KEY", "KEY")
-    monkeypatch.setenv("AIEE_JLCPCB_SECRET", "SECRET")
+    monkeypatch.setenv("HWDE_JLCPCB_APPID", "APP")
+    monkeypatch.setenv("HWDE_JLCPCB_KEY", "KEY")
+    monkeypatch.setenv("HWDE_JLCPCB_SECRET", "SECRET")
 
 
 def _submit_argv(ws: Path, *extra):
