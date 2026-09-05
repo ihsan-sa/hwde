@@ -1,9 +1,7 @@
 # LEARNINGS
 
-> **Renamed 2026-09-04:** the skill is `/hwde`, its tree is `.claude/skills/hwde/`, and its env vars are `HWDE_*` (the old `AIEE_*` spelling still works). This file is a log and keeps its original `ai-ee` wording below.
-
 Append-only, non-obvious gotchas. Recall by tag/keyword before touching an area.
-Entries sourced from prior attempts are marked; re-verify at first use here.
+Entries sourced from prior attempts are marked; re-verify at first use here. Renamed 2026-09-04: the skill is `/hwde` (tree `.claude/skills/hwde/`, env vars `HWDE_*`, the old `AIEE_*` spelling still read); entries below keep their original `ai-ee` wording. Entry line numbers are cited by `design/ladder-triage.md` and asserted by `tests/test_remediations.py`, so nothing above the first entry may gain or lose a line.
 
 ## Tags
 [windows] [kicad] [kicad-cli] [ipc] [swig] [freerouting] [easyeda2kicad] [python] [prior-attempts] [geometry] [shapely] [parts] [datasheet] [gerber] [gerbonara] [dfm] [jlc] [fab] [skill] [git] [latex] [spice]
