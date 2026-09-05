@@ -1,0 +1,716 @@
+{
+  "parts": [
+    {
+      "ref_prefix_hint": "J",
+      "block": "usb-input",
+      "mpn": "TYPE-C-31-M-12",
+      "lcsc": "C165948",
+      "value": "USB-C 16P receptacle, power-only",
+      "package": "SMD 16P (4x THT shield legs)",
+      "basic": false,
+      "stock": 369417,
+      "price": 0.1855,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2205251630_Korean-Hroparts-Elec-TYPE-C-31-M-12_C165948.pdf",
+      "alternates": [
+        {
+          "mpn": "TYPE-C16PIN",
+          "lcsc": "C393939",
+          "risk": "same 16P power pinout family, 439594 stock, 2.7x cheaper, but NO KiCad footprint in the library - would need a pulled/custom footprint before use"
+        }
+      ],
+      "role": "J1. Only 16P part with a ready-made KiCad footprint (removes the pulled-footprint DRC class). Pinout re-verified from the vendor drawing (read visually, 2026-08-27): A1/A12/B1/B12 = GND on dedicated SMD pads, independent of the 4x plated THT shield/mounting legs - carried verify item #2 SETTLED: shield/GND is landed on the SMD signal pads, so leaving the THT legs cold does not orphan GND (usbc-sink-receptacle-land-all-shell-bond knowledge record's ganging rule still applies to the 4 GND + 4 VBUS pads). Land all 4 VBUS and all 4 GND pads ganged per usbc-sink-constraints-emission.",
+      "brand": "Korean Hroparts Elec",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.1855
+        },
+        {
+          "qty": 50,
+          "price": 0.1465
+        },
+        {
+          "qty": 150,
+          "price": 0.1274
+        },
+        {
+          "qty": 1000,
+          "price": 0.1033
+        },
+        {
+          "qty": 2000,
+          "price": 0.0986
+        },
+        {
+          "qty": 5000,
+          "price": 0.0959
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "usb-input",
+      "mpn": "0603WAF5101T5E",
+      "lcsc": "C23186",
+      "value": "5.1k 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 16524070,
+      "price": 0.0025,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF5101T5E_C23186.pdf",
+      "alternates": [],
+      "role": "R1 (CC1-to-GND), R2 (CC2-to-GND). Two independent parts of this SAME line item, never shared (usbc-sink-cc-independent-rd-principle / usbc-sink-rd-5k1-per-pin knowledge records: shared Rd is a silent audio-accessory field failure through an e-marked cable). basic-passive auto-pick.",
+      "brand": "UNI-ROYAL(Uniroyal Elec)"
+    },
+    {
+      "ref_prefix_hint": "D",
+      "block": "usb-input",
+      "mpn": "SMF5.0A",
+      "lcsc": "C284108",
+      "value": "TVS 5V/6.4V/9.2V 200W",
+      "package": "SOD-123",
+      "basic": false,
+      "stock": 239023,
+      "price": 0.0192,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1811011929_DOWO-SMF5-0A_C284108.pdf",
+      "alternates": [
+        {
+          "mpn": "SMF5.0A",
+          "lcsc": "C908213",
+          "risk": "same MPN/electricals/SOD-123 package, different fab (FUXINSEMI), 109683 stock - true drop-in second source"
+        }
+      ],
+      "role": "D1. Unidirectional, VRWM 5V/VBR 6.4V/Vc 9.2V/200W(10/1000us) - identical electricals to the SMAJ5.0A default, smaller SOD-123 for the tight J1-U1 corridor (decisions.md #4). Sits ahead of F1 on VBUS per usbc-sink-vbus-tvs-before-series-element.",
+      "brand": "DOWO",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0192
+        },
+        {
+          "qty": 200,
+          "price": 0.0166
+        },
+        {
+          "qty": 600,
+          "price": 0.0152
+        },
+        {
+          "qty": 3000,
+          "price": 0.0145
+        },
+        {
+          "qty": 9000,
+          "price": 0.0138
+        },
+        {
+          "qty": 21000,
+          "price": 0.0133
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "F",
+      "block": "usb-input",
+      "mpn": "BSMD0805-075-16V",
+      "lcsc": "C976303",
+      "value": "PTC 750mA hold / 16V",
+      "package": "0805",
+      "basic": false,
+      "stock": 58154,
+      "price": 0.059,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2305121424_BHFUSE-BSMD0805-075-16V_C976303.pdf",
+      "alternates": [
+        {
+          "mpn": "0805L075/16AR",
+          "lcsc": "C7472573",
+          "risk": "same 750mA/16V/70mOhm Ri spec, same 0805 package, different fab (LUTE), 14300 stock - true drop-in second source"
+        }
+      ],
+      "role": "F1. 750mA hold / 1.5A trip / 16V / 70mOhm Ri - clears the >=1.2-1.5x margin over the ~350mA design draw and preserves LDO dropout margin better than the 90mOhm 1206 rank-1 (decisions.md #5).",
+      "brand": "BHFUSE",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.059
+        },
+        {
+          "qty": 100,
+          "price": 0.0457
+        },
+        {
+          "qty": 300,
+          "price": 0.0389
+        },
+        {
+          "qty": 1000,
+          "price": 0.034
+        },
+        {
+          "qty": 4000,
+          "price": 0.0299
+        },
+        {
+          "qty": 8000,
+          "price": 0.0278
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "C",
+      "block": "usb-input",
+      "mpn": "CC0603KRX7R9BB104",
+      "lcsc": "C14663",
+      "value": "100nF X7R 50V",
+      "package": "0603",
+      "basic": true,
+      "stock": 71302817,
+      "price": 0.015,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf",
+      "alternates": [],
+      "role": "C1 (VBUS, at J1, ahead of F1) AND the same part reused at C10 (U2 VDD HF), C12 (NRST), C13 (U3 VDD) - one line item, 4 board positions. C1 is the ONLY capacitance ahead of the PTC per the usbc-sink-attach-capacitance-10uf 10uF Type-C attach-limit rule. basic-passive auto-pick.",
+      "brand": "YAGEO"
+    },
+    {
+      "ref_prefix_hint": "U",
+      "block": "ldo",
+      "mpn": "AMS1117-3.3",
+      "lcsc": "C6186",
+      "value": "AMS1117-3.3 LDO, 3.3V/1A",
+      "package": "SOT-223",
+      "basic": true,
+      "stock": 1137330,
+      "price": 0.2019,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2410121508_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf",
+      "alternates": [
+        {
+          "mpn": "AMS1117-3.3",
+          "lcsc": "C347222",
+          "risk": "literal same MPN in the same SOT-223 package from a different fab (UMW Youtai), 1521347 stock - genuine drop-in, but it is Extended (adds a setup fee) so only use if C6186 stocks out"
+        }
+      ],
+      "role": "U1. CARRIED VERIFY ITEM #1 SETTLED: cheaper Extended AMS1117-3.3 twins exist in the same SOT-223 package (e.g. C347222 at $0.0484 vs this part's $0.2019), but every Extended MPN adds ONE per-unique-part JLC PCBA setup fee (~$3, decisions.md cost ballpark) on top of unit price. At qty 5 the twin only saves (0.2019-0.0484)x5 = ~$0.77 in unit cost while adding a ~$3 setup fee - a net loss of ~$2.2. Basic C6186 wins decisively; keep it. Governing 0.51W thermal case per ldo-sot223-thermal-copper-sets-current; output cap MUST be tantalum-class per ldo-1117-family-output-cap-esr (see C3).",
+      "brand": "Advanced Monolithic Systems",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.2019
+        },
+        {
+          "qty": 50,
+          "price": 0.1564
+        },
+        {
+          "qty": 150,
+          "price": 0.1343
+        },
+        {
+          "qty": 500,
+          "price": 0.1145
+        },
+        {
+          "qty": 2500,
+          "price": 0.109
+        },
+        {
+          "qty": 5000,
+          "price": 0.1058
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "C",
+      "block": "ldo",
+      "mpn": "CL21A106KAYNNNE",
+      "lcsc": "C15850",
+      "value": "10uF X5R 25V",
+      "package": "0805",
+      "basic": true,
+      "stock": 8093949,
+      "price": 0.096,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Samsung-Electro-Mechanics-CL21A106KAYNNNE_C15850.pdf",
+      "alternates": [],
+      "role": "C2. At U1 VIN on +5V, AFTER the PTC (never ahead of it - Type-C 10uF attach-limit rule). 25V rating gives the DC-bias derating margin power_tree.md assumes (effective ~6-8uF at 5V bias).",
+      "brand": "Samsung Electro-Mechanics"
+    },
+    {
+      "ref_prefix_hint": "C",
+      "block": "ldo",
+      "mpn": "CA45-A010K226T",
+      "lcsc": "C122643",
+      "value": "22uF tantalum 10V",
+      "package": "CASE-A-3216-16(mm)",
+      "basic": false,
+      "stock": 131135,
+      "price": 0.1379,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Hunan-Xiangyee-in-S-T-CA45-A010K226T_C122643.pdf",
+      "alternates": [
+        {
+          "mpn": "TAJB226K016RNJ",
+          "lcsc": "C8020",
+          "risk": "same tantalum family/value, 16V rating, but EIA Case B (3528) vs this part's Case A (3216) - bigger footprint, would need a footprint swap if used"
+        }
+      ],
+      "role": "C3. LOAD-BEARING per ldo-1117-family-output-cap-esr: the AMS1117 datasheet requires >=22uF SOLID TANTALUM for loop stability (ESR window 0.3-22 ohm per the LM1117 sibling spec) - a bare X5R/X7R ceramic at 22uF has mOhm-level ESR, far below the floor, and is NOT a substitute (this record is GROUNDED for this exact board). This part's 3 ohm@100kHz ESR sits mid-window. No JLC Basic tantalum cap exists at any value (checked live) - Extended is unavoidable for this position. 10V rating = 3x derating over the 3.3V rail (tantalum's own failure mode wants >=2x). Sits on +3V3 behind the LDO, outside the Type-C attach-limit (usbc-sink-attach-capacitance-10uf). CARRIED VERIFY ITEM #3 (SHT4x 20V/ms VDD slew vs AMS1117 startup ramp): the AMS1117 datasheet (downloaded, parts/U1_AMS1117-3.3_C6186.pdf) publishes NO explicit startup/soft-start ramp spec, so the open item from power_tree.md stays open for P4/P8 to verify empirically - not resolved here. What IS confirmed: a tantalum's ESR (ohms) is far higher than a ceramic's (mOhms) at the same capacitance, so this choice, if anything, SLOWS the inrush edge into C3 relative to a same-value ceramic - it does not make the slew-rate risk worse.",
+      "brand": "Hunan Xiangyee in S&T",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.1379
+        },
+        {
+          "qty": 50,
+          "price": 0.1116
+        },
+        {
+          "qty": 150,
+          "price": 0.0985
+        },
+        {
+          "qty": 500,
+          "price": 0.0887
+        },
+        {
+          "qty": 2000,
+          "price": 0.0751
+        },
+        {
+          "qty": 4000,
+          "price": 0.0712
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "D",
+      "block": "power-led",
+      "mpn": "KT-0603R",
+      "lcsc": "C2286",
+      "value": "Red LED",
+      "package": "0603",
+      "basic": true,
+      "stock": 5342232,
+      "price": 0.0074,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1810231112_Hubei-KENTO-Elec-KT-0603R_C2286.pdf",
+      "alternates": [],
+      "role": "D2. Power LED on +3V3 (indicates the rail the logic runs on, decisions.md #11). Vf 1.8-2.4V.",
+      "brand": "Hubei KENTO Elec"
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "power-led",
+      "mpn": "0603WAF6800T5E",
+      "lcsc": "C23228",
+      "value": "680 ohm 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 3019021,
+      "price": 0.0037,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010100_UNI-ROYAL-Uniroyal-Elec-0603WAF6800T5E_C23228.pdf",
+      "role": "R3. D2 series resistor -> 1.3-2.2mA over the red Vf bin spread (1.8-2.4V), essentially the same operating point as the original 620R design. REVISED per coordinator correction (2026-08-27): 620R has no JLC Basic SKU at any 0402/0603/0805 package (genuine E24 catalog gap, confirmed live); 680R is the adjacent E24 value and IS Basic, so this swap removes an Extended setup fee at essentially zero electrical cost.",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0037
+        },
+        {
+          "qty": 1000,
+          "price": 0.0032
+        },
+        {
+          "qty": 5000,
+          "price": 0.003
+        },
+        {
+          "qty": 10000,
+          "price": 0.0029
+        },
+        {
+          "qty": 50000,
+          "price": 0.0027
+        },
+        {
+          "qty": 50200,
+          "price": 0.0027
+        }
+      ],
+      "alternates": []
+    },
+    {
+      "ref_prefix_hint": "U",
+      "block": "mcu",
+      "mpn": "STM32G030F6P6",
+      "lcsc": "C724040",
+      "value": "STM32G030F6P6, Cortex-M0+, 32KB/8KB",
+      "package": "TSSOP-20",
+      "basic": false,
+      "stock": 8351,
+      "price": 1.369,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_STMicroelectronics-STM32G030F6P6_C724040.pdf",
+      "alternates": [
+        {
+          "mpn": "STM32G031F8P6",
+          "lcsc": "C529334",
+          "risk": "genuine pin-compatible TSSOP-20 fallback (same family/pinout per architecture/blocks.md), 64KB flash (2x), deeper stock (11950), cheaper - true drop-in, no firmware-visible risk beyond the extra flash/peripherals"
+        }
+      ],
+      "role": "U2. Brief-named MCU. Live stock 8351 (down slightly from the research-phase 8398, normal drift) - still >>5x25 but the thinnest-stocked Basic-tier-adjacent IC on this BOM; flagged for reorder awareness, not blocking at qty 5. HSI16 internal osc, no crystal.",
+      "brand": "STMicroelectronics",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 1.369
+        },
+        {
+          "qty": 10,
+          "price": 1.1969
+        },
+        {
+          "qty": 30,
+          "price": 1.0361
+        },
+        {
+          "qty": 100,
+          "price": 0.9159
+        },
+        {
+          "qty": 500,
+          "price": 0.8672
+        },
+        {
+          "qty": 1000,
+          "price": 0.8429
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "C",
+      "block": "mcu",
+      "mpn": "CL10A475KO8NNNC",
+      "lcsc": "C19666",
+      "value": "4.7uF X5R 16V",
+      "package": "0603",
+      "basic": true,
+      "stock": 4857391,
+      "price": 0.0333,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Samsung-Electro-Mechanics-CL10A475KO8NNNC_C19666.pdf",
+      "alternates": [],
+      "role": "C11. Bulk half of the ONE 100nF+4.7uF decoupling pair at U2 pins 4/5 (VDD/VDDA bonded, no separate VREF+) per mcu-decoupling-bonded-vdda-single-pair. C10 (the 100nF half) is the shared C14663 line item above.",
+      "brand": "Samsung Electro-Mechanics"
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "i2c",
+      "mpn": "0603WAF1501T5E",
+      "lcsc": "C22843",
+      "value": "1.5k 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 3313133,
+      "price": 0.0045,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1501T5E_C22843.pdf",
+      "alternates": [],
+      "role": "R10 (SDA), R11 (SCL). I2C pull-ups at the host (U2), once, per sht4x-i2c-pullup-bus-cap. Value 1.5k unchanged (revised from the P1 2.2k draft at the P2 coverage exit, decisions.md #19). REVISED PACKAGE per coordinator correction (2026-08-27): moved from 0805 to 0603 Basic (same value, same Basic status, same price tier) purely to normalise footprints across the resistor set - see R13 for the same rationale applied board-wide.",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0045
+        },
+        {
+          "qty": 1000,
+          "price": 0.0039
+        },
+        {
+          "qty": 5000,
+          "price": 0.0036
+        },
+        {
+          "qty": 10000,
+          "price": 0.0034
+        },
+        {
+          "qty": 50000,
+          "price": 0.0032
+        },
+        {
+          "qty": 50200,
+          "price": 0.0032
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "mcu",
+      "mpn": "0603WAF1000T5E",
+      "lcsc": "C22775",
+      "value": "100 ohm 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 15381627,
+      "price": 0.0091,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2411221126_UNI-ROYAL-Uniroyal-Elec-0603WAF1000T5E_C22775.pdf",
+      "alternates": [],
+      "role": "R12. D10 series resistor. ELECTRICAL FIX per coordinator correction (2026-08-27), NOT a cost change - do not revert to 220R. D10 is now KT-0805G, Vf 2.6-3.1V against the 3.3V rail: at the original 220R the worst-case bin (Vf 3.1V) gives only (3.3-3.1)/220 = 0.9mA - dim, thin margin the architect flagged in decisions.md #11. At 100R the same worst-case bin gives (3.3-3.1)/100 = 2mA, and the best-case bin (Vf 2.6V) gives (3.3-2.6)/100 = 7mA - 2-7mA across the full bin spread, comfortably visible at the worst corner and well inside the STM32G0 GPIO's 20mA source rating. KEEP AT 100R - P4 should not 'correct' this back toward 220R.",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0091
+        },
+        {
+          "qty": 1000,
+          "price": 0.0084
+        },
+        {
+          "qty": 5000,
+          "price": 0.008
+        },
+        {
+          "qty": 10000,
+          "price": 0.0076
+        },
+        {
+          "qty": 50000,
+          "price": 0.0074
+        },
+        {
+          "qty": 50200,
+          "price": 0.0074
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "R",
+      "block": "mcu",
+      "mpn": "0603WAF1002T5E",
+      "lcsc": "C25804",
+      "value": "10k 1%",
+      "package": "0603",
+      "basic": true,
+      "stock": 29834796,
+      "price": 0.0048,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf",
+      "alternates": [],
+      "role": "R13. BOOT0 pull-down on PA14/pin 19, POPULATED (decisions.md #20). NORMALISED to 0603 Basic per coordinator's optional suggestion (2026-08-27): after the R10/R11 and R12 swaps, every other resistor on the board (R1/R2, R3, R10/R11, R12) is already 0603, so this was the one remaining 0402 outlier with no functional reason to differ. Took the normalisation - one resistor footprint across the whole BOM, same Basic tier, negligible price delta ($0.0048 vs $0.0019), deep stock (29.8M).",
+      "brand": "UNI-ROYAL(Uniroyal Elec)",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0048
+        },
+        {
+          "qty": 1000,
+          "price": 0.0039
+        },
+        {
+          "qty": 5000,
+          "price": 0.0034
+        },
+        {
+          "qty": 10000,
+          "price": 0.0032
+        },
+        {
+          "qty": 50000,
+          "price": 0.003
+        },
+        {
+          "qty": 50200,
+          "price": 0.003
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "D",
+      "block": "mcu",
+      "mpn": "KT-0805G",
+      "lcsc": "C2297",
+      "value": "Green LED",
+      "package": "0805",
+      "basic": true,
+      "stock": 2148826,
+      "price": 0.0163,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1806151820_Hubei-KENTO-Elec-KT-0805G_C2297.pdf",
+      "alternates": [],
+      "role": "D10. User LED, driven from U2 PA5 through R12 (now 100 ohm - see that entry). Vf 2.6-3.1V typ, 430mcd @5mA. REVISED per coordinator correction (2026-08-27): no JLC Basic green LED exists in 0603 (only red/white are Basic there), but KT-0805G IS Basic in 0805 - package bump costs nothing on this board and removes a setup fee. Power LED D2 stays the Basic red KT-0603R (0603) - two different LED footprints on one board, both Basic, no shared-footprint constraint applies to LEDs.",
+      "brand": "Hubei KENTO Elec",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0163
+        },
+        {
+          "qty": 500,
+          "price": 0.0127
+        },
+        {
+          "qty": 3000,
+          "price": 0.0101
+        },
+        {
+          "qty": 6000,
+          "price": 0.0088
+        },
+        {
+          "qty": 24000,
+          "price": 0.0083
+        },
+        {
+          "qty": 51000,
+          "price": 0.008
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "SW",
+      "block": "mcu",
+      "mpn": "TS-1187A-B-A-B",
+      "lcsc": "C318884",
+      "value": "Tactile button SPST",
+      "package": "SMD-4P,5.1x5.1mm",
+      "basic": true,
+      "stock": 961528,
+      "price": 0.0205,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_XKB-Connection-TS-1187A-B-A-B_C318884.pdf",
+      "alternates": [],
+      "role": "SW1. NRST momentary button across C12 to GND per mcu-nrst-internal-pullup-and-cap (no series R, no external pull-up needed - the G030 has a permanent internal RPU). Only JLC Basic tactile switch found; 5.1x5.1mm footprint costs nothing at its mid-board placement (decisions.md #10).",
+      "brand": "XKB Connection"
+    },
+    {
+      "ref_prefix_hint": "U",
+      "block": "sht4x",
+      "mpn": "SHT40-AD1B-R2",
+      "lcsc": "C2909890",
+      "value": "SHT40 T/RH sensor, I2C 0x44",
+      "package": "DFN-4-EP(1.5x1.5)",
+      "basic": false,
+      "stock": 23669,
+      "price": 1.9016,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2110211930_Sensirion-SHT40-AD1B-R2_C2909890.pdf",
+      "alternates": [
+        {
+          "mpn": "SHT40-AD1B-R3",
+          "lcsc": "C2848306",
+          "risk": "true drop-in: identical die, same DFN-4 package, same I2C addr 0x44 - the -R3 suffix is only a 10k-piece reel vs -R2's 2.5k-piece reel (packaging, not electrical), cheaper. NOTE: SHT40-BD1B-R2 (C7461849) is NOT a valid alternate for this position - it is address 0x45, a firmware-visible change, not a drop-in substitution"
+        }
+      ],
+      "role": "U3. Brief-preferred sensor, I2C addr 0x44. Die pad NOT soldered (Sensirion mandate, sht4x-thermal-isolation-island). No board wash / no vapor-phase / no hand rework at assembly per sht4x-assembly-fab-contract - MUST land in fab/order remarks (P9/P10, not this step).",
+      "brand": "Sensirion",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 1.9016
+        },
+        {
+          "qty": 10,
+          "price": 1.6305
+        },
+        {
+          "qty": 30,
+          "price": 1.4616
+        },
+        {
+          "qty": 100,
+          "price": 1.2878
+        },
+        {
+          "qty": 500,
+          "price": 1.1628
+        },
+        {
+          "qty": 1000,
+          "price": 1.1287
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "J",
+      "block": "i2c",
+      "mpn": "SM04B-SRSS-TB(LF)(SN)",
+      "lcsc": "C160404",
+      "value": "JST SH 1.0mm 4P horizontal (Qwiic)",
+      "package": "SMD, right-angle, P=1.0mm",
+      "basic": false,
+      "stock": 39665,
+      "price": 0.2131,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_JST-SM04B-SRSS-TB-LF-SN_C160404.pdf",
+      "alternates": [
+        {
+          "mpn": "XY-SM04B-SRSS-TB",
+          "lcsc": "C51940130",
+          "risk": "clone of the same body/pinout family (XYECONN), 5279 stock, 5.4x cheaper, no datasheet on file - dimension-check against the genuine JST drawing before swapping (research/connectors.md's own caveat)"
+        }
+      ],
+      "role": "J2. Genuine JST wins over 5x-cheaper clones: exact KiCad footprint ships in the library, run-wide cost delta ~$0.85 across 5 boards is noise (decisions.md #12). Pinout GND/3V3/SDA/SCL per Qwiic standard.",
+      "brand": "JST",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.2131
+        },
+        {
+          "qty": 50,
+          "price": 0.1724
+        },
+        {
+          "qty": 150,
+          "price": 0.1525
+        },
+        {
+          "qty": 500,
+          "price": 0.1348
+        },
+        {
+          "qty": 3000,
+          "price": 0.1264
+        },
+        {
+          "qty": 6000,
+          "price": 0.1235
+        }
+      ]
+    },
+    {
+      "ref_prefix_hint": "J",
+      "block": "headers",
+      "mpn": "HX PZ2.54-1x4P ZZ",
+      "lcsc": "C32713270",
+      "value": "1x4 2.54mm THT header (DNP)",
+      "package": "Plugin,P=2.54mm",
+      "basic": false,
+      "stock": 158331,
+      "price": 0.0335,
+      "datasheet": "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407231541_hanxia-HX-PZ2-54-1x4P-ZZ_C32713270.pdf",
+      "alternates": [],
+      "role": "J3 (SWD, DNP) and J4 (UART, DNP) - one generic 1x4 2.54mm THT header line item covering both positions. Economy PCBA is SMT-only, so both ship UNPOPULATED for the owner to hand-solder (requirements.md open question 4) - do-not-populate BOM reference only, no per-unique-part assembly fee applies since JLC never places it.",
+      "brand": "hanxia",
+      "price_breaks": [
+        {
+          "qty": 1,
+          "price": 0.0335
+        },
+        {
+          "qty": 50,
+          "price": 0.0262
+        },
+        {
+          "qty": 150,
+          "price": 0.022
+        },
+        {
+          "qty": 500,
+          "price": 0.0195
+        },
+        {
+          "qty": 2500,
+          "price": 0.0171
+        },
+        {
+          "qty": 5000,
+          "price": 0.0159
+        }
+      ]
+    }
+  ]
+}

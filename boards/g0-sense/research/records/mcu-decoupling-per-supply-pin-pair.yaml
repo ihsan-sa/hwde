@@ -1,0 +1,44 @@
+id: mcu-decoupling-per-supply-pin-pair
+classes: [decoupling]
+applies:
+  topologies: [mcu]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  hf_bypass_nf: 100
+  hf_bypass_per: "supply pin pair (VDD/VSS), one cap per pair"
+  bulk_caps_per_device: 1
+  placement: "as close as the package allows; minimize cap-pin-gnd loop area; opposite side of board acceptable for this"
+prose: >
+  Principle: an MCU draws its supply current in short spikes on clock and
+  I/O edges; spikes cannot be delivered over long supply lines, so the
+  decoupling capacitor is the source - one HF ceramic (100 nF is both
+  vendors' value here) per supply pin pair, placed as close as the package
+  allows so the cap->VDD->VSS->cap loop is minimal, plus one bulk cap per
+  device to stabilize the rail. AN2519 Fig 2-1 (read p.5) draws the failure:
+  a cap placed far away enlarges the high-current loop, the power/ground
+  planes join the loop and the whole ground plane acts as an antenna,
+  raising radiated emission. P.6 (Fig 2-2 read): connect the cap as close
+  as possible to the power and ground pins - for large packages the
+  opposite side of the board may get it closest - it is critical to
+  minimize the loop area between cap and pins; for devices with multiple
+  power/ground pin pairs "there is a decoupling capacitor for every pair of
+  pins"; the main supply "should also have a tantalum or ceramic capacitor
+  to stabilize it". ST states the same for the subject part: DS12991 Fig 9
+  caution (read p.39) - decouple the supply pin pair with the shown
+  ceramics "as close as possible to, or below, the appropriate pins on the
+  underside of the PCB"; p.70 General PCB design guidelines - the 100 nF
+  must be good-quality ceramic, as close as possible to the chip.
+sources:
+  - {file: research/sources/AN2519-AVR-Microcontroller-Hardware-Design-Considerations-00002519B.pdf, page: 5, section: "2.1 Digital Supply", note: "Fig 2-1 Incorrect Decoupling: far cap = larger high-current loop, ground plane radiates; supply drawn as edge spikes"}
+  - {file: research/sources/AN2519-AVR-Microcontroller-Hardware-Design-Considerations-00002519B.pdf, page: 6, section: "2.1/2.2", note: "Fig 2-2: cap close to pins, minimize loop area, opposite-side placement ok; one cap per power/ground pin pair; bulk tantalum/ceramic on main supply"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 39, section: "5.1.6 Power supply scheme", note: "Fig 9 + caution: filtering ceramics on the VDD/VDDA-VSS/VSSA pin pair, as close as possible to or below the pins"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 70, section: "General PCB design guidelines", note: "100 nF ceramic good quality, placed as close as possible to the chip"}
+status: active
+origin: research:block-mcu-1
+level: principle
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "Re-read AN2519 p.5 (Fig 2-1 Incorrect Decoupling: current drawn in short spikes on clock edges, far cap enlarges the high-current loop, power/ground planes join it and the whole ground plane acts as an antenna) and p.6 (connect the cap to the planes as close as possible to the power and ground pins; opposite side of board best for large packages; critical to minimize the loop area; 'for devices with multiple pairs of power and ground pins ... a decoupling capacitor for every pair of pins'; 'the main power supply should also have a tantalum or ceramic capacitor to stabilize it') - every quoted phrase is on the page. DS12991 p.39 Fig 9 caution verbatim ('must be decoupled with filtering ceramic capacitors ... as close as possible to, or below, the appropriate pins on the underside of the PCB') and p.70 General PCB design guidelines verbatim ('the 100 nF capacitor should be ceramic (good quality) and it should be placed as close as possible to the chip'). Rule fields 100 nF per pin pair / one bulk per device / loop-area placement all supported; principle level and decoupling class fit. Only imprecision, not a defect: AN2519's 100 nF number appears in 2.2 for the analog supply and AREF, not for the digital pin pair, so the digital 100 nF value rests on ST p.70 - the parenthetical 'both vendors value here' is loose but the rule value is vendor-sourced."}

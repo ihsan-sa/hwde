@@ -39,7 +39,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 import geom  # noqa: E402
 import plane_repair as pr  # noqa: E402
 
-PYTHON = str(REPO / ".venv" / "Scripts" / "python.exe")
+PYTHON = str(REPO / ".venv" / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python"))
 SCRIPT = str(SCRIPTS / "plane_repair.py")
 
 

@@ -1,0 +1,224 @@
+{
+ "script": "place_anneal",
+ "status": "violations",
+ "board": "g0-sense.kicad_pcb",
+ "counts": {
+  "total": 2,
+  "by_severity": {
+   "error": 2
+  },
+  "by_source": {
+   "check.place": 2
+  }
+ },
+ "violations": [
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    18.9968,
+    40.201
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "J1"
+   ],
+   "msg": "J1 declared on edge 'left' but is 5.7 mm away",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "J1 declared on edge 'left' but is 5.7 mm away",
+     "pos": [
+      18.9968,
+      40.201
+     ]
+    }
+   ],
+   "kind": "edge_violation",
+   "edge": "left",
+   "dist_mm": 5.6815
+  },
+  {
+   "check": "place",
+   "severity": "error",
+   "pos": [
+    70.6659,
+    40.201
+   ],
+   "layer": null,
+   "net": null,
+   "refs": [
+    "U3"
+   ],
+   "msg": "U3 declared on edge 'right' but is 2.8 mm away",
+   "source": "check.place",
+   "items": [
+    {
+     "msg": "U3 declared on edge 'right' but is 2.8 mm away",
+     "pos": [
+      70.6659,
+      40.201
+     ]
+    }
+   ],
+   "kind": "edge_violation",
+   "edge": "right",
+   "dist_mm": 2.7616
+  }
+ ],
+ "candidates": [
+  {
+   "rank": 1,
+   "cost": 432.867,
+   "score": 432.867,
+   "hpwl_mm": 468.0857,
+   "terms": {
+    "hpwl_raw_mm": 468.0857,
+    "hpwl_weighted": 320.6632,
+    "overlap_mm2": 0.0,
+    "cong_overflow": 0,
+    "crossings_weighted": 7.75,
+    "rule": 96.7039,
+    "corridor_mm2": 0.0,
+    "assembly_mm": 0.0,
+    "back_parts": 0
+   },
+   "legal": false,
+   "repaired": false,
+   "completion": null,
+   "sides": {
+    "front": 26,
+    "back": 0
+   },
+   "corridors": [
+    {
+     "a": "J1",
+     "b": "U1",
+     "width_mm": 3.0,
+     "intrusion_mm2": 0.0,
+     "intruders": []
+    }
+   ],
+   "ops_file": "kicad/anneal/cand1.ops.json",
+   "n_violations": 2
+  },
+  {
+   "rank": 2,
+   "cost": 433.117,
+   "score": 433.117,
+   "hpwl_mm": 468.3357,
+   "terms": {
+    "hpwl_raw_mm": 468.3357,
+    "hpwl_weighted": 320.9132,
+    "overlap_mm2": 0.0,
+    "cong_overflow": 0,
+    "crossings_weighted": 7.75,
+    "rule": 96.7039,
+    "corridor_mm2": 0.0,
+    "assembly_mm": 0.0,
+    "back_parts": 0
+   },
+   "legal": false,
+   "repaired": false,
+   "completion": null,
+   "sides": {
+    "front": 26,
+    "back": 0
+   },
+   "corridors": [
+    {
+     "a": "J1",
+     "b": "U1",
+     "width_mm": 3.0,
+     "intrusion_mm2": 0.0,
+     "intruders": []
+    }
+   ],
+   "ops_file": "kicad/anneal/cand2.ops.json",
+   "n_violations": 2
+  },
+  {
+   "rank": 3,
+   "cost": 434.117,
+   "score": 434.117,
+   "hpwl_mm": 469.3357,
+   "terms": {
+    "hpwl_raw_mm": 469.3357,
+    "hpwl_weighted": 321.9132,
+    "overlap_mm2": 0.0,
+    "cong_overflow": 0,
+    "crossings_weighted": 7.75,
+    "rule": 96.7039,
+    "corridor_mm2": 0.0,
+    "assembly_mm": 0.0,
+    "back_parts": 0
+   },
+   "legal": false,
+   "repaired": false,
+   "completion": null,
+   "sides": {
+    "front": 26,
+    "back": 0
+   },
+   "corridors": [
+    {
+     "a": "J1",
+     "b": "U1",
+     "width_mm": 3.0,
+     "intrusion_mm2": 0.0,
+     "intruders": []
+    }
+   ],
+   "ops_file": "kicad/anneal/cand3.ops.json",
+   "n_violations": 2
+  }
+ ],
+ "seed": 1,
+ "separation_unknown_refs": [],
+ "corridor_unknown_refs": [],
+ "side_unknown_refs": [],
+ "side_conflicts": [],
+ "clusters": 13,
+ "movable_clusters": 11,
+ "flippable_clusters": 0,
+ "back_parts_fixed": 0,
+ "sides_input": {
+  "front": 26,
+  "back": 0
+ },
+ "sides_best": {
+  "front": 26,
+  "back": 0
+ },
+ "satellites_reslotted": [],
+ "hpwl_input_mm": 662.5676,
+ "hpwl_start_mm": 662.5676,
+ "hpwl_best_mm": 468.0857,
+ "improvement_pct": 29.35,
+ "start_terms": {
+  "hpwl_raw_mm": 662.5676,
+  "hpwl_weighted": 508.7663,
+  "overlap_mm2": 0.5872,
+  "cong_overflow": 5,
+  "crossings_weighted": 26.25,
+  "rule": 116.8113,
+  "corridor_mm2": 0.0,
+  "assembly_mm": 0.0,
+  "back_parts": 0
+ },
+ "epochs": 140,
+ "moves": 120718,
+ "accepted": 55455,
+ "t0": 5428.4487,
+ "t_end": 0.426391,
+ "feedback_used": false,
+ "last_completion": null,
+ "runtime_s": 137.54,
+ "warnings": [],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-27T13:59:38+00:00",
+ "input": "kicad/g0-sense.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:5aa0e3e275ab7dcd16110d1cb30c44017944e2d07adcf6bd59a073a84c376695"
+}

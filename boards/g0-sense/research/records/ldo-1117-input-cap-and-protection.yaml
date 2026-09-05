@@ -1,0 +1,51 @@
+id: ldo-1117-input-cap-and-protection
+classes: [decoupling]
+applies:
+  topologies: [ldo]
+  packages: []
+  interfaces: []
+  parts: [AMS1117, AMS1117-3.3, LM1117]
+rule:
+  enforced_by: null
+  cin_uf: 10
+  cin_kind: "tantalum (family datasheet wording); place at VIN"
+  cin_required_when: "regulator located far from the upstream supply filter"
+prose: >
+  What the family datasheets actually require at VIN: the subject AMS1117
+  datasheet states NO input-capacitor value or ESR condition anywhere in its
+  Application Hints (p4 shows an unlabeled cap at VIN in Fig 2 only) - CIN is
+  not stability-critical for this family, the ESR window belongs to COUT.
+  The TI LM1117 sibling makes the requirement explicit: "An input capacitor
+  is recommended. A 10-uF tantalum on the input is a suitable input
+  capacitor for almost all applications" (s9.2.2.1.1, p14), and the Fig 9-3
+  fixed-regulator example marks its 10 uF tantalum CIN "Required if the
+  regulator is located far from the power supply filter" (p16) - the cap's
+  job is local source impedance, so it sits at the VIN pin and becomes
+  mandatory when upstream bulk is not adjacent. Layout per LM1117 9.5.1
+  (p17): load-current traces wide (parasitic inductance); VOUT-to-ADJ
+  feedback loop as short as possible; ADJ bypass as close as possible to
+  the IC; and when VIN can be shorted to ground, a diode from VOUT to VIN
+  placed close to the pins diverts the output-cap surge. AMS1117 p4 bounds
+  the same risk: the internal diode absorbs 50-100 A microsecond surges,
+  and the external diode is recommended only with very large COUT
+  (1000-5000 uF) or an input crowbar - not needed at 22 uF scale.
+sources:
+  - {file: research/sources/lm1117.pdf, page: 14, note: "s9.2.1 + s9.2.2.1.1: input capacitor recommended, 10 uF tantalum suitable for almost all applications; Fig 9-1 typical app with 10 uF at VIN"}
+  - {file: research/sources/lm1117.pdf, page: 16, note: "Fig 9-3 Fixed Output Regulator: 10 uF tantalum input cap footnoted 'Required if the regulator is located far from the power supply filter'"}
+  - {file: research/sources/lm1117.pdf, page: 17, note: "s9.5.1 Layout Guidelines: wide load-current traces, short VOUT-ADJ loop, ADJ bypass close to IC, VOUT-to-VIN protection diode close to the pins when VIN can short to ground"}
+  - {file: research/sources/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf, page: 4, note: "Application Hints: no CIN value stated anywhere (absence verified on the page); Protection Diodes - internal diode handles 50-100 A us surges, external VOUT->VIN diode recommended only for 1000-5000 uF COUT or input crowbar; Fig 2 shows only an unlabeled cap at VIN"}
+status: active
+origin: research:block-ldo-1
+level: family
+envelope:
+  vin_v: {max: 15}
+maturity: verified
+generalizes: []
+envelope_note: >
+  The CIN recommendation is a family datasheet constant, not operating-point
+  scaled; the honest bound is the family's own input rating - AMS1117 abs max
+  input 15 V (p2). Beyond the 1117 family the rule inverts in detail for
+  CMOS parts (AP2112 uses 1 uF ceramic CIN, p2) - the class rule that CIN is
+  sized by the family datasheet and placed at VIN survives, the numbers do
+  not.
+verification: {by: "second-reader", date: "2026-08-27", note: "All four cited pages opened. lm1117 p14: s9.2.1 Design Requirements and s9.2.2.1.1 Input Bypass Capacitor both say verbatim \"An input capacitor is recommended. A 10-uF tantalum on the input is a suitable input capacitor for almost all applications\", and Fig 9-1 does show 10 uF at VIN. p16 Fig 9-3 Fixed Output Regulator shows a 10 uF Tantalum at the input carrying the footnote \"* Required if the regulator is located far from the power supply filter\" - exactly the records cin_required_when wording, so that field is source text, not a gloss. p17 s9.5.1 confirmed verbatim on all four layout points: load-current traces wide to reduce parasitic trace inductance, VOUT-to-ADJ feedback loop as short as possible, ADJ bypass cap as close as possible to the IC, and an external VOUT-to-VIN diode placed close to the corresponding IC pins for the case where VIN shorts to ground. The AMS1117 absence claim was tested, not trusted: p4 Application Hints (Stability, Protection Diodes, Output Voltage, Load Regulation) names no input-capacitor value or ESR condition, its continuation on p5 (Thermal Considerations, Ripple Rejection) names none either, p1 has no application circuit, p6 is typical performance curves and p7-p8 are package drawings - the silence is real datasheet-wide, and Fig 2 on p4 does show only an unlabeled cap at VIN. The Protection Diodes paragraph on p4 confirms the rest: \"Microsecond surge currents of 50A to 100A can be handled by the internal diode\", damage needs \"high value output capacitors ... such as 1000uF to 5000uF and the input pin ... instantaneously shorted to ground\", and the OUT-to-IN diode is recommended when an input crowbar is used - so \"not needed at 22 uF scale\" is a fair reading of \"In normal operations it is difficult to get those values of surge currents even with the use of large output capacitances\". Two nits, neither refuting: envelope vin_v <= 15 is true (AMS p2 Absolute Maximum Ratings, Input Voltage 15V - I opened it) but p2 is not in the records sources list, only named inline in envelope_note; and \"the caps job is local source impedance\" is interpretation rather than page wording, though the Fig 9-3 footnote implies it."}

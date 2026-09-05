@@ -36,3 +36,18 @@ When the user says `run step N` (or just `step N`):
   Java 25; system Java 24 is insufficient). Re-fetch instructions: check_env remediation.
 - Prior attempts live at `C:\dev\AI-EE` and `C:\dev\ai-ee2`: consult their LEARNINGS for
   machine-verified FACTS only (pointer entry in LEARNINGS.md) - never port their architecture.
+
+## Environment - Linux container (2026-08-27, `docker/`)
+
+The same toolchain runs on Linux inside the image built from `docker/Dockerfile`
+(base `kicad/kicad:10.0.5`: kicad-cli 10.0.5 + python 3.13.5 with SWIG pcbnew +
+symbol/footprint libs + libngspice; plus Node/Claude Code, the venv from
+`requirements.lock` at `/opt/venv` linked to `.venv`, Temurin 25, Freerouting
+2.2.4, KiCadRoutingTools 0.19.0, TeX Live). In the container:
+
+- venv python is `.venv/bin/python` (read `.venv\Scripts\python.exe` in the docs as that).
+- tool pins are env vars (`HWDE_KICAD_CLI`, `HWDE_JAVA`, `HWDE_FREEROUTING_JAR`,
+  `HWDE_KRT_DIR`, `HWDE_NGSPICE_DLL`); `tools/` is unused there.
+- `make check` = pytest + `check_env --quiet`; `make env` = `check_env --full`.
+- Unattended board runs: `hwde-loop <board>` inside the container (rules:
+  `docker/run-contract.md`); build/run commands in `docker/README.md`.

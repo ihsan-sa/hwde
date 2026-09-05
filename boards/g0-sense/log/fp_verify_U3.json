@@ -1,0 +1,74 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "DFN-4_L1.5-W1.5-P0.8-TL-EP.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "DFN-4_L1.5-W1.5-P0.8-TL-EP"
+   ],
+   "msg": "pad size(s) [[0.42, 0.505]] mm != datasheet [0.3, 0.5] mm (tol 0.1; min/max of 1 distinct sizes)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "pad size(s) [[0.42, 0.505]] mm != datasheet [0.3, 0.5] mm (tol 0.1; min/max of 1 distinct sizes)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.3,
+    0.5
+   ],
+   "measured_mm": [
+    [
+     0.42,
+     0.505
+    ]
+   ]
+  }
+ ],
+ "footprint": "DFN-4_L1.5-W1.5-P0.8-TL-EP",
+ "footprint_file": "boards/g0-sense/lib/aiee.pretty/DFN-4_L1.5-W1.5-P0.8-TL-EP.kicad_mod",
+ "copper_pads": 4,
+ "total_pads": 4,
+ "measured_pitch_mm": 0.8,
+ "measured_pad_size_mm": [
+  0.42,
+  0.505
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "DFN-4, 1.5 x 1.5 mm body x 0.54 mm height; 0.8 mm labeled 'Pitch' on the Fig. 9 package-outline side view (p.12)",
+  "pad_count": 4,
+  "pitch_mm": 0.8,
+  "row_spacing_mm": 1.4,
+  "pad_size_mm": [
+   0.5,
+   0.3
+  ],
+  "pin1": "1",
+  "notes": "Recommended land pattern is Fig. 10 (p.13), a 2x2 CORNER-pad array, not a linear 4-in-a-row DFN: 4 discrete rectangular pads only, with NO footprint for the central die pad (see exposed_pad). Dimensions read off Fig. 10: 1.4 mm spans the two pad COLUMNS (X, top label), 0.8 mm spans the two pad ROWS (Y, left label - matches the 'Pitch 0.8' callout on the Fig. 9 outline view), each pad is individually dimensioned ~0.5 mm x 0.3 mm (bottom-right / right labels). A further '(0.2)' dimension appears in parentheses (bottom-left) whose exact referent (pad notch/step vs. something else) is not labeled in the flattened drawing - re-view Fig. 10 (p.13) directly before cutting a footprint, and confirm edge-vs-center-to-center convention for the 1.4/0.8 spans. Figure 10 caption: 'There shall be no copper under the sensor other than at the pin pads.' Pin-1 orientation (Fig. 11, p.13, transparent top view): pin 1 = TOP-LEFT pad, pin 4 = TOP-RIGHT, pin 3 = BOTTOM-RIGHT, pin 2 = BOTTOM-LEFT. The physical pin-1 indicator is a laser-marked FILLED CIRCLE dot printed immediately left of 'SH4x' on the package top marking (first marking line); do not confuse it with the small (0.6 mm dia.) humidity-sensor opening, which is a separate feature centered on the package top (Sec 5.1/Fig. 9, p.12)."
+ },
+ "svg": "boards/g0-sense/log/U3_SHT40.overlay.svg",
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-27T09:26:05+00:00",
+ "input": "boards/g0-sense/lib/aiee.pretty/DFN-4_L1.5-W1.5-P0.8-TL-EP.kicad_mod",
+ "input_digest": "sexpr_no_uuid:72dbf659922729f8b67ab617eaf3740d0a3744d12ad69905e922a817c2662286"
+}

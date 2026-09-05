@@ -1,0 +1,254 @@
+{
+ "script": "stitch_vias",
+ "status": "pass",
+ "board": "g0-sense.kicad_pcb",
+ "counts": {
+  "total": 0,
+  "by_severity": {},
+  "by_source": {}
+ },
+ "violations": [],
+ "requested": 16,
+ "placed": 13,
+ "skipped": [
+  {
+   "ref": "C13.2",
+   "reason": "track_connected_no_local_spot",
+   "net": "GND"
+  },
+  {
+   "ref": "C2.2",
+   "reason": "already_stitched",
+   "net": "GND"
+  },
+  {
+   "ref": "D10.2",
+   "reason": "already_stitched",
+   "net": "GND"
+  },
+  {
+   "ref": "R1.2",
+   "reason": "already_stitched",
+   "net": "GND"
+  },
+  {
+   "ref": "SW1.3",
+   "reason": "already_stitched",
+   "net": "GND"
+  },
+  {
+   "ref": "SW1.4",
+   "reason": "already_stitched",
+   "net": "GND"
+  },
+  {
+   "ref": "U2.5",
+   "reason": "track_connected_no_local_spot",
+   "net": "GND"
+  },
+  {
+   "ref": "U3.4",
+   "reason": "track_connected_no_local_spot",
+   "net": "GND"
+  }
+ ],
+ "via_size": 0.6,
+ "via_drill": 0.3,
+ "clearance_mm": 0.127,
+ "dry_run": false,
+ "applied": true,
+ "refilled": true,
+ "apply_by_status": {
+  "added": 15
+ },
+ "ops": [
+  {
+   "op": "add_via",
+   "at": [
+    30.1,
+    36.45
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    31.84,
+    37.16
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    31.84,
+    33.91
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    37.96,
+    41.11
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    45.2,
+    44.6
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    32.54,
+    38.15
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    27.035,
+    37.961
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_track",
+   "start": [
+    26.48,
+    38.3
+   ],
+   "end": [
+    27.035,
+    37.961
+   ],
+   "width": 0.127,
+   "layer": "F.Cu",
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    27.035,
+    45.039
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_track",
+   "start": [
+    26.48,
+    44.7
+   ],
+   "end": [
+    27.035,
+    45.039
+   ],
+   "width": 0.127,
+   "layer": "F.Cu",
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    40.808,
+    49.236
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    41.69,
+    32.19
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    31.3,
+    43.25
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    46.6,
+    47.0
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  },
+  {
+   "op": "add_via",
+   "at": [
+    32.577,
+    41.754
+   ],
+   "size": 0.6,
+   "drill": 0.3,
+   "net": "GND"
+  }
+ ],
+ "mode": "stitch",
+ "pitch_mm": 4.283,
+ "t_rise_ns": 1.0,
+ "nets": {
+  "GND": {
+   "plane_layers": [
+    "B.Cu"
+   ],
+   "pads": {
+    "requested": 16,
+    "placed": 13,
+    "skipped": 3
+   },
+   "area": {
+    "candidates": 35,
+    "placed": 0,
+    "rejected": {
+     "single_layer_contact": 19,
+     "fill_edge": 3,
+     "near_same_net_via": 13
+    },
+    "capped": false
+   }
+  }
+ },
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-27T17:51:28+00:00",
+ "input": "/workspace/boards/g0-sense/kicad/g0-sense.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:632f00bb9eded404dd9b682788c94e981962a9b8126075d52200ec9df9777862"
+}

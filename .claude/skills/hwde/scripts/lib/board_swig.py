@@ -17,6 +17,8 @@ headless (LEARNINGS [swig]).
   layers         2 | 4
   components     [{ref, value, fp:"Lib:Name"}, ...]
   netmap         {"REF.PAD": "netname", ...}
+  skip_unconnected_nets  bool - leave pads on `unconnected-*` pseudo-nets NETLESS
+                 (board_init sets it after measuring what parity wants)
   fp_paths       [dir, ...] searched for "<Lib>.pretty/<Name>.kicad_mod"
   margin         gap between packed parts + border to outline (default 5.0)
   outline        {mode:"auto"} | {mode:"fixed", w, h}
@@ -232,6 +234,7 @@ def build(job: dict) -> dict:
         return nets[name]
 
     netmap = job["netmap"]
+    skip_unconnected = bool(job.get("skip_unconnected_nets"))
     placed = []
     boxes = []  # (fp, w, h)
     for comp in job["components"]:
@@ -252,10 +255,27 @@ def build(job: dict) -> dict:
         for field in fp.GetFields():
             if field.GetName() in (comp.get("fields") or {}):
                 field.SetVisible(False)  # metadata, not board art
+        # KiCad's native do-not-populate flag is a SYMBOL attribute that must be
+        # mirrored on the footprint, else `drc --schematic-parity` reports
+        # footprint_symbol_mismatch "'Do not populate' settings differ". Only
+        # FP_DNP is set: in_bom / on_board stay whatever the symbol said, and
+        # flipping exclude_from_bom here would just trade one mismatch for
+        # another.
+        if comp.get("dnp"):
+            fp.SetAttributes(fp.GetAttributes() | getattr(pcbnew, "FP_DNP", 0))
         board.Add(fp)
         for pad in fp.Pads():
             want = netmap.get(f"{comp['ref']}.{pad.GetNumber()}")
-            if want:
+            # `unconnected-(...)` is a name the NETLIST EXPORTER invents for a
+            # pin the schematic leaves unconnected, and whether the PCB must
+            # carry it is NOT uniform: a flat schematic wants it, a hierarchical
+            # one rejects it - both measured on KiCad 10.0.5, see
+            # board_init._rejects_unconnected_nets. board_init decides by asking
+            # the real parity checker and re-runs this worker with
+            # skip_unconnected_nets on the rejection signature; do not guess the
+            # rule here.
+            if want and not (skip_unconnected
+                             and want.startswith("unconnected-")):
                 pad.SetNet(net_of(want))
         fp.BuildCourtyardCaches()
         bb = fp.GetBoundingBox(False, False)  # copper+courtyard, no text

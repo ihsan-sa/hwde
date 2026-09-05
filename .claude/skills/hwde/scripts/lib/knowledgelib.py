@@ -499,15 +499,27 @@ def envelope_contains(env, op) -> dict:
 # ---------------------------------------------------------------------------
 # validation (validate_registry-style: every named artifact must exist)
 # ---------------------------------------------------------------------------
+# A source whose licence forbids redistribution (a paid or restricted standard)
+# is not committed: what ships in its place is a sidecar `<file>.not-redistributed.md`
+# naming the public download url and the sha256 of the copy that was read. The
+# citation stays checkable (and re-readable by anyone who downloads it), the
+# bytes stay out of the repo.
+NOT_REDISTRIBUTED_SUFFIX = ".not-redistributed.md"
+
+
 def _source_exists(file: str, roots=()) -> bool:
     """Source files resolve skill-relative or repo-relative - plus any extra
     `roots` (U15: a workspace, whose research records cite
-    `research/sources/<file>` relative to the workspace root)."""
+    `research/sources/<file>` relative to the workspace root). A
+    `<file>.not-redistributed.md` sidecar stands in for a source that may not
+    be redistributed."""
     if not file or file != file.strip():
         return False
-    if (SKILL / file).is_file() or (REPO / file).is_file():
-        return True
-    return any((Path(r) / file).is_file() for r in roots)
+    for base in (SKILL, REPO, *(Path(r) for r in roots)):
+        p = base / file
+        if p.is_file() or p.with_name(p.name + NOT_REDISTRIBUTED_SUFFIX).is_file():
+            return True
+    return False
 
 
 def _script_flag_problems(where: str, text: str) -> list[str]:

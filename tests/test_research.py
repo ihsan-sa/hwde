@@ -783,6 +783,53 @@ def test_promote_copies_verified_record_and_sources_into_the_library(opened, tmp
     assert code == 2 and "already exists" in pr["error"]
 
 
+def test_promote_carries_a_not_redistributed_sidecar_in_place_of_the_bytes(
+        opened, tmp_path):
+    """A source whose licence forbids redistribution is kept as its
+    `<file>.not-redistributed.md` sidecar (url + sha256). Promotion copies the
+    sidecar, the citation still names the source, and the library lints."""
+    ws, tid, lib = opened["ws"], opened["tid"], opened["lib"]
+    recs, cls = lib
+    libsrc = tmp_path / "lib_sources"
+    write_record(ws, base_record(tid))
+    run(research, tmp_path, [
+        "verify", "--workspace", str(ws), "--task", tid,
+        "--record", "llc-resonant-tank-loop", "--verdict", "verified",
+        "--note", "p2 fig 3 re-read, holds"])
+    pdf = ws / "research" / "sources" / "slua123.pdf"
+    pdf.unlink()
+    sidecar = pdf.with_name(pdf.name + knowledgelib.NOT_REDISTRIBUTED_SUFFIX)
+    sidecar.write_text("download: https://example.invalid/slua123.pdf\n"
+                       "sha256: deadbeef\n", encoding="utf-8")
+    pr, code = run(research, tmp_path, [
+        "promote", "--workspace", str(ws), "--record", "llc-resonant-tank-loop",
+        "--records-dir", str(recs), "--sources-dir", str(libsrc),
+        "--checklists-dir", str(cls)])
+    assert code == 0, pr
+    copied = yaml.safe_load((recs / "llc-resonant-tank-loop.yaml").read_text())
+    assert copied["sources"][0]["file"].endswith("lib_sources/slua123.pdf")
+    assert not (libsrc / "slua123.pdf").exists()          # the bytes never travel
+    assert (libsrc / ("slua123.pdf"
+                      + knowledgelib.NOT_REDISTRIBUTED_SUFFIX)).is_file()
+    assert knowledgelib.validate(recs, cls, strict=True) == []
+
+
+def test_promote_still_refuses_a_source_that_is_simply_gone(opened, tmp_path):
+    ws, tid, lib = opened["ws"], opened["tid"], opened["lib"]
+    recs, cls = lib
+    write_record(ws, base_record(tid))
+    run(research, tmp_path, [
+        "verify", "--workspace", str(ws), "--task", tid,
+        "--record", "llc-resonant-tank-loop", "--verdict", "verified",
+        "--note", "p2 fig 3 re-read, holds"])
+    (ws / "research" / "sources" / "slua123.pdf").unlink()
+    pr, code = run(research, tmp_path, [
+        "promote", "--workspace", str(ws), "--record", "llc-resonant-tank-loop",
+        "--records-dir", str(recs), "--sources-dir", str(tmp_path / "ls2"),
+        "--checklists-dir", str(cls)])
+    assert code == 2 and "missing from the workspace" in pr["error"]
+
+
 # ---------------------------------------------------------------------------
 # 6. distributor clients
 # ---------------------------------------------------------------------------

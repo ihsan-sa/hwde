@@ -1,0 +1,78 @@
+#!/bin/bash
+# hwde-loop - unattended board run inside the hwde run image (fresh context per iteration,
+# durable state = boards/<b>/state.json + boards/<b>/log/run-journal.md + git).
+#   hwde-loop <board> [--max-iter N=12] [--turns N=400] [--iter-timeout SEC=21600] [--model M=claude-opus-5] [--effort E=xhigh]
+# Run it as the container's command (whatever runner you use starts the container; this script
+# assumes nothing about the host). Env: HWDE_REPO_DIR (repo checkout, default /workspace),
+# HWDE_RUN_CONTRACT (rules file, default docker/run-contract.md, relative to the repo).
+# Needs: the repo checkout, boards/<board>/brief/brief.md in place, and the contract file.
+# Exit: 0 done | 3 blocked | 4 stalled | 5 errors | 6 max-iter. Per-iteration transcripts: boards/<b>/log/run/.
+set -uo pipefail
+cd "${HWDE_REPO_DIR:-/workspace}" || exit 2
+BOARD="${1:?board name}"; shift
+MAXI=12; TURNS=400; ITO=21600; MODEL=claude-opus-5; EFFORT=xhigh
+while [ $# -gt 0 ]; do case "$1" in
+  --max-iter) MAXI="$2"; shift;; --turns) TURNS="$2"; shift;; --iter-timeout) ITO="$2"; shift;;
+  --model) MODEL="$2"; shift;; --effort) EFFORT="$2"; shift;; *) echo "hwde-loop: unknown arg $1" >&2; exit 2;; esac; shift; done
+WS="boards/$BOARD"; BRIEF="$WS/brief/brief.md"; J="$WS/log/run-journal.md"; RUNS="$WS/log/run"
+CONTRACT="${HWDE_RUN_CONTRACT:-docker/run-contract.md}"
+[ -f "$BRIEF" ] || { echo "hwde-loop: no brief at $BRIEF" >&2; exit 2; }
+[ -f "$CONTRACT" ] || { echo "hwde-loop: no $CONTRACT" >&2; exit 2; }
+mkdir -p "$RUNS"; touch "$J"; LOG="$RUNS/loop.log"
+log(){ printf '%s %s\n' "$(date -u +%FT%TZ)" "$*" | tee -a "$LOG" >&2; }
+commit_all(){ git add -A . >/dev/null 2>&1; git diff --cached --quiet || git commit -q -m "$1" >/dev/null 2>&1; }
+status_file(){ printf '%s\n' "$1" > "$RUNS/STATUS"; }
+parse_reset(){ # "…resets 11:40am (UTC)…" -> epoch (never in the past); fails if unparsable
+  local t d now; t=$(grep -oiE 'resets? [^()]*\(UTC\)' <<<"$1" | head -1 | sed -E 's/^resets? +//; s/ *\(UTC\)//; s/·//g')
+  [ -n "$t" ] || return 1; d=$(date -u -d "$t" +%s 2>/dev/null) || return 1; now=$(date -u +%s)
+  [ "$d" -lt "$now" ] && d=$now; echo "$d"
+}
+wait_for_limit(){ # $1 = result text; $2 = consecutive limit hits. Sleep to the reset, then probe until claude answers.
+  local target sl now; now=$(date -u +%s)
+  if target=$(parse_reset "$1"); then sl=$((target - now + 120)); else sl=900; fi
+  [ "$sl" -lt $((300 * $2)) ] && sl=$((300 * $2)); [ "$sl" -gt 21600 ] && sl=21600
+  log "LIMIT: usage limit hit ($(tr -s '[:space:]' ' ' <<<"$1" | head -c 120)); waiting ${sl}s until $(date -u -d "@$((now + sl))" +%H:%MZ), then probing"
+  sleep "$sl"
+  while ! timeout 120 claude -p 'Reply with the single word OK.' --model claude-haiku-4-5-20251001 --max-turns 1 --output-format json 2>/dev/null | jq -e '.is_error != true' >/dev/null 2>&1; do
+    log "LIMIT: still limited, probing again in 300s"; sleep 300
+  done
+  log "LIMIT: cleared, resuming"
+}
+log "start board=$BOARD model=$MODEL effort=$EFFORT max-iter=$MAXI turns=$TURNS iter-timeout=${ITO}s"
+status_file "RUNNING"
+i=0; errs=0; stall=0; spent=0; limits=0
+while [ $i -lt "$MAXI" ]; do
+  i=$((i+1)); before_head=$(git rev-parse HEAD 2>/dev/null); before_off=$(stat -c%s "$J" 2>/dev/null || echo 0)
+  if [ -f "$WS/state.json" ]; then
+    task="/hwde --resume $WS"
+    step="Resume from state.json (state.py resume) and the journal; finish the next unfinished phase(s)."
+  else
+    task="/hwde full run: design the board in $BRIEF into the workspace $WS (board name $BOARD). The brief file is already in place - init the workspace there (state.py init --workspace $WS), keep the brief under brief/, then run the full-run recipe from P0."
+    step="This is the first iteration: start the full run at P0."
+  fi
+  prompt=$(printf '%s\n\n# BRIEF (%s)\n%s\n\n# RUN JOURNAL (%s, latest last)\n%s\n\n# THIS ITERATION (%s of %s)\n%s\n%s\nAppend your journal entry to %s after every phase you complete and before you stop.\n' \
+    "$(cat "$CONTRACT")" "$BRIEF" "$(cat "$BRIEF")" "$J" "$(tail -c 8000 "$J")" "$i" "$MAXI" "$task" "$step" "$J")
+  out="$RUNS/iter-$(printf '%02d' "$i").json"
+  log "iter $i/$MAXI start ($task)"
+  timeout "$ITO" claude -p "$prompt" --dangerously-skip-permissions --model "$MODEL" --effort "$EFFORT" \
+      --max-turns "$TURNS" --output-format json > "$out" 2> "$out.err"; rc=$?
+  cost=$(jq -r '.total_cost_usd // 0' "$out" 2>/dev/null); iserr=$(jq -r '.is_error // false' "$out" 2>/dev/null); turns=$(jq -r '.num_turns // 0' "$out" 2>/dev/null)
+  spent=$(awk -v a="$spent" -v b="${cost:-0}" 'BEGIN{printf "%.2f", a+b}')
+  commit_all "hwde $BOARD: run iteration $i checkpoint"
+  after_head=$(git rev-parse HEAD 2>/dev/null); after_off=$(stat -c%s "$J" 2>/dev/null || echo 0)
+  phase=$(jq -r '.phase // "?"' "$WS/state.json" 2>/dev/null)
+  log "iter $i end rc=$rc err=$iserr turns=$turns cost=\$${cost:-0} total=\$$spent phase=$phase commits=$([ "$before_head" != "$after_head" ] && echo yes || echo no) journal=$([ "$before_off" != "$after_off" ] && echo updated || echo unchanged)"
+  jq -r '.result // ""' "$out" 2>/dev/null | tail -c 800 | sed 's/^/  | /' >> "$LOG"
+  newj=$(tail -c +"$((before_off+1))" "$J" 2>/dev/null)
+  if grep -qE '^STATUS: DONE' <<<"$newj"; then log "DONE after $i iteration(s), \$$spent"; status_file "DONE"; exit 0; fi
+  if q=$(grep -E '^STATUS: BLOCKED' <<<"$newj" | tail -1) && [ -n "$q" ]; then log "BLOCKED: $q"; status_file "BLOCKED: $q"; exit 3; fi
+  api_status=$(jq -r '.api_error_status // empty' "$out" 2>/dev/null); res=$(jq -r '.result // ""' "$out" 2>/dev/null)
+  if [ "$api_status" = 429 ] || grep -qiE "hit your (session|usage) limit|rate limit" <<<"$res"; then   # not the run's fault: wait, retry, no error/stall credit
+    limits=$((limits+1)); [ "${turns:-0}" -le 1 ] && i=$((i-1))   # a hit before any work does not consume an iteration
+    wait_for_limit "$res" "$limits"; continue
+  fi
+  limits=0
+  if [ "$rc" != 0 ] || [ "$iserr" = true ]; then errs=$((errs+1)); log "error ($errs): rc=$rc $(head -c 300 "$out.err" 2>/dev/null | tr '\n' ' ')"; [ $errs -ge 3 ] && { status_file "ERRORS"; exit 5; }; else errs=0; fi
+  if [ "$before_head" = "$after_head" ] && [ "$before_off" = "$after_off" ]; then stall=$((stall+1)); [ $stall -ge 2 ] && { log "STALLED"; status_file "STALLED"; exit 4; }; else stall=0; fi
+done
+log "max iterations ($MAXI) reached, \$$spent"; status_file "MAX-ITER"; exit 6

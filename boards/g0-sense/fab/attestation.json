@@ -1,0 +1,246 @@
+{
+ "script": "attest",
+ "kind": "release_attestation",
+ "attest_schema": 1,
+ "board": "g0-sense",
+ "rev": 2,
+ "supersedes": "b8e7df259e65007d04669b653fb2b260d4bf37bc66fbcbed2470876b78c4230e",
+ "created": "2026-08-27T19:48:18+00:00",
+ "git_head": "2b71f56322a379670e38389c51e57add418cdfa4",
+ "checker_version": 1,
+ "inputs": {
+  "bom": "text_eol:f6ab04bfc35ea75398f07053ed70725ae6cdc8fecbd43f41ee81ea5adc7b1002",
+  "bom_full": "text_eol:dcc078b48128fd8357fff9c0414312721ab37314b4fd3d7d577501fc1e43c245",
+  "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+  "cpl": "text_eol:f2b98ca78bdfcdd50bc9a75a5a195f490815b41ee53db0f862a3b60aa586592a",
+  "decoupling": "json_canonical:0a7e1619cf19821a1a3d6600721dfe9aaf7580009b98a9bb3012c5cf2d5ed1ee",
+  "dru": "text_eol:4047b1cbc1599d418cd3e1290fa5a5de5d4118a477a83b8b3918c52e2a753724",
+  "gerbers": "gerber_design:be7ac05e764cff39fdef78d17f6ae98d96194bbe90cc7c6f64a26a3ea5f872c1",
+  "netlist": "netlist_canonical:b848fe4f775935223be3cb2f0079c9cbcccb5ac5836c21057b7bac404ec31cee",
+  "parts": "json_canonical:da3a7261928a7cf1db2086fdcaff75b79e688b76deb52baa947edf357a9547d1",
+  "pcb": "sexpr_no_uuid:78f20b4b13f8390f7df0b95c041135505a1e527b5c683a8131bb2062c4ec2c35",
+  "pro": "json_canonical:43b3cca65c20b56e3a9c10c56007a19dc19fb63ac8dc9c0570ecca33a7da6627",
+  "sch": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
+  "sims": null,
+  "waivers": "json_canonical:5fa5696453e3bb543ac3fd6e20fff5a1d37987a826a74869a2fe826abe62a1d6",
+  "stackup_md": "text_eol:cc50b1197f9b9f896ddac26caeb1e42241ff48eecfa8212795d40d493adc204c"
+ },
+ "input_paths": {
+  "bom": "fab/BOM.csv",
+  "bom_full": "fab/BOM-full.csv",
+  "constraints": "kicad/constraints.json",
+  "cpl": "fab/CPL.csv",
+  "decoupling": "kicad/decoupling.json",
+  "dru": "kicad/g0-sense.kicad_dru",
+  "gerbers": "fab/g0-sense_gerbers.zip",
+  "netlist": "kicad/g0-sense.net",
+  "parts": "kicad/parts.json",
+  "pcb": "kicad/g0-sense.kicad_pcb",
+  "pro": "kicad/g0-sense.kicad_pro",
+  "sch": "kicad/g0-sense.kicad_sch",
+  "sims": "kicad/sims",
+  "waivers": "reports/verify-waivers.json"
+ },
+ "gates": {
+  "erc": {
+   "status": "pass",
+   "ts": "2026-08-27T17:37:18",
+   "failing_count": 0,
+   "inputs": {
+    "sch": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
+    "pro": "json_canonical:43b3cca65c20b56e3a9c10c56007a19dc19fb63ac8dc9c0570ecca33a7da6627"
+   }
+  },
+  "place": {
+   "status": "pass",
+   "ts": "2026-08-27T19:44:51",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:78f20b4b13f8390f7df0b95c041135505a1e527b5c683a8131bb2062c4ec2c35",
+    "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+    "decoupling": "json_canonical:0a7e1619cf19821a1a3d6600721dfe9aaf7580009b98a9bb3012c5cf2d5ed1ee"
+   }
+  },
+  "drc_routed": {
+   "status": "pass",
+   "ts": "2026-08-27T19:39:10",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:78f20b4b13f8390f7df0b95c041135505a1e527b5c683a8131bb2062c4ec2c35",
+    "sch": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
+    "pro": "json_canonical:43b3cca65c20b56e3a9c10c56007a19dc19fb63ac8dc9c0570ecca33a7da6627",
+    "dru": "text_eol:4047b1cbc1599d418cd3e1290fa5a5de5d4118a477a83b8b3918c52e2a753724"
+   }
+  },
+  "verify": {
+   "status": "pass",
+   "ts": "2026-08-27T19:40:55",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:78f20b4b13f8390f7df0b95c041135505a1e527b5c683a8131bb2062c4ec2c35",
+    "constraints": "json_canonical:2128489b395e17605cbdcad37f5062c81b1285677db805b19c431b99d324e2f5",
+    "decoupling": "json_canonical:0a7e1619cf19821a1a3d6600721dfe9aaf7580009b98a9bb3012c5cf2d5ed1ee",
+    "waivers": "json_canonical:5fa5696453e3bb543ac3fd6e20fff5a1d37987a826a74869a2fe826abe62a1d6"
+   }
+  },
+  "dfm": {
+   "status": "pass",
+   "ts": "2026-08-27T19:47:49",
+   "failing_count": 0,
+   "inputs": {
+    "pcb": "sexpr_no_uuid:78f20b4b13f8390f7df0b95c041135505a1e527b5c683a8131bb2062c4ec2c35",
+    "sch": "sexpr_no_uuid:e2c5b0843321c2e98acdbb4ed0356a261dfa5a990c45c79833e0bd6404709128",
+    "parts": "json_canonical:da3a7261928a7cf1db2086fdcaff75b79e688b76deb52baa947edf357a9547d1"
+   }
+  }
+ },
+ "reports": {
+  "verify_release": {
+   "path": "reports/verify_release.json",
+   "digest": "json_canonical:fc2ea45c5eae4860a7d3664b176d50078be0ebe5e21214010ac481a9fa37813f",
+   "coverage": {
+    "strict": true,
+    "required": [
+     "check_return_path",
+     "check_current",
+     "check_decoupling",
+     "check_diffpair",
+     "check_creepage",
+     "check_thermal",
+     "check_silk",
+     "check_pdn"
+    ],
+    "ran": [
+     "check_return_path",
+     "check_current",
+     "check_decoupling",
+     "check_diffpair",
+     "check_creepage",
+     "check_thermal",
+     "check_silk",
+     "check_pdn"
+    ],
+    "passed": [
+     "check_return_path",
+     "check_current",
+     "check_decoupling",
+     "check_diffpair",
+     "check_creepage",
+     "check_silk",
+     "check_pdn"
+    ],
+    "failed": [],
+    "waived": [
+     "check_thermal"
+    ],
+    "not_applicable": {},
+    "skipped_error": {}
+   },
+   "waived_fingerprints": [
+    "2c5135a9c51882803edab234ffd7dad84e189a2ffcf3c9b9b7a17e3f5a8893d8"
+   ]
+  },
+  "dfm_release": {
+   "path": "reports/dfm_release.json",
+   "digest": "json_canonical:e25fd9b4653768abd9b770d8c955b28e19342ff15eb3e96aed4975fe2c367929",
+   "coverage": {
+    "strict": true,
+    "required": [
+     "copper",
+     "copper_to_edge",
+     "drill",
+     "hole_to_edge",
+     "silk",
+     "polarity",
+     "bom",
+     "release"
+    ],
+    "ran": [
+     "copper",
+     "copper_to_edge",
+     "drill",
+     "hole_to_edge",
+     "silk",
+     "polarity",
+     "bom",
+     "release"
+    ],
+    "passed": [
+     "copper",
+     "copper_to_edge",
+     "drill",
+     "hole_to_edge",
+     "silk",
+     "polarity",
+     "bom",
+     "release"
+    ],
+    "failed": [],
+    "waived": [],
+    "not_applicable": {},
+    "skipped_error": {}
+   },
+   "waived_fingerprints": []
+  }
+ },
+ "waivers": {
+  "path": "reports/verify-waivers.json",
+  "hash": "json_canonical:5fa5696453e3bb543ac3fd6e20fff5a1d37987a826a74869a2fe826abe62a1d6",
+  "count": 1,
+  "waived_fingerprints": [
+   "2c5135a9c51882803edab234ffd7dad84e189a2ffcf3c9b9b7a17e3f5a8893d8"
+  ]
+ },
+ "fab": {
+  "gerber_zip": {
+   "path": "fab/g0-sense_gerbers.zip",
+   "sha256": "da0db18bb3b0f39afdd991b334f6b9acc8984a9d3874a6b22ca1351ad9f503de",
+   "design_sha256": "be7ac05e764cff39fdef78d17f6ae98d96194bbe90cc7c6f64a26a3ea5f872c1"
+  },
+  "bom": {
+   "path": "fab/BOM.csv",
+   "hash": "text_eol:f6ab04bfc35ea75398f07053ed70725ae6cdc8fecbd43f41ee81ea5adc7b1002"
+  },
+  "cpl": {
+   "path": "fab/CPL.csv",
+   "hash": "text_eol:f2b98ca78bdfcdd50bc9a75a5a195f490815b41ee53db0f862a3b60aa586592a"
+  },
+  "bom_full": {
+   "path": "fab/BOM-full.csv",
+   "hash": "text_eol:dcc078b48128fd8357fff9c0414312721ab37314b4fd3d7d577501fc1e43c245"
+  }
+ },
+ "manufacturing": {
+  "layers": 2,
+  "copper_weight_oz": 1.0,
+  "copper_weight_source": "stackups.yaml[JLC2313_1.6].stack[0].copper_oz",
+  "inner_copper_weight_oz": null,
+  "thickness_mm": 1.6,
+  "surface_finish": null,
+  "solder_mask_color": null
+ },
+ "human_approvals": {
+  "1": {
+   "status": "approved",
+   "ts": "2026-08-27T08:44:13",
+   "note": "delegated (unattended): architecture + 2L stackup approved; LDO 0.51 W design point approved; boot-strap gap accepted because the 10k BOOT0 pull-down removes the dependency; outline stays an output; no sim bench"
+  },
+  "2": {
+   "status": "approved",
+   "ts": "2026-08-27T13:21:44",
+   "note": "delegated (unattended): schematic approved (erc 0/0, netlist_audit 0, adversarial review 0 errors/3 warnings); W1 Qwiic-ESD waived on ecosystem norm + 2 kV HBM endpoints + indoor bench env; W2 SHT4x VDD slew closed as accepted risk (follower LDO makes I/C unreachable, failure mode is a benign cold-start reset); W3 native DNP on J3/J4 FIXED not waived; P5 proceeds with --outline auto"
+  },
+  "3": {
+   "status": "approved",
+   "ts": "2026-08-27T15:59:22",
+   "note": "delegated (unattended): placement approved - gate place 0/0, DRC 0 non-unconnected, size earned 35.79 x 28.34 mm (excess is the SHT40 isolation zone), all four M2 holes kept at zero outline cost, silk 13 -> 0 via the new place_edit silk_clear op plus matching library edits; VBUS pad escape deferred to P7 route_critical with three options costed"
+  },
+  "4": {
+   "status": "approved",
+   "ts": "2026-08-27T19:10:05",
+   "note": "delegated (unattended): verify PASS 0 failing (8/8 checks ran); 4 of 5 errors fixed on their merits, 1 durable check_thermal waiver ratified by the fresh-context reviewer against two vendor tables; reviewer 0 errors / 3 warnings; silk refdes reclassified to a required P9 move_text fix after the reviewer showed 4 of 6 sit under part bodies"
+  }
+ },
+ "known_restrictions": [],
+ "attestation_sha256": "2a0035ebf9fcbbb63f87f1436959909e7fe05052d498fe3a4725cd22ba913f25"
+}

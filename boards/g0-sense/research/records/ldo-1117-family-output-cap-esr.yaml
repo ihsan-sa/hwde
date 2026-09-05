@@ -1,0 +1,55 @@
+id: ldo-1117-family-output-cap-esr
+classes: [feedback]
+applies:
+  topologies: [ldo]
+  packages: []
+  interfaces: []
+  parts: [AMS1117, AMS1117-3.3, LM1117]
+rule:
+  enforced_by: null
+  cout_min_uf: 22
+  cout_kind: "solid tantalum (or ESR-in-window equivalent)"
+  esr_min_ohm: 0.3
+  esr_max_ohm: 22
+prose: >
+  The 1117 class uses the output capacitor as loop compensation, so both a
+  minimum C and an ESR window are requirements. Subject datasheet (AMS1117,
+  Application Hints / Stability, p4): the circuit design "requires the use of
+  an output capacitor as part of the device frequency compensation"; 22 uF
+  solid tantalum "will ensure stability for all operating conditions";
+  bypassing ADJ raises the requirement and 22 uF tantalum covers all cases;
+  larger values only improve stability. It publishes NO numeric ESR window.
+  TI's LM1117 (same 1117 family) quantifies it (s9.2.2.1.3, p15): minimum
+  10 uF if tantalum, ESR between 0.3 and 22 ohm, 22 uF tantalum when CADJ is
+  used - disagreement on minimum C (10 vs 22 uF) resolved toward the subject
+  part's own 22 uF blanket figure. A bare X5R/X7R ceramic has mohm-level ESR
+  (AN-1482 s6), far BELOW the 0.3 ohm floor: a "same 22 uF" ceramic
+  substitution can push the loop out of its stable region. Use tantalum /
+  polymer with in-window ESR, or a ceramic plus deliberate series
+  resistance, and re-verify. This board's committed 22 uF tantalum-class
+  output cap is exactly the datasheet path - GROUNDED. Contrast: ceramic-
+  stable CMOS LDOs invert the rule - Diodes AP2112 is "Stable with 1.0 uF
+  Flexible Cap: Ceramic, Tantalum and Aluminum Electrolytic" (p1) with 1 uF
+  X5R/X7R in/out in the typical application (p2 Note 4).
+sources:
+  - {file: research/sources/2304140030_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf, page: 4, note: "Stability section: output cap is part of the frequency compensation; 22 uF solid tantalum ensures stability for all operating conditions; ADJ bypass raises the requirement; Fig 1 app circuit shows polarized 22 uF COUT; no ESR spec anywhere on the page"}
+  - {file: research/sources/lm1117.pdf, page: 15, note: "s9.2.2.1.3 Output Capacitor: min 10 uF if tantalum; ESR should range 0.3 to 22 ohm; 22 uF tantalum required when CADJ used; more C merely improves stability/transient response"}
+  - {file: research/sources/snva167a.pdf, page: 5, note: "s6: ceramic caps >1 uF have few-mohm ESR at high frequency - below any 0.3 ohm floor; zero lands >3 MHz, too high to add phase lead"}
+  - {file: research/sources/AP2112.pdf, page: 1, note: "Features list: 'Stable with 1.0 uF Flexible Cap: Ceramic, Tantalum and Aluminum Electrolytic' - the ceramic-stable CMOS contrast part"}
+  - {file: research/sources/AP2112.pdf, page: 2, note: "Typical Applications Circuit: CIN 1 uF / COUT 1 uF; Note 4 recommends X7R or X5R dielectric when 1.0 uF ceramic is used for input/output caps"}
+status: active
+origin: research:block-ldo-1
+level: family
+envelope:
+  compensation_kind: {in: [external-esr-zero]}
+maturity: verified
+generalizes: [ldo-output-cap-esr-window-principle]
+envelope_note: >
+  Scales with the part's compensation design, not with load current or Vin:
+  the window exists because the 1117 class takes its loop zero from the
+  output cap's ESR (AMS1117 p4 says the cap IS part of the compensation),
+  and the family specs hold across its full 0-1 A range. Stops being true
+  for ceramic-stable parts with an internal zero (AP2112 class): there min
+  stable ESR is ~0 and max ~0.5 ohm (AN-1482 p6), so the requirement
+  inverts rather than relaxes.
+verification: {by: "second-reader", date: "2026-08-27", note: "AMS1117 p4 opened: the Stability paragraph really does say the circuit design \"requires the use of an output capacitor as part of the device frequency compensation\" and that \"The addition of 22uF solid tantalum on the output will ensure stability for all operating conditions\", that ADJ bypassing raises the requirement and 22uF tantalum covers all cases, and that larger values further improve stability; Fig 1 shows a polarized 22uF COUT (plus CADJ 10uF and D1). So the 22 uF solid-tantalum figure the board commits to is on the subject datasheet page, not imported. The absence claim was tested rather than trusted: I swept all 8 AMS1117 pages - p1 features/description, p2-p3 electrical tables, p4-p5 Application Hints, p6 typical performance curves, p7-p8 package drawings - no numeric ESR window anywhere, so \"publishes NO ESR window\" holds datasheet-wide, not just on p4. LM1117 p15 s9.2.2.1.3 confirmed verbatim: minimum 10 uF if tantalum, \"The ESR of the output capacitor should range between 0.3 ohm to 22 ohm\", 22-uF tantalum when CADJ is used. AN-1482 p5 s6 confirms the mohm-ESR ceramic point. AP2112 p1 feature line \"Stable with 1.0uF Flexible Cap: Ceramic, Tantalum and Aluminum Electrolytic\" and p2 Typical Applications Circuit CIN 1uF / COUT 1uF with Note 4 (X7R or X5R if a 1.0uF ceramic is used) both confirmed. Not refuted, but two things the author should keep visible: (1) the rule esr_min/max 0.3-22 ohm is TI LM1117 data applied to AMS silicon - the AMS page supports only the class membership (cap IS the compensation, solid tantalum), and the prose does say so, but a downstream agent reading rule: alone will not see the cross-vendor carry; (2) the prose omits the AMS sentence \"Without bypassing the adjustment terminal smaller capacitors can be used with equally good results\", so cout_min_uf 22 is the conservative all-cases reading rather than a stated floor."}

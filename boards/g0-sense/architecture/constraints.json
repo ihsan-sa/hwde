@@ -1,0 +1,81 @@
+{
+  "_provenance": "P2 architect merge, g0-sense, 2026-08-27. Sources: research/power.json (rails, copper, thermal), research/interface-usbc-power-sink.json (VBUS sizing, 10 uF attach limit, edge/side pins), research/refdesign-sht4x.json (isolation, pull-ups), research/refdesign-stm32g030-minimal.json (pin map), research/{ldo,protection,connectors,mcu-sensor}.json (parts). Net names are the canonical set from architecture/sheets.md; power nets are bare (power symbols).",
+  "power": [
+    {"net": "VBUS", "current_a": 1.5, "dt_c": 10,
+     "_notes": "Fault/inrush sizing: PTC (750 mA hold / 1.5 A trip) dwells near 1.5 A for seconds before tripping; 0.80 mm at 1 oz per IPC-2152. Steady draw <= 0.25 A. CAP RULE (Type-C 10 uF attach limit, TC2.0 Table 4-3): the ONLY capacitance on VBUS ahead of the PTC is C1 = 100 nF at the connector."},
+    {"net": "+5V", "current_a": 1.5, "dt_c": 10,
+     "_notes": "Same fault current traverses the PTC into the LDO input. CAP RULE: C2 = 10 uF X5R lives HERE, after the PTC, tight to U1 VIN (effective 6-8 uF at 5 V bias; receptacle total stays under 10 uF)."},
+    {"net": "+3V3", "current_a": 0.3, "dt_c": 10,
+     "_notes": "Declared at the brief's 300 mA LDO floor (design point 0.24 A). C3 = 22 uF TANTALUM-CLASS lives here (AMS1117 datasheet stability requirement - not a plain ceramic)."}
+  ],
+  "voltages": [
+    {"net": "VBUS", "voltage": 5},
+    {"net": "+5V", "voltage": 5},
+    {"net": "+3V3", "voltage": 3.3}
+  ],
+  "_voltages_notes": "All nets <= 5.5 V: check_creepage stays a no-op by design; JLC fab minimum 0.127 mm dominates. diff_pairs is deliberately OMITTED (auto-discovery finds nothing - D+/D- never become nets); high_speed omitted (none exist); voltage_pairs omitted (no differential above node voltages); planes omitted (2-layer default B.Cu GND pour is correct - P7 additionally draws a local F.Cu +3V3 pour at U1's tab for the thermal entry and VOIDS both layers under the U3 sensor island).",
+  "coating": "soldermask",
+  "thermal": [
+    {"ref": "U1", "power_w": 0.51, "net": "+3V3", "dt_c": 45,
+     "_notes": "AMS1117-3.3 SOT-223, governing rated case 300 mA x 1.7 V at 40 C ambient. Tab = VOUT, so the spreader is a TOP-side +3V3 pour of ~600-1000 mm^2 (60-70 C/W -> Tj ~71-76 C). B.Cu stays GND: no back-side spreading, hence no min_vias. Realistic case 0.26 W; entitlement-abuse case 0.83 W still survives (<= ~115 C)."}
+  ],
+  "_thermal_sht4x": "The SHT4x isolation requirement is expressed as checker-testable placement below (separation U3 >= 8 mm from U1/U2, edge pin), NOT as a thermal[] entry - a thermal entry would demand spreading copper, the exact opposite of what the sensor needs (no pour under the island, necked traces, milled slot; prose contract in blocks.md for P6/P7).",
+  "placement": {
+    "edges": [
+      {"ref": "J1", "edge": "left", "pos": 0.5},
+      {"ref": "U3", "edge": "right", "pos": 0.5},
+      {"ref": "J2", "edge": "bottom"},
+      {"ref": "J3", "edge": "top"},
+      {"ref": "J4", "edge": "top"}
+    ],
+    "_edges_notes": "J1 mating face flush/proud of the outline, ~13 mm swath at that edge clear of tall parts (TC2.0 Fig 3-79/3-80). U3 pinned to the edge OPPOSITE the power entry so the isolation slot and open-air sides are geometrically possible. J2 on a free edge a cable can reach; J3/J4 distributed along the top for hand-solder access.",
+    "groups": [
+      {"name": "usb_in", "anchor": "J1", "members": ["R1", "R2", "D1", "C1", "F1"]},
+      {"name": "ldo", "anchor": "U1", "members": ["C2", "C3"]},
+      {"name": "mcu_core", "anchor": "U2", "members": ["C10", "C11", "C12", "R10", "R11"]},
+      {"name": "sensor_island", "anchor": "U3", "members": ["C13"]}
+    ],
+    "_groups_notes": "usb_in and ldo group members sit inside the J1->U1 corridor as its endpoints' clusters (corridor cost exempts endpoint clusters only). I2C pull-ups R10/R11 belong at the I2C host (U2), not at J2 (refdesign-sht4x).",
+    "separation": [
+      {"a": ["U3"], "b": ["U1", "U2"], "min_mm": 8,
+       "reason": "SHT4x self-heating: copper conduction from LDO/MCU is the dominant RH error source (~5 %RH per 1 C at high RH); 8 mm is the honest floor from refdesign-sht4x (vendor guidance is qualitative), on top of the no-pour island + necked traces + slot contract in blocks.md."}
+    ],
+    "corridors": [
+      {"a": "J1", "b": "U1", "width_mm": 3.0, "net": "VBUS",
+       "reason": "The board's only meaningful current path: J1 -> TVS -> PTC -> LDO VIN at >= 0.8 mm copper; keep foreign bodies out so the protection chain stays short and unlooped."}
+    ],
+    "sides": [
+      {"ref": "J1", "side": "front", "reason": "mates from the top; single-sided economy assembly"},
+      {"ref": "J2", "side": "front", "reason": "Qwiic cable mates from the top"},
+      {"ref": "J3", "side": "front", "reason": "DNP THT header, inserted/hand-soldered from the top"},
+      {"ref": "J4", "side": "front", "reason": "DNP THT header, inserted/hand-soldered from the top"},
+      {"ref": "SW1", "side": "front", "reason": "reset button must be pressable"},
+      {"ref": "U1", "side": "front", "reason": "SOT-223 tab pour lives on F.Cu (+3V3); B.Cu is the GND pour"},
+      {"ref": "U2", "side": "front", "reason": "single-sided SMD assembly (economy PCBA)"},
+      {"ref": "U3", "side": "front", "reason": "sensor aperture must face open air, top side"},
+      {"ref": "D2", "side": "front", "reason": "power indicator must be visible"},
+      {"ref": "D10", "side": "front", "reason": "user indicator must be visible"}
+    ],
+    "_mounting_notes": "H1-H4 (four M2, 2.2 mm drill / 4.0-4.5 mm annulus, corners) are CONDITIONAL, positions unknowable before the outline exists, so they are not 'fixed' here. Concrete 'hurting' test for P6: drop or reduce holes (right-side pair first, then to 2 diagonal) if keeping them would (a) grow the honest outline by > 2 mm in either dimension beyond what the electronics need, (b) shrink the U3 isolation slot or violate the 8 mm separation, or (c) cut the U1 +3V3 tab pour below ~600 mm^2. Record whichever branch P6 takes."
+  },
+  "blocks": [
+    {"topology": "usbc-sink", "block": "B1", "name": "J1 USB-C power-only sink + VBUS protection (TYPE-C-31-M-12 class, SMF5.0A class TVS, 750 mA PTC)",
+     "operating_point": {"source_kind": "usb", "vin_v": 5.0, "vout_v": 5.0,
+                         "iout_a": 0.5, "pdiss_w": 0.003, "board_layers": 2},
+     "_notes": "CC-blind sink: independent 5.1k Rd on CC1 AND CC2; entitlement = default USB 500 mA (iout_a is the entitlement ceiling; steady design draw 0.25 A). pdiss_w = PTC I^2R at true peak. No PD, no data, no diff pairs."},
+    {"topology": "ldo", "block": "B2", "name": "U1 AMS1117-3.3 class, SOT-223, fixed 3.3 V",
+     "operating_point": {"vin_v": 5.0, "vout_v": 3.3, "iout_a": 0.3,
+                         "pdiss_w": 0.51, "board_layers": 2,
+                         "source_kind": "usb",
+                         "integration_kind": "integrated-fet"},
+     "_notes": "Linear regulator: switching_kind/rectifier_kind/fsw_khz/control_kind are honestly not applicable and deliberately omitted. pdiss_w is the governing rated case (brief's literal >= 300 mA at Vin 5.0), not the 0.26 W realistic load. Output cap must be 22 uF tantalum-class per datasheet."},
+    {"topology": "mcu", "block": "B3", "name": "U2 STM32G030F6P6, TSSOP-20, HSI16, no crystal",
+     "operating_point": {"vin_v": 3.3, "pdiss_w": 0.008, "board_layers": 2,
+                         "source_kind": "usb", "fsw_khz": 16000},
+     "_notes": "fsw_khz = HSI16 core clock (what decoupling demand scales with); pdiss_w = 2.5 mA max x 3.3 V. Slowest-signal board: I2C 400 kHz, UART, SWD; no edge_ns declared because no datasheet edge number exists to cite. VDD/VDDA single bonded pair (pin 4/5); BOOT0 unstrapped by design (factory option bytes)."},
+    {"topology": "sht4x", "block": "B4", "name": "U3 SHT40-AD1B class, DFN-4 1.5x1.5, I2C 0x44",
+     "operating_point": {"vin_v": 3.3, "pdiss_w": 0.25, "board_layers": 2,
+                         "source_kind": "usb"},
+     "_notes": "pdiss_w = worst on-chip heater step (75 mA x 3.3 V, <= 10 % duty, firmware-optional, BUDGETED in the rail tree) - deliberately dissipated inside the sensor, so the layout goal is ISOLATION not spreading: no copper under the island, necked traces, milled slot, >= 8 mm from U1/U2, die pad unsoldered. iout_a omitted: the block sources no current."}
+  ]
+}

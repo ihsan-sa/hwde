@@ -1,0 +1,54 @@
+# Coverage checklist for the sht4x block (RH/T sensor on a shared I2C bus),
+# produced by research task block-sht4x-1 from Sensirion DS/DG/HI + NXP
+# UM10204 (all pages cited below read visually). Draft: owner approves.
+id: sht4x
+kind: coverage-checklist
+applies:
+  topologies: [sht4x]
+requires:
+  - {class: thermal, min_level: topology, note: "the load-bearing class: PCB
+      copper conduction from nearby heat sources is the dominant error path
+      into an RH/T die (RH error ~5x T error at high RH); island / slot /
+      no-pour / necked-trace layout rules must be held before placement"}
+  - {class: decoupling, min_level: topology, note: "VDD bypass at the sensor
+      pins plus rail stiffness for the on-package heater transient (up to
+      100 mA max per DS Table 4) - interacts with the thermally necked
+      supply trace"}
+  - {class: sequencing, min_level: topology, note: "the datasheet VDD slew
+      limit (20 V/ms max between VDDmin and VDDmax) turns the upstream
+      regulator/load-switch startup ramp into a checkable design input"}
+  - {class: selection, min_level: topology, note: "I2C pull-up sizing from
+      the Rp/Cb/rise-time relation when the bus leaves the board on a cable
+      (Qwiic/STEMMA-QT); floor from sink current, ceiling from rise time"}
+  - {class: constraints-emission, min_level: principle, note: "assembly
+      contract the block must emit into the fab package: no board wash,
+      no-clean paste, reflow profile limits, no vapor phase, rework limits -
+      an emission contract, no operating-point bound"}
+maturity: draft
+sources:
+  - {file: research/sources/Sensirion_Humidity_Temperature_Design_Guide.pdf,
+     page: 8, note: "sec 3 Thermal Considerations: conduction through the PCB
+      named the most severe/common deviation source; 1 degC -> 5 pct RH at
+      90 pct RH; Fig 8 layout panels (thin connections, milled slits)"}
+  - {file: research/sources/HT_DS_Datasheet_SHT4x.pdf, page: 9, note: "Table 4
+      electrical specs: VDD range, 20 V/ms slew limit, heater supply currents,
+      Rp minimums and Cb/rise-time relation"}
+  - {file: research/sources/HT_Handling_Instructions_SHTxx.pdf, page: 1,
+     note: "Key Instructions list: no board wash, ESD mandatory, no PE bags,
+      no spray, avoid VOCs/cleaning agents, cover during coating"}
+prose: >
+  Before designing an RH/T sensor block a designer must hold: (1) the
+  thermal story - board self-heat reaches the die through PCB copper, so
+  the sensor needs an isolated island (edge/corner, no pour, necked traces,
+  slot/slits) and distance from dissipating parts; Sensirion grounds the
+  rule but publishes no numeric mm figures, so geometry is judgement
+  against the floorplan; (2) supply - 100 nF at the pins, the heater's
+  100 mA max transient, and the 20 V/ms power-up slew limit checked
+  against the upstream regulator's ramp; (3) the I2C bus - pull-up window
+  from the sink-current floor and the rise-time/bus-capacitance ceiling,
+  sized for the full bus including any off-board cable; (4) the assembly
+  contract that binds the fab package (no board wash, no-clean paste,
+  J-STD-020 reflow, no vapor phase, 5 s / 350 C rework cap). Part-level
+  I2C address is fixed per ordering variant - address conflicts are a
+  selection concern when chaining sensors.
+origin: research:block-sht4x-1

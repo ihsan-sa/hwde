@@ -1,0 +1,351 @@
+{
+  "script": "kc",
+  "tool": "drc",
+  "input": "boards/g0-sense/kicad/g0-sense.kicad_pcb",
+  "units": "mm",
+  "kicad_version": "10.0.5",
+  "options": {
+    "parity": false,
+    "all_track_errors": false,
+    "refill": true,
+    "save_board": true
+  },
+  "counts": {
+    "total": 10,
+    "by_severity": {
+      "error": 10
+    },
+    "by_source": {
+      "drc": 2,
+      "unconnected": 8
+    }
+  },
+  "status": "violations",
+  "violations": [
+    {
+      "check": "starved_thermal",
+      "severity": "error",
+      "pos": [
+        31.4,
+        30.5
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "C11"
+      ],
+      "msg": "Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Zone [+3V3] on F.Cu, priority 0",
+          "pos": [
+            31.4,
+            30.5
+          ],
+          "uuid": "f0ee7f42-d01d-49c9-945f-040678aff638"
+        },
+        {
+          "msg": "Pad 1 [+3V3] of C11 on F.Cu",
+          "pos": [
+            32.3,
+            32.05
+          ],
+          "uuid": "cce0c478-8045-439d-ac7b-5e6f87e14e72"
+        }
+      ]
+    },
+    {
+      "check": "starved_thermal",
+      "severity": "error",
+      "pos": [
+        31.4,
+        30.5
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "U2"
+      ],
+      "msg": "Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)",
+      "source": "drc",
+      "items": [
+        {
+          "msg": "Zone [+3V3] on F.Cu, priority 0",
+          "pos": [
+            31.4,
+            30.5
+          ],
+          "uuid": "f0ee7f42-d01d-49c9-945f-040678aff638"
+        },
+        {
+          "msg": "Pad 4 [+3V3] of U2 on F.Cu",
+          "pos": [
+            34.48,
+            35.52
+          ],
+          "uuid": "f1827250-1745-4547-bcb3-918d69dca564"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        52.2,
+        43.95
+      ],
+      "layer": "F.Cu",
+      "net": "/main/SDA",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Track [/main/SDA] on F.Cu, length 3.4000 mm",
+          "pos": [
+            52.2,
+            43.95
+          ],
+          "uuid": "125e6480-e18c-4918-ab31-c7dc1807318e"
+        },
+        {
+          "msg": "Track [/main/SDA] on F.Cu, length 0.6317 mm",
+          "pos": [
+            42.2,
+            35.9
+          ],
+          "uuid": "7a07131d-5f14-47bc-a007-7016674166ee"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        32.3,
+        35.3
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "C10",
+        "C11"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 1 [+3V3] of C10 on F.Cu",
+          "pos": [
+            32.3,
+            35.3
+          ],
+          "uuid": "ffe10bfb-3440-4d65-bbf1-8b81220b5764"
+        },
+        {
+          "msg": "Pad 1 [+3V3] of C11 on F.Cu",
+          "pos": [
+            32.3,
+            32.05
+          ],
+          "uuid": "cce0c478-8045-439d-ac7b-5e6f87e14e72"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        31.4,
+        30.5
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [
+        "C10"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Zone [+3V3] on F.Cu, priority 0",
+          "pos": [
+            31.4,
+            30.5
+          ],
+          "uuid": "f0ee7f42-d01d-49c9-945f-040678aff638"
+        },
+        {
+          "msg": "Pad 1 [+3V3] of C10 on F.Cu",
+          "pos": [
+            32.3,
+            35.3
+          ],
+          "uuid": "ffe10bfb-3440-4d65-bbf1-8b81220b5764"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        31.4,
+        30.5
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Zone [+3V3] on F.Cu, priority 0",
+          "pos": [
+            31.4,
+            30.5
+          ],
+          "uuid": "f0ee7f42-d01d-49c9-945f-040678aff638"
+        },
+        {
+          "msg": "Zone [+3V3] on F.Cu, priority 1",
+          "pos": [
+            37.4,
+            42.5
+          ],
+          "uuid": "0ab40a17-dd81-4a46-8477-a209d55224bc"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        31.4,
+        30.5
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Zone [+3V3] on F.Cu, priority 0",
+          "pos": [
+            31.4,
+            30.5
+          ],
+          "uuid": "f0ee7f42-d01d-49c9-945f-040678aff638"
+        },
+        {
+          "msg": "Zone [+3V3] on F.Cu, priority 0",
+          "pos": [
+            31.4,
+            30.5
+          ],
+          "uuid": "f0ee7f42-d01d-49c9-945f-040678aff638"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        31.4,
+        30.5
+      ],
+      "layer": "F.Cu",
+      "net": "+3V3",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Zone [+3V3] on F.Cu, priority 0",
+          "pos": [
+            31.4,
+            30.5
+          ],
+          "uuid": "f0ee7f42-d01d-49c9-945f-040678aff638"
+        },
+        {
+          "msg": "Zone [+3V3] on F.Cu, priority 0",
+          "pos": [
+            31.4,
+            30.5
+          ],
+          "uuid": "f0ee7f42-d01d-49c9-945f-040678aff638"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        32.54,
+        38.8
+      ],
+      "layer": "F.Cu",
+      "net": "GND",
+      "refs": [
+        "D1"
+      ],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Pad 2 [GND] of D1 on F.Cu",
+          "pos": [
+            32.54,
+            38.8
+          ],
+          "uuid": "30692925-d2c7-4fe4-b62d-df6d83811695"
+        },
+        {
+          "msg": "Via [GND] on F.Cu - B.Cu",
+          "pos": [
+            32.0702,
+            37.6625
+          ],
+          "uuid": "bf1980c8-3053-4862-8ee5-57a05daa6b0d"
+        }
+      ]
+    },
+    {
+      "check": "unconnected_items",
+      "severity": "error",
+      "pos": [
+        25.55,
+        38.15
+      ],
+      "layer": "F.Cu",
+      "net": "VBUS",
+      "refs": [],
+      "msg": "Missing connection between items",
+      "source": "unconnected",
+      "items": [
+        {
+          "msg": "Zone [VBUS] on F.Cu, priority 0",
+          "pos": [
+            25.55,
+            38.15
+          ],
+          "uuid": "8c4ef7ba-6614-439f-881f-a8290db7e116"
+        },
+        {
+          "msg": "Zone [VBUS] on F.Cu, priority 0",
+          "pos": [
+            25.55,
+            43.4
+          ],
+          "uuid": "18ea388f-b2d9-46e2-b15b-afa59be7b930"
+        }
+      ]
+    }
+  ],
+  "report_schema": 1,
+  "checker_version": 1,
+  "generated_at": "2026-08-27T17:31:44+00:00",
+  "input_digest": "sexpr_no_uuid:a9f5aa33a6d4081fd4e76f8f4973418a300a67cb625f0992d1093884aa651658"
+}

@@ -1,0 +1,138 @@
+{
+ "block": "stm32g030-minimal",
+ "decisions": [
+  {
+   "what": "TSSOP-20 has no separate VDDA or VREF+ pin: pin4=VDD/VDDA (bonded), pin5=VSS/VSSA (bonded); VREF+ is internally tied to VDD on this package.",
+   "why": "Determines the decoupling network is a single VDD/VDDA-to-VSS/VSSA pair, not per-domain caps; no VREF+ cap needed.",
+   "source": "DS12991 Rev4 (STM32G030x6/x8 datasheet) Section 3.7.1 Power supply schemes p.14-15, and Table 12 Pin assignment and description p.31 (pins 4,5); https://www.st.com/resource/en/datasheet/stm32g030c6.pdf"
+  },
+  {
+   "what": "Decoupling: 1x 100 nF ceramic + 1x 4.7 uF across the (single) VDD/VDDA-VSS/VSSA pin pair, placed as close as possible to / below those pins.",
+   "why": "This is ST's own recommended minimum decoupling network for the device, shown in the datasheet's power supply scheme figure.",
+   "source": "DS12991 Rev4 Section 5.1.6 Power supply scheme, Figure 9 + Caution note, p.39; and 'General PCB design guidelines' p.70; https://www.st.com/resource/en/datasheet/stm32g030c6.pdf"
+  },
+  {
+   "what": "NRST has a permanent internal pull-up (RPU, 25-55 kOhm typ 40 kOhm) - no external pull-up resistor needed.",
+   "why": "External pull-up on NRST would be redundant hardware; the datasheet states the pull-up is always present.",
+   "source": "DS12991 Rev4 Section 5.3.15 NRST input characteristics + Table 52, p.65; https://www.st.com/resource/en/datasheet/stm32g030c6.pdf"
+  },
+  {
+   "what": "NRST minimal circuit = 0.1 uF (100 nF) filter capacitor NRST-to-GND, placed as close as possible to the device, plus a momentary push button NRST-to-GND. No other components.",
+   "why": "This is ST's own 'Recommended NRST pin protection' figure/network; the push button is exactly the generic 'external reset circuit' block shown there.",
+   "source": "DS12991 Rev4 Section 5.3.15, Figure 19 'Recommended NRST pin protection' and its notes 2-3, p.65-66; https://www.st.com/resource/en/datasheet/stm32g030c6.pdf"
+  },
+  {
+   "what": "OPINION (not found in an ST source retrieved this session): do not oversize the NRST capacitor beyond ST's stated 100 nF - larger values (1-10 uF, sometimes added for extra debounce) are community-reported to interact badly with debug-probe 'connect under reset' / rapid reset cycling during flashing.",
+   "why": "Flagged per the task's request to check for this specific footgun; AN5096 (which likely states this explicitly) could not be retrieved - see OPEN.",
+   "source": "OPINION / not independently verified against an ST primary document this session; general STM32-community knowledge only"
+  },
+  {
+   "what": "BOOT0 is not a dedicated pin on TSSOP-20: it is sampled on PA14 (pin 19), the same physical pin as SWCLK (and bonded with PA15).",
+   "why": "Rules out any strap/jumper design that would fight the SWCLK function on this pin.",
+   "source": "DS12991 Rev4 Table 12 (pin19 'PA14-BOOT0', additional functions 'ADC_IN18, BOOT0'), p.33; cross-checked against KiCad symbol MCU_ST_STM32G0.kicad_sym:STM32G030F6Px pin19 'PA14/PA15' alternate 'SYS_SWCLK (PA14)'"
+  },
+  {
+   "what": "ST factory-default option byte (0xDFFFE1AA at 0x1FFF7800) decodes to nBOOT_SEL=1, nBOOT0=1, nBOOT1=1, which per the boot-mode table always selects Main Flash memory regardless of the physical BOOT0 pin state.",
+   "why": "This is the single highest-value fact for this block: it means the factory-default board (with SWD-only use) needs zero BOOT0 hardware (no pull resistor, no jumper).",
+   "source": "RM0454 Rev2 Section 3.4.1 FLASH option byte description, Table 9, p.59-60 (production value) and Section 2.5 Boot configuration, Table 5 Boot modes, p.47 (decode table); https://www.st.com/resource/en/reference_manual/rm0454-stm32g0x0-advanced-armbased-32bit-mcus-stmicroelectronics.pdf"
+  },
+  {
+   "what": "Cross-check: the device errata sheet independently states that option-bit boot selection (nBOOT_SEL=1 and nBOOT0=1, i.e. the factory default) is required for correct Main-Flash boot under Level-1 read protection, whereas physical-pin boot selection is broken under RDP L1.",
+   "why": "Second independent primary source corroborating the recommendation to leave BOOT0 handling at the factory default rather than adding pin-based strapping.",
+   "source": "ES0486 Rev2 (STM32G030x6/x8 device errata) Section 2.2.3, p.4; https://www.st.com/resource/en/errata_sheet/es0486-stm32g030x6x8-device-errata-stmicroelectronics.pdf"
+  },
+  {
+   "what": "RECOMMENDED: leave BOOT0/PA14 option bytes at ST factory default; wire pin19 only as SWCLK; no pull resistor, jumper, or strap on this pin.",
+   "why": "Board is programmed only over SWD and never needs the BOOT0 pin to select the system bootloader; matches the factory-default behavior already verified above.",
+   "source": "Derived from RM0454 Rev2 Section 2.5 Table 5 + Section 3.4.1, and ES0486 Rev2 Section 2.2.3 (see prior two decisions)"
+  },
+  {
+   "what": "If the UART/system bootloader is wanted later, entry requires only an option-byte rewrite (set nBOOT0=0) performed over the existing SWD connection (e.g. STM32CubeProgrammer Option Bytes tab) - no board hardware change needed.",
+   "why": "Directly answers the brief's question of what changes if the UART bootloader is desired; avoids designing in a BOOT0 strap that would conflict with SWCLK.",
+   "source": "RM0454 Rev2 Section 2.5 Table 5 (row: nBOOT_SEL=1, nBOOT0=0 -> System memory), p.47; https://www.st.com/resource/en/reference_manual/rm0454-stm32g0x0-advanced-armbased-32bit-mcus-stmicroelectronics.pdf"
+  },
+  {
+   "what": "Secondary corroboration (community, not load-bearing alone): STM32G0's BOOT0 pin function is disabled by default; MCU always boots main flash regardless of pin state unless option bytes are changed.",
+   "why": "Independent third source agreeing with the RM0454+ES0486 conclusion above.",
+   "source": "community.st.com thread 'STM32G030, Does not enter bootloader when boot0 is 3.3V...' https://community.st.com/t5/stm32-mcus-embedded-software/stm32g030-does-not-enter-bootloader-when-boot0-is-3-3v-what-is/td-p/222450 (secondary/community; used for corroboration only)"
+  },
+  {
+   "what": "SWDIO = PA13 (pin18, standalone); SWCLK = PA14 (pin19, bonded with PA15/BOOT0, but PA15's alternate functions are simply unused on this board).",
+   "why": "Assigns the SWD interface with no pin conflicts against UART/I2C choices below.",
+   "source": "DS12991 Rev4 Table 12, p.33; cross-checked against KiCad symbol MCU_ST_STM32G0.kicad_sym:STM32G030F6Px pins 18-19"
+  },
+  {
+   "what": "No external pull-up/pull-down or series resistor needed on SWDIO/SWCLK: silicon automatically activates an internal pull-up on PA13 and pull-down on PA14 whenever these pins are in the SW-debug alternate function, which is their state at every reset.",
+   "why": "Removes 2-4 passives that a naive design might add; matches SWD protocol idle-state expectations (SWDIO idle-high, SWCLK idle-low) with zero components.",
+   "source": "DS12991 Rev4 Table 12, footnote (5), p.34; https://www.st.com/resource/en/datasheet/stm32g030c6.pdf"
+  },
+  {
+   "what": "OPINION/OPEN: no ST document defines a bare 4-pin (GND/3V3/SWDIO/SWCLK) SWD header pinout convention - ST's own debug connectors are 6-pin (add NRST+SWO). Recommend keeping requirements.md's existing GND/3V3/SWDIO/SWCLK set; most third-party probes support 4-wire SWD without a dedicated NRST wire.",
+   "why": "Answers the brief's header-convention question honestly where no vendor citation exists; avoids inventing a false standard.",
+   "source": "OPINION - AN5096 (which might define this) could not be retrieved this session; see OPEN items in the .md"
+  },
+  {
+   "what": "UART header = USART2 on PA2 (pin9, TX) / PA3 (pin10, RX) - standalone pins, no conflict with SWD or I2C.",
+   "why": "Clean pin choice with margin; matches requirements.md's existing MCU-perspective TX/RX naming.",
+   "source": "DS12991 Rev4 Table 12, p.31 (pins 9-10, USART2_TX/USART2_RX alternates on PA2/PA3)"
+  },
+  {
+   "what": "Choosing USART2 on PA2/PA3 for the header is not a coincidence: RM0454 states the embedded (system) bootloader listens on USART pins PA2/PA3 or PA9/PA10, so this same 4-pin UART header doubles as the bootloader UART interface with zero extra hardware if it is ever needed.",
+   "why": "Reinforces the BOOT0 recommendation (software-only bootloader entry) by showing the physical UART path is already in place.",
+   "source": "RM0454 Rev2 Section 2.5 Boot configuration, 'Embedded boot loader' paragraph, p.48"
+  },
+  {
+   "what": "I2C bus = I2C1 with SCL on PA9 (pin16, bonded with PA11/I2C2_SCL) and SDA on PA10 (pin17, bonded with PA12/I2C2_SDA).",
+   "why": "I2C1 is called out in the datasheet feature list as the more capable instance (SMBus/PMBus support, wakeup from Stop); pins are standalone-enough (bonded pair not needed simultaneously) with no conflict.",
+   "source": "DS12991 Rev4 Table 12 p.32-33 (pins 16-17); feature list p.1 ('one supporting SMBus/PMBus and wakeup from Stop mode')"
+  },
+  {
+   "what": "I2C1 pins (PA9/PA10) are 5V-tolerant (FT) and Fast-mode-Plus capable (_f, up to 1 Mbit/s); when configured for the I2C alternate function the GPIO output type is set open-drain in firmware (standard STM32 GPIO architecture), giving a genuine open-drain, 5V-tolerant I2C bus suitable for external pull-ups and the Qwiic downstream connector.",
+   "why": "Confirms electrical suitability for a shared/multi-drop I2C bus exposed off-board.",
+   "source": "DS12991 Rev4 Table 11 (I/O structure legend: FT=5V tolerant, _f=Fm+ capable) and Table 12 I/O-structure column for PA9/PA10 ('FT_f'), p.30-32"
+  },
+  {
+   "what": "User LED assigned to PA5 (pin12), a standalone spare GPIO, driven through a series resistor as required by requirements.md.",
+   "why": "Arbitrary but conflict-free spare-pin choice; leaves PA4/PA6/PA7/PA0/PA1 and the bonded groups on pins 1,2,3,15,20 free for margin.",
+   "source": "DS12991 Rev4 Table 12 p.31 (pin12, PA5, no alternate function needed for a plain GPIO output)"
+  },
+  {
+   "what": "Full 20-pin TSSOP-20 budget check: power(2) + NRST(1) + SWD(2) + UART(2) + I2C(2) + LED(1) = 9 pins/groups used, 10 spare (pins 1,2,3,7,8,11,13,14,15,20) - no conflicts.",
+   "why": "Confirms the assigned peripheral set fits comfortably on this small-pin-count package with margin, the concrete deliverable requested for this block.",
+   "source": "Derived from DS12991 Rev4 Table 12 (full table read pages 30-33), cross-checked pin-for-pin against KiCad MCU_ST_STM32G0.kicad_sym:STM32G030F6Px"
+  }
+ ],
+ "layout_notes": [
+  "Place the 100 nF + 4.7 uF decoupling pair as close as possible to VDD/VDDA(pin4)/VSS/VSSA(pin5), ideally on the board underside directly beneath the pins (DS12991 Fig.9 caution note).",
+  "Place the NRST 100 nF capacitor as close as possible to the device (DS12991 Fig.19 note 3).",
+  "No trace-length/topology constraint found for SWD/UART/I2C headers in the sources retrieved this session (AN5096 unreachable); keep short as ordinary good practice only.",
+  "PA14/pin19 (SWCLK/BOOT0/PA15) should have no pull resistor or strap added - leave it solely as the SWCLK connection to the SWD header."
+ ],
+ "errata": [
+  {
+   "id": "ES0486 2.2.3",
+   "what": "Under Flash read-protection Level 1, booting from Main Flash via the physical PA14-BOOT0 pin is not functional; option-bit boot selection (nBOOT_SEL=1, nBOOT0=1 - the factory default) works correctly.",
+   "relevance": "Directly supports the BOOT0 recommendation (use factory-default option-bit boot selection); no RDP Level 1 is planned for this board so the limitation itself doesn't bite, but its workaround is what we're already recommending."
+  },
+  {
+   "id": "ES0486 2.8.1",
+   "what": "I2C wrong SDA sampling if the transmitter's data setup time is shorter than one I2C kernel-clock period; has a minimum-I2CCLK-frequency workaround.",
+   "relevance": "Firmware-level concern for the I2C1 bus (sensor + Qwiic); no hardware/topology change needed."
+  },
+  {
+   "id": "ES0486 2.8.2",
+   "what": "Spurious bus-error (BERR) flag can be set in I2C master mode with no effect on the transfer; software must clear the flag.",
+   "relevance": "Firmware-level only."
+  },
+  {
+   "id": "ES0486 2.8.3",
+   "what": "Spurious master transfer can occur on own-slave-address match in a multi-master I2C configuration.",
+   "relevance": "Not applicable - this board's MCU is the only bus master on I2C1; only relevant if a Qwiic downstream device also masters the bus, which the Qwiic/STEMMA-QT convention does not do."
+  },
+  {
+   "id": "ES0486 2.9.1",
+   "what": "USART data corruption possible from a short glitch-to-zero on the receive line within the second half of the stop bit; no workaround.",
+   "relevance": "Minor signal-integrity note for the UART header's RX trace; no specific hardware mitigation cited by ST beyond normal good PCB practice."
+  }
+ ]
+}

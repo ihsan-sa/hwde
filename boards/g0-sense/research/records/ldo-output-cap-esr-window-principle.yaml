@@ -1,0 +1,41 @@
+id: ldo-output-cap-esr-window-principle
+classes: [feedback]
+applies:
+  topologies: [ldo]
+  packages: []
+  interfaces: []
+  parts: []
+rule:
+  enforced_by: null
+  esr_zero: "f_zero = 1 / (2*pi*ESR*Cout)"
+  stable_window: "part-published ESR band - BOTH boundaries matter"
+prose: >
+  The LDO output capacitor is a loop component, not just a reservoir: its ESR
+  forms a zero at f = 1/(2*pi*ESR*Cout). In classic LDOs the loop counts on
+  that zero for phase lead - AN-1482 Fig 4 (gain/phase plot) shows a 10 uF /
+  0.5 ohm tantalum's 30 kHz zero lifting phase margin from 11 to 68 deg.
+  That is why such parts publish a stable ESR RANGE with two boundaries
+  (Fig 6: an electrolytic-stable LDO's measured stable region, roughly 0.1
+  to 10 ohm at Cout 4.7 uF across 0-200 mA): too-high ESR puts the zero too
+  low and over-extends bandwidth; too-low ESR pushes the zero past crossover
+  and the loop oscillates. Ceramics have mohm-level ESR (a 10 uF ceramic's
+  zero lands above 3 MHz - s6), so a bare low-ESR ceramic can sit OUTSIDE an
+  ESR-zero part's stable region. Ceramic-stable LDOs instead build the zero
+  into the error amp (Fig 5, series Rcomp): minimum stable ESR drops to ~0
+  but the MAXIMUM drops too (~0.5 ohm, Fig 7) - the capacitor requirement
+  inverts between the two design eras. Corollary (s7/Fig 8): small 0.01-0.1
+  uF ceramics sprinkled on the rail add a pole; 1 uF of ceramic bypass
+  dropped a 68 deg margin to 9 deg. Never swap output-cap type against the
+  part's stated stability conditions, and keep stray small ceramics away
+  from the output terminal (s8).
+sources:
+  - {file: research/sources/snva167a.pdf, page: 5, note: "s5 + Fig 4: ESR zero formula; 10uF/0.5ohm tantalum zero at 30 kHz raises phase margin 11->68 deg; why a published ESR stable range has both a max and a min boundary; s6: ceramic ESR is mohm, 10 uF ceramic zero >3 MHz, unsuitable for ESR-zero LDOs"}
+  - {file: research/sources/snva167a.pdf, page: 6, note: "Fig 5 schematic: ceramic-stable LDO with internal Rcomp zero; typical electrolytic-stable window 0.1-10 ohm vs ceramic-stable 0 to ~0.5 ohm; Fig 6 measured stable-region plot (LP2987, Cout 4.7 uF, Vout 3 V)"}
+  - {file: research/sources/snva167a.pdf, page: 7, note: "Fig 7 ceramic-stable boundaries 0 to ~0.5 ohm; ~50 mohm lower limit of the electrolytic-stable part is too high for ceramics unless series R is added; s7: 0.01-0.1 uF board ceramics can make an LDO oscillate"}
+  - {file: research/sources/snva167a.pdf, page: 8, note: "worked example + Fig 8: adding 1 uF of ceramic bypass to a 10 uF tantalum output drops phase margin from 68 to 9 deg"}
+status: active
+origin: research:block-ldo-1
+level: principle
+maturity: verified
+generalizes: []
+verification: {by: "second-reader", date: "2026-08-27", note: "Re-read snva167a (AN-1482) p5-p8 visually. p5 s5 + Fig 4 confirm verbatim: Z_ESR = 1/(2 pi ESR Cout); \"a typical 10 uF Tantalum ... ESR ... about 0.5 ohm, giving a zero ... about 30 kHz\"; \"increased phase margin from 11 deg up to about 68 deg\"; and the two-boundary reasoning (max-ESR boundary sets the lower zero limit / over-extends bandwidth, min-ESR boundary sets the max zero frequency / zero lands past crossover). s6 on the same page confirms 5 mohm ceramic ESR and a zero above 3 MHz. p6: Fig 5 is indeed the ceramic-stable topology with series R_COMP in the error amp, text gives 0.1-10 ohm electrolytic-stable vs 0 to about 0.5 ohm ceramic-stable, Fig 6 is COUT 4.7 uF / VOUT 3 V reproduced from the LP2987/LP2988 datasheet. p7: Fig 7 boundaries 0 to ~0.5 ohm, text \"lower limit of stable operation is approximately 50 mohm, which is too high to allow the use of ceramic output capacitors unless some external resistance is added\", s7 names the .01-0.1 uF bypass caps as the oscillation cause. p8: the worked example (COUT 10 uF tantalum / ESR 0.5 ohm, zero 30 kHz, crossover ~600 kHz) plus Fig 8 confirm ten 0.1 uF ceramics = 1 uF drops phase margin 68 deg -> about 9 deg. No refutation found. Two nits for the author, neither load-bearing: (a) prose calls Fig 6 measured floor \"roughly 0.1 ohm\" while p7 text puts that same curve at about 50 mohm - the 0.1-10 ohm pair is p6 generic text, not the figure, and the error is in the conservative direction; (b) the \"keep stray small ceramics away from the output terminal (s8)\" clause is true but lives on p9 (s8 Minimizing Effect of Bypass Capacitors), which is not in the record sources list although it is inside the acquired PDF."}

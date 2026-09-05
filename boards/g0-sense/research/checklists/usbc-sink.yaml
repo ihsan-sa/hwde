@@ -1,0 +1,39 @@
+# Coverage checklist for a USB-C power-only sink block (CC-blind: 16-pin
+# receptacle, independent 5.1k Rd on CC1/CC2, D+/D- unconnected, VBUS ->
+# protection -> regulator). First research pass on this topology
+# (block-usbc-sink-1); every row is populated by draft records from the
+# same task. High-speed, PD, BC1.2 and accessory modes are OUT of scope -
+# a sink that negotiates gets its own checklist.
+id: usbc-sink
+kind: coverage-checklist
+applies:
+  topologies: [usbc-sink]
+requires:
+  - {class: selection, min_level: topology, note: "CC termination (independent per-pin 5.1k Rd, no sharing, no series elements), receptacle choice with all four VBUS + four GND contacts landed, D+/D-/SBU disposition, and the current the sink may budget without reading CC (default USB power, 500 mA as a PSD)"}
+  - {class: esd, min_level: topology, note: "VBUS TVS at the receptacle on the connector side of any series element; stand-off vs the port's max VBUS (5.5 V light-load max on a 5 V-only port); low-inductance strike return; no stubs, protected line runs connector -> TVS -> downstream"}
+  - {class: inrush, min_level: topology, note: "attach capacitance limit at the receptacle: max 10 uF VBUS-to-GND when not in Attached.SNK (Table 4-3); larger bulk must sit behind a series element"}
+  - {class: decoupling, min_level: topology, note: "VBUS-side capacitance budget lives UNDER the 10 uF attach limit (incl. DC-bias reality of ceramics); regulator input/output bulk beyond that goes downstream of the series element"}
+  - {class: emi, min_level: topology, note: "shell/shield bonded to PCB GND at the connector with multiple solder tails and small apertures; keepout so the plug overmold seats (mating-face geometry at the board edge)"}
+  - {class: constraints-emission, min_level: principle, note: "what the block must emit into constraints.json - edge placement + overmold clearance, VBUS power entry at the entitlement ceiling, blocks entry; an emission contract, not physics"}
+maturity: draft
+sources:
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 170, section: 4.5.2.2.3.1, note: "Unattached.SNK requirements: both CC1 and CC2 shall be independently terminated to ground through Rd - the defining rule of the topology"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 218, section: 4.6.2.1, note: "sink behavior list at default advertisement; PSD attach path allows up to 500 mA - the CC-blind budget row"}
+  - {file: research/sources/USB-20Type-C-20Spec-20R2.0-20--20August-202019.pdf, page: 142, section: Table 4-3, note: "VBUS sink characteristics: VBUS Capacitance max 10 uF on receptacle when not in Attached.SNK - the inrush/decoupling rows"}
+  - {file: research/sources/usb4105.pdf, page: 1, section: Electrical / Recommended PCB Layout, note: "collective current nameplate (5.00 A collectively for VBUS pins, 6.25 A for GND pins, 0.25 A per other pin) and vendor land pattern with PCB-edge line - the selection/emi rows"}
+  - {file: research/sources/slva680a.pdf, page: 4, section: 2.1 summary, note: "TVS as near the connector as rules allow, protected IC much farther, no stubs - the esd row"}
+prose: >
+  Before designing a CC-blind USB-C power-only sink a designer must hold:
+  (1) the CC termination law - one 5.1k Rd per CC pin, independently to
+  GND, never shared, never with series elements (a shared Rd reads as an
+  audio accessory through e-marked cables and the source never drives
+  VBUS); (2) the entitlement law - a sink that never reads CC budgets to
+  default USB power (500 mA as a PSD), regardless of what the source could
+  advertise; (3) the attach-capacitance law - max 10 uF on VBUS at the
+  receptacle, bulk goes behind the series element; (4) protection order -
+  TVS at the connector before PTC/regulator, sized to the port's max VBUS;
+  (5) receptacle mechanics - land all four VBUS and four GND contacts
+  (ratings are collective), bond the shell to PCB GND, keep the board edge
+  clear so the plug overmold seats; (6) what the block emits into the
+  pipeline's constraints file.
+origin: research:block-usbc-sink-1

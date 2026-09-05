@@ -1,0 +1,54 @@
+# Coverage checklist for the 'mcu' block (first research pass, block-mcu-1):
+# the classes a designer must hold before laying out a small MCU subsystem
+# (supply + reset + boot + clock + debug/comms pins). Part-level datasheet
+# extraction (exact pin table of the chosen MPN) stays with the part slot.
+id: mcu
+kind: coverage-checklist
+applies:
+  topologies: [mcu]
+requires:
+  - class: decoupling
+    min_level: topology
+    note: >
+      Per-supply-pin-pair HF ceramic + one bulk cap per device, loop-area
+      driven placement; plus the package delta - does this package expose
+      separate VDDA/VREF+/VBAT pins needing their own networks, or are they
+      internally bonded to VDD (single network, no VDDA cap possible)?
+  - class: sequencing
+    min_level: topology
+    note: >
+      Power-up behaviour before any part is placed: does the reset pin have
+      an internal pull-up and POR/PDR (external supervisor not required)?
+      Vendor-recommended reset-pin network and its debug caveat (a reset-line
+      capacitor conflicts with debug interfaces that drive the reset line).
+      Boot-mode selection at startup: which inputs (pin vs option bits) the
+      boot decision actually consults, at factory defaults.
+  - class: selection
+    min_level: topology
+    note: >
+      Clock-source choice: internal RC accuracy (trim + temp + VDD drift)
+      against the tolerance budget of every clocked interface on the board
+      (UART is the usual live case; anything spec'd tighter than the RC
+      needs a crystal). Boot strap components only when the option bytes
+      make the pin matter. Pin-mux conflicts: debug pins shared with
+      boot/UART functions on small packages.
+maturity: draft
+sources:
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 39, section: "5.1.6 Fig 9", note: "vendor decoupling network + placement caution read as the decoupling row basis"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 66, section: "5.3.15 Fig 19", note: "vendor recommended NRST network read as the sequencing row basis"}
+  - {file: research/sources/2009240934_STMicroelectronics-STM32G030F6P6_C724040.pdf, page: 14, section: "3.5 / 3.7.1", note: "boot selector option bit + bonded supply pins read as row bases"}
+  - {file: research/sources/AN2519-AVR-Microcontroller-Hardware-Design-Considerations-00002519B.pdf, page: 7, section: "3 Reset pin", note: "cross-vendor reset-cap-vs-debugger restriction read as the sequencing row basis"}
+  - {file: research/sources/GUID-3FD21524-1116-412C-8139-B7FBEA62950A.html, page: 1, section: "25.3.3.2.3 Error Tolerance", note: "UART receiver error budget read as the selection row basis"}
+prose: >
+  Before laying out a small MCU block a designer must hold: (1) the
+  decoupling story - one HF ceramic per supply pin pair placed for minimum
+  loop, one bulk per device, and whether this package bonds VDDA/VREF+ to
+  VDD (changes the cap count, not the principle); (2) the power-up story -
+  internal reset pull-up and POR mean no external supervisor, the vendor
+  reset-cap value, why not to oversize it (debugger reset-line control),
+  and which inputs the boot decision consults at factory defaults; (3) the
+  selection story - internal RC accuracy vs each interface's clock-tolerance
+  budget, and strap/pin-mux consequences on small packages where boot and
+  debug share pins. ESD on off-board headers is owned by the connector /
+  interface blocks, not this checklist.
+origin: research:block-mcu-1

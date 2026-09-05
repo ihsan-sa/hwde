@@ -53,6 +53,14 @@ MIN_JAVA_FOR_FREEROUTING = 25
 
 _TIMEOUT = 30
 
+# Linux headless: KiCad's SWIG Specctra export/import (route_swig) and other
+# wx-backed pcbnew paths refuse to run without an X display ("Unable to access
+# the X Display"). The container starts an Xvfb on :99 (docker/project-init);
+# hand it to every child process when the caller has no display of its own.
+if (sys.platform.startswith("linux") and not os.environ.get("DISPLAY")
+        and Path("/tmp/.X11-unix/X99").exists()):
+    os.environ["DISPLAY"] = ":99"
+
 
 class EnvError(RuntimeError):
     """An explicit override (HWDE_*/AIEE_*) points at something unusable."""

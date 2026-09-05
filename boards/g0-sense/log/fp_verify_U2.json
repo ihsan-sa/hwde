@@ -1,0 +1,74 @@
+{
+ "script": "fp_verify",
+ "status": "pass",
+ "board": "TSSOP-20_L6.5-W4.4-P0.65-LS6.4-BL.kicad_mod",
+ "counts": {
+  "total": 1,
+  "by_severity": {
+   "warning": 1
+  },
+  "by_source": {
+   "check.fp_verify": 1
+  }
+ },
+ "violations": [
+  {
+   "check": "fp_verify",
+   "severity": "warning",
+   "pos": null,
+   "layer": "F.Cu",
+   "net": null,
+   "refs": [
+    "TSSOP-20_L6.5-W4.4-P0.65-LS6.4-BL"
+   ],
+   "msg": "pad size(s) [[0.364, 1.742]] mm != datasheet [0.4, 1.35] mm (tol 0.1; min/max of 1 distinct sizes)",
+   "source": "check.fp_verify",
+   "items": [
+    {
+     "msg": "pad size(s) [[0.364, 1.742]] mm != datasheet [0.4, 1.35] mm (tol 0.1; min/max of 1 distinct sizes)",
+     "pos": null
+    }
+   ],
+   "kind": "pad_size",
+   "expected_mm": [
+    0.4,
+    1.35
+   ],
+   "measured_mm": [
+    [
+     0.364,
+     1.742
+    ]
+   ]
+  }
+ ],
+ "footprint": "TSSOP-20_L6.5-W4.4-P0.65-LS6.4-BL",
+ "footprint_file": "boards/g0-sense/lib/aiee.pretty/TSSOP-20_L6.5-W4.4-P0.65-LS6.4-BL.kicad_mod",
+ "copper_pads": 20,
+ "total_pads": 20,
+ "measured_pitch_mm": 0.65,
+ "measured_pad_size_mm": [
+  0.364,
+  1.742
+ ],
+ "has_courtyard": true,
+ "has_silk": true,
+ "land_pattern": {
+  "package": "TSSOP20",
+  "pad_count": 20,
+  "pitch_mm": 0.65,
+  "pad_size_mm": [
+   0.4,
+   1.35
+  ],
+  "row_spacing_mm": 5.75,
+  "pin1": "1",
+  "notes": "From Fig.34 'TSSOP20 package footprint' (ref YA_FP_V1), the recommended LAND PATTERN (not the package outline): outer-to-outer pad span 7.10mm (row direction) x 6.25mm (pin1/20-to-pin10/11 direction); inner gap between the two pad rows 4.40mm (=> row pitch/center-to-center spacing 5.75mm); pad size 0.40mm x 1.35mm; 0.65mm pitch, 10 pads per row, 20 pads total. Pin 1 at bottom-left (pins 1-10 along the bottom edge left-to-right, pins 11-20 along the top edge left-to-right, pin 20 above pin 1). Package body outline (Table 69/Fig.33, for cross-check, NOT the land pattern): body 6.5mm(typ D) x 4.4mm(typ E1), 0.65mm lead pitch (e), lead width b=0.19-0.30mm, height A max 1.20mm, standoff A1=0.05-0.15mm."
+ },
+ "svg": "boards/g0-sense/log/U2_STM32G030F6P6.overlay.svg",
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-08-27T09:13:04+00:00",
+ "input": "boards/g0-sense/lib/aiee.pretty/TSSOP-20_L6.5-W4.4-P0.65-LS6.4-BL.kicad_mod",
+ "input_digest": "sexpr_no_uuid:9fbe8ea8be0e0da153979de212608b0b3aa4971e320c91bdac456bef7787c5d6"
+}

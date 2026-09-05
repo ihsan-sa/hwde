@@ -1,0 +1,71 @@
+{
+  "block": "sht4x",
+  "decisions": [
+    {
+      "what": "Place one 100 nF ceramic decoupling capacitor directly across VDD/GND at the SHT4x pins, shortest possible loop.",
+      "why": "Sensirion's own typical application circuit shows exactly this; independently confirmed as the field-standard value by a separate published SHT4x carrier board (100 nF X7R 0402 per sensor).",
+      "source": "Sensirion Datasheet SHT4x v6.5 (Apr 2024) Figure 1, p.3 (https://sensirion.com/media/documents/33FD6951/661CD142/HT_DS_Datasheet_SHT4x.pdf); cross-check xdevs.com 'TMP11X/SHT4X based precision thermometer/humidity sensor' (https://xdevs.com/guide/xth/)"
+    },
+    {
+      "what": "Use 2.2 kOhm pull-up resistors on SDA and SCL (3.3 V bus), placed once on this board (the I2C host), not duplicated on the Qwiic downstream device.",
+      "why": "Sensirion Table 4 gives Rp,min=390 Ohm (VDD>=1.62V) and the governing Cb<trise/(0.8473*Rp) relation (trise=300ns Fast-mode, per NXP UM10204). Generic I2C 3mA/0.4V sink spec gives a system Rp,min of ~970 Ohm. Budgeting ~150-200 pF total bus capacitance (on-board parasitics + up to 0.5 m Qwiic cable + one downstream device, using generic ~40-50 pF/m ribbon-cable capacitance as a stand-in since no Sensirion/SparkFun source publishes the exact Qwiic cable pF/m) gives Rp,max ~1.8-2.4 kOhm at Fast-mode 400 kHz. 2.2 kOhm sits inside that window with margin; Adafruit's simple non-chained SHT40 breakout uses 10 kOhm (fine without a cable budget, too high with one); a separate independent SHT4x carrier board deliberately omits on-board pull-ups and relies on the host, confirming pull-ups belong on this (host) board.",
+      "source": "Sensirion Datasheet SHT4x v6.5 Table 4 + section 4.2, p.8-9 (citing NXP UM10204 I2C-bus spec, https://www.nxp.com/docs/en/user-guide/UM10204.pdf); cross-check Adafruit SHT40 Pinouts page (https://learn.adafruit.com/adafruit-sht40-temperature-humidity-sensor/pinouts); cross-check xdevs.com guide (https://xdevs.com/guide/xth/); cable-capacitance-budget framing from i2c.net Qwiic page (https://i2c.net/standards/qwiic/)"
+    },
+    {
+      "what": "Do not place a ground/power copper pour under the sensor; connect the sensor's local island to the rest of the board only via its 4 signal/power traces, and do not solder or land copper under the central die pad.",
+      "why": "Sensirion states 'there shall be no copper under the sensor other than at the pin pads' and that die-pad soldering/exposed copper underneath acts as a heat sink that impairs the on-chip heater's function (junction-to-ambient thermal resistance 246 K/W soldered vs. 297 K/W not-soldered, the higher/not-soldered value is the recommended, bolded one).",
+      "source": "Sensirion Datasheet SHT4x v6.5 section 5.3 + Table 10, p.15-16 (https://sensirion.com/media/documents/33FD6951/661CD142/HT_DS_Datasheet_SHT4x.pdf)"
+    },
+    {
+      "what": "Thermally isolate the sensor from the LDO and MCU by combining distance, thin/necked connecting traces, and (where the outline allows) a milled slot/cutout around the sensor's copper island; do not run a solid pour through that island.",
+      "why": "A 1 degC error causes ~5 %RH error at 90% RH. Heat conduction through PCB copper from nearby power/digital parts is named the dominant error source; the mitigation given is distance, removing unnecessary metal (milling/etching slits), and keeping metal connections as thin as possible; a flex-PCB mount is offered as a stronger (not applicable here) alternative. No numeric slot width or clearance distance is published - the specific mm values in layout_notes are this agent's opinion, not vendor numbers.",
+      "source": "Sensirion Design Guide for Humidity and Temperature Sensors v2 (Mar 2024), section 3 'Thermal Considerations' + Figure 8 + section 3.3 + Figure 11, p.8-10 (https://sensirion.com/media/documents/FC5BED84/662B494D/Sensirion_Humidity_Temperature_Design_Guide.pdf)"
+    },
+    {
+      "what": "Place the sensor at a board edge/corner with open sides for ambient air exchange; keep it away from anything that shields it from ambient air or exposes it to heated air from other parts.",
+      "why": "Recommended design-in explicitly calls out a 'large opening... allows for good air exchange and reduces self-heating of the whole device,' and warns against exposing the sensor to heated air from nearby electronics.",
+      "source": "Sensirion Design Guide v2, Figure 9 and Figure 17 caption, p.8-9,17 (https://sensirion.com/media/documents/FC5BED84/662B494D/Sensirion_Humidity_Temperature_Design_Guide.pdf)"
+    },
+    {
+      "what": "Assemble with standard Pb-free reflow (IPC/JEDEC J-STD-020, peak 260 degC <=30s, IR/convection); do not use vapor-phase reflow without a separate qualification.",
+      "why": "This is the datasheet-qualified reflow profile for the part; vapor-phase heat-transfer fluid compatibility is explicitly unverified by Sensirion.",
+      "source": "Sensirion Handling Instructions for SHTxx v9 (Jun 2025), section 2 'Assembly' + footnote 5, p.4 (https://sensirion.com/media/documents/6D95AA80/6840311F/HT_Handling_Instructions_SHTxx.pdf)"
+    },
+    {
+      "what": "Do not apply a post-assembly board wash; use no-clean (Type >=3) solder paste. Flag 'no board wash' explicitly to the assembly house/order notes.",
+      "why": "Sensirion lists 'Do not apply board wash' as a Key Instruction; board-wash/cleaning-agent exposure or air-pistol blasts can cause reading drift or complete sensor breakdown. This directly constrains what can be told JLCPCB for this board's PCBA order.",
+      "source": "Sensirion Handling Instructions for SHTxx v9, Key Instructions + section 1.3 + section 2, p.1,4 (https://sensirion.com/media/documents/6D95AA80/6840311F/HT_Handling_Instructions_SHTxx.pdf)"
+    },
+    {
+      "what": "Do not plan on manual/hand rework of the SHT4x; if a joint is marginal, treat as scrap/replace rather than touch-up.",
+      "why": "'Manual soldering is not recommended, and rework soldering should be limited to five seconds at up to 350 degC.' Relevant because this board also has hand-soldered through-hole headers elsewhere.",
+      "source": "Sensirion Handling Instructions for SHTxx v9, section 2, p.4"
+    },
+    {
+      "what": "No conformal coating/potting is needed for this indoor, bare-board design; if added later, use only high-viscosity coating/potting kept clear of the sensor opening, or order the removable-protective-cover ('P') part variant.",
+      "why": "Coating that flows into the sensor opening renders the humidity sensor inoperable; Sensirion sells a cover option specifically to allow brush/spray-over coating without sealing the opening.",
+      "source": "Sensirion Datasheet SHT4x v6.5 section 6.2, p.17; Sensirion Handling Instructions v9 section 1.3/Key Instructions"
+    }
+  ],
+  "layout_notes": [
+    "OPINION (no vendor mm value found): keep sensor island connected to the rest of the board by DFM-minimum-width necked traces on VDD/GND/SDA/SCL only; mill/rout a slot around the remaining sides of the island where the board outline allows.",
+    "OPINION (no vendor mm value found): keep sensor >= ~8-10 mm from LDO and MCU body outlines, or as much as the board's honest layout allows; this may push the outline past the brief's soft ~35x25 mm preference, which requirements.md already says should yield to layout honesty.",
+    "Sensor's top-side aperture must remain physically exposed to room air - no shroud, connector body, or tall component directly over it.",
+    "Prefer a board edge/corner location with open space on 2-3 sides for ambient air exchange.",
+    "100 nF decoupling cap immediately adjacent to VDD/GND pins.",
+    "2.2 kOhm pull-ups (SDA, SCL to 3V3) placed once on this board near the I2C host end, not on the Qwiic downstream side.",
+    "No solid copper pour under the sensor body; copper only at the 4 pin lands per the datasheet land pattern (DFN, 1.5 x 1.5 mm body, 0.8 mm pin pitch)."
+  ],
+  "errata": [
+    "Heater: max 10% lifetime duty cycle, die temp (base+heater) must stay <=125 degC, draws up to ~75 mA at highest setting - not currently budgeted in requirements.md's rail budget if firmware ever uses it (Sensirion Datasheet SHT4x v6.5 section 4.9, p.14).",
+    "VDD slew rate during power-up must stay <=20 V/ms or the sensor may reset (Sensirion Datasheet SHT4x v6.5 Table 4).",
+    "I2C master must tolerate clock stretching from the SHT4x (Sensirion Design Guide v2 section 4.4, p.13).",
+    "I2C address (0x44/0x45/0x46) is fixed by ordering code, not a strap pin; default marking is 0x44 - a second SHT4x plugged into the Qwiic port at the same address would conflict (Sensirion Datasheet SHT4x v6.5 Device Overview table; cross-checked by xdevs.com and Adafruit docs).",
+    "ESD-sensitive part: mandatory EPA handling, no mechanical force on the sensor during assembly (Sensirion Handling Instructions v9 section 1.1/2).",
+    "VOC/chemical sensitivity: ketenes, acetone, ethanol, isopropyl alcohol, toluene, acids/bases, and outgassing epoxies/adhesives near the sensor opening can cause irreversible drift or damage (Sensirion Handling Instructions v9 section 1.3).",
+    "Reversible 'creep' drift under sustained high humidity is a named, known phenomenon (heater can partially reverse it); a separate irreversible long-term drift component exists and is not heater-fixable (Sensirion Design Guide v2 section 2.7).",
+    "Post-reflow, the sensor may read -1 to -2 %RH low for 1-3 days before self-normalizing - relevant to any bring-up/functional-test limits (Sensirion Handling Instructions v9, p.4).",
+    "MSL1 per IPC/JEDEC J-STD-020: recommended to process within 1 year of date of delivery; no special bake called out at MSL1 (Sensirion Datasheet SHT4x v6.5 section 5.1; Handling Instructions v9 section 2).",
+    "No exact Qwiic-cable capacitance-per-meter figure is published by Sensirion or SparkFun; the pull-up sizing in decisions[] uses a generic-ribbon-cable stand-in (~40-50 pF/m) and should be revisited if the actual Qwiic cable/connector capacitance is found to differ materially."
+  ]
+}
