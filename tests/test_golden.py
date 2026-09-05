@@ -22,7 +22,7 @@ import yaml
 
 REPO = Path(__file__).resolve().parents[1]
 GOLDEN = REPO / "tests" / "golden"
-sys.path.insert(0, str(REPO / ".claude" / "skills" / "ai-ee" / "scripts" / "lib"))
+sys.path.insert(0, str(REPO / ".claude" / "skills" / "hwde" / "scripts" / "lib"))
 import env  # noqa: E402
 
 BOARDS = ["blinky2", "usbbuck4", "rf4"]

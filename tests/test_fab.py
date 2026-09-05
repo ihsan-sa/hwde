@@ -31,8 +31,8 @@ import pytest
 import yaml
 
 REPO = Path(__file__).resolve().parents[1]
-SCRIPTS = REPO / ".claude" / "skills" / "ai-ee" / "scripts"
-REFERENCE = REPO / ".claude" / "skills" / "ai-ee" / "reference"
+SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
+REFERENCE = REPO / ".claude" / "skills" / "hwde" / "reference"
 GOLDEN = REPO / "tests" / "golden"
 PYTHON = sys.executable
 sys.path.insert(0, str(SCRIPTS))

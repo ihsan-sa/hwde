@@ -1,8 +1,8 @@
-# ai-ee — AI PCB Design Flow Skill: Design Specification
+# hwde — AI PCB Design Flow Skill: Design Specification
 
 **Target:** Claude Code skill implementing an end-to-end PCB design pipeline: natural-language brief → researched architecture → schematic → placed & routed board → verified → DFM-checked → order-ready fab package.
 
-**Invocation:** `/ai-ee <description>` with optional attached documents (requirements docs, datasheets, reference schematics, mechanical constraints).
+**Invocation:** `/hwde <description>` with optional attached documents (requirements docs, datasheets, reference schematics, mechanical constraints).
 
 **Design philosophy:**
 1. **Soft top, firm bottom.** The orchestrator uses model intelligence to decide *which* agents to spawn and in what order. Each spawned agent is narrow-scoped, near-deterministic, and does most of its work by invoking scripts with defined I/O contracts. As models improve, the orchestrator and reviewer agents get smarter for free; the scripts stay correct.
@@ -51,9 +51,9 @@
 ## 2. Skill layout
 
 ```
-.claude/skills/ai-ee/
+.claude/skills/hwde/
 ├── SKILL.md                     # orchestrator playbook (the "soft top")
-├── commands/ai-ee.md            # /ai-ee slash command → loads SKILL.md, starts Phase 0
+├── commands/hwde.md            # /hwde slash command → loads SKILL.md, starts Phase 0
 ├── agents/                      # subagent role prompts (markdown, one per role)
 │   ├── requirements-analyst.md
 │   ├── research-*.md            # component-scout, reference-design, interface-spec, power-architect
@@ -204,11 +204,11 @@ Then **verify-reviewer** (adversarial, fresh context): consumes check JSONs + re
 
 ## 4. Orchestration mechanics
 
-**Orchestrator = the `/ai-ee` session.** Its context budget is protected ruthlessly:
+**Orchestrator = the `/hwde` session.** Its context budget is protected ruthlessly:
 - It never opens design files. It reads `state.json`, agent summaries (≤10 lines each), and gate results.
 - Every spawn is a Task-tool subagent with: role prompt from `agents/`, the specific file paths it needs, its output contract, and its termination condition. Nothing else.
 - Any agent needing an edit outside its primary task spawns its own sub-agent for it (e.g., the router agent needing a footprint fix delegates to a librarian sub-agent).
-- After each phase the orchestrator writes a phase digest to `log/` and may **compact or restart itself**: `state.json` + digests are sufficient to resume `/ai-ee --resume <dir>` from any gate. This makes context rot survivable, not just mitigated.
+- After each phase the orchestrator writes a phase digest to `log/` and may **compact or restart itself**: `state.json` + digests are sufficient to resume `/hwde --resume <dir>` from any gate. This makes context rot survivable, not just mitigated.
 
 **state.json (schema sketch):**
 ```json
@@ -312,7 +312,7 @@ Milestones below give the dependency logic; the session-by-session execution bre
 
 **M4 — Verification suite:** §6.3 scripts + golden/mutant test corpus + verify-reviewer + fix-loop machinery. Milestone: all seeded defects caught; fixers clear them autonomously.
 
-**M5 — Research/architecture front-end + DFM/ordering back-end:** research agents, architect, part-sourcer, `dfm_check.py`, BOM/CPL, quote/order. Milestone: `/ai-ee "USB-C powered dual-channel RF power monitor"` → order-ready package with ≤5 human interactions.
+**M5 — Research/architecture front-end + DFM/ordering back-end:** research agents, architect, part-sourcer, `dfm_check.py`, BOM/CPL, quote/order. Milestone: `/hwde "USB-C powered dual-channel RF power monitor"` → order-ready package with ≤5 human interactions.
 
 Build M1–M3 against golden board 1 before touching M4/M5 breadth. Each milestone lands with its regression tests; the skill's SKILL.md is updated last, once agent/scripts contracts are stable, so the orchestrator playbook documents reality rather than intent.
 

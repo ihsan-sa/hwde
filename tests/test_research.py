@@ -44,7 +44,7 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / ".claude" / "skills" / "ai-ee"
+SKILL = ROOT / ".claude" / "skills" / "hwde"
 SCRIPTS = SKILL / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
@@ -797,8 +797,8 @@ def test_parts_exits_2_naming_the_exact_missing_credentials(tmp_path, monkeypatc
     assert "developer.digikey.com" in pl["register"]["digikey"]
     pl, code = run(research, tmp_path, ["parts", "--mpn", "X",
                                         "--provider", "mouser"])
-    assert code == 2 and "AIEE_MOUSER_API_KEY" in pl["error"]
-    assert "AIEE_DIGIKEY" not in pl["error"]
+    assert code == 2 and "HWDE_MOUSER_API_KEY" in pl["error"]
+    assert "HWDE_DIGIKEY" not in pl["error"]
 
 
 def test_digikey_client_request_shapes_and_normalization():
@@ -887,7 +887,7 @@ def test_mouser_client_request_shape_and_normalization():
 def test_lookup_reports_partial_credentials(monkeypatch, tmp_path):
     for v in distributors.DIGIKEY_ENV:
         monkeypatch.delenv(v, raising=False)
-    monkeypatch.setenv("AIEE_MOUSER_API_KEY", "k")
+    monkeypatch.setenv("HWDE_MOUSER_API_KEY", "k")
 
     def fake(method, url, headers=None, data=None, json_body=None):
         return {"status": 200, "text": "", "json": {
@@ -897,7 +897,7 @@ def test_lookup_reports_partial_credentials(monkeypatch, tmp_path):
     res = distributors.lookup("X")
     assert res["results"]["digikey"]["status"] == "no_credentials"
     assert res["results"]["mouser"]["status"] == "pass"
-    assert "AIEE_DIGIKEY_CLIENT_ID" in res["missing"]["digikey"]
+    assert "HWDE_DIGIKEY_CLIENT_ID" in res["missing"]["digikey"]
     pl, code = run(research, tmp_path, ["parts", "--mpn", "X"])
     assert code == 0 and pl["results"]["mouser"]["count"] == 0
 
