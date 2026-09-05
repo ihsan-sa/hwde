@@ -69,7 +69,7 @@ U18; hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16 + U18 land.
 | U9 | Cross-stage rails (P3 layout implications + budgeted backward spawns) | pending | - |
 | U10 | xhp-driver brief + full run (first live validation) | pending | - |
 | U11 | P7 routing teaching cycle 2 (owner present) | pending | - |
-| U12 | Pre-credential order/state safety (C3+C5+C6) | pending | - |
+| U12 | Pre-credential order/state safety (C3+C5+C6) | **done** | 2026-09-01 |
 | U13 | Coverage contracts (levels/envelopes/maturity, the research trigger) | **done** | 2026-08-15 |
 | U14 | Record backfill + approval session (owner present, short) | **done** | 2026-08-15 |
 | U15 | Research verb (acquisition, synthesis, second reader, auto-trigger) | **done** | 2026-08-15 |
@@ -5401,3 +5401,56 @@ Real-workspace smoke, READ-ONLY: `research.py status --workspace boards/bb-amp`
 - V22: the run-close hook's state decision + queue keys are exercised against
   synthetic workspaces only - the real-board smoke was reverted (LEARNINGS
   314). First live exercise is the next full run / U10.
+
+### U12 - Pre-credential order/state safety (codex C3+C5+C6) - done 2026-09-01
+
+**Built** (`lib/safelib.py` new; `state.py`, `order_submit.py`, `order_track.py`,
+`order_quote.py` wired; `tests/test_u12_safety.py` + `tests/u12_driver.py`):
+- Containment: `safelib.contained_rel` refuses absolute (POSIX/Windows/drive/UNC),
+  `..`/`.`/empty components, backslash traversal, and any symlink component;
+  `State.snapshot`/`restore` prove every entry in both directions (manifest entries
+  too) and labels are one path component. Restore is transactional: stage every file
+  beside its target (unique temp, fsync) -> verify every hash -> swap (`os.replace`);
+  a crash before the swap phase leaves the workspace byte-identical, stale stage temps
+  are swept on the next restore.
+- Order latch: `order_submit` holds `<fab>/order.json.lock` (OS-exclusive, `flock` /
+  `msvcrt.locking`, re-entrant per thread) across run -> load-prior -> checks ->
+  create -> finalize; `--lock-timeout` (default 30 s) then refuse exit 2. Writes are
+  unique-temp + fsync + `os.replace` + dir fsync. `<fab>/order_attempts.jsonl` is an
+  O_APPEND+fsync journal (begin / in_flight / created / failed:<cls> / refused /
+  transport / end, pid+ts stamped) written for every `--api-create` and every latch
+  refusal; corrupt journal lines are reported (`JournalCorrupt`), never repaired.
+  Prior `order.json` that is unparsable OR wrong-shaped (api / api.order /
+  api.create_attempt not objects, human_steps not a list, ...) = hard refuse exit 2,
+  file never rewritten.
+- State writers: `State.load` records the sha256 of the bytes read; `State.save()`
+  takes `<state.json>.lock` and refuses (`StaleWriteError`, exit 2) when the file no
+  longer matches - compare-and-swap, no merge, no retry. The CLI holds the lock across
+  load -> mutate -> save, so parallel CLI writers serialize; `--if-digest SHA` pins an
+  orchestrator's own read; `show`/`resume`/every mutation report `digest`.
+  `order_track` locks + atomically writes tracking.json.
+- Tests (13, hermetic, zero network; OS-lock + crash cases in real subprocesses):
+  traversal/absolute/symlink refused (snapshot and restore sides); crash mid-restore
+  (os._exit after first staged file) leaves originals intact and the next restore
+  lands whole; hash-mismatch restores nothing; stale CAS writer fails loudly (lib +
+  CLI `--if-digest`); 3x6 concurrent CLI writers lose nothing; truncated latch and six
+  wrong-shape latches -> exit 2 untouched, `--api-create` never reaches transport;
+  two concurrent `--api-create` -> exactly one `created`, loser journaled `refused`
+  with a different pid, sticky verdict; busy lock refuses + journals; journal
+  append-only + torn tail loud; atomic-write crash-before-replace keeps the old file.
+
+**Deviations:** no integrity sidecar/hash on order.json - it would break the documented
+"manually clear api.order / api.create_attempt" remediation; shape + parse validation
+is the tooth. Board writer lock: the KiCad swig saves (`board_swig`/`place_swig`/
+`route_swig`/`update_swig`) run under KiCad python with no common pure-Python choke
+point and no KiCad on this host to verify - `safelib.writer_lock(pcb)` is the primitive;
+wiring the four dispatchers is a verify-later item (needs a KiCad host).
+
+**Verify-later:** V-U12-1 board writer lock wiring (above). V-U12-2 restore swap-phase
+window: a crash BETWEEN two `os.replace` calls leaves a partial restore (rename-only
+window, microseconds); a re-run of the same restore completes it.
+
+**Interface changes:** `state.py` results carry `digest`; `--if-digest` on every
+state command; `State.save()` may raise `safelib.StaleWriteError` (a `CheckError`);
+`order_submit` gains `--lock-timeout`, writes `fab/order_attempts.jsonl`, manifest
+carries `attempt_journal`; `safelib.FAULT_HOOK` is the fault-injection point.

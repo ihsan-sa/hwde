@@ -39,6 +39,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 import checklib  # noqa: E402
 from checklib import CheckError  # noqa: E402
 import jlcapi  # noqa: E402
+import safelib  # noqa: E402
 
 STATUS_LABELS = {0: "Cancelled", 1: "Pending Review",
                  2: "Awaiting Confirmation", 3: "Confirmed",
@@ -197,6 +198,14 @@ def run(workspace: Path, batch: str | None = None, session=None) -> dict:
             break
 
     tracking_json = fab_dir / "tracking.json"
+    with safelib.writer_lock(tracking_json, what="tracking.json"):
+        return _finish(fab_dir, tracking_json, batch, detail, data, items,
+                       status_code, wip_steps, wip_note, order_uuid,
+                       tracking_number)
+
+
+def _finish(fab_dir, tracking_json, batch, detail, data, items, status_code,
+            wip_steps, wip_note, order_uuid, tracking_number) -> dict:
     prev = None
     if tracking_json.exists():
         try:
@@ -227,10 +236,9 @@ def run(workspace: Path, batch: str | None = None, session=None) -> dict:
         .isoformat(timespec="seconds"),
     }
     payload["changed"], payload["change_summary"] = _diff(prev, payload)
-    # atomic write (repo pattern): tmp file + os.replace in the same dir
-    tmp = tracking_json.with_name(tracking_json.name + ".tmp")
-    tmp.write_text(json.dumps(payload, indent=1), encoding="utf-8")
-    os.replace(tmp, tracking_json)
+    # atomic write (U12 safelib): unique temp + fsync + os.replace, under
+    # the tracking.json writer lock taken by run()
+    safelib.atomic_write_json(tracking_json, payload)
     payload["tracking_json"] = str(tracking_json)
     return payload
 
@@ -259,7 +267,7 @@ def main(argv: list[str] | None = None) -> int:
     text = json.dumps(payload, indent=1)
     if args.out:
         try:
-            Path(args.out).write_text(text, encoding="utf-8")
+            safelib.atomic_write_text(Path(args.out), text)
         except OSError as exc:
             # --out failure must not break the exit contract (checklib.emit
             # would traceback): surface the payload on stdout, exit 2.

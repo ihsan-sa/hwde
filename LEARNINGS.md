@@ -4645,3 +4645,22 @@ safe to aim at a real board: `researchlib.draft_sweep`, `knowledgelib.coverage`,
 status`. Rule for smoking a mutating verb: copy the workspace into the scratchpad first, or use
 a synthetic tmp_path workspace, and run `git status -- boards/` after ANY script smoke - the
 mutation is silent and a board's state.json is the one file a later run trusts absolutely.
+
+## 2026-09-01 [state][order_submit][lock][snapshot][U12] Two writers, one file: the old `<name>.tmp` + os.replace pattern is NOT concurrency-safe, and a snapshot manifest is an input, not evidence
+
+`state.py`, `order_submit.py` and `order_track.py` all wrote `<file>.tmp` then `os.replace`.
+Two concurrent writers share that temp name: writer B truncates A's half-written temp, A
+renames B's partial bytes into place - a torn state.json/order.json from two "atomic"
+writes. U12 replaces it with mkstemp (unique name, same dir) + fsync + os.replace + dir
+fsync (`safelib.atomic_write_*`) AND an OS-exclusive writer lock held across the whole
+load -> mutate -> save (state CLI) / load -> check -> create -> finalize (order latch), plus
+a base-digest compare-and-swap in `State.save()` so a stale in-memory view can never
+overwrite a newer file. Second gotcha: `State.restore` trusted `manifest.json` paths and
+`shutil.copy2` follows symlinks - a manifest entry of `../../x` or a workspace target that
+had become a symlink would write outside the workspace. Every snapshot/restore entry now
+goes through `safelib.contained_rel` (absolute/traversal/symlink refused, both directions)
+and restore stages + verifies everything before the first swap. Third: `fcntl.flock` is
+per open-file-description, so a nested `writer_lock` on the same path in one process would
+self-deadlock - safelib keeps a process-wide per-path registry (RLock + depth) and only
+takes the OS lock at depth 0. Tests: `tests/test_u12_safety.py` (real subprocesses for the
+lock race and the os._exit crash; `safelib.FAULT_HOOK` for in-process faults).
