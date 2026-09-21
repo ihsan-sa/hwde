@@ -13,6 +13,9 @@ done by 57 scripts (plus 24 library modules) under
 `.claude/skills/hwde/scripts/`, each with the same CLI contract (argparse,
 JSON out, exit 0/1/2, no interactivity).
 
+Pictures of the boards it has designed, and how it works:
+[docs/showcase/](docs/showcase/).
+
 ## Maturity: supervised engineering assistant, not an unattended release system
 
 Boards have been designed, fabricated and ordered with it, and the checker

@@ -1,0 +1,24 @@
+% Chart b: who does what.
+\input{pre}
+\begin{document}
+\begin{tikzpicture}[node distance=11mm and 15mm]
+  \node[hot] (you) {You\\[-1pt]{\normalsize a task in plain words}};
+  \node[blue, right=of you] (orch) {Orchestrator\\[-1pt]{\normalsize picks the route}};
+
+  \node[purple, above right=4mm and 15mm of orch] (agents)
+        {Specialist subagents\\[-1pt]{\normalsize make the judgements}};
+  \node[green, below right=4mm and 15mm of orch] (scripts)
+        {Scripts\\[-1pt]{\normalsize KiCad, routers, checkers}};
+
+  \node[orange, right=44mm of orch] (ws)
+        {One board folder\\[-1pt]{\normalsize every file it produced}};
+
+  \draw[ah] (you) -- (orch);
+  \draw[a] (orch) -- (agents);
+  \draw[a] (orch) -- (scripts);
+  \draw[a] (agents) -- (ws);
+  \draw[a] (scripts) -- (ws);
+
+  \node[s, below=3mm of scripts] {they decide; the scripts do and check};
+\end{tikzpicture}
+\end{document}

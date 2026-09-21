@@ -1,0 +1,25 @@
+% Shared preamble for the showcase flow charts. Standalone TikZ, warm neutral
+% palette, rounded boxes, big type. Every chart does \input{pre}.
+\documentclass[border=10pt]{standalone}
+\usepackage[T1]{fontenc}\usepackage{helvet}\renewcommand{\familydefault}{\sfdefault}
+\usepackage[dvipsnames]{xcolor}\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
+\definecolor{gold}{HTML}{B8943E}\definecolor{muted}{HTML}{9C988F}\definecolor{ink}{HTML}{3A3833}
+\definecolor{surface}{HTML}{F4F1EB}\definecolor{canvas}{HTML}{FAF9F6}\definecolor{border}{HTML}{E8E4DC}
+\definecolor{accent}{HTML}{C96442}\definecolor{lblue}{HTML}{3E6C8F}\definecolor{lgreen}{HTML}{4F7A52}
+\definecolor{lpurple}{HTML}{7A5B86}\definecolor{lorange}{HTML}{C08A3E}
+\tikzset{
+ b/.style={draw=border,fill=canvas,rounded corners=3pt,line width=0.7pt,font=\large,align=center,inner sep=7pt,minimum height=12mm,minimum width=30mm,text=ink},
+ hot/.style={b,draw=accent,line width=1.1pt},
+ blue/.style={b,draw=lblue,fill=lblue!8},
+ green/.style={b,draw=lgreen,fill=lgreen!8},
+ purple/.style={b,draw=lpurple,fill=lpurple!8},
+ orange/.style={b,draw=lorange,fill=lorange!8},
+ s/.style={font=\normalsize\color{muted}},
+ a/.style={-{Stealth[length=3mm]},draw=muted,line width=1pt},
+ ah/.style={a,draw=accent,line width=1.3pt},
+ zone/.style={draw=border,dashed,rounded corners=4pt,inner sep=8pt,fill=surface!70},
+ % a small accent tick marking "a person signs this off"
+ sign/.style={circle,draw=accent,fill=accent!15,line width=1pt,inner sep=0pt,minimum size=4.2mm}
+}
+\color{ink}
