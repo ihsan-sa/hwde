@@ -13,7 +13,7 @@ There is a PDF of this page with bigger pictures: [hwde-showcase.pdf](hwde-showc
 ![lumina-carrier](renders/lumina-carrier.png)
 
 *__lumina-carrier__ — a 4-layer, 100 × 80 mm carrier board for a stage-lighting
-fixture. 116 footprints. Designed by hwde, ordered from JLCPCB and built.*
+fixture. 116 footprints. Designed by hwde, ordered from JLCPCB and fabricated.*
 
 ---
 
@@ -70,8 +70,8 @@ this page is made from the board file in the repository, by
 
 | Board | What it is | Layers | Size (mm) | Stage reached |
 |---|---|---|---|---|
-| lumina-carrier | lighting carrier, PoE-powered | 4 | 100 × 80 | ordered, built |
-| pd-trigger | USB-C PD bench trigger | 2 | 48 × 30 | ordered, built |
+| lumina-carrier | lighting carrier, PoE-powered | 4 | 100 × 80 | ordered, fabricated |
+| pd-trigger | USB-C PD bench trigger | 2 | 48 × 30 | ordered, fabricated |
 | lumina-par | RGBW PAR daughter board | 4 | 100 × 80 | verification |
 | rf-de-20m | 20 MHz Class E GaN stage | 4 | 120 × 80 | manufacturability |
 | sbuck-5v3a | 5 V / 3 A synchronous buck | 4 | 50 × 40 | package ready |
@@ -86,12 +86,12 @@ this page is made from the board file in the repository, by
 | bb-mcu | bare microcontroller board | 2 | 34.8 × 22.3 | manufacturability |
 
 "Stage reached" is where the board stopped in the pipeline, not a statement that
-it is fit to release. Two boards say "ordered, built" because their own files
+it is fit to release. Two boards say "ordered, fabricated" because their own files
 record a JLCPCB order number that tracked through to shipped. The rest stopped
 with a checked manufacturing package in hand. Sizes are the bounding box of the
 board outline; not every outline is a rectangle.
 
-### Designed, ordered and built
+### Designed, ordered and fabricated
 
 ![lumina-carrier](renders/lumina-carrier.png)
 
@@ -145,8 +145,8 @@ probe on it breaks the fixture's power negotiation.
 
 ![lumina-carrier, bottom](renders/lumina-carrier-bottom.png)
 
-*lumina-carrier from underneath. Every board here is built with parts on one
-side only, so the back carries routing and vias and nothing else.*
+*lumina-carrier from underneath. This board has every part on the top
+side, so the back carries routing and vias and nothing else.*
 
 ### Power
 
@@ -159,7 +159,7 @@ power module.
 
 ![rf-term-150w](renders/rf-term-150w.png)
 
-**rf-term-150w** — 2 layers · 26 × 20 mm · 6 footprints · package ready
+**rf-term-150w** — 2 layers · 26 × 20 mm · 6 footprints · stopped at manufacturability checks
 
 A 50-ohm, 150 W dummy load head, DC to 25 MHz. The element bolts to a heatsink
 the user supplies; the board is only the RF launch and the mechanical interface.
@@ -224,7 +224,7 @@ corpus is real. It is still a system a human engineer drives and signs off.
 
 - Fourteen boards from written briefs to routed layouts, including a 4-layer
   200 W RF stage and a novel 100 W USB-C PD design.
-- Two ordered from a factory and built, their order numbers tracked to shipped
+- Two ordered from a factory and fabricated, their order numbers tracked to shipped
   in their own files.
 - Every check is a script with the same contract, and its findings are recorded
   per check rather than as a single verdict.
