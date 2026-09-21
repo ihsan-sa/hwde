@@ -1,0 +1,24 @@
+% Chart c: the gate loop.
+\input{pre}
+\begin{document}
+\begin{tikzpicture}[node distance=11mm and 14mm]
+  \node[blue] (stage) {A stage runs};
+  \node[b, right=of stage] (art) {Artefact\\[-1pt]{\normalsize schematic, board, package}};
+  \node[green, right=of art] (checks) {Checks\\[-1pt]{\normalsize ERC, DRC, DFM, sims}};
+  \node[hot, right=of checks] (human) {Human sign-off};
+  \node[blue, right=of human] (next) {Next stage};
+
+  \draw[a] (stage) -- (art);
+  \draw[a] (art) -- (checks);
+  \draw[a] (checks) -- node[s, above, yshift=-1mm] {pass} (human);
+  \draw[ah] (human) -- (next);
+
+  \node[orange, below=15mm of checks, xshift=-24mm] (fix) {Fix loop};
+  \draw[a, draw=lorange] (checks.south) |- (fix.east);
+  \node[s, text=lorange] at ($(checks.south)+(7mm,-7mm)$) {fail};
+  \draw[a, draw=lorange] (fix.west) -| (art.south);
+
+  \node[s, below=4mm of human, align=center, xshift=4mm]
+       {a green gate is not\\a release certificate};
+\end{tikzpicture}
+\end{document}

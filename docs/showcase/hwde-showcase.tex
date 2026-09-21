@@ -1,0 +1,421 @@
+% The hwde showcase. Build with ./build_docs.sh (pdflatex, twice).
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{helvet}\renewcommand{\familydefault}{\sfdefault}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[margin=18mm,top=16mm,bottom=16mm]{geometry}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage[hidelinks]{hyperref}
+
+% Same palette as the flow charts.
+\definecolor{gold}{HTML}{B8943E}
+\definecolor{muted}{HTML}{9C988F}
+\definecolor{ink}{HTML}{3A3833}
+\definecolor{surface}{HTML}{F4F1EB}
+\definecolor{canvas}{HTML}{FAF9F6}
+\definecolor{border}{HTML}{E8E4DC}
+\definecolor{accent}{HTML}{C96442}
+\definecolor{lblue}{HTML}{3E6C8F}
+\definecolor{lgreen}{HTML}{4F7A52}
+
+\pagecolor{canvas}          % the renders are composited onto this exact colour
+\color{ink}
+
+\graphicspath{{renders/}{diagrams/}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\pagestyle{empty}
+
+\titleformat{\section}{\Large\bfseries\color{gold}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titleformat{\subsection}{\large\bfseries\color{ink}}{}{0pt}{}
+\titlespacing*{\subsection}{0pt}{10pt}{2pt}
+
+% --- helpers -------------------------------------------------------------
+\newcommand{\lead}[1]{{\large\color{ink}#1\par}}
+\newcommand{\note}[1]{{\small\color{muted}#1\par}}
+
+% One board, full width: render then caption. The whole thing is one minipage so
+% a caption can never be orphaned onto the next page from its render.
+% #1 image  #2 name  #3 what it is  #4 the record
+\newcommand{\board}[4]{%
+  \par\vspace{4pt}%
+  \noindent\begin{minipage}{\linewidth}
+    \setlength{\parskip}{0pt}\setlength{\parindent}{0pt}%
+    \centering
+    \includegraphics[width=\linewidth,height=0.355\textheight,keepaspectratio]{#1}
+
+    \vspace{4pt}
+    \raggedright
+    {\large\bfseries\color{lblue}#2}\quad{\color{muted}\small #4}
+
+    \vspace{2pt}
+    \justifying\noindent #3
+  \end{minipage}\par
+}
+
+% One board, half width, for the small ones. The render sits in a fixed-height
+% box so two side by side have their captions on the same line.
+\newcommand{\halfimg}[2]{\parbox[t][#1][c]{\linewidth}{%
+  \centering\includegraphics[width=\linewidth,height=#1,keepaspectratio]{#2}}}
+\newcommand{\boardhalf}[4]{%
+  \begin{minipage}[t]{0.48\linewidth}
+    \setlength{\parskip}{0pt}\setlength{\parindent}{0pt}%
+    \halfimg{46mm}{#1}
+
+    \vspace{4pt}
+    {\bfseries\color{lblue}#2}
+
+    \vspace{1pt}
+    {\scriptsize\color{muted}#4}
+
+    \vspace{3pt}
+    {\small\justifying\noindent #3\par}
+  \end{minipage}%
+}
+
+\newcommand{\chart}[1]{%
+  \par\vspace{2pt}\noindent%
+  \includegraphics[width=\linewidth]{#1}\par\vspace{2pt}%
+}
+
+\begin{document}
+
+% ======================================================================
+% Title
+% ======================================================================
+\begin{center}
+  \vspace*{2mm}
+  {\fontsize{46}{50}\selectfont\bfseries\color{gold}hwde}\par
+  \vspace{3mm}
+  {\Large\color{ink}An AI PCB engineer for KiCad and JLCPCB}\par
+  \vspace{1mm}
+  {\color{muted}printed circuit boards, designed from a written brief}\par
+\end{center}
+
+\vspace{4mm}
+
+\begin{center}
+\begin{minipage}{0.86\linewidth}
+\lead{You describe the board you want in plain words. hwde researches the
+parts, picks a topology, draws the schematic, lays out and routes the board,
+runs the electrical and manufacturing checks, and hands you the files a
+factory needs to build it. A human engineer signs off at every stage.}
+\end{minipage}
+\end{center}
+
+\vspace{5mm}
+
+\begin{center}
+\includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{lumina-carrier}
+\end{center}
+
+\vspace{1mm}
+\begin{center}
+\begin{minipage}{0.86\linewidth}
+\centering
+\note{\textbf{lumina-carrier} --- a 4-layer, 100 $\times$ 80\,mm carrier board for a
+stage-lighting fixture. 116 footprints. Designed by hwde, ordered from JLCPCB
+and built.}
+\end{minipage}
+\end{center}
+
+\newpage
+
+% ======================================================================
+% How it works
+% ======================================================================
+\section{How it works}
+
+Three pictures. The first is the route a board takes, the second is who does
+which part of the work, the third is what happens at every handover.
+
+\subsection{The pipeline}
+
+\chart{pipeline}
+
+A run starts from a written brief and ends with a manufacturing package:
+Gerbers, a bill of materials and a pick-and-place file. Each middle stage
+produces one artefact, and reads the knowledge base of design rules, extracted
+datasheet numbers and the factory's real capabilities. The orange dots are where
+a person has to look at the work and agree before it continues.
+
+\subsection{Who does what}
+
+\chart{roles}
+
+The split matters. Twenty-two specialist subagents make the judgement calls ---
+choosing a topology, sizing a part, reviewing a schematic --- and each has a
+written contract for what it may decide. Sixty-odd deterministic scripts do and
+check the mechanical work: they drive KiCad, run the routers, export the
+Gerbers. A script never has an opinion, an agent never edits a board file by
+hand, and everything either produces lands as a file in one folder per board.
+
+\newpage
+
+\subsection{The gate loop}
+
+\chart{gate}
+
+Every stage ends at a gate, which runs the checks that apply: electrical rules,
+design rules, manufacturability, and circuit simulations against stated bounds.
+It either passes, or it hands the findings back to a fix loop that reworks the
+artefact and tries again --- and a pass still needs a person's sign-off before
+the next stage starts. A green gate proves the checks that ran, not the checks
+it lists, so the reports are kept per check rather than collapsed into a
+verdict.
+
+% ======================================================================
+% The boards
+% ======================================================================
+\section{The boards}
+
+Fourteen boards have been taken far enough to have a laid-out, routed PCB. They
+run from a five-part linear regulator to a 200\,W RF power stage. Every render
+below is made from the board file in the repository, by the script next to this
+document.
+
+\vspace{2mm}
+
+{\small
+\begin{tabular}{@{}l l r r l@{}}
+\toprule
+\textbf{Board} & \textbf{What it is} & \textbf{Layers} & \textbf{Size (mm)} & \textbf{Stage reached}\\
+\midrule
+lumina-carrier & lighting carrier, PoE-powered & 4 & 100 $\times$ 80 & ordered, built\\
+pd-trigger     & USB-C PD bench trigger        & 2 & 48 $\times$ 30   & ordered, built\\
+lumina-par     & RGBW PAR daughter board       & 4 & 100 $\times$ 80 & verification\\
+rf-de-20m      & 20 MHz Class E GaN stage      & 4 & 120 $\times$ 80 & manufacturability\\
+sbuck-5v3a     & 5 V / 3 A synchronous buck    & 4 & 50 $\times$ 40   & package ready\\
+usb-buck       & USB device dev board          & 4 & 50 $\times$ 40   & package ready\\
+g0-sense       & USB-C sensor node             & 2 & 35.8 $\times$ 28.3 & package ready\\
+stm32-blinky   & minimal STM32 dev board       & 2 & 50 $\times$ 40   & package ready\\
+rf-term-150w   & 150 W RF dummy load head      & 2 & 26 $\times$ 20   & manufacturability\\
+bb-adc         & single-channel ADC            & 2 & 54.8 $\times$ 34.9 & manufacturability\\
+bb-amp         & sensor amplifier chain        & 2 & 48 $\times$ 28.3 & manufacturability\\
+bb-buck        & bare buck converter           & 2 & 35 $\times$ 25   & manufacturability\\
+bb-ldo         & bare linear regulator         & 2 & 34.7 $\times$ 34.7 & manufacturability\\
+bb-mcu         & bare microcontroller board    & 2 & 34.8 $\times$ 22.3 & manufacturability\\
+\bottomrule
+\end{tabular}}
+
+\vspace{3mm}
+
+\note{``Stage reached'' is where the board stopped in the pipeline, not a
+statement that it is fit to release. Two boards say ``ordered, built'' because
+their own files record a JLCPCB order number that tracked through to shipped.
+The rest stopped with a checked manufacturing package in hand. Sizes are the
+bounding box of the board outline; not every outline is a rectangle.}
+
+\newpage
+
+\subsection{Designed, ordered and built}
+
+\board{lumina-carrier}{lumina-carrier}
+{The universal carrier for a stage-lighting fixture. It takes power over
+Ethernet through a PD controller and a 100\,V buck, and carries a frozen
+expansion connector that a fixture-specific daughter board plugs into. The
+biggest board here: 4 layers, 116 footprints, a controlled interface another
+board depends on.}
+{4 layers \; 100 $\times$ 80 mm \; 116 footprints \; ordered from JLCPCB, tracked to shipped}
+
+\vspace{2mm}
+
+\board{pd-trigger}{pd-trigger}
+{A bench tool. A USB-C Power Delivery sink controller negotiates with a charger
+for 5, 9, 12, 15 or 20 volts, you pick the profile on the board, and the
+negotiated rail comes out on a screw terminal rated for 5\,A --- up to 100\,W.
+No conversion on the board; it is a pass-through trigger.}
+{2 layers \; 48 $\times$ 30 mm \; 30 footprints \; ordered from JLCPCB, tracked to shipped}
+
+\newpage
+
+\subsection{Harder boards}
+
+\board{rf-de-20m}{rf-de-20m}
+{A 20\,MHz Class E RF power stage: 200\,W into 50 ohms from a 40\,V bus. A PWM
+drive arrives on an SMA input, a GaN gate driver buffers it, one
+ground-referenced eGaN FET switches, and a resonant tank plus an L-match
+transforms the 4.6-ohm load line up to 50 ohms at the output SMA. The topology
+and the two core parts were fixed by the owner after a costed trade study;
+hwde did the rest.}
+{4 layers \; 120 $\times$ 80 mm \; 80 footprints \; stopped at manufacturability checks}
+
+\vspace{2mm}
+
+\board{lumina-par}{lumina-par}
+{The RGBW PAR daughter board that stacks on the carrier. It is bound by the
+carrier's frozen connector document --- a hard input it may never redefine ---
+and by a re-derived power budget of 8.6 to 20\,W depending on which
+power-over-Ethernet class the fixture gets. The densest board here at 158
+footprints, and the only one whose outline is not a rectangle. The silkscreen
+warns that the board floats at the power-over-Ethernet potential, so an earthed
+probe on it breaks the fixture's power negotiation.}
+{4 layers \; 100 $\times$ 80 mm \; 158 footprints \; stopped at verification}
+
+\newpage
+
+\boardhalf{lumina-par-flat}{lumina-par, straight down}
+{So the routing shows. Four layers, 158 footprints, laid out and routed to the
+same rules as everything else.}
+{top-down view}
+\hfill
+\boardhalf{lumina-carrier-bottom}{lumina-carrier, underneath}
+{Every board here is built with parts on one side only, so the back carries
+routing and vias and nothing else. This is the fab's view of it.}
+{bottom view}
+
+\vspace{4mm}
+
+\subsection{Power}
+
+\boardhalf{sbuck-5v3a}{sbuck-5v3a}
+{7--18\,V in, a regulated 5.0\,V $\pm$2\% out at 3\,A, synchronous buck. An
+open-frame power module.}
+{4 layers \; 50 $\times$ 40 mm \; 44 footprints \; package ready}
+\hfill
+\boardhalf{rf-term-150w}{rf-term-150w}
+{A 50-ohm, 150\,W dummy load head, DC to 25\,MHz. The element bolts to a
+heatsink the user supplies; the board is only the RF launch and the mechanical
+interface. Shown close to bare: one of its six footprints has a 3D model in the
+repository, so the connector and the element are not drawn.}
+{2 layers \; 26 $\times$ 20 mm \; 6 footprints \; package ready}
+
+\newpage
+
+\subsection{Microcontroller boards}
+
+\board{g0-sense}{g0-sense}
+{A USB-C powered temperature and humidity node. USB-C supplies 5\,V, an LDO
+makes 3.3\,V, an STM32G030 running on its internal oscillator reads a Sensirion
+SHT4x over I\textsuperscript{2}C. The same bus comes out on a Qwiic connector;
+readings go out over a UART header; programming is over SWD. Designed
+end-to-end in one unattended container run.}
+{2 layers \; 35.8 $\times$ 28.3 mm \; 30 footprints \; package ready, release attestation built}
+
+\vspace{2mm}
+
+\boardhalf{usb-buck}{usb-buck}
+{An STM32F103 USB full-speed device board. Micro-B USB carries both power and
+data; LED, button and an SWD header.}
+{4 layers \; 50 $\times$ 40 mm \; 28 footprints \; package ready}
+\hfill
+\boardhalf{stm32-blinky}{stm32-blinky}
+{The simplest useful board: STM32F103, an 8\,MHz crystal, one LED, an LDO and
+an SWD header.}
+{2 layers \; 50 $\times$ 40 mm \; 20 footprints \; package ready}
+
+\newpage
+
+\subsection{Building blocks}
+
+Five deliberately bare boards, each one block and nothing else. They exist to
+be studied and measured on a bench, so protection, filtering, indicators and
+spare rails are left out on purpose.
+
+\vspace{2mm}
+
+\boardhalf{bb-buck}{bb-buck}
+{18--30\,V in, 5\,V at 2\,A out on a screw terminal. The converter and exactly
+what its datasheet requires.}
+{2 layers \; 35 $\times$ 25 mm \; 20 footprints}
+\hfill
+\boardhalf{bb-ldo}{bb-ldo}
+{5\,V in, 3.3\,V at 500\,mA out, holding regulation in still air on the board's
+own copper.}
+{2 layers \; 34.7 $\times$ 34.7 mm \; 5 footprints}
+
+\vspace{4mm}
+
+\boardhalf{bb-mcu}{bb-mcu}
+{One MCU, a 3.3\,V rail in, its debug header and four GPIO. No regulation, no
+second rail.}
+{2 layers \; 34.8 $\times$ 22.3 mm \; 14 footprints}
+\hfill
+\boardhalf{bb-adc}{bb-adc}
+{0--5\,V in on a screw terminal, 12 bits or better at up to 10\,kSa/s out over
+a 0.1-inch header. DC accuracy over speed.}
+{2 layers \; 54.8 $\times$ 34.9 mm \; 25 footprints}
+
+\vspace{4mm}
+
+\boardhalf{bb-amp}{bb-amp}
+{A 0--20\,mV differential bridge signal in, 0--3.3\,V single-ended out, DC to
+1\,kHz. Nominally 165 V/V.}
+{2 layers \; 48 $\times$ 28.3 mm \; 14 footprints}
+\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\vspace{6mm}
+\note{Two more boards --- a 5\,V/3\,A buck and a strobe daughter board ---
+stopped before layout and have no PCB to show. They are in the repository at
+the stage they reached.}
+\end{minipage}
+
+\newpage
+
+% ======================================================================
+% Honest limits
+% ======================================================================
+\section{What it can and cannot do yet}
+
+This is a supervised engineering assistant, not an unattended release system.
+Boards have been designed, fabricated and ordered with it, and the checker
+corpus is real. It is still a system a human engineer drives and signs off.
+
+\subsection{What holds}
+
+\begin{itemize}[leftmargin=5mm,itemsep=2pt]
+\item Fourteen boards from written briefs to routed layouts, including a
+      4-layer 200\,W RF stage and a novel 100\,W USB-C PD design.
+\item Two ordered from a factory and built, their order numbers tracked to
+      shipped in their own files.
+\item Every check is a script with the same contract, and its findings are
+      recorded per check rather than as a single verdict.
+\item Everything a run produced is a file in that board's folder, readable
+      without hwde.
+\end{itemize}
+
+\subsection{What does not}
+
+\begin{itemize}[leftmargin=5mm,itemsep=2pt]
+\item A green gate proves the checks that \emph{ran}, not the checks it lists.
+      Read the per-check report, not the verdict.
+\item The pipeline stage a board reached is not a release certificate. Today a
+      person decides what is releasable.
+\item There is no public manufacturability API at the factory, so that review
+      stays a human step in a browser.
+\item Spending money is deliberately hard. One code path can place an order. It
+      is 2-layer only, it refuses a board that already records an order, and it
+      will not run without a fresh quote, a matching design hash and a
+      confirmation a person types out naming the board, the quantity and the
+      total.
+\item The electrical and thermal checks are engineering screens with stated
+      accuracy. They are not certification, and nothing here is safety-certified
+      for mains, medical, automotive or aerospace use.
+\end{itemize}
+
+\vspace{4mm}
+
+\section{How it gets better}
+
+\chart{lessons}
+
+Every run writes down what broke and why, dated and tagged, and that goes into
+the knowledge base the next run reads first. The rule is that a gotcha is
+recorded the moment it is hit, so the next board does not pay for it again. It
+is the same reason the boards above get harder as they go.
+
+\vfill
+\note{Renders produced from the board files in this repository with KiCad's
+command-line renderer. Board dimensions, layer counts and footprint counts read
+from those same files; the stage each board reached read from its recorded
+state.}
+
+\end{document}

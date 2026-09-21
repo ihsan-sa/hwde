@@ -1,0 +1,16 @@
+% Chart d: how it gets better.
+\input{pre}
+\begin{document}
+\begin{tikzpicture}[node distance=11mm and 16mm]
+  \node[blue] (run) {A board run};
+  \node[orange, right=of run] (broke) {What broke\\[-1pt]{\normalsize and why}};
+  \node[purple, right=of broke] (lib) {Knowledge base\\[-1pt]{\normalsize dated, tagged notes}};
+  \node[hot, right=of lib] (next) {The next board\\[-1pt]{\normalsize starts with them}};
+
+  \draw[a] (run) -- (broke);
+  \draw[a] (broke) -- (lib);
+  \draw[ah] (lib) -- (next);
+
+  \draw[a, dashed] (next.south) -- ++(0,-9mm) -| (run.south);
+\end{tikzpicture}
+\end{document}

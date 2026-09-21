@@ -1,0 +1,31 @@
+% Chart a: the pipeline, idea to order.
+\input{pre}
+\begin{document}
+\begin{tikzpicture}[node distance=10mm and 11mm]
+  \node[hot] (idea) {Idea};
+  \node[blue, right=of idea] (define) {Define\\[-1pt]{\normalsize research + architecture}};
+  \node[blue, right=of define] (design) {Design\\[-1pt]{\normalsize parts + schematic}};
+  \node[green, right=of design] (board) {Board\\[-1pt]{\normalsize place + route}};
+  \node[green, right=of board] (verify) {Verify\\[-1pt]{\normalsize checks + sims}};
+  \node[hot, right=of verify] (order) {Order\\[-1pt]{\normalsize fab package}};
+
+  \draw[ah] (idea) -- (define);
+  \draw[a] (define) -- (design);
+  \draw[a] (design) -- (board);
+  \draw[a] (board) -- (verify);
+  \draw[a] (verify) -- (order);
+
+  % human sign-off points
+  \node[sign] at ($(define)!0.5!(design)$) {};
+  \node[sign] at ($(design)!0.5!(board)$) {};
+  \node[sign] at ($(verify)!0.5!(order)$) {};
+  \node[s, text=accent, above=4mm of design, xshift=6mm] {you sign off here};
+  \node[s, text=accent, above=4mm of order, xshift=-8mm] {and here};
+
+  \node[purple, below=14mm of design, xshift=18mm] (knowledge)
+        {Knowledge base\\[-1pt]{\normalsize rules, datasheets, fab limits}};
+  \draw[a,dashed] (knowledge.north west) -- (define.south east);
+  \draw[a,dashed] (knowledge.north) -- (board.south);
+  \draw[a,dashed] (knowledge.north east) -- (verify.south);
+\end{tikzpicture}
+\end{document}
