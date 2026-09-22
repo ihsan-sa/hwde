@@ -104,10 +104,10 @@
 
 \begin{center}
 \begin{minipage}{0.86\linewidth}
-\lead{You describe the board you want in plain words. hwde researches the
-parts, picks a topology, draws the schematic, lays out and routes the board,
-runs the electrical and manufacturing checks, and hands you the files a
-factory needs to build it. A human engineer signs off at every stage.}
+\lead{You describe the board you want in plain words. hwde then researches the
+parts, picks a topology, draws the schematic, and lays out and routes the
+board. It runs the electrical and manufacturing checks, and hands you the files
+a factory needs to build it. A human engineer signs off at every stage.}
 \end{minipage}
 \end{center}
 
@@ -121,9 +121,9 @@ factory needs to build it. A human engineer signs off at every stage.}
 \begin{center}
 \begin{minipage}{0.86\linewidth}
 \centering
-\note{\textbf{lumina-carrier} --- a 4-layer, 100 $\times$ 80\,mm carrier board for a
-stage-lighting fixture. 116 footprints. Designed by hwde, ordered from JLCPCB
-and fabricated.}
+\note{\textbf{lumina-carrier} is a 4-layer carrier board for a stage-lighting
+fixture, 100 $\times$ 80\,mm with 116 footprints. hwde designed it, and it was
+ordered from JLCPCB and fabricated.}
 \end{minipage}
 \end{center}
 
@@ -134,29 +134,30 @@ and fabricated.}
 % ======================================================================
 \section{How it works}
 
-Three pictures. The first is the route a board takes, the second is who does
-which part of the work, the third is what happens at every handover.
+Three pictures follow. The first is the route a board takes, the second is who
+does which part of the work, and the third is what happens at every handover.
 
 \subsection{The pipeline}
 
 \chart{pipeline}
 
-A run starts from a written brief and ends with a manufacturing package:
-Gerbers, a bill of materials and a pick-and-place file. Each middle stage
-produces one artefact, and reads the knowledge base of design rules, extracted
-datasheet numbers and the factory's real capabilities. The orange dots are where
-a person has to look at the work and agree before it continues.
+A run starts from a written brief and ends with a manufacturing package of
+Gerbers, a bill of materials and a pick-and-place file. Each stage in between
+produces one file, and before it does, it reads the knowledge base of design
+rules, datasheet numbers and what the factory can really make. The orange dots
+mark where a person has to look at the work and agree before it goes on.
 
 \subsection{Who does what}
 
 \chart{roles}
 
-The split matters. Twenty-two specialist subagents make the judgement calls ---
-choosing a topology, sizing a part, reviewing a schematic --- and each has a
-written contract for what it may decide. Sixty-odd deterministic scripts do and
-check the mechanical work: they drive KiCad, run the routers, export the
-Gerbers. A script never has an opinion, an agent never edits a board file by
-hand, and everything either produces lands as a file in one folder per board.
+The work is split in two. Twenty-two specialist subagents make the judgement
+calls, like choosing a topology, sizing a part or reviewing a schematic, and
+each one has a written contract for what it may decide. About sixty scripts do
+and check the mechanical work, and they are all deterministic. They drive KiCad,
+run the routers and export the Gerbers. A script never has an opinion, and an
+agent never edits a board file by hand. Whatever either of them produces lands
+as a file in one folder per board.
 
 \newpage
 
@@ -164,23 +165,23 @@ hand, and everything either produces lands as a file in one folder per board.
 
 \chart{gate}
 
-Every stage ends at a gate, which runs the checks that apply: electrical rules,
-design rules, manufacturability, and circuit simulations against stated bounds.
-It either passes, or it hands the findings back to a fix loop that reworks the
-artefact and tries again --- and a pass still needs a person's sign-off before
-the next stage starts. A green gate proves the checks that ran, not the checks
-it lists, so the reports are kept per check rather than collapsed into a
-verdict.
+Every stage ends at a gate. The gate runs the checks that apply to that stage,
+which are the electrical rules, the design rules, manufacturability and circuit
+simulations against stated bounds. It either passes, or it hands the findings
+back to a fix loop that reworks the file and tries again. A pass is not the end
+of it, because a person still signs off before the next stage starts. A green
+gate only proves the checks that actually ran, so the reports are kept one per
+check instead of being collapsed into a verdict.
 
 % ======================================================================
 % The boards
 % ======================================================================
 \section{The boards}
 
-Fourteen boards have been taken far enough to have a laid-out, routed PCB. They
-run from a five-part linear regulator to a 200\,W RF power stage. Every render
-below is made from the board file in the repository, by the script next to this
-document.
+Fourteen boards got far enough to have a laid-out, routed PCB. They run from a
+linear regulator with five parts to a 200\,W RF power stage. Every render below
+was made from the board file in the repository, by the script that sits next to
+this document.
 
 \vspace{2mm}
 
@@ -208,31 +209,32 @@ bb-mcu         & bare microcontroller board    & 2 & 34.8 $\times$ 22.3 & manufa
 
 \vspace{3mm}
 
-\note{``Stage reached'' is where the board stopped in the pipeline, not a
-statement that it is fit to release. Two boards say ``ordered, fabricated'' because
-their own files record a JLCPCB order number that tracked through to shipped.
-The rest stopped with a checked manufacturing package in hand. Sizes are the
-bounding box of the board outline; not every outline is a rectangle.}
+\note{``Stage reached'' says where the board stopped in the pipeline, and it does
+not say the board is fit to release. Two boards say ``ordered, fabricated''
+because their own files record a JLCPCB order number that tracked through to
+shipped. The rest stopped with a checked manufacturing package in hand. Each
+size is the bounding box of the board outline, and not every outline is a
+rectangle.}
 
 \newpage
 
 \subsection{Designed, ordered and fabricated}
 
 \board{lumina-carrier}{lumina-carrier}
-{The universal carrier for a stage-lighting fixture. It takes power over
-Ethernet through a PD controller and a 100\,V buck, and carries a frozen
-expansion connector that a fixture-specific daughter board plugs into. The
-biggest board here: 4 layers, 116 footprints, a controlled interface another
-board depends on.}
+{This is the universal carrier for a stage-lighting fixture. It takes power over
+Ethernet through a PD controller and a 100\,V buck, and it carries a frozen
+expansion connector that a fixture-specific daughter board plugs into. It is the
+biggest board here, with 4 layers and 116 footprints, and another board depends
+on the connector it sets.}
 {4 layers \; 100 $\times$ 80 mm \; 116 footprints \; ordered from JLCPCB, tracked to shipped}
 
 \vspace{2mm}
 
 \board{pd-trigger}{pd-trigger}
-{A bench tool. A USB-C Power Delivery sink controller negotiates with a charger
-for 5, 9, 12, 15 or 20 volts, you pick the profile on the board, and the
-negotiated rail comes out on a screw terminal rated for 5\,A --- up to 100\,W.
-No conversion on the board; it is a pass-through trigger.}
+{This one is a bench tool. A USB-C Power Delivery sink controller negotiates
+with a charger for 5, 9, 12, 15 or 20 volts, and you pick the profile on the
+board. The negotiated rail comes out on a screw terminal rated for 5\,A, so up to
+100\,W. The board converts nothing. It just passes the rail through.}
 {2 layers \; 48 $\times$ 30 mm \; 30 footprints \; ordered from JLCPCB, tracked to shipped}
 
 \newpage
@@ -240,36 +242,35 @@ No conversion on the board; it is a pass-through trigger.}
 \subsection{Harder boards}
 
 \board{rf-de-20m}{rf-de-20m}
-{A 20\,MHz Class E RF power stage: 200\,W into 50 ohms from a 40\,V bus. A PWM
-drive arrives on an SMA input, a GaN gate driver buffers it, one
-ground-referenced eGaN FET switches, and a resonant tank plus an L-match
-transforms the 4.6-ohm load line up to 50 ohms at the output SMA. The topology
-and the two core parts were fixed by the owner after a costed trade study;
-hwde did the rest.}
+{A 20\,MHz Class E RF power stage that puts 200\,W into 50 ohms from a 40\,V
+bus. A PWM drive arrives on an SMA input, a GaN gate driver buffers it, and one
+ground-referenced eGaN FET switches. A resonant tank and an L-match transform
+the 4.6-ohm load line to 50 ohms at the output SMA. The owner fixed the topology
+and the two core parts after a costed trade study. hwde did the rest.}
 {4 layers \; 120 $\times$ 80 mm \; 80 footprints \; stopped at manufacturability checks}
 
 \vspace{2mm}
 
 \board{lumina-par}{lumina-par}
-{The RGBW PAR daughter board that stacks on the carrier. It is bound by the
-carrier's frozen connector document --- a hard input it may never redefine ---
-and by a re-derived power budget of 8.6 to 20\,W depending on which
-power-over-Ethernet class the fixture gets. The densest board here at 158
+{The RGBW PAR daughter board that stacks on the carrier. The carrier's connector
+document is frozen, so this board takes it as given and may not redefine it. Its
+power budget of 8.6 to 20\,W was re-derived here, and depends on the
+power-over-Ethernet class the fixture gets. It is the densest board here at 158
 footprints, and the only one whose outline is not a rectangle. The silkscreen
-warns that the board floats at the power-over-Ethernet potential, so an earthed
-probe on it breaks the fixture's power negotiation.}
+warns that the board floats at the power-over-Ethernet potential, because an
+earthed probe breaks the fixture's power negotiation.}
 {4 layers \; 100 $\times$ 80 mm \; 158 footprints \; stopped at verification}
 
 \newpage
 
 \boardhalf{lumina-par-flat}{lumina-par, straight down}
-{So the routing shows. Four layers, 158 footprints, laid out and routed to the
-same rules as everything else.}
+{The same board from straight above, so the routing shows. It has four layers
+and 158 footprints, routed to the same rules as everything else.}
 {top-down view}
 \hfill
 \boardhalf{lumina-carrier-bottom}{lumina-carrier, underneath}
-{This board has every part on the top side, so the back carries
-routing and vias and nothing else. This is the fab's view of it.}
+{Every part sits on the top side of this board, so the back carries routing and
+vias and nothing else. This is how the factory sees it.}
 {bottom view}
 
 \vspace{4mm}
@@ -277,15 +278,15 @@ routing and vias and nothing else. This is the fab's view of it.}
 \subsection{Power}
 
 \boardhalf{sbuck-5v3a}{sbuck-5v3a}
-{7--18\,V in, a regulated 5.0\,V $\pm$2\% out at 3\,A, synchronous buck. An
-open-frame power module.}
+{A synchronous buck that takes 7--18\,V in and holds 5.0\,V $\pm$2\% at 3\,A
+out. It is an open-frame power module.}
 {4 layers \; 50 $\times$ 40 mm \; 44 footprints \; package ready}
 \hfill
 \boardhalf{rf-term-150w}{rf-term-150w}
-{A 50-ohm, 150\,W dummy load head, DC to 25\,MHz. The element bolts to a
-heatsink the user supplies; the board is only the RF launch and the mechanical
-interface. Shown close to bare: one of its six footprints has a 3D model in the
-repository, so the connector and the element are not drawn.}
+{A 50-ohm, 150\,W dummy load head for DC to 25\,MHz. The element bolts to a
+heatsink the user supplies, so the board is only the RF launch and the
+mechanical interface. It renders close to bare because none of its six footprints has a 3D model
+the renderer could find, so the connector and the element are not drawn.}
 {2 layers \; 26 $\times$ 20 mm \; 6 footprints \; stopped at manufacturability checks}
 
 \newpage
@@ -293,69 +294,69 @@ repository, so the connector and the element are not drawn.}
 \subsection{Microcontroller boards}
 
 \board{g0-sense}{g0-sense}
-{A USB-C powered temperature and humidity node. USB-C supplies 5\,V, an LDO
-makes 3.3\,V, an STM32G030 running on its internal oscillator reads a Sensirion
-SHT4x over I\textsuperscript{2}C. The same bus comes out on a Qwiic connector;
-readings go out over a UART header; programming is over SWD. Designed
-end-to-end in one unattended container run.}
+{A temperature and humidity node that runs off USB-C. USB-C supplies 5\,V and an
+LDO makes 3.3\,V from it, and an STM32G030 on its internal oscillator reads a
+Sensirion SHT4x over I\textsuperscript{2}C. The same bus comes out on a Qwiic
+connector, the readings go out over a UART header, and you program it over SWD.
+hwde designed this one end to end in a single unattended container run.}
 {2 layers \; 35.8 $\times$ 28.3 mm \; 30 footprints \; package ready, release attestation built}
 
 \vspace{2mm}
 
 \boardhalf{usb-buck}{usb-buck}
-{An STM32F103 USB full-speed device board. Micro-B USB carries both power and
-data; LED, button and an SWD header.}
+{An STM32F103 board that talks USB at full speed. The Micro-B socket carries
+both power and data, and there is an LED, a button and an SWD header.}
 {4 layers \; 50 $\times$ 40 mm \; 28 footprints \; package ready}
 \hfill
 \boardhalf{stm32-blinky}{stm32-blinky}
-{The simplest useful board: STM32F103, an 8\,MHz crystal, one LED, an LDO and
-an SWD header.}
+{The simplest useful board here. It has an STM32F103, an 8\,MHz crystal, one
+LED, an LDO and an SWD header.}
 {2 layers \; 50 $\times$ 40 mm \; 20 footprints \; package ready}
 
 \newpage
 
 \subsection{Building blocks}
 
-Five deliberately bare boards, each one block and nothing else. They exist to
-be studied and measured on a bench, so protection, filtering, indicators and
-spare rails are left out on purpose.
+These five boards are deliberately bare, each one carrying a single block and
+nothing else. They are there to be studied and measured on a bench, so they
+leave out protection, filtering, indicators and spare rails on purpose.
 
 \vspace{2mm}
 
 \boardhalf{bb-buck}{bb-buck}
-{18--30\,V in, 5\,V at 2\,A out on a screw terminal. The converter and exactly
-what its datasheet requires.}
+{It takes 18--30\,V in and gives 5\,V at 2\,A out on a screw terminal. It
+carries the converter and exactly what its datasheet requires.}
 {2 layers \; 35 $\times$ 25 mm \; 20 footprints}
 \hfill
 \boardhalf{bb-ldo}{bb-ldo}
-{5\,V in, 3.3\,V at 500\,mA out, holding regulation in still air on the board's
-own copper.}
+{It takes 5\,V in and gives 3.3\,V at 500\,mA out, holding regulation in still
+air on the board's own copper.}
 {2 layers \; 34.7 $\times$ 34.7 mm \; 5 footprints}
 
 \vspace{4mm}
 
 \boardhalf{bb-mcu}{bb-mcu}
-{One MCU, a 3.3\,V rail in, its debug header and four GPIO. No regulation, no
-second rail.}
+{One MCU with a 3.3\,V rail coming in, its debug header and four GPIO. There is
+no regulator and no second rail.}
 {2 layers \; 34.8 $\times$ 22.3 mm \; 14 footprints}
 \hfill
 \boardhalf{bb-adc}{bb-adc}
-{0--5\,V in on a screw terminal, 12 bits or better at up to 10\,kSa/s out over
-a 0.1-inch header. DC accuracy over speed.}
+{0--5\,V in on a screw terminal, and 12 bits or better at up to 10\,kSa/s out
+over a 0.1-inch header. It trades speed for DC accuracy.}
 {2 layers \; 54.8 $\times$ 34.9 mm \; 25 footprints}
 
 \vspace{4mm}
 
 \boardhalf{bb-amp}{bb-amp}
-{A 0--20\,mV differential bridge signal in, 0--3.3\,V single-ended out, DC to
-1\,kHz. Nominally 165 V/V.}
+{It takes a 0--20\,mV differential bridge signal and gives 0--3.3\,V
+single-ended out, from DC to 1\,kHz. The nominal gain is 165 V/V.}
 {2 layers \; 48 $\times$ 28.3 mm \; 14 footprints}
 \hfill
 \begin{minipage}[t]{0.48\linewidth}
 \vspace{6mm}
-\note{Two more boards --- a 5\,V/3\,A buck and a strobe daughter board ---
-stopped before layout and have no PCB to show. They are in the repository at
-the stage they reached.}
+\note{Two more boards stopped before layout and have no PCB to show, a
+5\,V/3\,A buck and a strobe daughter board. Both are in the repository at the
+stage they reached.}
 \end{minipage}
 
 \newpage
@@ -365,40 +366,40 @@ the stage they reached.}
 % ======================================================================
 \section{What it can and cannot do yet}
 
-This is a supervised engineering assistant, not an unattended release system.
-Boards have been designed, fabricated and ordered with it, and the checker
-corpus is real. It is still a system a human engineer drives and signs off.
+hwde is an engineering assistant, and it does not release a board by itself. A
+human engineer drives it and signs off at every stage. Two of the boards above
+were designed with it, ordered from a factory and fabricated.
 
 \subsection{What holds}
 
 \begin{itemize}[leftmargin=5mm,itemsep=2pt]
-\item Fourteen boards from written briefs to routed layouts, including a
+\item Fourteen boards went from a written brief to a routed layout, including a
       4-layer 200\,W RF stage and a novel 100\,W USB-C PD design.
-\item Two ordered from a factory and fabricated, their order numbers tracked to
-      shipped in their own files.
-\item Every check is a script with the same contract, and its findings are
-      recorded per check rather than as a single verdict.
-\item Everything a run produced is a file in that board's folder, readable
-      without hwde.
+\item Two of them were ordered from a factory and fabricated, and their own
+      files record the order numbers tracked through to shipped.
+\item Every check is a script, and they all follow the same contract. The
+      findings are kept per check rather than as a single verdict.
+\item Everything a run produces is a file in that board's folder, and you can
+      read it without hwde.
 \end{itemize}
 
 \subsection{What does not}
 
 \begin{itemize}[leftmargin=5mm,itemsep=2pt]
-\item A green gate proves the checks that \emph{ran}, not the checks it lists.
-      Read the per-check report, not the verdict.
-\item The pipeline stage a board reached is not a release certificate. Today a
-      person decides what is releasable.
-\item There is no public manufacturability API at the factory, so that review
-      stays a human step in a browser.
-\item Spending money is deliberately hard. One code path can place an order. It
-      is 2-layer only, it refuses a board that already records an order, and it
-      will not run without a fresh quote, a matching design hash and a
-      confirmation a person types out naming the board, the quantity and the
-      total.
-\item The electrical and thermal checks are engineering screens with stated
-      accuracy. They are not certification, and nothing here is safety-certified
-      for mains, medical, automotive or aerospace use.
+\item A green gate only proves the checks that \emph{ran}. Read the report for
+      each check rather than the verdict.
+\item The stage a board reached is not a release certificate. A person decides
+      what is fit to release.
+\item The factory has no public API for its manufacturability review, so someone
+      still does that step by hand in a browser.
+\item Spending money is deliberately hard. One code path can place an order, and
+      it handles 2-layer boards only. It refuses a board whose files already
+      record an order, and it will not run without a fresh quote and a matching
+      design hash. A person also has to type out a confirmation naming the
+      board, the quantity and the total.
+\item The electrical and thermal checks are engineering screens, and each states
+      its own accuracy. None of them is a certification, and nothing here is
+      safety-certified for mains, medical, automotive or aerospace use.
 \end{itemize}
 
 \vspace{4mm}
@@ -407,15 +408,14 @@ corpus is real. It is still a system a human engineer drives and signs off.
 
 \chart{lessons}
 
-Every run writes down what broke and why, dated and tagged, and that goes into
-the knowledge base the next run reads first. The rule is that a gotcha is
-recorded the moment it is hit, so the next board does not pay for it again. It
-is the same reason the boards above get harder as they go.
+Every run writes down what broke and why, with a date and a tag, and that goes
+into the knowledge base the next run reads first. The rule is to record a gotcha
+the moment you hit it, so the next board does not pay for it again.
 
 \vfill
-\note{Renders produced from the board files in this repository with KiCad's
-command-line renderer. Board dimensions, layer counts and footprint counts read
-from those same files; the stage each board reached read from its recorded
-state.}
+\note{The renders come from the board files in this repository, drawn by KiCad's
+command-line renderer. The dimensions, layer counts and footprint counts are
+read from those same files, and the stage each board reached is read from its
+recorded state.}
 
 \end{document}
