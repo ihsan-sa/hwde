@@ -103,7 +103,7 @@ This is the universal carrier for a stage-lighting fixture. It takes power over
 Ethernet through a PD controller and a 100 V buck, and it carries a frozen
 expansion connector that a fixture-specific daughter board plugs into. It is the
 biggest board here, with 4 layers and 116 footprints, and another board depends
-on the interface it fixes.
+on the connector it sets.
 
 ![pd-trigger](renders/pd-trigger.png)
 
@@ -112,8 +112,8 @@ tracked to shipped
 
 This one is a bench tool. A USB-C Power Delivery sink controller negotiates with
 a charger for 5, 9, 12, 15 or 20 volts, and you pick the profile on the board.
-The rail it wins comes out on a screw terminal rated for 5 A, so up to 100 W.
-The board converts nothing, it just passes the rail through.
+The negotiated rail comes out on a screw terminal rated for 5 A, so up to 100 W.
+The board converts nothing. It just passes the rail through.
 
 ### Harder boards
 
@@ -167,9 +167,8 @@ an open-frame power module.
 
 A 50-ohm, 150 W dummy load head for DC to 25 MHz. The element bolts to a
 heatsink the user supplies, so the board is only the RF launch and the
-mechanical interface. It renders close to bare because one of its six footprints
-has a 3D model in the repository, which leaves the connector and the element
-undrawn.
+mechanical interface. It renders close to bare because none of its six footprints has a 3D model
+the renderer could find, so the connector and the element are not drawn.
 
 ### Microcontroller boards
 

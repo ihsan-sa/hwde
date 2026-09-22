@@ -225,7 +225,7 @@ rectangle.}
 Ethernet through a PD controller and a 100\,V buck, and it carries a frozen
 expansion connector that a fixture-specific daughter board plugs into. It is the
 biggest board here, with 4 layers and 116 footprints, and another board depends
-on the interface it fixes.}
+on the connector it sets.}
 {4 layers \; 100 $\times$ 80 mm \; 116 footprints \; ordered from JLCPCB, tracked to shipped}
 
 \vspace{2mm}
@@ -233,8 +233,8 @@ on the interface it fixes.}
 \board{pd-trigger}{pd-trigger}
 {This one is a bench tool. A USB-C Power Delivery sink controller negotiates
 with a charger for 5, 9, 12, 15 or 20 volts, and you pick the profile on the
-board. The rail it wins comes out on a screw terminal rated for 5\,A, so up to
-100\,W. The board converts nothing, it just passes the rail through.}
+board. The negotiated rail comes out on a screw terminal rated for 5\,A, so up to
+100\,W. The board converts nothing. It just passes the rail through.}
 {2 layers \; 48 $\times$ 30 mm \; 30 footprints \; ordered from JLCPCB, tracked to shipped}
 
 \newpage
@@ -285,9 +285,8 @@ out. It is an open-frame power module.}
 \boardhalf{rf-term-150w}{rf-term-150w}
 {A 50-ohm, 150\,W dummy load head for DC to 25\,MHz. The element bolts to a
 heatsink the user supplies, so the board is only the RF launch and the
-mechanical interface. It renders close to bare because one of its six footprints
-has a 3D model in the repository, which leaves the connector and the element
-undrawn.}
+mechanical interface. It renders close to bare because none of its six footprints has a 3D model
+the renderer could find, so the connector and the element are not drawn.}
 {2 layers \; 26 $\times$ 20 mm \; 6 footprints \; stopped at manufacturability checks}
 
 \newpage
