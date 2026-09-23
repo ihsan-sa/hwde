@@ -358,3 +358,153 @@ def test_atomic_write_crash_before_replace_keeps_old(tmp_path, monkeypatch):
         safelib.atomic_write_json(p, {"v": 2})
     assert read_json(p) == {"v": 1}
     assert not list(tmp_path.glob(".x.json.*.tmp"))
+
+
+# ======================== PR #5 review: whitelist + containment follow-ups
+
+def _arm_attempt(fab, attempt):
+    latch = fab / "order.json"
+    doc = read_json(latch)
+    doc.setdefault("api", {})["create_attempt"] = attempt
+    latch.write_text(json.dumps(doc), encoding="utf-8")
+    return latch
+
+
+@pytest.mark.parametrize("attempt", [
+    {},                                          # state missing
+    {"at": "2026-09-01T00:00:00", "grand_total": 12.5},
+    {"state": None},
+    {"state": ""},
+    {"state": 5},                                # not a string
+    {"state": "created "},                       # near-miss spelling
+    {"state": "failed:some_new_code"},           # unknown failure class
+    {"state": "pending"},
+])
+def test_create_attempt_unknown_state_refuses(tmp_path, monkeypatch, capsys,
+                                              attempt):
+    """The ambiguous-attempt check is a WHITELIST: a create_attempt record
+    whose state is missing or not one of the unambiguous states refuses
+    --api-create with exit 2, zero transport calls, no pre-arm, and the
+    attempt record and latch left exactly as they were."""
+    pcb, fab, qj = _order_ready(tmp_path)
+    capsys.readouterr()
+    _arm_attempt(fab, attempt)
+    for k in tj.API_ENV:
+        monkeypatch.setenv(k, "X")
+    fake = tj.FakeSession()
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    aq = tj.write_api_quote(fab)
+    code = order_submit.main(tj.submit_argv(
+        pcb, fab, qj, "--api-create", "--api-quote-file", str(aq),
+        "--confirm", "b1 5pcs 12.5"))
+    capsys.readouterr()
+    assert code == 2
+    assert fake.calls == []                       # no create sent
+    order = read_json(fab / "order.json")
+    assert order["api"]["create_attempt"] == attempt   # untouched
+    assert order["api"]["verdict"] == "refused"
+    assert "missing or unrecognised state" in order["api"]["note"]
+    assert not (order["api"].get("order") or {}).get("batchNum")
+    assert not order.get("order_number")
+    journal = safelib.read_journal(fab / order_submit.JOURNAL_NAME)
+    assert not any(r["event"] == "in_flight" for r in journal)
+    assert journal[-2]["event"] == "refused" and \
+        journal[-2]["stage"] == "create"
+
+
+@pytest.mark.parametrize("state", ["failed:scope_pending",
+                                   "failed:ip_blocked",
+                                   "failed:rate_limited"])
+def test_create_attempt_unambiguous_states_allow_retry(tmp_path, monkeypatch,
+                                                       capsys, state):
+    pcb, fab, qj = _order_ready(tmp_path)
+    capsys.readouterr()
+    _arm_attempt(fab, {"state": state, "at": "2026-09-01T00:00:00"})
+    for k in tj.API_ENV:
+        monkeypatch.setenv(k, "X")
+    fake = tj.FakeSession(create_order=tj.ok_resp(tj.CREATE_OK))
+    monkeypatch.setattr(order_submit, "_make_session", lambda: fake)
+    aq = tj.write_api_quote(fab)
+    code = order_submit.main(tj.submit_argv(
+        pcb, fab, qj, "--api-create", "--api-quote-file", str(aq),
+        "--confirm", "b1 5pcs 12.5"))
+    capsys.readouterr()
+    assert code == 0
+    assert fake.names() == ["create_order"]
+    assert read_json(fab / "order.json")["api"]["create_attempt"][
+        "state"] == "created"
+
+
+@pytest.mark.skipif(not POSIX, reason="symlinks")
+def test_symlinked_snapshot_dir_is_refused_not_followed(tmp_path):
+    ws, st = make_ws(tmp_path)
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    (ws / "state_snapshots").symlink_to(elsewhere, target_is_directory=True)
+    with pytest.raises(safelib.ContainmentError, match="symlink"):
+        st.snapshot("s", files=["kicad/f0.txt"])
+    assert list(elsewhere.iterdir()) == []        # nothing written outside
+    # restore through the same link is refused too, workspace untouched
+    good = elsewhere / "good"
+    (good / "kicad").mkdir(parents=True)
+    (good / "kicad" / "f0.txt").write_text("from outside", encoding="utf-8")
+    (good / "manifest.json").write_text(json.dumps({"files": [
+        {"path": "kicad/f0.txt",
+         "sha256": safelib.sha256_file(good / "kicad" / "f0.txt")}]}),
+        encoding="utf-8")
+    with pytest.raises(safelib.ContainmentError, match="symlink"):
+        st.restore("good")
+    assert (ws / "kicad" / "f0.txt").read_text(
+        encoding="utf-8") == "original 0\n"
+    # a symlinked <label> dir inside a real state_snapshots/ is refused too
+    (ws / "state_snapshots").unlink()
+    (ws / "state_snapshots").mkdir()
+    (ws / "state_snapshots" / "lbl").symlink_to(elsewhere,
+                                                target_is_directory=True)
+    with pytest.raises(safelib.ContainmentError, match="symlink"):
+        st.snapshot("lbl", files=["kicad/f0.txt"])
+    assert sorted(p.name for p in elsewhere.iterdir()) == ["good"]
+
+
+@pytest.mark.parametrize("entry", ["state.json", "state.json.lock",
+                                   "kicad/f0.txt.lock", "kicad/state.json"])
+def test_snapshot_refuses_state_and_lock_entries(tmp_path, entry):
+    ws, st = make_ws(tmp_path)
+    p = ws / entry
+    if not p.exists():
+        p.write_text("x", encoding="utf-8")
+    with pytest.raises(safelib.ContainmentError, match="never snapshotted"):
+        st.snapshot("s", files=["kicad/f1.txt", entry])
+    assert not (ws / "state_snapshots" / "s").exists()   # no half snapshot
+
+
+def test_restore_refuses_state_json_in_manifest(tmp_path):
+    ws, st = make_ws(tmp_path)
+    st.snapshot("good", files=["kicad/f0.txt"])
+    snap = ws / "state_snapshots" / "good"
+    (snap / "state.json").write_text("{}", encoding="utf-8")
+    man = read_json(snap / "manifest.json")
+    man["files"].append({"path": "state.json",
+                         "sha256": safelib.sha256_file(snap / "state.json")})
+    (snap / "manifest.json").write_text(json.dumps(man), encoding="utf-8")
+    before = (ws / "state.json").read_bytes()
+    (ws / "kicad" / "f0.txt").write_text("edited\n", encoding="utf-8")
+    with pytest.raises(safelib.ContainmentError, match="never snapshotted"):
+        st.restore("good")
+    assert (ws / "state.json").read_bytes() == before
+    assert (ws / "kicad" / "f0.txt").read_text(encoding="utf-8") == "edited\n"
+
+
+def test_cli_mutation_on_missing_workspace_creates_nothing(tmp_path):
+    typo = tmp_path / "no-such-ws"
+    cp = subprocess.run([PY, str(STATE_PY), "log", "--workspace", str(typo),
+                         "--event", "tick"], capture_output=True, text=True)
+    assert cp.returncode == 2
+    assert "no state file" in json.loads(cp.stdout)["error"]
+    assert not typo.exists()                      # no mkdir, no stray lock
+    empty = tmp_path / "empty-ws"
+    empty.mkdir()
+    cp = subprocess.run([PY, str(STATE_PY), "log", "--workspace", str(empty),
+                         "--event", "tick"], capture_output=True, text=True)
+    assert cp.returncode == 2
+    assert list(empty.iterdir()) == []
