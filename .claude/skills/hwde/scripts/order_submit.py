@@ -55,7 +55,8 @@ api-reference PcbOrderCraftData table, the contract's [SDK/PDF] source):
                     until a human verifies the portal and manually clears
                     api.create_attempt. Unambiguous rejections
                     (bad_signature/scope_pending/ip_blocked/rate_limited)
-                    do not block a retry,
+                    do not block a retry; any OTHER state, or none,
+                    refuses too (a whitelist, not a blacklist),
                   * --api-quote-file: a FRESH (<24 h, not future-dated)
                     api_quote.json written by a --api run,
                   * design binding: the current package's NORMALIZED design
@@ -742,6 +743,15 @@ def _load_fresh_quote(path: Path) -> dict:
     return q
 
 
+# create_attempt states: only these prove no order is in doubt (created is
+# additionally caught by the created-latch); every other value refuses.
+UNAMBIGUOUS_ATTEMPT_STATES = frozenset((
+    "created", "failed:bad_signature", "failed:scope_pending",
+    "failed:ip_blocked", "failed:rate_limited"))
+AMBIGUOUS_ATTEMPT_STATES = frozenset((
+    "in_flight", "failed:unknown_error", "failed:error"))
+
+
 def _api_create(session, man: dict, quote_file: Path, confirm: str,
                 ship_json: Path | None,
                 canonical: Path | None = None,
@@ -775,10 +785,24 @@ def _api_create(session, man: dict, quote_file: Path, confirm: str,
     # Clean pre-transport refusals never write an attempt record, and
     # unambiguous rejections (bad_signature/scope_pending/ip_blocked/
     # rate_limited: the order definitely did not land) do not block a retry.
+    # A WHITELIST, not a blacklist: a record with a missing or unrecognised
+    # state (hand-edited, truncated, written by a newer/older script) says
+    # nothing about whether an order landed, so it refuses like in_flight.
+    has_attempt = man["api"].get("create_attempt") is not None
     attempt = man["api"].get("create_attempt") or {}
-    astate = str(attempt.get("state") or "")
-    if astate == "in_flight" or astate in ("failed:unknown_error",
-                                           "failed:error"):
+    raw_state = attempt.get("state")
+    astate = raw_state if isinstance(raw_state, str) else ""
+    if has_attempt and astate not in UNAMBIGUOUS_ATTEMPT_STATES \
+            and astate not in AMBIGUOUS_ATTEMPT_STATES:
+        raise ApiRefused(
+            f"a prior create attempt (at {attempt.get('at')}, grand_total "
+            f"{attempt.get('grand_total')}) has a missing or unrecognised "
+            f"state {raw_state!r} - refusing, because only "
+            f"{sorted(UNAMBIGUOUS_ATTEMPT_STATES)} prove no order is in "
+            "doubt. Verify orders + balance in the JLCPCB web portal FIRST; "
+            "only after confirming no order landed, manually remove the "
+            "api.create_attempt block from fab/order.json")
+    if has_attempt and astate in AMBIGUOUS_ATTEMPT_STATES:
         raise ApiRefused(
             f"a prior create attempt (at {attempt.get('at')}, grand_total "
             f"{attempt.get('grand_total')}) ended ambiguously (state "

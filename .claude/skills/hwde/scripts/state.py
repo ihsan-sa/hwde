@@ -182,6 +182,24 @@ def _check_label(label) -> str:
     return label
 
 
+def _check_snapshot_entry(rel_norm: str, what: str) -> None:
+    """state.json and writer-lock files are never snapshot content: a
+    restore would roll the state file back under its own writer and replace
+    a lock file other writers hold open."""
+    name = rel_norm.rsplit("/", 1)[-1]
+    if name == "state.json" or name.endswith(".lock"):
+        raise safelib.ContainmentError(
+            f"{what} {rel_norm!r} refused: state.json and *.lock files are "
+            "never snapshotted or restored")
+
+
+def _snapshot_dir(ws: Path, label: str) -> Path:
+    """ws/state_snapshots/<label>, proven inside the workspace: a symlinked
+    state_snapshots/ or <label> dir is refused, not followed (U12)."""
+    return safelib.contained_rel(ws, f"{SNAP_DIR}/{label}",
+                                 what="snapshot dir")
+
+
 class State:
     """In-memory view of one state.json. Mutators record history themselves;
     call save() (atomic) after a batch of mutations."""
@@ -647,10 +665,7 @@ class State:
         symlink entries, U12) before a byte is copied."""
         ws = self._workspace()
         label = _check_label(label)
-        dest = ws / SNAP_DIR / label
-        if dest.is_symlink():
-            raise safelib.ContainmentError(
-                f"snapshot dir {dest} is a symlink - refusing")
+        dest = _snapshot_dir(ws, label)
         rels = files or [a["path"] for a in self.data["artifacts"].values()
                          if isinstance(a, dict) and a.get("path")
                          and (ws / a["path"]).is_file()]
@@ -664,6 +679,7 @@ class State:
             if rel_norm.split("/")[0] == SNAP_DIR:
                 raise safelib.ContainmentError(
                     f"snapshot entry {rel_norm!r} lies inside {SNAP_DIR}/")
+            _check_snapshot_entry(rel_norm, "snapshot entry")
             plan.append((rel_norm, src))
         if dest.exists():
             shutil.rmtree(dest)
@@ -687,10 +703,7 @@ class State:
         swap phase leaves the workspace byte-for-byte untouched."""
         ws = self._workspace()
         label = _check_label(label)
-        dest = ws / SNAP_DIR / label
-        if dest.is_symlink():
-            raise safelib.ContainmentError(
-                f"snapshot dir {dest} is a symlink - refusing")
+        dest = _snapshot_dir(ws, label)
         man = checklib.load_json(dest / "manifest.json",
                                  f"snapshot {label} manifest")
         files = man.get("files") if isinstance(man, dict) else None
@@ -703,6 +716,7 @@ class State:
                 raise CheckError(f"snapshot {label} manifest entry malformed: "
                                  f"{f!r}")
             rel = f["path"]
+            _check_snapshot_entry(rel.replace("\\", "/"), "snapshot file")
             src = safelib.contained_rel(dest, rel, what="snapshot file")
             if src.is_symlink() or not src.is_file():
                 raise CheckError(f"snapshot file missing or not a regular "
@@ -962,6 +976,11 @@ def run(argv=None):
 
     # U12: one OS-exclusive hold across load -> mutate -> save, so two CLI
     # writers on one workspace serialize instead of losing an update
+    # - and never on a state file that is not there: writer_lock would
+    # mkdir a typo'd --workspace and leave a stray .lock behind
+    if not state_path.is_file():
+        raise CheckError(f"no state file at {state_path} (wrong --workspace/"
+                         "--state? run `state.py init` for a new workspace)")
     with safelib.writer_lock(state_path, what="state.json"):
         st = State.load(state_path)
         _check_pin(st, args)
