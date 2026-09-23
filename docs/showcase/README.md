@@ -268,8 +268,9 @@ the moment you hit it, so the next board does not pay for it again.
 
 - `./render_boards.sh` makes every board render. One board takes about a minute,
   and it needs Docker and the `kicad/kicad:10.0.5-full` image.
-- `./build_docs.sh` makes the flow charts and the PDF. It needs `pdflatex` and
-  `pdftoppm`.
+- `./build_docs.sh` makes the flow charts and the PDF. The flow charts need
+  `pdflatex` and `pdftoppm`. The PDF is set in the house style of the
+  pdf-material-builder skill and needs `lualatex` and that skill.
 
 The renders come from the board files in this repository, drawn by KiCad's
 command-line renderer. The dimensions, layer counts and footprint counts are
