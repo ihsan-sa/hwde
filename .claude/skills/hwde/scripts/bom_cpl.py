@@ -510,7 +510,10 @@ PREBUY_NOTE = ("Extended part: JLC's BOM review may show it as idle stock "
 def build_prebuy(bom_rows: list[dict], records: list[dict],
                  build_qty: int) -> list[dict]:
     """Pre-buy rows: each placed BOM row whose part parts.json marks Extended.
-    Qty To Buy = designators on the row x build_qty boards."""
+    Qty To Buy = designators on the row x build_qty boards.
+
+    Owner, 2026-09-24: "each Extended part with its LCSC number and the build
+    quantity" - Basic and unknown-status parts are left off."""
     status = {r["lcsc"]: r["jlc_status"] for r in records if r["lcsc"]}
     mpn = {r["lcsc"]: r["mpn"] for r in records if r["lcsc"]}
     rows = []

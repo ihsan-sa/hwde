@@ -23,6 +23,7 @@ D1, D3-D7 carry over from pd-trigger-lite unchanged; D2 is replaced, D8-D10 are 
   replaces the link grid and needs 6 mm more height. Everything below it is lite's layout
   moved down.
 - D10 Silk: voltage beside each switch row (20/15/12/9/5 from top), "<ON" above the switch
-  on the CFG1 side. Assumed from the usual DIP convention (ON printed on the side away from
-  pin 1-n row); not stated in the part's datasheet, so the guide tells the owner to trust the
-  ON printed on the switch body. R1-R5 refdes hidden (no room; the voltage labels do that job).
+  on the CFG1 side. Confirmed 2026-09-24 from LCSC's product photo of C7421518
+  (assets.lcsc.com/images/lcsc/900x900/20230615_SHOU-HAN-1-27-5P-TPPT_C7421518_front.jpg): "ON"
+  is printed on the edge opposite the 1-5 position numbers, which is the pin 6-10 row - the
+  CFG1 row here. The datasheet has no drawing of it. R1-R5 refdes hidden (no room; the voltage labels do that job).

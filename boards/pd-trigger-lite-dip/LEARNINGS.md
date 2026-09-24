@@ -26,5 +26,7 @@ courtyard drawn round the body only, leaving the gull-wing pads outside it. Set 
 CPL keeps it) and grow the courtyard to enclose the pads before board_init.
 
 ## 2026-09-24 [parts] Half-pitch DIP datasheets rarely say which side is ON
-The SHOU HAN drawing shows no ON mark. The silk assumes the usual convention (ON on the side away
-from the pin 1-n row); the guide tells the owner to trust the mark on the switch body.
+The SHOU HAN drawing shows no ON mark. The silk assumed the usual convention (ON on the side away
+from the pin 1-n row). Settled later that day from LCSC's product photo (the listing's
+`..._C7421518_front.jpg`): ON is printed opposite the position numbers, so the convention held.
+For the next DIP part, check the LCSC product photo, not the datasheet.

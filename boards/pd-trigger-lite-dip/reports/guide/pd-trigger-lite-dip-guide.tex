@@ -57,9 +57,8 @@ two or more & not allowed & & can damage U1 (see below) \\
 
 On the board the voltage is printed beside each switch: 20, 15, 12, 9 and 5 from the top, so
 position 1 (5 V) is the bottom one, nearest the output pads. A switch is ON when its slider is
-pushed toward the side marked ON on the switch body. The board's silkscreen shows that side as
-``\textless ON'' (toward the voltage labels), but the mark printed on the switch itself is the one
-to trust. Use a toothpick or a small screwdriver; the sliders are 1.27 mm apart.
+pushed toward the side marked ON on the switch body, the edge opposite its printed 1 to 5. The
+board's silkscreen marks the same side ``\textless ON'' (toward the voltage labels). Use a toothpick or a small screwdriver; the sliders are 1.27 mm apart.
 
 \begin{hscallout}{Exactly one switch, set before plugging in}
 The controller reads the switch once, when it powers up, so set it with the board unplugged and
@@ -127,6 +126,7 @@ at \hsurl{https://cart.jlcpcb.com/quote} is the only real price.
 \hsprovenance{Estimate from fab/quote.json (order\_quote.py, qty 5, HASL, economic assembly) and
 kicad/parts.json prices, read 2026-09-24.}
 
+\clearpage
 \section{Ordering at JLCPCB}
 \hslead{Three files go up: the gerber zip, then BOM.csv and CPL.csv for assembly.}
 
@@ -159,8 +159,7 @@ LCSC numbers and that J2 is absent, since it is not assembled.
 \item If a part on the pre-buy list shows as unselected at quantity 0, buy it into your parts
 inventory from the BOM review page, then select it and re-check the quantity.
 \item In the placement preview, check four parts. SW1: its pin-1 mark sits at the bottom-right
-corner, next to R5, so switch 1 is the 5 V row; if JLC's model shows the ON side, it should face
-the voltage labels. D1: its cathode mark must face the right board edge. U1: the pin-1 dot sits at
+corner, next to R5, so switch 1 is the 5 V row and the switch's ON edge faces the voltage labels. D1: its cathode mark must face the right board edge. U1: the pin-1 dot sits at
 the corner nearest the capacitor C1. J1: the receptacle mouth points off the left edge. No
 rotation correction was applied to the CPL, because every footprint comes from JLC's own library.
 \item Run JLCDFM on the gerbers as a second opinion, then pay. Payment is yours to do.
