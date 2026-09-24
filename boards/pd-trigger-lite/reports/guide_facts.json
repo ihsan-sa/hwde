@@ -20,6 +20,7 @@
   "cpl": "fab/CPL.csv",
   "schematic_pdf": "reports/schematic.pdf",
   "quote": "fab/quote.json",
+  "cost": "reports/cost.json",
   "design_doc": "reports/design_doc/pd-trigger-lite-design-doc.pdf",
   "renders": [
    "reports/pd-trigger-lite_bottom.png",
@@ -222,7 +223,13 @@
   "models_missing": [
    "${KICAD10_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x02_P2.54mm_Vertical.step"
   ],
-  "models_relinked": []
+  "models_relinked": [
+   "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-lite/boards/pd-trigger-lite/lib/aiee.3dshapes/C0603_L1.6-W0.8-H0.8.wrl",
+   "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-lite/boards/pd-trigger-lite/lib/aiee.3dshapes/ESSOP-10_L4.9-W3.9-P1.0-LS6.0-TL-EP.wrl",
+   "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-lite/boards/pd-trigger-lite/lib/aiee.3dshapes/LED0603_L1.6-W0.8-H0.6.wrl",
+   "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-lite/boards/pd-trigger-lite/lib/aiee.3dshapes/R0603.wrl",
+   "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-lite/boards/pd-trigger-lite/lib/aiee.3dshapes/TYPE-C-SMD_6P-L8.9-W6.8-H3.2-P1.00 COPY.wrl"
+  ]
  },
  "prebuy": null,
  "quote": {
@@ -290,6 +297,68 @@
     "assembly_total": 22.33
    }
   ]
+ },
+ "generation_cost": {
+  "currency": "USD",
+  "total_usd": 24.2552,
+  "recorded_usd": 24.2552,
+  "loop_logged_usd": 9.3749,
+  "breakdown": "full",
+  "breakdown_reason": null,
+  "by_step": [
+   {
+    "step": "setup",
+    "label": "Before the workspace (brief and skill read)",
+    "usd": 5.2932
+   },
+   {
+    "step": "P0",
+    "label": "Brief and intake",
+    "usd": 2.9225
+   },
+   {
+    "step": "P2",
+    "label": "Architecture",
+    "usd": 0.034
+   },
+   {
+    "step": "P4",
+    "label": "Schematic",
+    "usd": 5.2061
+   },
+   {
+    "step": "P6",
+    "label": "Placement",
+    "usd": 0.5105
+   },
+   {
+    "step": "P7",
+    "label": "Routing",
+    "usd": 2.2371
+   },
+   {
+    "step": "P8",
+    "label": "Verification",
+    "usd": 5.3843
+   },
+   {
+    "step": "P9",
+    "label": "DFM, order files and guide",
+    "usd": 2.6676
+   }
+  ],
+  "shared": [],
+  "incomplete_sessions": [],
+  "unpriced_tokens": {},
+  "notes": [
+   "Guide rebuilds by later skill-wide rounds (board renders with parts, fresh guide renders, this cost record) are skill work and are not counted; the fresh-guide-renders round left no transcript on this host."
+  ],
+  "prices": {
+   "source": "fitted to Claude Code cost-state session totals, 2026-09-24",
+   "verified": "2026-09-24",
+   "table": "reference/model_prices.yaml"
+  },
+  "timed_out_iterations": 1
  },
  "decisions": [],
  "missing": [],

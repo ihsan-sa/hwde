@@ -16,7 +16,7 @@
 \begin{center}
 {\LARGE\bfseries pd-trigger-lite --- Design Document}\\[6pt]
 {\large hwde v1 pipeline}\\[2pt]
-generated 2026-09-24 03:39:11
+generated 2026-09-24 16:33:26
 \end{center}
 \tableofcontents
 
@@ -32,7 +32,7 @@ workspace & \texttt{boards/pd-trigger-lite} \\
 phase & P8 \\
 gate status & all 5 recorded gates pass \\
 state created & 2026-09-24T02:31:06 \\
-state updated & 2026-09-24T03:30:32 \\
+state updated & 2026-09-24T03:47:38 \\
 \bottomrule
 \end{longtable}
 }
@@ -253,11 +253,35 @@ route\_critical skipped: KRT not installed; nothing critical to route (VBUS is a
 1 & P2 & approved & 2026-09-24T02:48:45 & delegate (owner away): blocks/parts/stackup per architecture/decisions.md; ballpark under 5 USD/board parts; coverage 0 slots; no TVS per brief \\
 2 & P4 & approved & 2026-09-24T03:10:43 & delegate: ERC 0/0, review 0 err / 2 warn waived (reports/erc-waivers.md) \\
 3 & P6 & approved & 2026-09-24T03:22:46 & delegate: top render reports/render\_place, J1 mouth at left edge \\
-4 & P8 & not reached &  &  \\
+4 & P8 & approved & 2026-09-24T03:47:38 & delegate: P8 verify review 0 err/0 warn; 17 check\_current GND advisories waived (mA stubs, 0.8 mm J1 GND tracks 1.5 A each over 1.2 mm); VBUS pour \textgreater{}= 2.2 mm, GND B.Cu plane; CPL rot U1 90/J1 270/D1 180 verified; see reports/verify-review.md \\
 5 & P10 & not reached &  &  \\
 \bottomrule
 \end{longtable}
 }
+\subsection*{Generation cost}
+Model cost of generating this board: \textbf{\$24.26}.
+
+{\small
+\begin{longtable}{p{10cm}r}
+\toprule
+\textbf{Step} & \textbf{Cost} \\
+\midrule
+\endhead
+Before the workspace (brief and skill read) & \$5.29 \\
+Brief and intake & \$2.92 \\
+Architecture & \$0.03 \\
+Schematic & \$5.21 \\
+Placement & \$0.51 \\
+Routing & \$2.24 \\
+Verification & \$5.38 \\
+DFM, order files and guide & \$2.67 \\
+\bottomrule
+\end{longtable}
+}
+Guide rebuilds by later skill-wide rounds (board renders with parts, fresh guide renders, this cost record) are skill work and are not counted; the fresh-guide-renders round left no transcript on this host.
+
+The worker loop logged \$9.37. 1 of its iterations timed out, and a timed-out iteration logs no cost; the session transcripts hold the whole total.
+
 \section{Artifact Index}
 {\small
 \begin{longtable}{p{9cm}rp{4cm}}
@@ -265,12 +289,12 @@ route\_critical skipped: KRT not installed; nothing critical to route (VBUS is a
 \textbf{File} & \textbf{Size} & \textbf{Note} \\
 \midrule
 \endhead
-\texttt{state.json} & 17,721 B &  \\
+\texttt{state.json} & 18,154 B &  \\
 \texttt{kicad/pd-trigger-lite.kicad\_pcb} & 87,619 B &  \\
 \texttt{kicad/pd-trigger-lite.kicad\_sch} & 73,769 B &  \\
 \texttt{fab/pd-trigger-lite\_gerbers.zip} & 14,727 B &  \\
-\texttt{fab/BOM.csv} & 380 B &  \\
-\texttt{fab/CPL.csv} & 410 B &  \\
+\texttt{fab/BOM.csv} & 368 B &  \\
+\texttt{fab/CPL.csv} & 398 B &  \\
 \texttt{brief/brief.md} & 1,387 B &  \\
 \texttt{requirements.md} & 2,340 B &  \\
 \texttt{architecture/blocks.md} & 1,734 B &  \\
@@ -280,6 +304,7 @@ route\_critical skipped: KRT not installed; nothing critical to route (VBUS is a
 \texttt{reports/board\_init.json} & 7,392 B &  \\
 \texttt{reports/bom\_cpl.json} & 8,974 B &  \\
 \texttt{reports/check\_current.json} & 16,001 B &  \\
+\texttt{reports/cost.json} & 4,503 B &  \\
 \texttt{reports/drc\_final.json} & 580 B &  \\
 \texttt{reports/erc-waivers.md} & 800 B &  \\
 \texttt{reports/erc\_final.json} & 463 B &  \\
@@ -289,15 +314,16 @@ route\_critical skipped: KRT not installed; nothing critical to route (VBUS is a
 \texttt{reports/gate-erc.json} & 861 B &  \\
 \texttt{reports/gate-place.json} & 1,445 B &  \\
 \texttt{reports/gate-verify.json} & 2,030 B &  \\
-\texttt{reports/guide\_facts.json} & 6,122 B &  \\
+\texttt{reports/guide\_facts.json} & 8,758 B &  \\
 \texttt{reports/lib\_pull.json} & 14,142 B &  \\
 \texttt{reports/netlist\_audit\_p4.json} & 844 B &  \\
-\texttt{reports/pd-trigger-lite\_bottom.png} & 50,366 B &  \\
-\texttt{reports/pd-trigger-lite\_top.png} & 79,889 B &  \\
+\texttt{reports/pd-trigger-lite\_bottom.png} & 57,351 B &  \\
+\texttt{reports/pd-trigger-lite\_top.png} & 145,648 B &  \\
 \texttt{reports/place\_edit\_p6.json} & 1,844 B &  \\
 \texttt{reports/place\_edit\_silk.json} & 2,014 B &  \\
 \texttt{reports/place\_p6.ops.json} & 1,648 B &  \\
 \texttt{reports/planes\_gen.json} & 1,162 B &  \\
+\texttt{reports/review-board.json} & 19 B &  \\
 \texttt{reports/review-schematic.json} & 1,402 B &  \\
 \texttt{reports/review-schematic.md} & 5,393 B &  \\
 \texttt{reports/route\_auto.json} & 46,348 B &  \\
@@ -307,6 +333,7 @@ route\_critical skipped: KRT not installed; nothing critical to route (VBUS is a
 \texttt{reports/schematic.pdf} & 84,474 B &  \\
 \texttt{reports/silk\_ops\_manual.json} & 2,002 B &  \\
 \texttt{reports/silk\_place.json} & 20,413 B &  \\
+\texttt{reports/verify-review.md} & 2,935 B &  \\
 \texttt{reports/verify\_all.json} & 17,758 B &  \\
 \bottomrule
 \end{longtable}

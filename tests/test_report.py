@@ -738,3 +738,44 @@ def test_smoke_stm32_blinky(pdflatex_bin):
     assert "renders/stm32-blinky_top.png" in src
     assert "render_labeled/stm32-blinky_top.png" in src
     assert_no_residue_outside_design_doc("boards/stm32-blinky", before)
+
+
+def test_generation_cost_section(tmp_path, capsys):
+    """The Run Record prints cost.json's total and per-step lines; without
+    cost.json it says 'Not recorded' and warns, never estimating."""
+    ws = make_workspace(tmp_path)
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="nocost")
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    assert r"\subsection*{Generation cost}" in text
+    assert "Not recorded (no reports/cost.json)" in text
+    assert any("cost.json" in w for w in payload["warnings"])
+
+    (ws / "reports" / "cost.json").write_text(json.dumps({
+        "total_usd": 12.3456, "loop_logged_usd": 5.0,
+        "by_step": [{"step": "P4", "label": "Schematic", "usd": 4.0},
+                    {"step": "P7", "label": "Routing", "usd": 8.3456}],
+        "breakdown": "partial", "breakdown_reason": "one round left no steps",
+        "shared": [{"label": "pre-buy", "shared_with": "a skill feature",
+                    "usd": 1.5}],
+        "notes": ["a note"],
+        "rounds": [{"loop": {"unlogged_iterations": 1}},
+                   {"shared_with": "x", "loop": {"unlogged_iterations": 5}}]}),
+        encoding="utf-8")
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="cost")
+    assert code == 0, payload
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    assert r"\textbf{\$12.35}" in text
+    assert r"Schematic & \$4.00" in text and r"Routing & \$8.35" in text
+    assert "one round left no steps" in text
+    assert r"shared with a skill feature, cost \$1.50" in text
+    assert (r"The worker loop logged \$5.00. 1 of its iterations timed out"
+            in text)                                # shared round not counted
+    assert not any("cost.json" in w for w in payload["warnings"])
+    assert "reports/cost.json" in sections_by_name_source(payload)
+
+
+def sections_by_name_source(payload: dict) -> str:
+    return next(s["source"] for s in payload["sections"]
+                if s["name"] == "run_record")

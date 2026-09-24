@@ -166,4 +166,25 @@ rotation correction was applied to the CPL, because every footprint comes from J
 \end{enumerate}
 
 \hsprovenance{Gates on 2026-09-24: ERC 0/0, DRC 0 errors 0 unconnected, place, verify and DFM pass.}
+\section{What it cost to design}
+\hslead{About 6 USD of model spend went into designing this board. It is not part of the board's price.}
+
+\begin{hsblock}
+\begin{tabularx}{\linewidth}{Y R{2.2cm}}
+\hstoprule
+\hshead{Step} & \hshead{USD} \\
+\hstoprule
+Before the workspace (brief and skill read) & 1.13 \\ \hline
+Schematic & 0.85 \\ \hline
+Placement & 2.10 \\ \hline
+DFM, order files and guide & 2.23 \\
+\hstoprule
+\textbf{Total} & \textbf{6.31} \\
+\hstoprule
+\end{tabularx}
+\end{hsblock}
+
+The split follows when hwde recorded each step, and the rows are rounded to the cent. A later round that wrote the pre-buy list and fixed this board's BOM cost 4.93 USD more, including an iteration that timed out. It is not in the total because it also built the pre-buy list feature for every board. The review-fix round resumed the design session, so its cost is already inside the total. Later skill-wide rebuilds of this guide are skill work and are not counted.
+
+\hsprovenance{reports/cost.json (gen\_cost.py), priced from reference/model\_prices.yaml, which was fitted to Claude Code's own session totals on 2026-09-24.}
 \end{document}
