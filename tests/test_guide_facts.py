@@ -7,6 +7,8 @@ Criteria -> tests:
     workspace built in the same test is unaffected -> test_missing_fab_files
   - missing quote/schematic pdf -> `todo`, not a violation
                                      -> test_missing_quote_and_schematic_is_todo
+  - fab/prebuy.csv carried into the facts; absent -> `todo` naming bom_cpl
+                                     -> test_prebuy_list_reaches_the_guide
   - no workspace / unreadable state.json -> exit 2
                                      -> test_no_workspace_exit2,
                                         test_unreadable_state_exit2
@@ -67,6 +69,9 @@ def make_workspace(tmp_path: Path, name: str = "synth", board: str = "synth",
         (fab / "BOM.csv").write_text(BOM_HEADER + bom_row(), encoding="utf-8")
         (fab / "BOM-full.csv").write_text(BOM_HEADER + bom_row(),
                                           encoding="utf-8")
+        (fab / "prebuy.csv").write_text(
+            "LCSC,MPN,Comment,Designator,Qty Per Board,Boards,Qty To Buy,"
+            "Note\n", encoding="utf-8")
         (fab / "CPL.csv").write_text(
             "Designator,Mid X,Mid Y,Layer,Rotation\nR1,1,1,top,0\n",
             encoding="utf-8")
@@ -116,6 +121,33 @@ def test_complete_package_pass(tmp_path, capsys):
     assert payload["paths"]["quote"] == "fab/quote.json"
     assert payload["todo"] == []
     assert payload["parts_cost_per_board"] == 0.01
+
+
+def test_prebuy_list_reaches_the_guide(tmp_path, capsys):
+    """The guide's ordering section lists what to pre-buy (owner,
+    2026-09-24): the facts carry bom_cpl's prebuy.csv rows, build qty and
+    note; a fab package from before the list exists gets a `todo`."""
+    ws = make_workspace(tmp_path)
+    (ws / "fab" / "prebuy.csv").write_text(
+        "LCSC,MPN,Comment,Designator,Qty Per Board,Boards,Qty To Buy,Note\n"
+        "C2798175,TYPE-C-6M-001,USB-C 6P,J1,1,5,5,may show as idle stock\n",
+        encoding="utf-8")
+    code, payload = run_main(ws, tmp_path, capsys)
+    assert code == 0, payload
+    pb = payload["prebuy"]
+    assert pb["path"] == "fab/prebuy.csv" and pb["build_qty"] == 5
+    assert pb["note"] == "may show as idle stock"
+    assert pb["rows"] == [{"LCSC": "C2798175", "MPN": "TYPE-C-6M-001",
+                           "Comment": "USB-C 6P", "Designator": "J1",
+                           "Qty Per Board": "1", "Qty To Buy": "5"}]
+    assert payload["todo"] == []
+
+    old = make_workspace(tmp_path, name="old")
+    (old / "fab" / "prebuy.csv").unlink()
+    code, payload = run_main(old, tmp_path, capsys, name="old")
+    assert code == 0 and payload["prebuy"] is None
+    assert [t["fact"] for t in payload["todo"]] == ["pre-buy list"]
+    assert "bom_cpl.py" in payload["todo"][0]["cmd"]
 
 
 def test_upload_bom_with_jlc_header_is_read(tmp_path, capsys):

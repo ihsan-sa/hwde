@@ -12,6 +12,8 @@ It reads, all read-only:
   fab/<board>_gerbers.zip       the upload zip          (fab_export.py)
   fab/BOM.csv, fab/CPL.csv      the JLC upload pair     (bom_cpl.py)
   fab/BOM-full.csv              the BOM of record       (bom_cpl.py)
+  fab/prebuy.csv                Extended parts to pre-buy for the build
+                                (bom_cpl.py); absent -> a `todo`
   kicad/parts.json              LCSC / MPN / basic flag / unit price
   reports/bom_cpl.json          rotation corrections to eyeball in JLC preview
   fab/quote.json                estimated cost matrix   (order_quote.py)
@@ -23,8 +25,8 @@ workspace's registry overrides), the same way the gates find them.
 Exit 0 "pass"       every required fact is present.
 Exit 1 "violations" the fab package is incomplete (no zip / BOM / CPL / board
                     name) - the guide cannot be written yet; `missing` says what.
-                    A missing quote or schematic PDF is a `todo` with the
-                    command that makes it, not a violation.
+                    A missing quote, schematic PDF or pre-buy list is a
+                    `todo` with the command that makes it, not a violation.
 Exit 2 "error"      no workspace / unreadable state.json or parts.json.
 
 CLI:
@@ -199,6 +201,23 @@ def collect(ws: Path) -> dict:
                                    "final_rot")
                                   if k in a})
 
+    # The pre-buy list sits beside the upload BOM (bom_cpl writes both).
+    prebuy_p = bom_p.parent / "prebuy.csv"
+    prebuy = None
+    if prebuy_p.is_file():
+        rows = _read_csv(prebuy_p)
+        prebuy = {"path": _rel(ws, prebuy_p),
+                  "build_qty": int(rows[0]["Boards"]) if rows else None,
+                  "note": rows[0].get("Note") if rows else None,
+                  "rows": [{k: r.get(k) for k in
+                            ("LCSC", "MPN", "Comment", "Designator",
+                             "Qty Per Board", "Qty To Buy")} for r in rows]}
+    elif bom_p.is_file():
+        todo.append({"fact": "pre-buy list",
+                     "cmd": f"scripts/bom_cpl.py --pcb {_rel(ws, pcb)} "
+                            f"--parts {_rel(ws, kind('parts'))} "
+                            f"--out-dir {_rel(ws, bom_p.parent)}"})
+
     quote_p = ws / "fab" / "quote.json"
     quote = None
     if quote_p.is_file():
@@ -250,6 +269,7 @@ def collect(ws: Path) -> dict:
                        "unique_parts": counts},
         "parts_cost_per_board": parts_cost,
         "rotation_corrections": rotations,
+        "prebuy": prebuy,
         "quote": quote,
         "decisions": [d for d in decisions if d][-12:],
         "missing": missing,

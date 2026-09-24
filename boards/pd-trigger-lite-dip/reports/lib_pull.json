@@ -1,0 +1,174 @@
+{
+ "script": "lib_pull",
+ "status": "pass",
+ "lib_name": "aiee",
+ "parts_file": null,
+ "paced_s": 0.0,
+ "retried": 0,
+ "symbol_lib": "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-dip/boards/pd-trigger-lite-dip/lib/aiee.kicad_sym",
+ "footprint_lib": "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-dip/boards/pd-trigger-lite-dip/lib/aiee.pretty",
+ "results": [
+  {
+   "lcsc": "C7421518",
+   "status": "pulled",
+   "symbol": "1.27-5PTPPT",
+   "symbol_verified": true,
+   "footprint_verified": true,
+   "symbol_lib": "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-dip/boards/pd-trigger-lite-dip/lib/aiee.kicad_sym",
+   "footprint_lib": "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-dip/boards/pd-trigger-lite-dip/lib/aiee.pretty",
+   "footprints": [
+    {
+     "name": "SW-SMD_5P-P1.27_1.27-5P",
+     "file": "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-dip/boards/pd-trigger-lite-dip/lib/aiee.pretty/SW-SMD_5P-P1.27_1.27-5P.kicad_mod",
+     "copper_pads": 10,
+     "courtyard": true,
+     "silk": true
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "lcsc": "C25803",
+   "status": "pulled",
+   "symbol": "0603WAF1003T5E",
+   "symbol_verified": true,
+   "footprint_verified": true,
+   "symbol_lib": "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-dip/boards/pd-trigger-lite-dip/lib/aiee.kicad_sym",
+   "footprint_lib": "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-dip/boards/pd-trigger-lite-dip/lib/aiee.pretty",
+   "footprints": [
+    {
+     "name": "R0603",
+     "file": "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-dip/boards/pd-trigger-lite-dip/lib/aiee.pretty/R0603.kicad_mod",
+     "copper_pads": 2,
+     "courtyard": true,
+     "silk": true
+    }
+   ],
+   "warnings": []
+  }
+ ],
+ "symbol_dedup": {
+  "removed": 0,
+  "names": []
+ },
+ "registered": {
+  "fp": "present",
+  "sym": "present"
+ },
+ "autofix": {
+  "footprints": 2,
+  "changed": 1,
+  "actions": 2,
+  "residue": 0,
+  "results": [
+   {
+    "footprint": "SW-SMD_5P-P1.27_1.27-5P",
+    "file": "/home/ihsan/.cc/worktrees/ai-ee/pd-trigger-dip/boards/pd-trigger-lite-dip/lib/aiee.pretty/SW-SMD_5P-P1.27_1.27-5P.kicad_mod",
+    "changed": true,
+    "actions": [
+     {
+      "rule": "A",
+      "action": "promote_silk_width",
+      "kind": "fp_circle",
+      "from_mm": 0.06,
+      "to_mm": 0.15,
+      "gap_mm": 0.935
+     },
+     {
+      "rule": "D",
+      "action": "delete_body_legend_text",
+      "text": "1",
+      "at": [
+       -2.66,
+       2.39
+      ]
+     }
+    ],
+    "residue": 0,
+    "before": {
+     "worst_gap_mm": 0.35,
+     "unprintable_silk": 1,
+     "under_gap_silk": 0,
+     "plated_pegs": 0
+    },
+    "after": {
+     "worst_gap_mm": 0.35,
+     "unprintable_silk": 0,
+     "under_gap_silk": 0,
+     "plated_pegs": 0
+    }
+   }
+  ]
+ },
+ "refdes_norm": {
+  "footprints": 8,
+  "changed": 3,
+  "unchanged": 5,
+  "skipped": 0,
+  "results": [
+   {
+    "footprint": "OUT_2P_P2.54_D1.1",
+    "status": "changed",
+    "from": [
+     0.0,
+     -2.38
+    ],
+    "to": [
+     0.0,
+     -1.825
+    ],
+    "pad_top": -1.0,
+    "silk_top": null,
+    "clear_of": -1.0,
+    "inked_half_h": 0.575
+   },
+   {
+    "footprint": "SW-SMD_5P-P1.27_1.27-5P",
+    "status": "changed",
+    "from": [
+     0.0,
+     -7.81
+    ],
+    "to": [
+     0.0,
+     -5.27
+    ],
+    "pad_top": -4.445,
+    "silk_top": -2.7,
+    "clear_of": -4.445,
+    "inked_half_h": 0.575
+   },
+   {
+    "footprint": "SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm",
+    "status": "changed",
+    "from": [
+     0.0,
+     -1.8
+    ],
+    "to": [
+     0.0,
+     -1.825
+    ],
+    "pad_top": -0.25,
+    "silk_top": -1.0,
+    "clear_of": -1.0,
+    "inked_half_h": 0.575
+   }
+  ]
+ },
+ "load_check": {
+  "ok": true,
+  "svgs": 8,
+  "detail": "ok"
+ },
+ "drc_check": {
+  "status": "pass",
+  "counts": {
+   "total": 0,
+   "by_severity": {},
+   "by_source": {}
+  },
+  "by_check": {},
+  "missing": []
+ }
+}

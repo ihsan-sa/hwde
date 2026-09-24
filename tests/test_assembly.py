@@ -203,6 +203,55 @@ def test_bom_full_lists_every_class_and_cpl_places_only_smt(tmp_path):
     assert full[""]["Qty Per Board"] == "4"
 
 
+def test_upload_bom_has_one_row_per_lcsc_part(tmp_path):
+    """Two rows with one LCSC number split that part's stock in JLC's BOM
+    review; parts sharing an LCSC number share a row whatever their value."""
+    rep, out = _synth(tmp_path, {"parts": [
+        {"refdes": ["C1", "R1"], "lcsc": "C111", "value": "100nF"},
+        {"refdes": ["C2"], "lcsc": "C333", "value": "100nF"},
+    ]})
+    assert rep["status"] == "pass"
+    assert [(r["Designator"], r["LCSC Part #"])
+            for r in _rows(out / "BOM.csv")] == [("C1,R1", "C111"),
+                                                 ("C2", "C333")]
+
+
+def test_prebuy_lists_each_extended_placed_part_for_the_build(tmp_path):
+    """Owner, 2026-09-24: JLC's BOM review left an Extended part (idle stock)
+    unselected at qty 0 until it was bought in. Every Extended part the
+    assembler places is on the pre-buy list with LCSC number and build qty;
+    Basic parts and unplaced Extended sites are not."""
+    pos = tmp_path / "s-pos.csv"
+    pos.write_text(POS, encoding="utf-8")
+    pcb = tmp_path / "s.kicad_pcb"
+    pcb.write_text("(kicad_pcb)", encoding="utf-8")
+    pj = tmp_path / "parts.json"
+    pj.write_text(json.dumps({"parts": [
+        {"refdes": ["C1", "C2"], "lcsc": "C111", "value": "100nF",
+         "mpn": "X1", "basic": False},
+        {"refdes": ["R1"], "lcsc": "C222", "value": "50R", "type": "basic"},
+    ]}), encoding="utf-8")
+    out = tmp_path / "fab"
+    rep = bom_cpl.run(pcb, out, pos=pos, parts_json=pj, build_qty=10)
+    rows = _rows(out / "prebuy.csv")
+    assert [(r["LCSC"], r["MPN"], r["Designator"], r["Qty Per Board"],
+             r["Boards"], r["Qty To Buy"]) for r in rows] == \
+        [("C111", "X1", "C1,C2", "2", "10", "20")]
+    assert "idle stock" in rows[0]["Note"]
+    assert rep["prebuy_rows"] == rows and rep["build_qty"] == 10
+
+    # the same Extended part on a DNP site only: nothing to pre-buy
+    pj.write_text(json.dumps({"parts": [
+        {"refdes": ["C1", "C2"], "lcsc": "C111", "value": "100nF",
+         "basic": False, "assembly_class": "dnp"},
+        {"refdes": ["R1"], "lcsc": "C222", "value": "50R", "basic": True},
+    ]}), encoding="utf-8")
+    rep = bom_cpl.run(pcb, tmp_path / "fab2", pos=pos, parts_json=pj)
+    assert rep["prebuy_rows"] == [] and rep["build_qty"] == 5
+    assert (tmp_path / "fab2" / "prebuy.csv").read_text(
+        encoding="utf-8").splitlines() == [",".join(bom_cpl.PREBUY_FIELDS)]
+
+
 def test_incomplete_bom_is_not_a_pass(tmp_path):
     """codex H1: reports/bom_cpl.json used to say status pass beside
     bom_complete false. A part nobody can buy is a violation, exit 1."""

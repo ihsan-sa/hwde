@@ -1,0 +1,169 @@
+\input{preamble-template.tex}
+\hsslug{pd-trigger-lite-dip}
+\begin{document}
+
+\hstitleblock{Board guide \textperiodcentered\ September 2026}{pd-trigger-lite-dip}%
+{A 25 by 21 mm USB-C PD trigger: flip one DIP switch to get 5, 9, 12, 15 or 20 V at up to 3 A on two solder pads.}
+
+This board asks a USB-C Power Delivery charger for one fixed voltage and passes the charger's
+VBUS straight to two 2.54 mm output holes. There is no regulator in the power path, so the output
+is exactly what the charger delivers. You pick the voltage with a five-position DIP switch, one
+switch per voltage, so changing it needs no soldering iron. It is the pd-trigger-lite board with
+its solder links replaced by that switch, and 5 V added as a choice.
+
+\hsplate{top.png}{Top view}{25 x 21 mm, 2 layers, 1 oz}{render}%
+{USB-C receptacle on the left, the voltage switch SW1 at the top with the voltage printed beside
+each position, the PD controller at the bottom, output pads on the right (+ is VBUS, - is ground).
+The red LED sits under the output pads.}
+
+\newpage
+\section{Schematic}
+\hslead{One controller, one capacitor, one switch and five resistors. Everything else is copper.}
+
+The receptacle J1 is a 6-pin power-only part: two VBUS contacts, two ground contacts and the two
+CC lines. The controller U1 (WCH CH224A) talks to the charger over CC1 and CC2. It is powered
+from VBUS through the 0 ohm link R7, which only exists so the controller's pins can be reached
+with thin copper, and C1 (1 uF, 50 V) decouples it. VBUS runs as a wide copper pour from J1 to
+the output pad J2.
+
+U1 reads its CFG1 pin at power-up. One side of every switch in SW1 is CFG1; the other side goes
+to that position's resistor. Position 1 pulls CFG1 up to VHV through R5 (100k), which the CH224
+manual lists as the way to request 5 V. Positions 2 to 5 tie CFG1 to ground through R1 to R4
+(6.8k, 24k, 56k, 120k), the manual's single-resistor settings for 9, 12, 15 and 20 V. CFG2 and
+CFG3 are left open; the chip pulls them up inside. R6 and D1 light the LED from VBUS.
+
+\hsplate{schematic.png}{Schematic}{kicad/pd-trigger-lite-dip.kicad\_sch}{ERC 0 errors, 0 warnings}%
+{Nets join by label name. SEL5 to SEL20 are the nodes between each resistor and its switch.}
+
+\newpage
+\section{Setting the voltage}
+\hslead{Exactly one switch ON, set before you plug the charger in.}
+
+\begin{hsblock}
+\begin{tabularx}{\linewidth}{L{1.8cm}L{1.8cm}L{2.2cm}Y}
+\hstoprule
+\hshead{Switch ON} & \hshead{Output} & \hshead{Others} & \hshead{What it does} \\
+\hstoprule
+1 & 5 V  & all OFF & R5 100k pulls CFG1 up to VHV \\ \hline
+2 & 9 V  & all OFF & R1 6.8k from CFG1 to ground \\ \hline
+3 & 12 V & all OFF & R2 24k from CFG1 to ground \\ \hline
+4 & 15 V & all OFF & R3 56k from CFG1 to ground \\ \hline
+5 & 20 V & all OFF & R4 120k from CFG1 to ground \\ \hline
+none & undefined & & CFG1 floats; do not use \\ \hline
+two or more & not allowed & & can damage U1 (see below) \\
+\hstoprule
+\end{tabularx}
+\end{hsblock}
+
+On the board the voltage is printed beside each switch: 20, 15, 12, 9 and 5 from the top, so
+position 1 (5 V) is the bottom one, nearest the output pads. A switch is ON when its slider is
+pushed toward the side marked ON on the switch body, the edge opposite its printed 1 to 5. The
+board's silkscreen marks the same side ``\textless ON'' (toward the voltage labels). Use a toothpick or a small screwdriver; the sliders are 1.27 mm apart.
+
+\begin{hscallout}{Exactly one switch, set before plugging in}
+The controller reads the switch once, when it powers up, so set it with the board unplugged and
+re-plug after any change. With every switch OFF, CFG1 floats and the request is undefined. Never
+turn on two at once: with switch 1 and any other ON, R5 and the ground resistor form a divider
+from VHV, and once VHV rises above 5 V that can push CFG1 past its 3.8 V absolute maximum.
+\end{hscallout}
+
+\textbf{Output.} The two plated holes take 20 AWG wire or a 1x2 2.54 mm header, which you solder
+yourself; JLC does not fit them. The rating is 3 A at any voltage. A charger without an e-marked
+cable never offers more than 3 A, and the board makes no 5 A claim.
+
+\textbf{LED.} D1 is lit whenever VBUS is present. Its current rises with the voltage, so it glows
+faintly at 5 V and clearly at 12 V and above.
+
+\textbf{First power-up.} Plug in with nothing on the output, measure the voltage across the pads,
+and only then connect the load. The charger must offer the chosen voltage as a fixed PDO; many
+phone chargers stop at 9 V, and a charger that lacks it leaves the output at 5 V. The board has no
+fuse and no TVS diode, because the controller's datasheet asks for neither. A hot-plug spike at
+20 V is the one plausible way to damage it, so at 20 V plug the charger into the wall first and the
+cable into the board last.
+
+\newpage
+\section{What is on it}
+\hslead{Twelve parts placed by JLC, three of them Extended. Everything else is bare copper.}
+
+\begin{hsblock}
+\begin{tabularx}{\linewidth}{L{1.9cm}Y L{2.0cm}L{1.6cm}R{0.8cm}}
+\hstoprule
+\hshead{Ref} & \hshead{Part} & \hshead{LCSC} & \hshead{Type} & \hshead{Qty} \\
+\hstoprule
+U1 & CH224A PD sink controller, ESSOP-10 & C42459160 & Extended & 1 \\ \hline
+J1 & USB-C receptacle 6P, 3 A 20 V (TYPE-C-6M-001) & C2798175 & Extended & 1 \\ \hline
+SW1 & DIP switch, 5 positions, 1.27 mm SMD (SHOU HAN 1.27-5P TPPT) & C7421518 & Extended & 1 \\ \hline
+C1 & 1 uF 50 V X5R 0603 & C15849 & Basic & 1 \\ \hline
+R1 & 6.8k 1\% 0603 (9 V) & C23212 & Basic & 1 \\ \hline
+R2 & 24k 1\% 0603 (12 V) & C23352 & Basic & 1 \\ \hline
+R3 & 56k 1\% 0603 (15 V) & C23206 & Basic & 1 \\ \hline
+R4 & 120k 1\% 0603 (20 V) & C25808 & Basic & 1 \\ \hline
+R5 & 100k 1\% 0603 (5 V) & C25803 & Basic & 1 \\ \hline
+R6 & 10k 1\% 0603 & C25804 & Basic & 1 \\ \hline
+R7 & 0 ohm 0603 & C21189 & Basic & 1 \\ \hline
+D1 & red LED 0603 & C2286 & Basic & 1 \\
+\hstoprule
+\end{tabularx}
+\end{hsblock}
+
+Not assembled: J2, the pair of output holes. The three Extended parts each add JLC's per-part
+feeder fee; no Basic part can replace any of them.
+
+\section{What it costs}
+\hslead{About 33 USD for five assembled boards before shipping, as an estimate.}
+
+\begin{hsstatrow}[3]
+\hsstat{27.42}{USD, JLC estimate for 5 boards: PCB 2.00, setup 8.00, 3 Extended fees 9.00, stencil 8.00, joints 0.42.}
+\hsstat{5.44}{USD, parts for 5 boards at LCSC unit prices, about 1.09 per board (the switch is 0.53).}
+\hsstat{32.9}{USD total for 5 boards, before shipping and tax.}
+\end{hsstatrow}
+
+These are estimates from the skill's price table (verified 2026-07-24), not a quote. Live JLC
+prices have run 1.9 to 3.1 times higher than that table for bare PCBs, so expect the PCB line to be
+nearer 4 to 6 USD. Shipping depends on the country and the carrier and is not included. The cart
+at \hsurl{https://cart.jlcpcb.com/quote} is the only real price.
+
+\hsprovenance{Estimate from fab/quote.json (order\_quote.py, qty 5, HASL, economic assembly) and
+kicad/parts.json prices, read 2026-09-24.}
+
+\clearpage
+\section{Ordering at JLCPCB}
+\hslead{Three files go up: the gerber zip, then BOM.csv and CPL.csv for assembly.}
+
+\subsection*{Pre-buy list}
+JLC's BOM review may show an Extended part as idle stock: unselected, at quantity 0, until it has
+been bought into your JLC parts inventory. JLC's public parts search cannot tell idle stock from
+stock that assembles straight away, so all three Extended parts are listed. For 5 boards:
+
+\begin{hsblock}
+\begin{tabularx}{\linewidth}{L{1.9cm}Y L{1.2cm}R{1.6cm}}
+\hstoprule
+\hshead{LCSC} & \hshead{Part} & \hshead{Ref} & \hshead{Qty to buy} \\
+\hstoprule
+C2798175 & USB-C receptacle 6P (TYPE-C-6M-001) & J1 & 5 \\ \hline
+C7421518 & DIP switch 5P, 1.27 mm (1.27-5P TPPT) & SW1 & 5 \\ \hline
+C42459160 & CH224A PD sink controller & U1 & 5 \\
+\hstoprule
+\end{tabularx}
+\end{hsblock}
+
+\hsprovenance{From fab/prebuy.csv (bom\_cpl.py, build of 5 boards).}
+
+\begin{enumerate}
+\item Open the JLC quote page (link above) and upload the gerber zip,
+\texttt{fab/pd-trigger-lite-dip\_gerbers.zip}.
+\item Check that the viewer reads 2 layers, 25 x 21 mm. Keep 1.6 mm, 1 oz, HASL, green, quantity 5.
+\item Turn on PCB Assembly: Economic, top side, 5 boards.
+\item Upload \texttt{fab/BOM.csv} and \texttt{fab/CPL.csv}. Confirm all twelve parts matched their
+LCSC numbers and that J2 is absent, since it is not assembled.
+\item If a part on the pre-buy list shows as unselected at quantity 0, buy it into your parts
+inventory from the BOM review page, then select it and re-check the quantity.
+\item In the placement preview, check four parts. SW1: its pin-1 mark sits at the bottom-right
+corner, next to R5, so switch 1 is the 5 V row and the switch's ON edge faces the voltage labels. D1: its cathode mark must face the right board edge. U1: the pin-1 dot sits at
+the corner nearest the capacitor C1. J1: the receptacle mouth points off the left edge. No
+rotation correction was applied to the CPL, because every footprint comes from JLC's own library.
+\item Run JLCDFM on the gerbers as a second opinion, then pay. Payment is yours to do.
+\end{enumerate}
+
+\hsprovenance{Gates on 2026-09-24: ERC 0/0, DRC 0 errors 0 unconnected, place, verify and DFM pass.}
+\end{document}

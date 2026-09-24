@@ -21,7 +21,9 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
 2. `scripts/bom_cpl.py --pcb ... --out fab/ --parts-json parts/parts.json`
    - `BOM-full.csv` (the BOM OF RECORD: every intended part with its
    `Assembly Class` + `Instructions`), `BOM.csv` (the UPLOAD: `smt_placed`
-   only, JLC's four columns) and `CPL.csv` (`smt_placed` only) with rotation
+   only, JLC's four columns, one row per LCSC part), `prebuy.csv` (placed
+   Extended parts x `--build-qty`, default 5: the parts JLC may show as idle
+   stock to buy first) and `CPL.csv` (`smt_placed` only) with rotation
    corrections from `reference/jlc_rotations.csv`. Read `rotation_audit`
    (base -> correction -> final per part), `class_counts`, `not_placed` and
    `violations`. Exit 1 = an assembly violation, not a crash.

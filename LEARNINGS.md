@@ -5021,3 +5021,17 @@ LD_LIBRARY_PATH; (b) kicad-sch-api finds no stock symbols (power:, Connector_Gen
 KICAD_SYMBOL_DIR points at ~/.local/kicad10/usr/share/kicad/symbols; (c) env.find_java only globs
 tools/jre/*/bin/java, so a JRE unpacked flat as tools/jre/bin/java needs HWDE_JAVA, and Freerouting's
 AWT init needs libXtst6 (same unpack trick). pd-trigger-lite kept these under tools/kicad-extra/.
+
+## 2026-09-24 [jlc][parts][bom][order] JLC's public parts search cannot see idle stock - list every Extended part as a pre-buy
+Owner's pd-trigger-lite order: JLC's BOM review left J1 (C2798175, USB-C, Extended, JLC stock
+2769) UNSELECTED at qty 0 - its "idle components" column read 0 ("the idle components need to be
+purchased before they can be used for PCBA ordering"). The part had to be bought into the parts
+inventory first. The anonymous search hwde uses (`selectSmtComponentList`, via easyeda2kicad -
+entry 2026-07-22) returns the SAME componentSource / isBuyComponent / assemblyComponentFlag for
+C2798175 (idle) as for C21189 (0R Basic, assembles straight from stock), so no field it returns
+tells the two apart and a part that is "in stock" can still stop at the BOM review. The
+credentialed Open API (`jlcapi.component_detail`) was not checked live; the repo does not have
+its response schema (contract.md lives only on the Windows host's ai-library). The owner
+is fine with pre-buying: pick parts on stock, fit and cost as usual and do NOT avoid idle-stock
+parts. bom_cpl.py now writes fab/prebuy.csv (every placed Extended part, LCSC number, qty for the
+build) and the guide's ordering section lists it, so the pre-buy is on paper before the cart.
