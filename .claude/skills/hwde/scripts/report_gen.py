@@ -14,6 +14,9 @@ Asset paths embedded in run JSON are unreliably backslashed and mixed
 repo-/workspace-relative, so every asset is resolved by this script's own
 ladder relative to the workspace root and emitted with forward slashes.
 
+A finished PDF is filed under the Boards project ("<board> design doc") with
+`cc-docs file` when cc-docs is on PATH; a failed filing only warns.
+
 Exit 0 "pass"   = requested outputs produced (--tex-only: the .tex alone).
 Exit 1 "violations" = degraded: compile failed, pdflatex absent (auto
                   tex-only), or core artifacts missing for the run's phase.
@@ -940,6 +943,29 @@ def load_state(ws: Path) -> dict:
     return d
 
 
+def file_in_register(pdf: Path, board: str, builder) -> None:
+    """File the finished design doc under the Boards project with cc-docs.
+
+    Only when cc-docs is on PATH; a failed filing warns and never fails the
+    report. cc-docs stamps the number itself. Its output is captured so
+    stdout stays the JSON payload.
+    """
+    exe = shutil.which("cc-docs")
+    if exe is None:
+        return
+    try:
+        cp = subprocess.run(
+            [exe, "file", str(pdf), "--project", "Boards", "--title",
+             f"{board} design doc", "--source", str(pdf)],
+            capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        builder.warn(f"cc-docs filing failed: {type(exc).__name__}: {exc}")
+        return
+    if cp.returncode != 0:
+        builder.warn("cc-docs filing failed (rc=%d): %s"
+                     % (cp.returncode, (cp.stderr or "").strip()[:200]))
+
+
 def run(workspace: str, name: str | None = None, tex_only: bool = False) -> tuple[dict, int]:
     ws = resolve_workspace(workspace)
     st = load_state(ws)
@@ -978,6 +1004,7 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False) -> tupl
             pages = count_pages(pdf_path)
             if pages is None:
                 builder.warn("pypdf could not read the produced PDF")
+            file_in_register(pdf_path, name or st["board"], builder)
 
     degraded = (not tex_only) and pdf_path is None
     violations = bool(builder.missing) or degraded
