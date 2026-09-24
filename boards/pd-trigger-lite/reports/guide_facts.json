@@ -20,15 +20,19 @@
   "cpl": "fab/CPL.csv",
   "schematic_pdf": "reports/schematic.pdf",
   "quote": "fab/quote.json",
-  "design_doc": null,
-  "renders": [],
+  "design_doc": "reports/design_doc/pd-trigger-lite-design-doc.pdf",
+  "renders": [
+   "reports/pd-trigger-lite_bottom.png",
+   "reports/pd-trigger-lite_top.png"
+  ],
   "prose": [
    "requirements.md",
    "architecture/blocks.md",
    "architecture/decisions.md",
    "architecture/sheets.md",
    "brief/brief.md"
-  ]
+  ],
+  "top_render": "reports/pd-trigger-lite_top.png"
  },
  "bom": [
   {
@@ -209,6 +213,18 @@
  },
  "parts_cost_per_board": 0.56,
  "rotation_corrections": [],
+ "render": {
+  "status": "pass",
+  "views": {
+   "top": "reports/pd-trigger-lite_top.png",
+   "bottom": "reports/pd-trigger-lite_bottom.png"
+  },
+  "models_missing": [
+   "${KICAD10_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x02_P2.54mm_Vertical.step"
+  ],
+  "models_relinked": []
+ },
+ "prebuy": null,
  "quote": {
   "estimated": true,
   "currency": "USD",
@@ -277,5 +293,10 @@
  },
  "decisions": [],
  "missing": [],
- "todo": []
+ "todo": [
+  {
+   "fact": "pre-buy list",
+   "cmd": "scripts/bom_cpl.py --pcb kicad/pd-trigger-lite.kicad_pcb --parts kicad/parts.json --out-dir fab"
+  }
+ ]
 }
