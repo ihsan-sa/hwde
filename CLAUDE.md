@@ -59,7 +59,9 @@ When a session may not start containers, the same toolchain runs from user space
 Ubuntu 26.04 library debs, unpacked with `apt-get download` + `dpkg-deb -x` into
 `~/.local/kicad10`, with `bin/kicad-cli` and `bin/python3` wrappers that set
 `LD_LIBRARY_PATH` (include the `sdl2-classic` and `pulseaudio` subdirs) and
-`PYTHONPATH` (SWIG pcbnew for the host python 3.14). Before any hwde script:
+`PYTHONPATH` (SWIG pcbnew for the host python 3.14). eeschema (ERC, netlist
+export) also needs the `libwebkit2gtk-4.1-0` closure unpacked the same way;
+chase `ldd usr/bin/_eeschema.kiface | grep "not found"` until it is empty. Before any hwde script:
 `. ~/.local/kicad10/hwde-env.sh`. The venv is host python 3.14 with
 `requirements.lock` minus `pywin32`; `tools/` holds Freerouting 2.2.4 and a
 Temurin 25 JRE. SWIG Specctra paths need a display: `Xvfb :99 &` first.

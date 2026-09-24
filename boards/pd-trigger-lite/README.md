@@ -2,13 +2,13 @@
 
 A 25 x 15 mm, 2-layer USB-C PD trigger. Plug in a PD charger and it passes VBUS straight to two
 2.54 mm output holes at 9, 12, 15 or 20 V (3 A max). The voltage is set by one 0603 link; it ships
-at 12 V. Controller: WCH CH224A in single-resistor mode. Full owner guide: `pd-trigger-lite-guide.pdf`.
+at 12 V. Controller: WCH CH224A in single-resistor mode. Full owner guide: `fab/pd-trigger-lite-guide.pdf`.
 
 ## Files
 
 | Path | What it is |
 |---|---|
-| `pd-trigger-lite-guide.pdf` | Owner guide: what it does, schematic, voltage setting, BOM, cost, JLC ordering |
+| `fab/pd-trigger-lite-guide.pdf` | Owner guide: what it does, schematic, voltage setting, BOM, cost, JLC ordering |
 | `fab/pd-trigger-lite_gerbers.zip` | Gerbers + drill for JLCPCB |
 | `fab/BOM.csv` | JLC assembly BOM (Comment, Designator, Footprint, LCSC Part #) |
 | `fab/CPL.csv` | JLC placement file (Designator, Mid X, Mid Y, Layer, Rotation) |
