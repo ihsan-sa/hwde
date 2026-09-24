@@ -574,3 +574,62 @@ def test_render_wrapper_multiview(cli, tmp_path):
     assert {o["view"] for o in r["outputs"]} == {"top", "iso"}
     for o in r["outputs"]:
         assert Path(o["path"]).exists()
+
+
+def _fake_loaders(root: Path) -> Path:
+    d = root / "usr" / "lib" / "x86_64-linux-gnu" / "kicad" / "plugins" / "3d"
+    d.mkdir(parents=True)
+    (d / "libs3d_plugin_vrml.so").write_bytes(b"")
+    return d
+
+
+def test_render_env_sets_appdir_for_user_prefix(tmp_path, monkeypatch):
+    # KiCad unpacked into a user prefix: loaders live under <prefix>/usr/lib,
+    # which kicad-cli only searches with APPDIR=<prefix>.
+    monkeypatch.setattr(kc.sys, "platform", "linux")
+    monkeypatch.setattr(kc, "_SYS_ROOT", tmp_path / "sysroot")
+    monkeypatch.delenv("APPDIR", raising=False)
+    prefix = tmp_path / "kicad10"
+    _fake_loaders(prefix)
+    (prefix / "bin").mkdir()
+    env_, err = kc.render_env(prefix / "bin" / "kicad-cli")
+    assert err == "" and env_["APPDIR"] == str(prefix)
+
+
+def test_render_env_inherits_when_system_has_loaders(tmp_path, monkeypatch):
+    monkeypatch.setattr(kc.sys, "platform", "linux")
+    monkeypatch.setattr(kc, "_SYS_ROOT", tmp_path / "sysroot")
+    monkeypatch.delenv("APPDIR", raising=False)
+    _fake_loaders(tmp_path / "sysroot")
+    assert kc.render_env(Path("/usr/bin/kicad-cli")) == (None, "")
+
+
+def test_render_env_errors_without_loaders(tmp_path, monkeypatch):
+    # no loaders anywhere: the render would be bare, so render_png refuses
+    monkeypatch.setattr(kc.sys, "platform", "linux")
+    monkeypatch.setattr(kc, "_SYS_ROOT", tmp_path / "sysroot")
+    monkeypatch.delenv("APPDIR", raising=False)
+    cli = tmp_path / "bare" / "bin" / "kicad-cli"
+    env_, err = kc.render_env(cli)
+    assert env_ is None and "bare board" in err
+    pcb = tmp_path / "b.kicad_pcb"
+    pcb.write_text("(kicad_pcb)", encoding="utf-8")
+    r = kc.render_png(cli, pcb, tmp_path / "out" / "t.png")
+    assert r["status"] == "error" and "bare board" in r["stderr_tail"]
+
+
+def test_model_audit_lists_only_unresolved(tmp_path):
+    (tmp_path / "lib").mkdir()
+    (tmp_path / "lib" / "R.wrl").write_text("", encoding="utf-8")
+    (tmp_path / "stock").mkdir()
+    (tmp_path / "stock" / "H.step").write_text("", encoding="utf-8")
+    pcb = tmp_path / "b.kicad_pcb"
+    pcb.write_text(
+        '(kicad_pcb (footprint "R" (model "${KIPRJMOD}/lib/R.wrl"))\n'
+        ' (footprint "R" (model "lib/R.wrl"))\n'
+        ' (footprint "H" (model "${KICAD10_3DMODEL_DIR}/H.step"))\n'
+        ' (footprint "U" (model "/nowhere/U.wrl"))\n'
+        ' (footprint "C" (model "${UNSET_VAR}/C.wrl")))', encoding="utf-8")
+    a = kc.model_audit(pcb, {"KICAD10_3DMODEL_DIR": str(tmp_path / "stock")})
+    assert a["referenced"] == 5
+    assert a["missing"] == ["${UNSET_VAR}/C.wrl", "/nowhere/U.wrl"]

@@ -8,8 +8,14 @@ naming so the placement / verify-reviewer agents can reference views by name.
 "iso" is orthographic isometric (kicad-cli `pcb render` has no iso side, so we
 rotate -45,0,45). Thin driver over kc.render_png.
 
+The render shows the assembled board: kc.render_png points kicad-cli at its
+3D model loaders (APPDIR for a KiCad unpacked into a user prefix) and fails
+the view when there are none, since the render would silently come out bare.
+Model paths that do not resolve to a file are listed in models_missing (those
+parts render as bare pads); the render still passes.
+
 JSON to stdout (or --out FILE): {script, outputs:[{view, path, status}],
-status}. Exit 0 = all views rendered, 2 = any failure.
+models_missing, status}. Exit 0 = all views rendered, 2 = any failure.
 """
 from __future__ import annotations
 
@@ -38,17 +44,19 @@ def render_views(pcb: Path, views: list[str], out_dir: Path, *,
                  width: int, height: int, quality: str) -> dict:
     cli = kc.resolve_cli()
     out_dir.mkdir(parents=True, exist_ok=True)
-    results = []
+    results, missing = [], set()
     for view in views:
         side, iso = VIEWS[view]
         out = out_dir / f"{pcb.stem}_{view}.png"
         r = kc.render_png(cli, pcb, out, side=side, width=width, height=height,
                           quality=quality, rotate=kc.ISO_ROTATE if iso else None)
+        missing.update(r.get("models_missing", []))
         results.append({"view": view, "path": out_dir_relpath(r, out),
                         "status": r["status"], "stderr_tail": r.get("stderr_tail", "")})
     ok = all(r["status"] == "pass" for r in results)
     return {"script": "render", "input": str(pcb),
-            "status": "pass" if ok else "error", "outputs": results}
+            "status": "pass" if ok else "error", "outputs": results,
+            "models_missing": sorted(missing)}
 
 
 def out_dir_relpath(result: dict, out: Path) -> str:

@@ -28,8 +28,9 @@ best-effort; `pos`, `check`, `severity`, `msg` are always exact.
 
 Subcommands: erc, drc (-> normalized report, exit 1 if any violations);
 gerbers, drill, pos, step, render, sch-pdf, netlist (-> export result, exit 2
-on failure). All: JSON to stdout or --out FILE, exit 0/1/2, no interactivity
-(SPEC.md section 6). Tools resolve through lib/env.py (KiCad 10.0.3 pin).
+on failure; render also fails when kicad-cli has no 3D model loaders, and lists
+unresolved model paths in models_missing - see render_env/model_audit). All:
+JSON to stdout or --out FILE, exit 0/1/2, no interactivity (SPEC.md section 6). Tools resolve through lib/env.py (KiCad 10.0.3 pin).
 
 Importable: gate.py and render.py call run_erc()/run_drc()/render_png() and the
 export_* helpers directly; the pure parsers (parse_drc_data, normalize_violation)
@@ -39,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -181,11 +183,11 @@ def resolve_cli() -> Path:
     return cli
 
 
-def run_cli(cli: Path, args: list[str], timeout: int = _TIMEOUT
-            ) -> subprocess.CompletedProcess:
+def run_cli(cli: Path, args: list[str], timeout: int = _TIMEOUT,
+            env: dict | None = None) -> subprocess.CompletedProcess:
     return subprocess.run(
         [str(cli), *args], capture_output=True, text=True,
-        encoding="utf-8", errors="replace", timeout=timeout,
+        encoding="utf-8", errors="replace", timeout=timeout, env=env,
     )
 
 
@@ -338,11 +340,85 @@ def export_netlist(cli: Path, sch: Path, out_file: Path,
 # `pcb render --side` has no "iso"; isometric is orthographic rotate -45,0,45.
 ISO_ROTATE = "-45,0,45"
 
+# kicad-cli parses .wrl/.step models through loader plugins (libs3d_plugin_*)
+# that it looks for ONLY at its compiled install path. Without them it opens
+# every model, parses none, renders a bare board and still exits 0.
+_SYS_PLUGIN_GLOBS = ("usr/lib/*/kicad/plugins/3d", "usr/lib*/kicad/plugins/3d",
+                     "usr/local/lib/*/kicad/plugins/3d",
+                     "usr/local/lib*/kicad/plugins/3d")
+_SYS_ROOT = Path("/")
+
+
+def _plugin_dirs(root: Path) -> list[Path]:
+    return [d for g in _SYS_PLUGIN_GLOBS for d in root.glob(g)
+            if any(d.glob("libs3d_plugin_*"))]
+
+
+def render_env(cli: Path) -> tuple[dict | None, str]:
+    """Environment under which `pcb render` finds its 3D model loaders.
+
+    Returns (env, error): env None = inherit ours. A KiCad unpacked into a
+    user prefix (debs extracted without root) keeps its loaders under
+    <prefix>/usr/lib/.../kicad/plugins/3d, which kicad-cli only searches when
+    APPDIR=<prefix> (its AppImage path) - so set it. error is non-empty when
+    no loaders exist anywhere: the render would show a bare board."""
+    if sys.platform != "linux":
+        return None, ""  # Windows/macOS load plugins beside the executable
+    appdir = os.environ.get("APPDIR")
+    if appdir and _plugin_dirs(Path(appdir)):
+        return None, ""
+    if _plugin_dirs(_SYS_ROOT):
+        return None, ""
+    for anc in [*Path(cli).absolute().parents, *Path(cli).resolve().parents]:
+        if anc != anc.parent and _plugin_dirs(anc):
+            return dict(os.environ, APPDIR=str(anc)), ""
+    return None, (f"no KiCad 3D model loaders (libs3d_plugin_*) under any "
+                  f"{'|'.join(_SYS_PLUGIN_GLOBS)} for {cli} - a render would "
+                  f"show a bare board with no parts")
+
+
+_MODEL_RE = re.compile(r'\(model\s+"((?:[^"\\]|\\.)*)"')
+_VAR_RE = re.compile(r"\$\{([A-Za-z0-9_]+)\}")
+
+
+def model_audit(pcb: Path, env_vars: dict | None = None) -> dict:
+    """List the board's 3D model paths that do not resolve to a file.
+
+    Expands ${VAR} from the environment (KIPRJMOD = the board's dir; an unset
+    KICAD*_3DMODEL_DIR falls back to the stock /usr/share/kicad/3dmodels) and
+    reads a relative path against the board's dir, as KiCad does."""
+    envv = dict(os.environ if env_vars is None else env_vars)
+    envv.setdefault("KIPRJMOD", str(pcb.resolve().parent))
+    text = pcb.read_text(encoding="utf-8", errors="replace")
+    paths = [m.group(1) for m in _MODEL_RE.finditer(text)]
+
+    def expand(m: re.Match) -> str:
+        name = m.group(1)
+        if name in envv:
+            return envv[name]
+        if re.fullmatch(r"KICAD\d*_3DMODEL_DIR", name):
+            return "/usr/share/kicad/3dmodels"
+        return m.group(0)
+
+    missing = []
+    for p in sorted(set(paths)):
+        q = Path(_VAR_RE.sub(expand, p))
+        if not q.is_absolute():
+            q = pcb.resolve().parent / q
+        if not q.is_file():
+            missing.append(p)
+    return {"referenced": len(paths), "missing": missing}
+
 
 def render_png(cli: Path, pcb: Path, out_file: Path, *, side: str = "top",
                width: int = 1600, height: int = 900, quality: str = "high",
                rotate: str | None = None) -> dict:
     out_file.parent.mkdir(parents=True, exist_ok=True)
+    renv, err = render_env(cli)
+    if err:
+        return {"script": "kc", "tool": "render", "input": str(pcb),
+                "status": "error", "outputs": [], "returncode": None,
+                "stderr_tail": err, "view": side if not rotate else "iso"}
     # -h collides with --help; use long form --height (LEARNINGS [kicad-cli]).
     args = ["pcb", "render", "-o", str(out_file), "--side", side,
             "--width", str(width), "--height", str(height),
@@ -350,9 +426,11 @@ def render_png(cli: Path, pcb: Path, out_file: Path, *, side: str = "top",
     if rotate:
         args += ["--rotate", rotate]
     args.append(str(pcb))
-    cp = run_cli(cli, args, timeout=600)
+    cp = run_cli(cli, args, timeout=600, env=renv)
     res = _export_result("render", pcb, cp, [out_file])
     res["view"] = side if not rotate else "iso"
+    # a part whose model file is missing renders as bare pads - say which
+    res["models_missing"] = model_audit(pcb, renv)["missing"]
     return res
 
 
