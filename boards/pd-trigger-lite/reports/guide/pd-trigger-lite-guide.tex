@@ -138,4 +138,29 @@ comes from JLC's own library.
 
 \hsprovenance{Gates on 2026-09-24: ERC 0/0, DRC 0 errors 0 unconnected (reports/drc\_final.json),
 verify and DFM pass.}
+\section{What it cost to design}
+\hslead{About 24 USD of model spend went into designing this board. It is not part of the board's price.}
+
+\begin{hsblock}
+\begin{tabularx}{\linewidth}{Y R{2.2cm}}
+\hstoprule
+\hshead{Step} & \hshead{USD} \\
+\hstoprule
+Before the workspace (brief and skill read) & 5.29 \\ \hline
+Brief and intake & 2.92 \\ \hline
+Architecture & 0.03 \\ \hline
+Schematic & 5.21 \\ \hline
+Placement & 0.51 \\ \hline
+Routing & 2.24 \\ \hline
+Verification & 5.38 \\ \hline
+DFM, order files and guide & 2.67 \\
+\hstoprule
+\textbf{Total} & \textbf{24.26} \\
+\hstoprule
+\end{tabularx}
+\end{hsblock}
+
+The split follows when hwde recorded each step, and the rows are rounded to the cent. The worker loop logged only 9.37 USD, because one of its four iterations timed out and a timed-out iteration logs no cost. The session transcripts hold the whole 24.26 USD. Later skill-wide rebuilds of this guide are skill work and are not counted.
+
+\hsprovenance{reports/cost.json (gen\_cost.py), priced from reference/model\_prices.yaml, which was fitted to Claude Code's own session totals on 2026-09-24.}
 \end{document}

@@ -14,6 +14,10 @@ Asset paths embedded in run JSON are unreliably backslashed and mixed
 repo-/workspace-relative, so every asset is resolved by this script's own
 ladder relative to the workspace root and emitted with forward slashes.
 
+The Run Record carries the model cost of generating the board from
+reports/cost.json (gen_cost.py): the total, the split by step or the reason
+there is none. A missing cost.json is a warning and a "not recorded" line.
+
 A finished PDF is filed under the Boards project ("<board> design doc") with
 `cc-docs file` when cc-docs is on PATH; a failed filing only warns.
 
@@ -757,8 +761,48 @@ class DocBuilder:
             "lllp{2.6cm}p{6.4cm}",
             [r"\textbf{Id}", r"\textbf{Phase}", r"\textbf{Status}",
              r"\textbf{When}", r"\textbf{Note}"], rows))
+        if self.sec_cost():
+            used.append("reports/cost.json")
         self.record("run_record", "included",
                     ", ".join(used + ["state.json"]))
+
+    def sec_cost(self) -> bool:
+        """Generation cost from reports/cost.json (gen_cost.py): the total, the
+        per-step split, or the reason there is none. Absent -> a warning and a
+        one-line note; never an estimate."""
+        self.body.append(r"\subsection*{Generation cost}")
+        cost = read_json(self.ws, "reports/cost.json")
+        if not cost:
+            self.warn("reports/cost.json missing - run gen_cost.py")
+            self.body.append(r"\emph{Not recorded (no reports/cost.json).}")
+            return False
+
+        def usd(v) -> str:
+            return latex_escape(f"${v:,.2f}") if isinstance(
+                v, (int, float)) else "not recorded"
+
+        total = cost.get("total_usd")
+        self.body.append("Model cost of generating this board: \\textbf{"
+                         + usd(total) + "}.\n")
+        steps = cost.get("by_step") or []
+        if steps:
+            self.body.append(longtable(
+                "p{10cm}r", [r"\textbf{Step}", r"\textbf{Cost}"],
+                [[latex_escape(s.get("label") or s.get("step")),
+                  usd(s.get("usd"))] for s in steps]))
+        if cost.get("breakdown_reason"):
+            self.body.append(r"\emph{No full split by step: "
+                             + latex_escape(cost["breakdown_reason"]) + "}\n")
+        for sh in cost.get("shared") or []:
+            self.body.append(latex_escape(
+                f"Not in the total: {sh.get('label')}, shared with "
+                f"{sh.get('shared_with')}, cost ") + usd(sh.get("usd")) + ".\n")
+        lines = list(cost.get("notes") or [])
+        if isinstance(cost.get("loop_logged_usd"), (int, float)):
+            lines.append(f"The worker loop logged ${cost['loop_logged_usd']:,.2f}.")
+        for n in lines:
+            self.body.append(latex_escape(n) + "\n")
+        return True
 
     def sec_artifact_index(self) -> None:
         self.start("Artifact Index")
