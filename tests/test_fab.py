@@ -855,6 +855,27 @@ def test_quote_extended_count_per_ref_fallback_dedupes_by_lcsc(tmp_path):
         "per_ref_lcsc_fallback_unflagged_as_extended"
 
 
+def test_quote_skips_parts_jlc_does_not_place(tmp_path):
+    """dnp / board_feature lines carry no LCSC and no basic flag: they are
+    never fed, so no feeder fee, and their refs add no parts or joints."""
+    refs = sorted({p.ref for p in order_quote.geom.load_board(
+        board_path("blinky2")).pads_of() if p.net is not None})
+    parts = {"parts": [
+        {"mpn": "B", "lcsc": "C2", "basic": False},
+        {"mpn": "land", "lcsc": "", "assembly_class": "dnp",
+         "refdes": [refs[0]]},
+    ]}
+    pj = tmp_path / "parts.json"
+    pj.write_text(json.dumps(parts), encoding="utf-8")
+    base = order_quote.run(board_path("blinky2"), [5], ["HASL"], ["green"],
+                           assembly=True)
+    rep = order_quote.run(board_path("blinky2"), [5], ["HASL"], ["green"],
+                          assembly=True, parts_json=pj)
+    assert rep["spec"]["n_extended_parts"] == 1
+    assert rep["spec"]["n_parts"] == base["spec"]["n_parts"] - 1
+    assert rep["spec"]["n_joints"] < base["spec"]["n_joints"]
+
+
 def test_quote_no_extended_source_key_without_assembly():
     """The bench (score_p10) runs without assembly: its spec dict must stay
     byte-identical - no n_extended_source key leaks in."""

@@ -118,6 +118,20 @@ def test_complete_package_pass(tmp_path, capsys):
     assert payload["parts_cost_per_board"] == 0.01
 
 
+def test_upload_bom_with_jlc_header_is_read(tmp_path, capsys):
+    """No BOM-full.csv: the fallback reads bom_cpl's JLC upload header,
+    whose part column is "LCSC Part #", not "LCSC"."""
+    ws = make_workspace(tmp_path)
+    (ws / "fab" / "BOM-full.csv").unlink()
+    (ws / "fab" / "BOM.csv").write_text(
+        "Comment,Designator,Footprint,LCSC Part #\n10k,R1,0402,C1000\n",
+        encoding="utf-8")
+    code, payload = run_main(ws, tmp_path, capsys)
+    assert code == 0, payload
+    assert payload["bom"][0]["lcsc"] == "C1000"
+    assert payload["bom"][0]["jlc_status"] == "basic"
+
+
 # ------------------------------------------------------------------ missing fab files
 
 def test_missing_fab_files(tmp_path, capsys):

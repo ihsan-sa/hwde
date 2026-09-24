@@ -5011,3 +5011,13 @@ per open-file-description, so a nested `writer_lock` on the same path in one pro
 self-deadlock - safelib keeps a process-wide per-path registry (RLock + depth) and only
 takes the OS lock at depth 0. Tests: `tests/test_u12_safety.py` (real subprocesses for the
 lock race and the os._exit crash; `safelib.FAULT_HOOK` for in-process faults).
+
+## 2026-09-24 [linux][kicad][freerouting] No-container host needs three more things than CLAUDE.md lists
+On the user-space KiCad 10.0.6 host: (a) `kicad-cli sch erc/netlist/export` fail with "Failed to
+load _eeschema.kiface: libwebkit2gtk-4.1.so.0" - unpack libwebkit2gtk-4.1-0, libjavascriptcoregtk-4.1-0
+and their deps (gstreamer-plugins-base, gstreamer-gl, soup-3.0, harfbuzz-icu, wayland-server,
+enchant-2, hyphen, egl, orc) with apt-get download + dpkg-deb -x and append the lib dir to
+LD_LIBRARY_PATH; (b) kicad-sch-api finds no stock symbols (power:, Connector_Generic:) unless
+KICAD_SYMBOL_DIR points at ~/.local/kicad10/usr/share/kicad/symbols; (c) env.find_java only globs
+tools/jre/*/bin/java, so a JRE unpacked flat as tools/jre/bin/java needs HWDE_JAVA, and Freerouting's
+AWT init needs libXtst6 (same unpack trick). pd-trigger-lite kept these under tools/kicad-extra/.

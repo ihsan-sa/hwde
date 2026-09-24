@@ -13,7 +13,7 @@ contain" (codex H1). Three files come out of one run:
                 deliverable and the thing a human reads.
 
   BOM.csv       the ASSEMBLER UPLOAD: `smt_placed` parts only, in JLC's own
-                four columns (Comment, Designator, Footprint, LCSC), one row
+                four columns (Comment, Designator, Footprint, LCSC Part #), one row
                 per (value, footprint, LCSC) group with the comma-joined
                 designator list. Its designator set is identical to CPL.csv's
                 by construction - a DNP site cannot leak into a quote.
@@ -562,7 +562,12 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
     bom_path = out_dir / "BOM.csv"
     bom_full_path = out_dir / "BOM-full.csv"
     cpl_path = out_dir / "CPL.csv"
-    _write_csv(bom_path, ["Comment", "Designator", "Footprint", "LCSC"], bom_rows)
+    # JLC's own BOM template names the part column "LCSC Part #"; the
+    # in-memory rows keep the "LCSC" key every other consumer reads.
+    _write_csv(bom_path, ["Comment", "Designator", "Footprint", "LCSC Part #"],
+               [{"Comment": r["Comment"], "Designator": r["Designator"],
+                 "Footprint": r["Footprint"], "LCSC Part #": r["LCSC"]}
+                for r in bom_rows])
     _write_csv(bom_full_path, BOM_FULL_FIELDS, bom_full_rows)
     _write_csv(cpl_path, ["Designator", "Mid X", "Mid Y", "Layer", "Rotation"],
                cpl_rows)

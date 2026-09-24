@@ -116,7 +116,7 @@ def bom_lines(bom_full: Path, bom: Path, parts: dict[str, dict]) -> list[dict]:
     src = bom_full if bom_full.is_file() else bom
     lines = []
     for row in _read_csv(src):
-        lcsc = str(row.get("LCSC") or "").strip()
+        lcsc = str(row.get("LCSC") or row.get("LCSC Part #") or "").strip()
         info = parts.get(lcsc, {})
         lines.append({
             "designators": row.get("Designator", ""),
