@@ -51,3 +51,15 @@ symbol/footprint libs + libngspice; plus Node/Claude Code, the venv from
 - `make check` = pytest + `check_env --quiet`; `make env` = `check_env --full`.
 - Unattended board runs: `hwde-loop <board>` inside the container (rules:
   `docker/run-contract.md`); build/run commands in `docker/README.md`.
+
+## Environment - Linux host without the container (2026-09-24)
+
+When a session may not start containers, the same toolchain runs from user space
+(no root): KiCad 10.0.6 debs from the `kicad/kicad-10.0-releases` PPA plus their
+Ubuntu 26.04 library debs, unpacked with `apt-get download` + `dpkg-deb -x` into
+`~/.local/kicad10`, with `bin/kicad-cli` and `bin/python3` wrappers that set
+`LD_LIBRARY_PATH` (include the `sdl2-classic` and `pulseaudio` subdirs) and
+`PYTHONPATH` (SWIG pcbnew for the host python 3.14). Before any hwde script:
+`. ~/.local/kicad10/hwde-env.sh`. The venv is host python 3.14 with
+`requirements.lock` minus `pywin32`; `tools/` holds Freerouting 2.2.4 and a
+Temurin 25 JRE. SWIG Specctra paths need a display: `Xvfb :99 &` first.
