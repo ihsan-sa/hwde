@@ -3,7 +3,7 @@
 
 The P9 assembly-format step (SPEC 6.4). Membership is decided by an
 ASSEMBLY CLASS per refdes - never by "whatever the position export happened to
-contain" (codex H1). Three files come out of one run:
+contain" (codex H1). Four files come out of one run:
 
   BOM-full.csv  the BOM OF RECORD. EVERY intended part, whatever its class:
                 machine-placed, hand-installed, off-board, do-not-populate,
@@ -13,9 +13,10 @@ contain" (codex H1). Three files come out of one run:
                 deliverable and the thing a human reads.
 
   BOM.csv       the ASSEMBLER UPLOAD: `smt_placed` parts only, in JLC's own
-                four columns (Comment, Designator, Footprint, LCSC Part #), one row
-                per (value, footprint, LCSC) group with the comma-joined
-                designator list. Its designator set is identical to CPL.csv's
+                four columns (Comment, Designator, Footprint, LCSC Part #), ONE
+                ROW PER LCSC PART with the comma-joined designator list (a part
+                with no LCSC number groups by value + footprint). Two rows with
+                the same LCSC number split one part's stock in JLC's BOM review. Its designator set is identical to CPL.csv's
                 by construction - a DNP site cannot leak into a quote.
 
   CPL.csv       Designator, Mid X, Mid Y, Layer, Rotation - `smt_placed` only.
@@ -24,6 +25,17 @@ contain" (codex H1). Three files come out of one run:
                 the notorious KiCad<->JLC 0-degree-reference offset, vendored
                 per package family in reference/jlc_rotations.csv (regex on the
                 footprint name, first match wins - LEARNINGS/S8).
+
+  prebuy.csv    the PRE-BUY LIST: every `smt_placed` part parts.json marks
+                Extended (`basic: false` or `type: extended`), with its LCSC
+                number, qty per board and the build quantity (--build-qty
+                boards, default 5). JLC can hold an Extended part as idle stock
+                that its BOM review leaves unselected at qty 0 until it is
+                bought into your parts inventory; the public parts search cannot
+                tell (LEARNINGS 2026-09-24), so every Extended part is listed
+                and each row carries that note. Parts are still chosen on stock,
+                fit and cost - this list records the pre-buy, it does not avoid
+                idle-stock parts. Written (header only) even when empty.
 
 Assembly classes (`assembly_class`, canonical parts.json - NOT a board-local
 filter script, which is how rf-de-20m's nine DNP sites used to be handled):
@@ -52,7 +64,7 @@ dfm_check.py's job, which also consumes these classes: a missing LCSC on an
 CLI:
   bom_cpl.py --pcb board.kicad_pcb --out-dir fab/ [--pos pos.csv]
              [--parts parts.json] [--rotations jlc_rotations.csv]
-             [--name NAME] [--out report.json]
+             [--name NAME] [--build-qty N] [--out report.json]
 Exit 0 ok / 1 assembly violations (incomplete BOM, unplaced smt_placed part,
 declared-quantity mismatch) / 2 error.
 """
@@ -288,10 +300,21 @@ def _check_class(value, where: str) -> str:
     return cls
 
 
+def jlc_status(ent: dict) -> str:
+    """basic | extended | unknown from a parts.json line (`basic` bool, else
+    `type`; JLC's "preferred" parts carry no extended fee, so count as basic)."""
+    if "basic" in ent:
+        return "basic" if ent["basic"] else "extended"
+    t = str(ent.get("type", "")).strip().lower()
+    if t in ("basic", "preferred", "extended"):
+        return "extended" if t == "extended" else "basic"
+    return "unknown"
+
+
 def load_parts_records(path: Path | None) -> list[dict]:
     """parts.json -> canonical assembly records, one per part LINE.
 
-    {refs, lcsc, mpn, value, package, qty_per_board, qty_populated,
+    {refs, lcsc, mpn, jlc_status, value, package, qty_per_board, qty_populated,
      cls (line default | None), refdes_class {ref: cls},
      notes (line default | None), refdes_notes {ref: text}}
     """
@@ -327,6 +350,7 @@ def load_parts_records(path: Path | None) -> list[dict]:
             "distributor": ent.get("distributor") or "",
             "distributor_pn": ent.get("distributor_pn") or "",
             "mpn": ent.get("mpn") or ent.get("mfr_part") or "",
+            "jlc_status": jlc_status(ent),
             "value": ent.get("value") or "",
             "package": ent.get("package") or "",
             "qty_per_board": ent.get("qty_per_board"),
@@ -389,23 +413,24 @@ def _natural_key(ref: str):
 
 
 def build_bom(parts: list[dict], parts_map: dict[str, dict]) -> list[dict]:
-    """Group by (value, footprint, LCSC) -> JLC upload rows.
+    """One JLC upload row per LCSC part (value + footprint when a part has no
+    LCSC number); Comment and Footprint come from the first designator.
 
     `parts` must already be the placed set (see run()); this function does not
     decide membership."""
-    groups: dict[tuple, list[str]] = {}
+    groups: dict[tuple, list[dict]] = {}
     for p in parts:
         lcsc = parts_map.get(p["ref"], {}).get("lcsc", "")
-        key = (p["val"], p["package"], lcsc)
-        groups.setdefault(key, []).append(p["ref"])
+        key = ("lcsc", lcsc) if lcsc else ("value", p["val"], p["package"])
+        groups.setdefault(key, []).append(p)
     rows = []
-    for (val, pkg, lcsc), refs in groups.items():
-        refs_sorted = sorted(refs, key=_natural_key)
+    for key, members in groups.items():
+        members.sort(key=lambda q: _natural_key(q["ref"]))
         rows.append({
-            "Comment": val,
-            "Designator": ",".join(refs_sorted),
-            "Footprint": pkg,
-            "LCSC": lcsc,
+            "Comment": members[0]["val"],
+            "Designator": ",".join(q["ref"] for q in members),
+            "Footprint": members[0]["package"],
+            "LCSC": key[1] if key[0] == "lcsc" else "",
         })
     rows.sort(key=lambda r: _natural_key(r["Designator"].split(",")[0]))
     return rows
@@ -474,6 +499,34 @@ def build_bom_full(parts: list[dict], records: list[dict],
     return rows
 
 
+DEFAULT_BUILD_QTY = 5   # JLC's smallest PCBA order, and order_quote's first qty
+PREBUY_FIELDS = ["LCSC", "MPN", "Comment", "Designator", "Qty Per Board",
+                 "Boards", "Qty To Buy", "Note"]
+PREBUY_NOTE = ("Extended part: JLC's BOM review may show it as idle stock "
+               "(unselected, qty 0) that has to be bought into your parts "
+               "inventory before assembly.")
+
+
+def build_prebuy(bom_rows: list[dict], records: list[dict],
+                 build_qty: int) -> list[dict]:
+    """Pre-buy rows: each placed BOM row whose part parts.json marks Extended.
+    Qty To Buy = designators on the row x build_qty boards."""
+    status = {r["lcsc"]: r["jlc_status"] for r in records if r["lcsc"]}
+    mpn = {r["lcsc"]: r["mpn"] for r in records if r["lcsc"]}
+    rows = []
+    for b in bom_rows:
+        if not b["LCSC"] or status.get(b["LCSC"]) != "extended":
+            continue
+        per_board = len(b["Designator"].split(","))
+        rows.append({
+            "LCSC": b["LCSC"], "MPN": mpn.get(b["LCSC"], ""),
+            "Comment": b["Comment"], "Designator": b["Designator"],
+            "Qty Per Board": str(per_board), "Boards": str(build_qty),
+            "Qty To Buy": str(per_board * build_qty), "Note": PREBUY_NOTE,
+        })
+    return rows
+
+
 def build_cpl(parts: list[dict], rules) -> tuple[list[dict], list[dict]]:
     """CPL rows + a parallel rotation-correction audit trail."""
     cpl, audit = [], []
@@ -529,7 +582,10 @@ def check_declared_quantities(records: list[dict],
 
 def run(pcb: Path, out_dir: Path, pos: Path | None = None,
         parts_json: Path | None = None, rotations: Path | None = None,
-        name: str | None = None) -> dict:
+        name: str | None = None,
+        build_qty: int = DEFAULT_BUILD_QTY) -> dict:
+    if build_qty < 1:
+        raise ValueError(f"build_qty must be >= 1, got {build_qty}")
     name = name or pcb.stem
     out_dir.mkdir(parents=True, exist_ok=True)
     rules = load_rotations(rotations or REF_ROTATIONS)
@@ -557,11 +613,13 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
     bom_rows = build_bom(placed, parts_map)
     bom_full_rows = build_bom_full(parts, records, classes, notes, parts_map)
     cpl_rows, audit = build_cpl(placed, rules)
+    prebuy_rows = build_prebuy(bom_rows, records, build_qty)
     qty_mismatch = check_declared_quantities(records, classes)
 
     bom_path = out_dir / "BOM.csv"
     bom_full_path = out_dir / "BOM-full.csv"
     cpl_path = out_dir / "CPL.csv"
+    prebuy_path = out_dir / "prebuy.csv"
     # JLC's own BOM template names the part column "LCSC Part #"; the
     # in-memory rows keep the "LCSC" key every other consumer reads.
     _write_csv(bom_path, ["Comment", "Designator", "Footprint", "LCSC Part #"],
@@ -571,6 +629,7 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
     _write_csv(bom_full_path, BOM_FULL_FIELDS, bom_full_rows)
     _write_csv(cpl_path, ["Designator", "Mid X", "Mid Y", "Layer", "Rotation"],
                cpl_rows)
+    _write_csv(prebuy_path, PREBUY_FIELDS, prebuy_rows)
 
     # A BOM line is COMPLETE when the part can actually be bought: an LCSC
     # number, or a manufacturer part number with a named distributor line. A
@@ -626,7 +685,10 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
         "bom": str(bom_path),
         "bom_full": str(bom_full_path),
         "cpl": str(cpl_path),
+        "prebuy": str(prebuy_path),
+        "build_qty": build_qty,
         "bom_rows": bom_rows,
+        "prebuy_rows": prebuy_rows,
         "bom_full_rows": bom_full_rows,
         "cpl_rows": cpl_rows,
         "assembly_classes": {r: classes[r] for r in sorted(classes,
@@ -656,6 +718,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--parts", help="parts.json ref->LCSC map (BOM-of-record)")
     ap.add_argument("--rotations", help="override reference/jlc_rotations.csv")
     ap.add_argument("--name", help="basename (default: board stem)")
+    ap.add_argument("--build-qty", type=int, default=DEFAULT_BUILD_QTY,
+                    help="boards in the build, for the pre-buy list "
+                         f"(default {DEFAULT_BUILD_QTY})")
     ap.add_argument("--out", help="write JSON report here instead of stdout")
     args = ap.parse_args(argv)
 
@@ -664,7 +729,7 @@ def main(argv: list[str] | None = None) -> int:
                   pos=Path(args.pos) if args.pos else None,
                   parts_json=Path(args.parts) if args.parts else None,
                   rotations=Path(args.rotations) if args.rotations else None,
-                  name=args.name)
+                  name=args.name, build_qty=args.build_qty)
     except Exception as exc:  # noqa: BLE001 (SPEC: any error -> exit 2)
         err = {"script": "bom_cpl", "status": "error",
                "error": f"{type(exc).__name__}: {exc}"}

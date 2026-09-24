@@ -130,6 +130,25 @@ kicad/parts.json prices, read 2026-09-24.}
 \section{Ordering at JLCPCB}
 \hslead{Three files go up: the gerber zip, then BOM.csv and CPL.csv for assembly.}
 
+\subsection*{Pre-buy list}
+JLC's BOM review may show an Extended part as idle stock: unselected, at quantity 0, until it has
+been bought into your JLC parts inventory. JLC's public parts search cannot tell idle stock from
+stock that assembles straight away, so all three Extended parts are listed. For 5 boards:
+
+\begin{hsblock}
+\begin{tabularx}{\linewidth}{L{1.9cm}Y L{1.2cm}R{1.6cm}}
+\hstoprule
+\hshead{LCSC} & \hshead{Part} & \hshead{Ref} & \hshead{Qty to buy} \\
+\hstoprule
+C2798175 & USB-C receptacle 6P (TYPE-C-6M-001) & J1 & 5 \\ \hline
+C7421518 & DIP switch 5P, 1.27 mm (1.27-5P TPPT) & SW1 & 5 \\ \hline
+C42459160 & CH224A PD sink controller & U1 & 5 \\
+\hstoprule
+\end{tabularx}
+\end{hsblock}
+
+\hsprovenance{From fab/prebuy.csv (bom\_cpl.py, build of 5 boards).}
+
 \begin{enumerate}
 \item Open the JLC quote page (link above) and upload the gerber zip,
 \texttt{fab/pd-trigger-lite-dip\_gerbers.zip}.
@@ -137,6 +156,8 @@ kicad/parts.json prices, read 2026-09-24.}
 \item Turn on PCB Assembly: Economic, top side, 5 boards.
 \item Upload \texttt{fab/BOM.csv} and \texttt{fab/CPL.csv}. Confirm all twelve parts matched their
 LCSC numbers and that J2 is absent, since it is not assembled.
+\item If a part on the pre-buy list shows as unselected at quantity 0, buy it into your parts
+inventory from the BOM review page, then select it and re-check the quantity.
 \item In the placement preview, check four parts. SW1: its pin-1 mark sits at the bottom-right
 corner, next to R5, so switch 1 is the 5 V row; if JLC's model shows the ON side, it should face
 the voltage labels. D1: its cathode mark must face the right board edge. U1: the pin-1 dot sits at

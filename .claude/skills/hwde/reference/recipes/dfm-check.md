@@ -8,7 +8,10 @@ what this recipe closes.
 
 `fab_export.py` writes the JLC-shaped package (Protel extensions, X2, the JLC
 layer set, drill files, zipped). `bom_cpl.py` writes the BOM of record
-(`BOM-full.csv`), the assembler upload (`BOM.csv`) and `CPL.csv`, applying the
+(`BOM-full.csv`), the assembler upload (`BOM.csv`, one row per LCSC part), the
+pre-buy list (`prebuy.csv`: every placed Extended part with its LCSC number and
+the qty for `--build-qty` boards, default 5 - JLC's BOM review may hold one as
+idle stock that must be bought into inventory first) and `CPL.csv`, applying the
 per-package rotation corrections from `reference/jlc_rotations.csv` - the
 catcher for a polarized part mounted backwards, which net-level schematic parity
 is blind to by construction.

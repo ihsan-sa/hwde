@@ -58,7 +58,13 @@ with the repo venv python (`.venv/bin/python` on Linux,
    - **Ordering at JLCPCB** - numbered steps: upload `<board>_gerbers.zip`;
      check the layer count, size and thickness match the quote spec; enable
      PCB Assembly (side, quantity); upload `BOM.csv` and `CPL.csv`; confirm
-     every part matched its LCSC number; in the placement preview check
+     every part matched its LCSC number. Before that step, give the
+     pre-buy list from `prebuy` as a table (LCSC, MPN, part, designators,
+     qty to buy for `build_qty` boards) with its `note` in substance: JLC's
+     BOM review may show an Extended part as idle stock, unselected at qty
+     0, until it is bought into the parts inventory - buy it, then re-run
+     the review. Say "none" when `rows` is empty; if `prebuy` is null, run
+     the `todo` command first. In the placement preview check
      polarity and rotation, naming the parts in `rotation_corrections` and
      every diode, LED, IC pin 1 and electrolytic; run JLCDFM as a second
      opinion; then pay. Payment is the owner's step, never yours.
