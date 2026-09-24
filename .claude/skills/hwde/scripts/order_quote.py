@@ -107,6 +107,28 @@ def assembly_cost(pricing: dict, qty: int, n_parts: int, n_joints: int,
             "n_extended_parts": n_extended, "total": round(total, 2)}
 
 
+PLACED = "smt_placed"
+
+
+def _unplaced_refs(parts_json: Path | None) -> set[str]:
+    """Refs parts.json declares as NOT machine-placed (bom_cpl's assembly
+    classes: line `assembly_class`, per-ref `refdes_class`). JLC places,
+    and charges joints for, only smt_placed parts."""
+    if parts_json is None or not Path(parts_json).exists():
+        return set()
+    data = json.loads(Path(parts_json).read_text(encoding="utf-8"))
+    items = data.get("parts", data) if isinstance(data, dict) else data
+    out: set[str] = set()
+    for ent in items if isinstance(items, list) else []:
+        if not isinstance(ent, dict):
+            continue
+        per_ref = ent.get("refdes_class") or {}
+        for ref in ent.get("refdes") or []:
+            if per_ref.get(ref, ent.get("assembly_class", PLACED)) != PLACED:
+                out.add(str(ref))
+    return out
+
+
 def _assembly_counts(pcb: Path,
                      parts_json: Path | None) -> tuple[int, int, int, str]:
     """(n_parts, n_joints, n_extended, n_extended_source) from the board's
@@ -119,9 +141,10 @@ def _assembly_counts(pcb: Path,
     produced n_extended == 0 on every pipeline board (13 of 24 Extended on
     pd-trigger priced at $0)."""
     bg = geom.load_board(pcb)
+    unplaced = _unplaced_refs(parts_json)
     refs: dict[str, int] = {}
     for pad in bg.pads_of():
-        if pad.net is None:
+        if pad.net is None or pad.ref in unplaced:
             continue
         refs[pad.ref] = refs.get(pad.ref, 0) + 1
     n_parts = len(refs)
@@ -147,6 +170,8 @@ def _assembly_counts(pcb: Path,
                 if key in seen:
                     continue
                 seen.add(key)
+                if ent.get("assembly_class", PLACED) != PLACED:
+                    continue    # dnp / board_feature / hand_install: no feeder
                 if not ent.get("basic", ent.get("type", "") == "Basic"):
                     n_extended += 1
             source = "per_distinct_entries"

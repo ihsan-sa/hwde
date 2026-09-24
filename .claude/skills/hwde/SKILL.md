@@ -69,8 +69,10 @@ spec is a recorded decision shown at H1.
    report on disk that state.json never saw is not evidence. Commits happen
    only on pass, never pushes. Rollback for in-flight fix loops is
    `state.py snapshot/restore`.
-5. **Scripts run with the repo venv python** (`.venv\Scripts\python.exe`
-   from the repo root). All scripts: JSON out, exit 0 pass / 1 violations /
+5. **Scripts run with the repo venv python** from the repo root:
+   `.venv/bin/python` on Linux and in the container (tool pins are the
+   `HWDE_*` env vars; `docker/README.md`), `.venv\Scripts\python.exe` on
+   Windows. All scripts: JSON out, exit 0 pass / 1 violations /
    2 error (an exit-2 payload carries remediation - read it). ASCII only.
 6. **Ask the user in batches**, at checkpoints or when blocked - never
    trickle questions.
@@ -81,7 +83,8 @@ spec is a recorded decision shown at H1.
 P0 Intake - P1 Research - P2 Architecture -[H1]- P3 Parts+Library -
 P4 Schematic -[G:erc + review][H2]- P5 Board Setup - P6 Placement
 -[G:place][H3 optional]- P7 Routing -[G:drc_routed]- P8 Verification
--[G:verify + review][H4]- P9 DFM -[G:dfm]- P10 Ordering -[H5: pay]
+-[G:verify + review][H4]- P9 DFM -[G:dfm]- board guide - P10 Ordering
+-[H5: pay]
 ```
 
 Machine gates (defined in `reference/gates.yaml`, run via
@@ -179,6 +182,20 @@ payload warnings (`state.py log --event report_gen_degraded`), point at the
 .tex or last good PDF, and continue - the report never gates the run.
 (Without pdflatex it degrades to .tex-only; check_env warns.)
 
+## Board guide (owner-facing, per board)
+
+After the `dfm` gate passes and the fab package exists (gerber zip, BOM.csv,
+CPL.csv), and before the H5 order handoff: export the schematic
+(`kc.py sch-pdf`), quote (`order_quote.py --assembly`), collect the facts
+(`scripts/guide_facts.py --workspace <ws> --out reports/guide_facts.json`;
+exit 1 = fab package incomplete), then spawn `board-guide`. It writes
+`fab/<board>-guide.pdf` with the pdf-material-builder skill: what the board
+does, the schematic, how to use it, the BOM with LCSC and Basic/Extended, the
+cost estimate and the JLCPCB ordering steps. Like report_gen it never gates
+anything, but a full run is NOT done until the guide exists: a build failure
+is reported at H5 with the .tex path, never skipped silently. It sits beside
+the design doc, not in place of it.
+
 ## Human checkpoint presentation format
 
 Digest + artifact, never raw logs. Message shape:
@@ -219,7 +236,7 @@ inputs, never silently downgrade):
 | fable/high | architect, placement, schematic-reviewer, verify-reviewer, requirements-analyst, researcher (coverage-gap research; the ONLY role with web tools, allowlisted, acquisitions through research.py fetch) |
 | fable/medium | schematic-block (thin root-stitch: sonnet/high) |
 | opus/high | research-interface-spec, research-power-architect, sim-analyst, fixer (copper/route), research-second-reader (fresh context; refutes or verifies a task's records) |
-| sonnet/high | research-component-scout, research-reference-design, part-sourcer, datasheet-extractor, coverage-mapper (schema-forced record->slot edges at P2/P3 exit) |
+| sonnet/high | research-component-scout, research-reference-design, part-sourcer, datasheet-extractor, coverage-mapper (schema-forced record->slot edges at P2/P3 exit), board-guide (owner PDF at P9 close) |
 | sonnet/medium | librarian, fixer (silk/sch/parts/fab), placement (backward-edge re-spawn) |
 | inline-default | board-setup, ordering, dfm (spawn = exception path) |
 
@@ -235,8 +252,10 @@ substitution in the spawn ledger. Never silently drop to a weaker tier.
 - JLCDFM and payment are human steps by design (no public APIs).
 - kipy/IPC is the KiCad-11 migration target; this pin drives SWIG bundled
   python via the edit scripts - never bypass them.
-- route_cleanup's V13 dangling-pass defect was root-cause-fixed at T6; keep
-  dry-run + inspect on its first live run, then retire this caveat.
+- route_cleanup's V13 dangling-pass defect was root-cause-fixed at T6. Its
+  one live run since (bb-amp, 2L pour) was 0 ops with DRC unchanged, so the
+  fix is still unexercised on real dangling geometry: run it dry-run first,
+  inspect, then live - no longer a blanket skip on 2L pour boards.
 - Residual check blind spots are trigger-indexed in
   reference/remediations/<check_id>.md (viasless pour-channel disclosure
   stays a router duty; drill classes closed at T6 by drill-aware floors).
@@ -252,10 +271,11 @@ substitution in the spawn ledger. Never silently drop to a weaker tier.
 - order_quote figures are estimated:true; the JLC cart is the only real quote.
 - JLCPCB Open API: PCB ordering only - there is NO assembly/PCBA API
   (BOM/CPL ordering stays the JLC web flow), and 4-layer boards are the
-  web path (`--api-create` guards on layer count). JLC Balance payment
-  mechanics, PCB tracking-number surface, and copperWeight type
-  strictness are unverified until the first scope-approved live call
-  (all fail safe, before money).
+  web path (`--api-create` guards on layer count). copperWeight as a
+  string is accepted (live, 2026-07-29). The API carries no tracking
+  number and no delivered state - status 5 Shipped is the end of its
+  ladder, so boards-in-hand comes from the owner. JLC Balance payment
+  mechanics are still unverified (fail safe, before money).
 - Sim legs: SPICE covers analog fragments only (digital pins = datasheet
   stimulus models; buck switching NOT simmed - no vendor models by
   policy); check_irdrop injection is worst-case unless source_ref/sinks

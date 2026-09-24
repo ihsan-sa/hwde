@@ -5454,3 +5454,19 @@ window, microseconds); a re-run of the same restore completes it.
 state command; `State.save()` may raise `safelib.StaleWriteError` (a `CheckError`);
 `order_submit` gains `--lock-timeout`, writes `fab/order_attempts.jsonl`, manifest
 carries `attempt_journal`; `safelib.FAULT_HOOK` is the fault-injection point.
+
+### Skill review before pd-trigger-lite (owner ask, 2026-09-24)
+The owner asked for a review of /hwde before the next board, since it had not run
+for a while. What changed and why:
+- **Board guide step (new).** After the `dfm` gate and before the H5 order handoff,
+  `guide_facts.py` gathers the fab package, BOM, quote and schematic into one JSON,
+  and the `board-guide` agent writes `fab/<board>-guide.pdf` with pdf-material-builder.
+  Every board now ships an owner-facing PDF beside the internal design doc. Tested by
+  `tests/test_guide_facts.py`.
+- **Linux paths.** SKILL.md rule 5 named only the Windows venv; it now names
+  `.venv/bin/python` and the `HWDE_*` pins. CLAUDE.md gains the no-container
+  user-space KiCad 10 recipe this run needed.
+- **Stale known limits.** The route_cleanup caveat now says what its one live run
+  showed (dry-run first, no blanket skip on 2L pour boards); the JLC API note records
+  what live calls settled (copperWeight as a string works; no tracking number).
+- Router and tasks.yaml route the guide step; the model-tier table lists board-guide.

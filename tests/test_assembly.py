@@ -187,6 +187,10 @@ def test_bom_full_lists_every_class_and_cpl_places_only_smt(tmp_path):
     # CPL and the upload BOM agree exactly, and hold the placed part only
     assert _designators(out / "CPL.csv") == ["C1"]
     assert _designators(out / "BOM.csv") == ["C1"]
+    # JLC's upload template header, with the part number under "LCSC Part #"
+    assert (out / "BOM.csv").read_text(encoding="utf-8").splitlines()[0] == \
+        "Comment,Designator,Footprint,LCSC Part #"
+    assert _rows(out / "BOM.csv")[0]["LCSC Part #"] == "C111"
 
     full = {r["Designator"]: r for r in _rows(out / "BOM-full.csv")}
     assert set(full) == {"C1", "C2", "R1", ""}

@@ -1,0 +1,749 @@
+{
+ "script": "verify_all",
+ "board": "pd-trigger-lite.kicad_pcb",
+ "status": "violations",
+ "counts": {
+  "total": 17,
+  "by_severity": {
+   "warning": 17
+  },
+  "by_source": {
+   "check_current": 17
+  },
+  "by_check": {
+   "check_return_path": 0,
+   "check_current": 17,
+   "check_decoupling": 0,
+   "check_diffpair": 0,
+   "check_creepage": 0,
+   "check_thermal": 0,
+   "check_silk": 0,
+   "check_pdn": 0
+  }
+ },
+ "checks": {
+  "check_return_path": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/pd-trigger-lite/reports/checks/check_return_path.json"
+  },
+  "check_current": {
+   "status": "violations",
+   "counts": {
+    "total": 17,
+    "by_severity": {
+     "warning": 17
+    },
+    "by_source": {
+     "check_current": 17
+    }
+   },
+   "report": "boards/pd-trigger-lite/reports/checks/check_current.json"
+  },
+  "check_decoupling": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/pd-trigger-lite/reports/checks/check_decoupling.json"
+  },
+  "check_diffpair": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/pd-trigger-lite/reports/checks/check_diffpair.json"
+  },
+  "check_creepage": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/pd-trigger-lite/reports/checks/check_creepage.json"
+  },
+  "check_thermal": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/pd-trigger-lite/reports/checks/check_thermal.json"
+  },
+  "check_silk": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/pd-trigger-lite/reports/checks/check_silk.json"
+  },
+  "check_pdn": {
+   "status": "pass",
+   "counts": {
+    "total": 0,
+    "by_severity": {},
+    "by_source": {}
+   },
+   "report": "boards/pd-trigger-lite/reports/checks/check_pdn.json"
+  }
+ },
+ "coverage": {
+  "strict": false,
+  "required": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "ran": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "passed": [
+   "check_return_path",
+   "check_current",
+   "check_decoupling",
+   "check_diffpair",
+   "check_creepage",
+   "check_thermal",
+   "check_silk",
+   "check_pdn"
+  ],
+  "failed": [],
+  "waived": [],
+  "not_applicable": {},
+  "skipped_error": {}
+ },
+ "violations": [
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    33.545,
+    32.718
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      33.545,
+      32.718
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.25,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     33.27,
+     32.893
+    ],
+    "end": [
+     33.82,
+     32.543
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    30.045,
+    32.543
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      30.045,
+      32.543
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.25,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     29.82,
+     32.543
+    ],
+    "end": [
+     30.27,
+     32.543
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    34.045,
+    32.543
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      34.045,
+      32.543
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.25,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     33.82,
+     32.543
+    ],
+    "end": [
+     34.27,
+     32.543
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    24.97,
+    31.993
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.800 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.800 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      24.97,
+      31.993
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.8,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     24.97,
+     32.593
+    ],
+    "end": [
+     24.97,
+     31.393
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    27.545,
+    32.718
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      27.545,
+      32.718
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.25,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     27.27,
+     32.893
+    ],
+    "end": [
+     27.82,
+     32.543
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    32.045,
+    32.543
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      32.045,
+      32.543
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.25,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     31.82,
+     32.543
+    ],
+    "end": [
+     32.27,
+     32.543
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    28.045,
+    32.543
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      28.045,
+      32.543
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.25,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     27.82,
+     32.543
+    ],
+    "end": [
+     28.27,
+     32.543
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    42.245,
+    39.093
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      42.245,
+      39.093
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.25,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     41.82,
+     39.093
+    ],
+    "end": [
+     42.67,
+     39.093
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    31.545,
+    32.718
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      31.545,
+      32.718
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.25,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     31.27,
+     32.893
+    ],
+    "end": [
+     31.82,
+     32.543
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    36.32,
+    41.793
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      36.32,
+      41.793
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.25,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     35.87,
+     41.793
+    ],
+    "end": [
+     36.77,
+     41.793
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    24.97,
+    38.593
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.800 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.800 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      24.97,
+      38.593
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.8,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     24.97,
+     37.993
+    ],
+    "end": [
+     24.97,
+     39.193
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    29.545,
+    32.718
+   ],
+   "layer": "F.Cu",
+   "net": "GND",
+   "refs": [],
+   "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND track 0.250 mm wide on F.Cu; IPC-2152 needs 1.248 mm for 3.00 A at dT=20C; advisory: plane-fed rail, full-budget worst-case screen (per-segment current unattributed)",
+     "pos": [
+      29.545,
+      32.718
+     ]
+    }
+   ],
+   "kind": "undersized_track",
+   "width_mm": 0.25,
+   "required_mm": 1.248,
+   "current_a": 3.0,
+   "segment": {
+    "start": [
+     29.27,
+     32.893
+    ],
+    "end": [
+     29.82,
+     32.543
+    ]
+   },
+   "advisory": true,
+   "bridge": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    29.27,
+    32.543
+   ],
+   "layer": null,
+   "net": "GND",
+   "refs": [],
+   "msg": "GND layer transition at (29.27, 32.54) has 2 via(s); 3.00 A needs 6 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND layer transition at (29.27, 32.54) has 2 via(s); 3.00 A needs 6 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+     "pos": [
+      29.27,
+      32.543
+     ]
+    }
+   ],
+   "kind": "insufficient_transition_vias",
+   "vias": 2,
+   "required": 6,
+   "advisory": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    33.27,
+    32.543
+   ],
+   "layer": null,
+   "net": "GND",
+   "refs": [],
+   "msg": "GND layer transition at (33.27, 32.54) has 2 via(s); 3.00 A needs 6 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND layer transition at (33.27, 32.54) has 2 via(s); 3.00 A needs 6 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+     "pos": [
+      33.27,
+      32.543
+     ]
+    }
+   ],
+   "kind": "insufficient_transition_vias",
+   "vias": 2,
+   "required": 6,
+   "advisory": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    42.67,
+    39.093
+   ],
+   "layer": null,
+   "net": "GND",
+   "refs": [],
+   "msg": "GND layer transition at (42.67, 39.09) has 1 via(s); 3.00 A needs 6 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND layer transition at (42.67, 39.09) has 1 via(s); 3.00 A needs 6 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+     "pos": [
+      42.67,
+      39.093
+     ]
+    }
+   ],
+   "kind": "insufficient_transition_vias",
+   "vias": 1,
+   "required": 6,
+   "advisory": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    36.77,
+    41.793
+   ],
+   "layer": null,
+   "net": "GND",
+   "refs": [],
+   "msg": "GND layer transition at (36.77, 41.79) has 1 via(s); 3.00 A needs 6 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND layer transition at (36.77, 41.79) has 1 via(s); 3.00 A needs 6 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+     "pos": [
+      36.77,
+      41.793
+     ]
+    }
+   ],
+   "kind": "insufficient_transition_vias",
+   "vias": 1,
+   "required": 6,
+   "advisory": true,
+   "derived": true
+  },
+  {
+   "check": "check_current",
+   "severity": "warning",
+   "pos": [
+    31.07,
+    40.143
+   ],
+   "layer": null,
+   "net": "GND",
+   "refs": [],
+   "msg": "GND layer transition at (31.07, 40.14) has 3 via(s); 3.00 A needs 6 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+   "source": "check_current",
+   "items": [
+    {
+     "msg": "GND layer transition at (31.07, 40.14) has 3 via(s); 3.00 A needs 6 (>= 1 via per 0.5 A); advisory: plane-fed rail, per-cluster current unattributed (each via is a leaf tap off the plane)",
+     "pos": [
+      31.07,
+      40.143
+     ]
+    }
+   ],
+   "kind": "insufficient_transition_vias",
+   "vias": 3,
+   "required": 6,
+   "advisory": true,
+   "derived": true
+  }
+ ],
+ "report_schema": 1,
+ "checker_version": 1,
+ "generated_at": "2026-09-24T07:24:41+00:00",
+ "input": "boards/pd-trigger-lite/kicad/pd-trigger-lite.kicad_pcb",
+ "input_digest": "sexpr_no_uuid:40ff3d73f0885aeb7db2cf8b1f443011208418fc66513320161349437a85b1df"
+}

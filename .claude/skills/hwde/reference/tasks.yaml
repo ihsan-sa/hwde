@@ -919,5 +919,20 @@ verbs:
       - gate: drc_routed
       - gate: verify
       - gate: dfm
+      - do: "scripts/kc.py sch-pdf {sch} --out {reports}/schematic.pdf"
+        why: "P9 board guide: the schematic the guide shows (also a report_gen
+              core artifact)"
+      - do: "scripts/order_quote.py --pcb {pcb} --parts {parts} --assembly --out {fab}/quote.json"
+        why: "P9 board guide: the cost estimate with PCBA (estimated:true);
+              the order recipe re-quotes at the chosen qty"
+      - do: "scripts/guide_facts.py --workspace {ws} --out {reports}/guide_facts.json"
+        why: "P9 board guide: every fact the guide needs in one JSON (BOM with
+              LCSC + Basic/Extended, cost, rotation corrections, paths). Exit 1
+              = the fab package is incomplete - run dfm-check first"
+      - agent: board-guide
+        tier: sonnet/high
+        why: "P9 board guide: the owner-facing PDF at fab/<board>-guide.pdf via
+              the pdf-material-builder skill. Non-blocking to gates, but a full
+              run is not done without it"
       - recipe: order
         why: "P10 is the `order` recipe - same steps, same H5, same latch"

@@ -1,0 +1,120 @@
+% Canonical preamble for this skill. See references/latex-house-style.md.
+% The look is references/house-style/ (style-spec.md, housestyle.sty); this
+% file adds only the teaching affordances and the math kit on top of it.
+% Replace <COURSE>, <DOC>, <NAME> and <YEAR> as needed.
+% It ends before \begin{document}, so a smoke document can \input it as-is.
+% Build with scripts/build.sh (lualatex, three passes); it puts housestyle.sty
+% on the search path and the .sty finds the vendored fonts itself.
+
+\documentclass[11pt]{article}
+% A4: uncomment the next line; the margins stay the spec's.
+\newcommand\hspaper{a4paper}
+\usepackage{housestyle}  % geometry, fonts, colour tokens, running head, the twelve blocks, hyperref (hidelinks)
+\usepackage{amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{tabularx,multirow}
+
+% --- Running head and foot -------------------------------------------------
+% Slug at the left of the head; the section name at the right follows each
+% \section through \markboth, read at shipout, so a heading pushed to the next
+% page never names itself on the page before (override with \hssection{...}).
+% Foot: the copyright line at the left, the page number at the right. The
+% first page has no head, per the spec.
+\hsslug{pd-trigger-lite guide}
+\fancyfoot[L]{\hsrunlabel{\textcopyright{} 2026 Ihsan Salari. All rights reserved.}}
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
+\hssection{\leftmark}
+
+% --- Headings --------------------------------------------------------------
+% Headings are unnumbered on the page (the .sty's \section). Cross-reference
+% a section by name with \nameref{sec:...}; a Part by its number, Part~\ref{part:...}.
+% A Part opens on a new page: its eyebrow, then the page heading at 17/21 in the
+% Subhead cut (the .sty's \section), no bold.
+\makeatletter
+\renewcommand{\thepart}{\arabic{part}}
+\newcommand{\hs@parteyebrow}{}
+\titleclass{\part}{top}
+\assignpagestyle{\part}{fancy}  % keep the head and the copyright foot on a Part page
+\titleformat{\part}[display]{\hssubheadfont\fontsize{17pt}{21pt}\selectfont\color{ink}}%
+  {\hsaccentlabel{Part \thepart\hs@parteyebrow}}{10pt}{}
+\titlespacing*{\part}{0pt}{0pt}{24pt}
+\titleformat{\subsection}{\hssubheadfont\fontsize{13pt}{17pt}\selectfont\color{ink}}{}{0pt}{}
+\titlespacing*{\subsection}{0pt}{16pt}{4pt}
+\titleformat{\subsubsection}{\itshape\color{ink}}{}{0pt}{}
+\titlespacing*{\subsubsection}{0pt}{12pt}{2pt}
+
+% --- Taxonomy: category as structure, never as colour ------------------------
+% \catbanner{A}{Title} opens a Part: eyebrow "Part N . Category A", then the
+% heading, and the running head's section becomes the title.
+\newcommand{\catbanner}[2]{%
+  \gdef\hs@parteyebrow{\ \textperiodcentered\ Category #1}%
+  \part{#2}\markboth{#2}{}\gdef\hs@parteyebrow{}}
+\makeatother
+% Numbered sections (1, 1.1, ...): uncomment. Off by default.
+% \hsnumbersections
+% Justified prose: uncomment for an essay, a write-up or notes that run as
+% continuous prose. Leave it off for a technical document, or any document
+% whose prose is broken up by figures, tables, stats and code (style-spec.md,
+% Alignment).
+% \hsjustified
+\newcommand{\cat}[1]{\hslabel{[#1]}}      % [A]
+\newcommand{\tool}[1]{\hslabel{[T#1]}}    % [T5]
+\newcommand{\tools}[1]{\hslabel{[#1]}}    % [T4,T5]
+
+% --- Teaching affordances, inside the twelve blocks -------------------------
+% insight: the section's lead line, right under the heading.
+\newcommand{\insight}[1]{\hslead{#1}}
+% derivation: a display-equation run (block 12) the reader can skip on
+% re-read. A label opens it, a grey rule shows where it ends.
+\newenvironment{derivation}%
+  {\par\vspace{4pt}\hslabel{Derivation \textperiodcentered\ skip on re-read}\par\nopagebreak}%
+  {\par\nopagebreak\vspace{2pt}\noindent\hsthinrule\par}
+% \onsheet: this equation lives on the formula sheet. Grey, not accent.
+\newcommand{\onsheet}{\par\nopagebreak\noindent\hslabel{On the formula sheet}\nopagebreak}
+% \opt: out of scope. Inline after a mention, or first thing in an optional paragraph.
+\newcommand{\opt}{\leavevmode\unskip\hspace{4pt}\hslabel{[optional]}\hspace{4pt}\ignorespaces}
+% \probhead{source}{method}{category}: one small-caps label line over a worked problem.
+\newcommand{\probhead}[3]{%
+  \par\vspace{8pt}\noindent\hslabel{#1 \textperiodcentered\ #2 \textperiodcentered\ #3}\par\nopagebreak}
+
+% --- Tables ----------------------------------------------------------------
+% L{w} and R{w} come from the .sty; Y is a ragged-right tabularx column.
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% --- Math kit ----------------------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\RR}[1]{\mathbb{R}^{#1}}
+\newcommand{\grad}{\nabla}
+\newcommand{\Hess}{H_f}
+
+% Bold vectors -- define all lowercase so agents can grab any letter
+\newcommand{\ba}{\mathbf{a}}  \newcommand{\bb}{\mathbf{b}}  \newcommand{\bc}{\mathbf{c}}
+\newcommand{\bd}{\mathbf{d}}  \newcommand{\be}{\mathbf{e}}  \newcommand{\bff}{\mathbf{f}}
+\newcommand{\bg}{\mathbf{g}}  \newcommand{\bh}{\mathbf{h}}  \newcommand{\bi}{\mathbf{i}}
+\newcommand{\bj}{\mathbf{j}}  \newcommand{\bk}{\mathbf{k}}  \newcommand{\bl}{\mathbf{l}}
+\newcommand{\bm}{\mathbf{m}}  \newcommand{\bn}{\mathbf{n}}  \newcommand{\bp}{\mathbf{p}}
+\newcommand{\bq}{\mathbf{q}}  \newcommand{\br}{\mathbf{r}}  \newcommand{\bs}{\mathbf{s}}
+\newcommand{\bt}{\mathbf{t}}  \newcommand{\bu}{\mathbf{u}}  \newcommand{\bv}{\mathbf{v}}
+\newcommand{\bw}{\mathbf{w}}  \newcommand{\bx}{\mathbf{x}}  \newcommand{\by}{\mathbf{y}}
+\newcommand{\bz}{\mathbf{z}}  \newcommand{\bzero}{\mathbf{0}}
+
+% Transpose: braces (not ^) so X^\trans gives X^{\!\top}
+\newcommand{\trans}{{\!\top}}
+
+% Partial derivatives
+\newcommand{\pderiv}[2]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\ppderiv}[2]{\dfrac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pmderiv}[3]{\dfrac{\partial^2 #1}{\partial #2 \, \partial #3}}
+
+% Big-O -- use \Oh{n} or \Ohof{n \log n} everywhere; never bare $O()$
+\newcommand{\Oh}{\mathcal{O}}
+\newcommand{\Ohof}[1]{\mathcal{O}\!\left(#1\right)}
+
+% Differential d
+\newcommand{\diff}[1]{\mathop{}\!\mathrm{d}#1}
+
+% --- Code --------------------------------------------------------------------
+% Block 11: \hslisting{Listing 1 / what it shows} then
+% \begin{Verbatim}[bgcolor=codefill] ... \end{Verbatim}. No syntax colour in print.
