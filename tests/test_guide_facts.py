@@ -9,6 +9,9 @@ Criteria -> tests:
                                      -> test_missing_quote_and_schematic_is_todo
   - fab/prebuy.csv carried into the facts; absent -> `todo` naming bom_cpl
                                      -> test_prebuy_list_reaches_the_guide
+  - --render re-renders top/bottom through render.py first and points the
+    guide at the fresh top render; a failed render is exit 1; without the
+    flag a `todo` asks for it  -> test_render_flag_rerenders_for_the_guide
   - no workspace / unreadable state.json -> exit 2
                                      -> test_no_workspace_exit2,
                                         test_unreadable_state_exit2
@@ -90,9 +93,10 @@ def make_workspace(tmp_path: Path, name: str = "synth", board: str = "synth",
     return ws
 
 
-def run_main(ws: Path, tmp_path: Path, capsys, name="out"):
+def run_main(ws: Path, tmp_path: Path, capsys, name="out", extra=()):
     out = tmp_path / f"{name}.json"
-    code = guide_facts.main(["--workspace", str(ws), "--out", str(out)])
+    code = guide_facts.main(["--workspace", str(ws), "--out", str(out),
+                             *extra])
     if out.exists():
         payload = json.loads(out.read_text(encoding="utf-8"))
     else:
@@ -119,7 +123,7 @@ def test_complete_package_pass(tmp_path, capsys):
     assert payload["paths"]["cpl"] == "fab/CPL.csv"
     assert payload["paths"]["schematic_pdf"] == "reports/schematic.pdf"
     assert payload["paths"]["quote"] == "fab/quote.json"
-    assert payload["todo"] == []
+    assert [t["fact"] for t in payload["todo"]] == ["fresh render"]
     assert payload["parts_cost_per_board"] == 0.01
 
 
@@ -140,13 +144,14 @@ def test_prebuy_list_reaches_the_guide(tmp_path, capsys):
     assert pb["rows"] == [{"LCSC": "C2798175", "MPN": "TYPE-C-6M-001",
                            "Comment": "USB-C 6P", "Designator": "J1",
                            "Qty Per Board": "1", "Qty To Buy": "5"}]
-    assert payload["todo"] == []
+    assert [t["fact"] for t in payload["todo"]] == ["fresh render"]
 
     old = make_workspace(tmp_path, name="old")
     (old / "fab" / "prebuy.csv").unlink()
     code, payload = run_main(old, tmp_path, capsys, name="old")
     assert code == 0 and payload["prebuy"] is None
-    assert [t["fact"] for t in payload["todo"]] == ["pre-buy list"]
+    assert [t["fact"] for t in payload["todo"]] == ["pre-buy list",
+                                                    "fresh render"]
     assert "bom_cpl.py" in payload["todo"][0]["cmd"]
 
 
@@ -182,6 +187,59 @@ def test_missing_fab_files(tmp_path, capsys):
     assert code2 == 0
     assert payload2["status"] == "pass"
     assert payload2["missing"] == []
+
+
+def test_render_flag_rerenders_for_the_guide(tmp_path, capsys, monkeypatch):
+    """A guide built from an old render showed a bare board (owner,
+    2026-09-24): --render renders again through render.py before gathering,
+    and the guide's picture is that render."""
+    calls, result = [], {"status": "pass"}
+
+    def fake(pcb, reports):
+        calls.append((pcb, reports))
+        outs = []
+        for view in ("top", "bottom"):
+            png = reports / f"synth_{view}.png"
+            png.write_bytes(b"png")
+            outs.append({"view": view, "path": str(png),
+                         "status": result["status"],
+                         "stderr_tail": "no 3D model loaders"})
+        return {"status": result["status"], "outputs": outs,
+                "models_missing": ["${KICAD10_3DMODEL_DIR}/H.step"],
+                "models_relinked": ["/gone/R.wrl"]}
+    monkeypatch.setattr(guide_facts, "fresh_render", fake)
+
+    ws = make_workspace(tmp_path)
+    code, payload = run_main(ws, tmp_path, capsys, extra=["--render"])
+    assert code == 0, payload
+    assert calls == [(ws / "kicad" / "synth.kicad_pcb", ws / "reports")]
+    assert payload["paths"]["top_render"] == "reports/synth_top.png"
+    assert payload["render"]["views"] == {"top": "reports/synth_top.png",
+                                          "bottom": "reports/synth_bottom.png"}
+    assert payload["render"]["models_missing"] == [
+        "${KICAD10_3DMODEL_DIR}/H.step"]
+    assert payload["todo"] == []
+
+    result["status"] = "error"
+    code, payload = run_main(ws, tmp_path, capsys, name="bad",
+                             extra=["--render"])
+    assert code == 1 and payload["paths"]["top_render"] is None
+    assert any(m.startswith("fresh render") and "loaders" in m
+               for m in payload["missing"])
+
+    def boom(pcb, reports):
+        raise RuntimeError("kicad-cli not found")
+    monkeypatch.setattr(guide_facts, "fresh_render", boom)
+    code, payload = run_main(ws, tmp_path, capsys, name="raised",
+                             extra=["--render"])
+    assert code == 1 and payload["paths"]["top_render"] is None
+    assert any(m.startswith("fresh render") and "kicad-cli not found" in m
+               for m in payload["missing"])
+
+    code, payload = run_main(ws, tmp_path, capsys, name="plain")
+    assert payload["render"] is None
+    todo = {t["fact"]: t["cmd"] for t in payload["todo"]}
+    assert "--render" in todo["fresh render"]
 
 
 # ------------------------------------------------------------------ todo, not a violation

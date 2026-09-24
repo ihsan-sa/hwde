@@ -16,8 +16,11 @@ with the repo venv python (`.venv/bin/python` on Linux,
 `.venv\Scripts\python.exe` on Windows); JSON out, exit 0/1/2.
 
 ## Inputs
-- `reports/guide_facts.json` - from `scripts/guide_facts.py --workspace <ws>`.
-  Your ONLY source for numbers: the BOM (designators, value, LCSC, MPN,
+- `reports/guide_facts.json` - from `scripts/guide_facts.py --workspace <ws>
+  --render --out <ws>/reports/guide_facts.json`. Run it with `--render` at the
+  start of EVERY guide build, even when the file exists: it re-renders the top
+  and bottom views through render.py, which shows the parts. A render left
+  over from an earlier run can show a bare board. Your ONLY source for numbers: the BOM (designators, value, LCSC, MPN,
   Basic/Extended), the per-board parts cost, the quote matrix and its
   disclaimer, the CPL rotation corrections, gate verdicts, and every path
   below. If it is missing or exited 1, run it; exit 1 means the fab package
@@ -27,7 +30,10 @@ with the repo venv python (`.venv/bin/python` on Linux,
 - The prose files it lists under `paths.prose` (`requirements.md`,
   `architecture/*.md`, `brief/`) - for what the board is for, its inputs and
   outputs, jumpers/straps/config, and limits.
-- `paths.schematic_pdf` (kicad-cli export) and `paths.renders` - figures.
+- `paths.schematic_pdf` (kicad-cli export) and `paths.top_render` - figures.
+  Copy `paths.top_render` to `reports/guide/top.png` on every build; never
+  keep an older `top.png`. Name every part in `render.models_missing` under
+  OPEN: it renders as bare pads.
 - Never open `.kicad_sch`, `.kicad_pcb`, netlists or gerbers. What the
   facts file and the prose do not say, you do not claim.
 

@@ -5035,3 +5035,15 @@ its response schema (contract.md lives only on the Windows host's ai-library). T
 is fine with pre-buying: pick parts on stock, fit and cost as usual and do NOT avoid idle-stock
 parts. bom_cpl.py now writes fab/prebuy.csv (every placed Extended part, LCSC number, qty for the
 build) and the guide's ordering section lists it, so the pre-buy is on paper before the cart.
+
+## 2026-09-24 [render][guide][kicad-cli][3d] The guide reused a render made before renders showed parts
+Both pd-trigger guide PDFs showed a bare board. Their `reports/guide/top.png` was a copy of a
+render taken before kc.render_png learned to find kicad-cli's 3D model loaders (PR #14), and
+the board-guide step used whatever render was already in `reports/`. File dates can't catch
+this: a checkout gives the render and the board the same mtime. So `guide_facts.py --render`
+now renders top and bottom again through render.py on every guide build, and board-guide.md
+copies `paths.top_render` to `reports/guide/top.png` each time. Also seen: pd-trigger-lite's
+.kicad_pcb names its models by absolute path into another worktree. render_png now renders a
+temp copy relinked to the workspace's own `lib/*.3dshapes` when such a path no longer
+resolves, and never writes the board. The stock KiCad 3D library is not unpacked on the
+no-container host, so the 1x02 pin header J2 (`${KICAD10_3DMODEL_DIR}`) renders as bare pads.
