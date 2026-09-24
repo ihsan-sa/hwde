@@ -227,6 +227,15 @@ def test_render_flag_rerenders_for_the_guide(tmp_path, capsys, monkeypatch):
     assert any(m.startswith("fresh render") and "loaders" in m
                for m in payload["missing"])
 
+    def boom(pcb, reports):
+        raise RuntimeError("kicad-cli not found")
+    monkeypatch.setattr(guide_facts, "fresh_render", boom)
+    code, payload = run_main(ws, tmp_path, capsys, name="raised",
+                             extra=["--render"])
+    assert code == 1 and payload["paths"]["top_render"] is None
+    assert any(m.startswith("fresh render") and "kicad-cli not found" in m
+               for m in payload["missing"])
+
     code, payload = run_main(ws, tmp_path, capsys, name="plain")
     assert payload["render"] is None
     todo = {t["fact"]: t["cmd"] for t in payload["todo"]}

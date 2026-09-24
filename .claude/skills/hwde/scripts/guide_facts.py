@@ -252,16 +252,21 @@ def collect(ws: Path, do_render: bool = False) -> dict:
 
     rendered = None
     if do_render and pcb.is_file():
-        r = fresh_render(pcb, ws / "reports")
-        rendered = {"status": r["status"],
-                    "views": {o["view"]: _rel(ws, Path(o["path"]))
-                              for o in r["outputs"] if o["status"] == "pass"},
-                    "models_missing": r.get("models_missing", []),
-                    "models_relinked": r.get("models_relinked", [])}
-        if r["status"] != "pass":
-            missing.append("fresh render (render.py failed: " + "; ".join(
-                o.get("stderr_tail") or o["view"] for o in r["outputs"]
-                if o["status"] != "pass")[:300] + ")")
+        try:
+            r = fresh_render(pcb, ws / "reports")
+        except Exception as exc:  # no kicad-cli, a timeout: still write facts
+            missing.append(f"fresh render (render.py failed: {exc})"[:320])
+        else:
+            rendered = {"status": r["status"],
+                        "views": {o["view"]: _rel(ws, Path(o["path"]))
+                                  for o in r["outputs"]
+                                  if o["status"] == "pass"},
+                        "models_missing": r.get("models_missing", []),
+                        "models_relinked": r.get("models_relinked", [])}
+            if r["status"] != "pass":
+                missing.append("fresh render (render.py failed: " + "; ".join(
+                    o.get("stderr_tail") or o["view"] for o in r["outputs"]
+                    if o["status"] != "pass")[:300] + ")")
     elif do_render:
         missing.append(f"board file ({_rel(ws, pcb)}) - nothing to render")
     else:
