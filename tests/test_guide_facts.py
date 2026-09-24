@@ -12,6 +12,8 @@ Criteria -> tests:
   - --render re-renders top/bottom through render.py first and points the
     guide at the fresh top render; a failed render is exit 1; without the
     flag a `todo` asks for it  -> test_render_flag_rerenders_for_the_guide
+  - reports/cost.json carried as `generation_cost`; absent -> `todo`
+    naming gen_cost          -> test_generation_cost_reaches_the_guide
   - no workspace / unreadable state.json -> exit 2
                                      -> test_no_workspace_exit2,
                                         test_unreadable_state_exit2
@@ -31,6 +33,23 @@ import guide_facts  # noqa: E402
 
 TS = "2026-07-28T10:00:00"
 
+# A gen_cost.py reports/cost.json, trimmed to what guide_facts reads.
+COST = {
+    "currency": "USD", "total_usd": 7.5, "recorded_usd": 7.5,
+    "loop_logged_usd": 2.5, "breakdown": "partial",
+    "breakdown_reason": "fix round: hwde recorded no step",
+    "by_step": [{"step": "P4", "label": "Schematic", "usd": 5.0},
+                {"step": "unsplit", "label": "fix round", "usd": 2.5,
+                 "reason": "hwde recorded no step"}],
+    "shared": [{"label": "skill round", "shared_with": "the skill",
+                "usd": 1.0}],
+    "incomplete_sessions": [], "unpriced_tokens": {}, "notes": ["n"],
+    "prices": {"source": "t", "verified": "2026-09-24"},
+    "rounds": [{"label": "design run", "loop": {"unlogged_iterations": 1}},
+               {"label": "skill round", "shared_with": "the skill",
+                "loop": {"unlogged_iterations": 5}}],
+}
+
 BOM_HEADER = "Designator,Comment,Footprint,LCSC,Qty Per Board,MPN,Assembly Class\n"
 
 
@@ -41,7 +60,7 @@ def bom_row(designator="R1", comment="10k", footprint="0402", lcsc="C1000",
 
 def make_workspace(tmp_path: Path, name: str = "synth", board: str = "synth",
                    with_fab: bool = True, with_quote: bool = True,
-                   with_schematic: bool = True) -> Path:
+                   with_schematic: bool = True, with_cost: bool = True) -> Path:
     """Synthetic workspace covering the state.json + kicad/ + fab/ facts
     guide_facts.collect reads, per the artifact_kinds paths in
     reference/invalidation.yaml (kicad/{board}.kicad_sch,
@@ -89,6 +108,10 @@ def make_workspace(tmp_path: Path, name: str = "synth", board: str = "synth",
         reports = ws / "reports"
         reports.mkdir()
         (reports / "schematic.pdf").write_bytes(b"%PDF-1.4\n%%EOF\n")
+    if with_cost:
+        (ws / "reports").mkdir(exist_ok=True)
+        (ws / "reports" / "cost.json").write_text(json.dumps(COST),
+                                                  encoding="utf-8")
 
     return ws
 
@@ -153,6 +176,29 @@ def test_prebuy_list_reaches_the_guide(tmp_path, capsys):
     assert [t["fact"] for t in payload["todo"]] == ["pre-buy list",
                                                     "fresh render"]
     assert "bom_cpl.py" in payload["todo"][0]["cmd"]
+
+
+def test_generation_cost_reaches_the_guide(tmp_path, capsys):
+    """The guide says what the board cost to generate (owner, 2026-09-24):
+    the facts carry gen_cost's total, per-step lines with the reason a round
+    was not split, the shared rounds and the timed-out iterations of the
+    board's own rounds only; no cost.json -> a `todo` naming gen_cost."""
+    ws = make_workspace(tmp_path)
+    code, payload = run_main(ws, tmp_path, capsys)
+    assert code == 0, payload
+    gc = payload["generation_cost"]
+    assert gc["total_usd"] == 7.5 and gc["breakdown"] == "partial"
+    assert gc["by_step"] == COST["by_step"] and gc["shared"] == COST["shared"]
+    assert gc["timed_out_iterations"] == 1  # the shared round's 5 not counted
+    assert "rounds" not in gc
+    assert payload["paths"]["cost"] == "reports/cost.json"
+
+    old = make_workspace(tmp_path, name="old", with_cost=False)
+    code, payload = run_main(old, tmp_path, capsys, name="old")
+    assert code == 0 and payload["generation_cost"] is None
+    todo = {t["fact"]: t["cmd"] for t in payload["todo"]}
+    assert "gen_cost.py" in todo["generation cost"]
+    assert "--out reports/cost.json" in todo["generation cost"]
 
 
 def test_upload_bom_with_jlc_header_is_read(tmp_path, capsys):

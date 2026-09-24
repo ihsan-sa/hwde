@@ -18,6 +18,8 @@ It reads, all read-only:
   reports/bom_cpl.json          rotation corrections to eyeball in JLC preview
   fab/quote.json                estimated cost matrix   (order_quote.py)
   reports/schematic.pdf         the schematic export    (kc.py sch-pdf)
+  reports/cost.json             model cost of generating the board, total
+                                and by hwde step        (gen_cost.py)
   requirements.md, architecture/*.md, reports/*_top.png  prose + renders
 With --render it also writes, through render.py (the path that shows the
 parts), fresh reports/<board>_top.png and _bottom.png before gathering: the
@@ -30,9 +32,9 @@ Exit 0 "pass"       every required fact is present.
 Exit 1 "violations" the fab package is incomplete (no zip / BOM / CPL / board
                     name) - the guide cannot be written yet; `missing` says what.
                     With --render, a failed render is one too.
-                    A missing quote, schematic PDF, pre-buy list or fresh
-                    render is a `todo` with the command that makes it, not a
-                    violation.
+                    A missing quote, schematic PDF, pre-buy list, generation
+                    cost or fresh render is a `todo` with the command that
+                    makes it, not a violation.
 Exit 2 "error"      no workspace / unreadable state.json or parts.json.
 
 CLI:
@@ -158,6 +160,19 @@ def quote_summary(quote: dict) -> dict:
             "matrix": rows}
 
 
+def cost_summary(cost: dict) -> dict:
+    """What the guide prints of reports/cost.json: the total, the per-step
+    lines (with the reason when a round could not be split), the rounds shared
+    with other work, and how the total reconciles with the recorded ones."""
+    return {k: cost.get(k) for k in (
+        "currency", "total_usd", "recorded_usd", "loop_logged_usd",
+        "breakdown", "breakdown_reason", "by_step", "shared",
+        "incomplete_sessions", "unpriced_tokens", "notes", "prices")} | {
+        "timed_out_iterations": sum(
+            (r.get("loop") or {}).get("unlogged_iterations", 0)
+            for r in cost.get("rounds") or [] if not r.get("shared_with"))}
+
+
 RENDER_VIEWS = ("top", "bottom")
 
 
@@ -244,6 +259,15 @@ def collect(ws: Path, do_render: bool = False) -> dict:
                             f"--parts {_rel(ws, kind('parts'))} --assembly "
                             f"--out {_rel(ws, quote_p)}"})
 
+    cost_p = ws / "reports" / "cost.json"
+    cost = None
+    if cost_p.is_file():
+        cost = cost_summary(_read_json(cost_p, "cost.json"))
+    else:
+        todo.append({"fact": "generation cost",
+                     "cmd": f"scripts/gen_cost.py --workspace {ws.as_posix()}"
+                            f" --out {_rel(ws, cost_p)}"})
+
     sch_pdf = ws / "reports" / "schematic.pdf"
     if not sch_pdf.is_file():
         todo.append({"fact": "schematic export",
@@ -300,6 +324,7 @@ def collect(ws: Path, do_render: bool = False) -> dict:
             "bom_full": _rel(ws, bom_full_p), "cpl": _rel(ws, cpl_p),
             "schematic_pdf": _rel(ws, sch_pdf) if sch_pdf.is_file() else None,
             "quote": _rel(ws, quote_p) if quote else None,
+            "cost": _rel(ws, cost_p) if cost else None,
             "design_doc": next((_rel(ws, p) for p in
                                 (ws / "reports" / "design_doc").glob("*.pdf")),
                                None),
@@ -314,6 +339,7 @@ def collect(ws: Path, do_render: bool = False) -> dict:
         "render": rendered,
         "prebuy": prebuy,
         "quote": quote,
+        "generation_cost": cost,
         "decisions": [d for d in decisions if d][-12:],
         "missing": missing,
         "todo": todo,

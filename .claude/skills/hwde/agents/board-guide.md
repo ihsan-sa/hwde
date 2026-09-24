@@ -22,11 +22,11 @@ with the repo venv python (`.venv/bin/python` on Linux,
   and bottom views through render.py, which shows the parts. A render left
   over from an earlier run can show a bare board. Your ONLY source for numbers: the BOM (designators, value, LCSC, MPN,
   Basic/Extended), the per-board parts cost, the quote matrix and its
-  disclaimer, the CPL rotation corrections, gate verdicts, and every path
-  below. If it is missing or exited 1, run it; exit 1 means the fab package
+  disclaimer, the CPL rotation corrections, gate verdicts, the generation
+  cost, and every path below. If it is missing or exited 1, run it; exit 1 means the fab package
   is incomplete - stop and report that, do not write a guide around a hole.
   Its `todo` entries are commands for facts not yet made (quote, schematic
-  export): run them, then re-run guide_facts.
+  export, generation cost): run them, then re-run guide_facts.
 - The prose files it lists under `paths.prose` (`requirements.md`,
   `architecture/*.md`, `brief/`) - for what the board is for, its inputs and
   outputs, jumpers/straps/config, and limits.
@@ -74,6 +74,22 @@ with the repo venv python (`.venv/bin/python` on Linux,
      polarity and rotation, naming the parts in `rotation_corrections` and
      every diode, LED, IC pin 1 and electrolytic; run JLCDFM as a second
      opinion; then pay. Payment is the owner's step, never yours.
+   - **What it cost to design** - the model cost of generating the board,
+     from `generation_cost`, as a short table: one row per `by_step` entry
+     (its `label` and `usd`, to the cent) and a total row with `total_usd`.
+     A `by_step` row with step `unsplit` is a round the records could not
+     split: print its `reason` beside it. When `breakdown` is `none`, print
+     the total alone and say why in one sentence from `breakdown_reason`;
+     never share a total out across steps yourself. Under the table, in a
+     sentence or two: how the split was made (by when hwde recorded each
+     step), each `shared` round's cost and what else it paid for (outside
+     the total), and, when `loop_logged_usd` is lower than the total, that
+     the loop log missed `timed_out_iterations` timed-out iterations and
+     the transcripts hold the whole cost. Name `incomplete_sessions` and
+     `unpriced_tokens` if non-empty, and give `notes` in substance. This is
+     model spend on the design, not part of the board's price. If
+     `generation_cost` is still null after its `todo` ran (gen_cost exit 1:
+     no session found), say in one line that the cost was not recorded.
 3. Build with the skill's `scripts/build.sh`, run its `scripts/style-check.sh`,
    render the pages to PNG and look at them. Fix and rebuild until clean.
 4. Copy the final PDF to `fab/<board>-guide.pdf` (the `guide_pdf` field).
