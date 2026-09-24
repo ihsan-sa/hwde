@@ -29,7 +29,8 @@ best-effort; `pos`, `check`, `severity`, `msg` are always exact.
 Subcommands: erc, drc (-> normalized report, exit 1 if any violations);
 gerbers, drill, pos, step, render, sch-pdf, netlist (-> export result, exit 2
 on failure; render also fails when kicad-cli has no 3D model loaders, and lists
-unresolved model paths in models_missing - see render_env/model_audit). All:
+unresolved model paths in models_missing, rendering a relinked temp copy when
+the workspace lib holds a moved model - see render_env/model_audit/model_relink). All:
 JSON to stdout or --out FILE, exit 0/1/2, no interactivity (SPEC.md section 6). Tools resolve through lib/env.py (KiCad 10.0.3 pin).
 
 Importable: gate.py and render.py call run_erc()/run_drc()/render_png() and the
@@ -381,16 +382,13 @@ _MODEL_RE = re.compile(r'\(model\s+"((?:[^"\\]|\\.)*)"')
 _VAR_RE = re.compile(r"\$\{([A-Za-z0-9_]+)\}")
 
 
-def model_audit(pcb: Path, env_vars: dict | None = None) -> dict:
-    """List the board's 3D model paths that do not resolve to a file.
-
-    Expands ${VAR} from the environment (KIPRJMOD = the board's dir; an unset
+def _model_resolver(pcb: Path, env_vars: dict | None):
+    """model path as written -> the file KiCad would open. Expands ${VAR}
+    from the environment (KIPRJMOD = the board's dir; an unset
     KICAD*_3DMODEL_DIR falls back to the stock /usr/share/kicad/3dmodels) and
     reads a relative path against the board's dir, as KiCad does."""
     envv = dict(os.environ if env_vars is None else env_vars)
     envv.setdefault("KIPRJMOD", str(pcb.resolve().parent))
-    text = pcb.read_text(encoding="utf-8", errors="replace")
-    paths = [m.group(1) for m in _MODEL_RE.finditer(text)]
 
     def expand(m: re.Match) -> str:
         name = m.group(1)
@@ -400,14 +398,57 @@ def model_audit(pcb: Path, env_vars: dict | None = None) -> dict:
             return "/usr/share/kicad/3dmodels"
         return m.group(0)
 
-    missing = []
-    for p in sorted(set(paths)):
+    def resolve(p: str) -> Path:
         q = Path(_VAR_RE.sub(expand, p))
-        if not q.is_absolute():
-            q = pcb.resolve().parent / q
-        if not q.is_file():
-            missing.append(p)
+        return q if q.is_absolute() else pcb.resolve().parent / q
+    return resolve
+
+
+def model_audit(pcb: Path, env_vars: dict | None = None) -> dict:
+    """List the board's 3D model paths that do not resolve to a file."""
+    resolve = _model_resolver(pcb, env_vars)
+    text = pcb.read_text(encoding="utf-8", errors="replace")
+    paths = [m.group(1) for m in _MODEL_RE.finditer(text)]
+    missing = [p for p in sorted(set(paths)) if not resolve(p).is_file()]
     return {"referenced": len(paths), "missing": missing}
+
+
+def model_relink(pcb: Path, env_vars: dict | None = None
+                 ) -> tuple[str | None, dict[str, str]]:
+    """Board text to render when a model path no longer resolves but the
+    workspace's own library has the file, by name, under lib/*.3dshapes
+    (beside the board, or one level up as in boards/<name>/lib). A board
+    whose paths point into another checkout loses its parts once that
+    checkout is gone; the copy points them back at the board's own models.
+
+    Returns (text, relinked): text None = render the board as it is. In the
+    copy every model path is absolute, so it renders the same from any dir.
+    The board file itself is never written."""
+    resolve = _model_resolver(pcb, env_vars)
+    text = pcb.read_text(encoding="utf-8", errors="replace")
+    base = pcb.resolve().parent
+    libs = [d for root in (base, base.parent)
+            for d in sorted((root / "lib").glob("*.3dshapes"))]
+    relinked: dict[str, str] = {}
+    for m in _MODEL_RE.finditer(text):
+        p = m.group(1)
+        if p in relinked or resolve(p).is_file():
+            continue
+        name = p.replace("\\", "/").rsplit("/", 1)[-1]
+        hit = next((d / name for d in libs if (d / name).is_file()), None)
+        if hit:
+            relinked[p] = str(hit)
+    if not relinked:
+        return None, {}
+
+    def sub(m: re.Match) -> str:
+        p = m.group(1)
+        new = relinked.get(p) or os.path.normpath(resolve(p))
+        if p not in relinked and not resolve(p).is_file():
+            return m.group(0)  # still missing: leave it as written
+        new = new.replace("\\", "\\\\").replace('"', '\\"')
+        return m.group(0).replace(f'"{p}"', f'"{new}"', 1)
+    return _MODEL_RE.sub(sub, text), relinked
 
 
 def render_png(cli: Path, pcb: Path, out_file: Path, *, side: str = "top",
@@ -425,12 +466,23 @@ def render_png(cli: Path, pcb: Path, out_file: Path, *, side: str = "top",
             "--quality", quality]
     if rotate:
         args += ["--rotate", rotate]
-    args.append(str(pcb))
-    cp = run_cli(cli, args, timeout=600, env=renv)
+    # models moved since the board was saved: render a relinked copy (in a
+    # temp dir beside the output), never the board file itself
+    text, relinked = model_relink(pcb, renv)
+    with tempfile.TemporaryDirectory(dir=out_file.parent,
+                                     prefix="_tmp_render_") as td:
+        src = pcb
+        if text is not None:
+            src = Path(td) / pcb.name
+            src.write_text(text, encoding="utf-8")
+        args.append(str(src))
+        cp = run_cli(cli, args, timeout=600, env=renv)
     res = _export_result("render", pcb, cp, [out_file])
     res["view"] = side if not rotate else "iso"
     # a part whose model file is missing renders as bare pads - say which
-    res["models_missing"] = model_audit(pcb, renv)["missing"]
+    res["models_missing"] = [m for m in model_audit(pcb, renv)["missing"]
+                             if m not in relinked]
+    res["models_relinked"] = sorted(relinked)
     return res
 
 

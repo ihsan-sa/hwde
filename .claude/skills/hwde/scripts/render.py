@@ -11,11 +11,13 @@ rotate -45,0,45). Thin driver over kc.render_png.
 The render shows the assembled board: kc.render_png points kicad-cli at its
 3D model loaders (APPDIR for a KiCad unpacked into a user prefix) and fails
 the view when there are none, since the render would silently come out bare.
-Model paths that do not resolve to a file are listed in models_missing (those
-parts render as bare pads); the render still passes.
+A model path that no longer resolves but whose file the workspace's own
+lib/*.3dshapes holds is relinked in a temp copy of the board (models_relinked;
+the board file is never written). Paths that still do not resolve are listed
+in models_missing (those parts render as bare pads); the render still passes.
 
 JSON to stdout (or --out FILE): {script, outputs:[{view, path, status}],
-models_missing, status}. Exit 0 = all views rendered, 2 = any failure.
+models_missing, models_relinked, status}. Exit 0 = all views rendered, 2 = any failure.
 """
 from __future__ import annotations
 
@@ -44,19 +46,21 @@ def render_views(pcb: Path, views: list[str], out_dir: Path, *,
                  width: int, height: int, quality: str) -> dict:
     cli = kc.resolve_cli()
     out_dir.mkdir(parents=True, exist_ok=True)
-    results, missing = [], set()
+    results, missing, relinked = [], set(), set()
     for view in views:
         side, iso = VIEWS[view]
         out = out_dir / f"{pcb.stem}_{view}.png"
         r = kc.render_png(cli, pcb, out, side=side, width=width, height=height,
                           quality=quality, rotate=kc.ISO_ROTATE if iso else None)
         missing.update(r.get("models_missing", []))
+        relinked.update(r.get("models_relinked", []))
         results.append({"view": view, "path": out_dir_relpath(r, out),
                         "status": r["status"], "stderr_tail": r.get("stderr_tail", "")})
     ok = all(r["status"] == "pass" for r in results)
     return {"script": "render", "input": str(pcb),
             "status": "pass" if ok else "error", "outputs": results,
-            "models_missing": sorted(missing)}
+            "models_missing": sorted(missing),
+            "models_relinked": sorted(relinked)}
 
 
 def out_dir_relpath(result: dict, out: Path) -> str:

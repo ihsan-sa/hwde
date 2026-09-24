@@ -925,10 +925,11 @@ verbs:
       - do: "scripts/order_quote.py --pcb {pcb} --parts {parts} --assembly --out {fab}/quote.json"
         why: "P9 board guide: the cost estimate with PCBA (estimated:true);
               the order recipe re-quotes at the chosen qty"
-      - do: "scripts/guide_facts.py --workspace {ws} --out {reports}/guide_facts.json"
+      - do: "scripts/guide_facts.py --workspace {ws} --render --out {reports}/guide_facts.json"
         why: "P9 board guide: every fact the guide needs in one JSON (BOM with
-              LCSC + Basic/Extended, cost, rotation corrections, paths). Exit 1
-              = the fab package is incomplete - run dfm-check first"
+              LCSC + Basic/Extended, cost, rotation corrections, paths), after
+              a fresh top/bottom render that shows the parts. Exit 1 = the fab
+              package is incomplete (run dfm-check first) or the render failed"
       - agent: board-guide
         tier: sonnet/high
         why: "P9 board guide: the owner-facing PDF at fab/<board>-guide.pdf via

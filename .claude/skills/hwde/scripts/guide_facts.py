@@ -19,18 +19,24 @@ It reads, all read-only:
   fab/quote.json                estimated cost matrix   (order_quote.py)
   reports/schematic.pdf         the schematic export    (kc.py sch-pdf)
   requirements.md, architecture/*.md, reports/*_top.png  prose + renders
+With --render it also writes, through render.py (the path that shows the
+parts), fresh reports/<board>_top.png and _bottom.png before gathering: the
+guide's board picture must never be a render older than the parts on it.
+Without --render a `todo` asks for it.
 Paths resolve through reference/invalidation.yaml artifact_kinds (plus the
 workspace's registry overrides), the same way the gates find them.
 
 Exit 0 "pass"       every required fact is present.
 Exit 1 "violations" the fab package is incomplete (no zip / BOM / CPL / board
                     name) - the guide cannot be written yet; `missing` says what.
-                    A missing quote, schematic PDF or pre-buy list is a
-                    `todo` with the command that makes it, not a violation.
+                    With --render, a failed render is one too.
+                    A missing quote, schematic PDF, pre-buy list or fresh
+                    render is a `todo` with the command that makes it, not a
+                    violation.
 Exit 2 "error"      no workspace / unreadable state.json or parts.json.
 
 CLI:
-  guide_facts.py --workspace boards/<name> [--out facts.json]
+  guide_facts.py --workspace boards/<name> [--render] [--out facts.json]
 """
 from __future__ import annotations
 
@@ -152,7 +158,17 @@ def quote_summary(quote: dict) -> dict:
             "matrix": rows}
 
 
-def collect(ws: Path) -> dict:
+RENDER_VIEWS = ("top", "bottom")
+
+
+def fresh_render(pcb: Path, reports: Path) -> dict:
+    """Render the board's top and bottom through render.py into reports/."""
+    import render  # sibling; imports kc -> kicad-cli only when rendering
+    return render.render_views(pcb, list(RENDER_VIEWS), reports, width=1600,
+                               height=900, quality="high")
+
+
+def collect(ws: Path, do_render: bool = False) -> dict:
     state_path = ws / "state.json"
     if not state_path.is_file():
         raise FactsError(f"no state.json in {ws}")
@@ -234,6 +250,26 @@ def collect(ws: Path) -> dict:
                      "cmd": f"scripts/kc.py sch-pdf {_rel(ws, sch)} "
                             f"--out {_rel(ws, sch_pdf)}"})
 
+    rendered = None
+    if do_render and pcb.is_file():
+        r = fresh_render(pcb, ws / "reports")
+        rendered = {"status": r["status"],
+                    "views": {o["view"]: _rel(ws, Path(o["path"]))
+                              for o in r["outputs"] if o["status"] == "pass"},
+                    "models_missing": r.get("models_missing", []),
+                    "models_relinked": r.get("models_relinked", [])}
+        if r["status"] != "pass":
+            missing.append("fresh render (render.py failed: " + "; ".join(
+                o.get("stderr_tail") or o["view"] for o in r["outputs"]
+                if o["status"] != "pass")[:300] + ")")
+    elif do_render:
+        missing.append(f"board file ({_rel(ws, pcb)}) - nothing to render")
+    else:
+        todo.append({"fact": "fresh render",
+                     "cmd": f"scripts/guide_facts.py --workspace {ws.as_posix()}"
+                            " --render --out "
+                            f"{(ws / 'reports' / 'guide_facts.json').as_posix()}"})
+
     renders = sorted(_rel(ws, p) for p in (ws / "reports").glob("*.png")
                      if p.stem.endswith(("_top", "_bottom", "_iso")))
     prose = [_rel(ws, p) for p in [ws / "requirements.md",
@@ -263,12 +299,14 @@ def collect(ws: Path) -> dict:
                                 (ws / "reports" / "design_doc").glob("*.pdf")),
                                None),
             "renders": renders, "prose": prose,
+            "top_render": (rendered or {}).get("views", {}).get("top"),
         },
         "bom": lines,
         "bom_counts": {"lines": len(lines), "placed_lines": len(placed),
                        "unique_parts": counts},
         "parts_cost_per_board": parts_cost,
         "rotation_corrections": rotations,
+        "render": rendered,
         "prebuy": prebuy,
         "quote": quote,
         "decisions": [d for d in decisions if d][-12:],
@@ -280,10 +318,12 @@ def collect(ws: Path) -> dict:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--workspace", required=True, help="boards/<name>")
+    ap.add_argument("--render", action="store_true",
+                    help="re-render the top/bottom views first (render.py)")
     ap.add_argument("--out", help="write JSON here instead of stdout")
     args = ap.parse_args(argv)
     try:
-        payload = collect(Path(args.workspace))
+        payload = collect(Path(args.workspace), do_render=args.render)
         code = 1 if payload["missing"] else 0
     except FactsError as exc:
         payload, code = {"script": "guide_facts", "status": "error",

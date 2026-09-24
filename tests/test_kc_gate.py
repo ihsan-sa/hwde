@@ -633,3 +633,63 @@ def test_model_audit_lists_only_unresolved(tmp_path):
     a = kc.model_audit(pcb, {"KICAD10_3DMODEL_DIR": str(tmp_path / "stock")})
     assert a["referenced"] == 5
     assert a["missing"] == ["${UNSET_VAR}/C.wrl", "/nowhere/U.wrl"]
+
+
+def _moved_models_ws(tmp_path: Path) -> Path:
+    """boards/<b>/kicad/b.kicad_pcb whose R model points into a checkout
+    that is gone, while boards/<b>/lib/aiee.3dshapes still has it."""
+    ws = tmp_path / "ws"
+    lib = ws / "lib" / "aiee.3dshapes"
+    lib.mkdir(parents=True)
+    for n in ("R0603.wrl", "C0603.wrl"):
+        (lib / n).write_text("", encoding="utf-8")
+    (ws / "kicad").mkdir()
+    pcb = ws / "kicad" / "b.kicad_pcb"
+    pcb.write_text(
+        '(kicad_pcb (footprint "R" (model "/gone/wt/lib/aiee.3dshapes/R0603.wrl"))\n'
+        ' (footprint "C" (model "${KIPRJMOD}/../lib/aiee.3dshapes/C0603.wrl"))\n'
+        ' (footprint "U" (model "/nowhere/U.wrl")))', encoding="utf-8")
+    return pcb
+
+
+def test_model_relink_points_moved_models_at_workspace_lib(tmp_path):
+    pcb = _moved_models_ws(tmp_path)
+    before = pcb.read_bytes()
+    text, relinked = kc.model_relink(pcb, {})
+    lib = (tmp_path / "ws" / "lib" / "aiee.3dshapes").resolve()
+    assert relinked == {"/gone/wt/lib/aiee.3dshapes/R0603.wrl":
+                        str(lib / "R0603.wrl")}
+    # every resolvable path goes absolute, so the copy renders from any dir;
+    # an unresolvable one stays as written
+    assert f'(model "{lib / "R0603.wrl"}")' in text
+    assert f'(model "{lib / "C0603.wrl"}")' in text
+    assert '(model "/nowhere/U.wrl")' in text
+    assert pcb.read_bytes() == before
+    (tmp_path / "ok.kicad_pcb").write_text(
+        '(kicad_pcb (footprint "U" (model "/nowhere/U.wrl")))', encoding="utf-8")
+    assert kc.model_relink(tmp_path / "ok.kicad_pcb", {}) == (None, {})
+
+
+def test_render_png_renders_a_relinked_copy(tmp_path, monkeypatch):
+    # the board file is never written; kicad-cli gets a temp copy that is
+    # gone after the render
+    pcb = _moved_models_ws(tmp_path)
+    before = pcb.read_bytes()
+    seen = {}
+
+    def fake_cli(cli, args, timeout=0, env=None):
+        src = Path(args[-1])
+        seen["src"], seen["text"] = src, src.read_text(encoding="utf-8")
+        Path(args[args.index("-o") + 1]).write_bytes(b"png")
+        return subprocess.CompletedProcess(args, 0, "", "")
+    monkeypatch.setattr(kc, "render_env", lambda cli: (None, ""))
+    monkeypatch.setattr(kc, "run_cli", fake_cli)
+    out = tmp_path / "out" / "b_top.png"
+    r = kc.render_png(Path("kicad-cli"), pcb, out)
+    assert r["status"] == "pass" and r["input"] == str(pcb)
+    assert seen["src"] != pcb and not seen["src"].exists()
+    assert "/gone/" not in seen["text"]
+    assert r["models_relinked"] == ["/gone/wt/lib/aiee.3dshapes/R0603.wrl"]
+    assert r["models_missing"] == ["/nowhere/U.wrl"]
+    assert pcb.read_bytes() == before
+    assert [p.name for p in out.parent.iterdir()] == ["b_top.png"]

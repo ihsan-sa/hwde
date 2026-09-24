@@ -187,8 +187,10 @@ payload warnings (`state.py log --event report_gen_degraded`), point at the
 After the `dfm` gate passes and the fab package exists (gerber zip, BOM.csv,
 CPL.csv), and before the H5 order handoff: export the schematic
 (`kc.py sch-pdf`), quote (`order_quote.py --assembly`), collect the facts
-(`scripts/guide_facts.py --workspace <ws> --out reports/guide_facts.json`;
-exit 1 = fab package incomplete), then spawn `board-guide`. It writes
+(`scripts/guide_facts.py --workspace <ws> --render --out
+reports/guide_facts.json`; `--render` re-renders the board so the guide never
+shows a stale, bare render; exit 1 = fab package incomplete or the render
+failed), then spawn `board-guide`. It writes
 `fab/<board>-guide.pdf` with the pdf-material-builder skill: what the board
 does, the schematic, how to use it, the BOM with LCSC and Basic/Extended, the
 cost estimate and the JLCPCB ordering steps. Like report_gen it never gates
