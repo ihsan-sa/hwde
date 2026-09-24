@@ -266,7 +266,7 @@ def collect(ws: Path, do_render: bool = False) -> dict:
     else:
         todo.append({"fact": "generation cost",
                      "cmd": f"scripts/gen_cost.py --workspace {ws.as_posix()}"
-                            f" --out {_rel(ws, cost_p)}"})
+                            f" --out {cost_p.as_posix()}"})
 
     sch_pdf = ws / "reports" / "schematic.pdf"
     if not sch_pdf.is_file():

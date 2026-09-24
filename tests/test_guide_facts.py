@@ -198,7 +198,9 @@ def test_generation_cost_reaches_the_guide(tmp_path, capsys):
     assert code == 0 and payload["generation_cost"] is None
     todo = {t["fact"]: t["cmd"] for t in payload["todo"]}
     assert "gen_cost.py" in todo["generation cost"]
-    assert "--out reports/cost.json" in todo["generation cost"]
+    # --out shares --workspace's base, so the command works from one cwd.
+    assert (f"--workspace {old.as_posix()} --out "
+            f"{(old / 'reports' / 'cost.json').as_posix()}") in todo["generation cost"]
 
 
 def test_upload_bom_with_jlc_header_is_read(tmp_path, capsys):

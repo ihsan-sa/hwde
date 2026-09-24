@@ -758,7 +758,10 @@ def test_generation_cost_section(tmp_path, capsys):
         "breakdown": "partial", "breakdown_reason": "one round left no steps",
         "shared": [{"label": "pre-buy", "shared_with": "a skill feature",
                     "usd": 1.5}],
-        "notes": ["a note"]}), encoding="utf-8")
+        "notes": ["a note"],
+        "rounds": [{"loop": {"unlogged_iterations": 1}},
+                   {"shared_with": "x", "loop": {"unlogged_iterations": 5}}]}),
+        encoding="utf-8")
     code, payload = run_main(["--workspace", str(ws), "--tex-only"],
                              tmp_path, capsys, name="cost")
     assert code == 0, payload
@@ -767,7 +770,8 @@ def test_generation_cost_section(tmp_path, capsys):
     assert r"Schematic & \$4.00" in text and r"Routing & \$8.35" in text
     assert "one round left no steps" in text
     assert r"shared with a skill feature, cost \$1.50" in text
-    assert r"The worker loop logged \$5.00." in text
+    assert (r"The worker loop logged \$5.00. 1 of its iterations timed out"
+            in text)                                # shared round not counted
     assert not any("cost.json" in w for w in payload["warnings"])
     assert "reports/cost.json" in sections_by_name_source(payload)
 

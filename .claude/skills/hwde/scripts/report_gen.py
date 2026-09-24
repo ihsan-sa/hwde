@@ -799,7 +799,15 @@ class DocBuilder:
                 f"{sh.get('shared_with')}, cost ") + usd(sh.get("usd")) + ".\n")
         lines = list(cost.get("notes") or [])
         if isinstance(cost.get("loop_logged_usd"), (int, float)):
-            lines.append(f"The worker loop logged ${cost['loop_logged_usd']:,.2f}.")
+            line = f"The worker loop logged ${cost['loop_logged_usd']:,.2f}."
+            unlogged = sum((r.get("loop") or {}).get("unlogged_iterations", 0)
+                           for r in cost.get("rounds") or []
+                           if not r.get("shared_with"))
+            if unlogged:
+                line += (f" {unlogged} of its iterations timed out, and a"
+                         " timed-out iteration logs no cost; the session"
+                         " transcripts hold the whole total.")
+            lines.append(line)
         for n in lines:
             self.body.append(latex_escape(n) + "\n")
         return True
