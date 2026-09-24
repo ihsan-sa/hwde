@@ -16,7 +16,8 @@ contain" (codex H1). Four files come out of one run:
                 four columns (Comment, Designator, Footprint, LCSC Part #), ONE
                 ROW PER LCSC PART with the comma-joined designator list (a part
                 with no LCSC number groups by value + footprint). Two rows with
-                the same LCSC number split one part's stock in JLC's BOM review. Its designator set is identical to CPL.csv's
+                the same LCSC number split one part's stock in JLC's BOM
+                review. Its designator set is identical to CPL.csv's
                 by construction - a DNP site cannot leak into a quote.
 
   CPL.csv       Designator, Mid X, Mid Y, Layer, Rotation - `smt_placed` only.
@@ -303,7 +304,7 @@ def _check_class(value, where: str) -> str:
 def jlc_status(ent: dict) -> str:
     """basic | extended | unknown from a parts.json line (`basic` bool, else
     `type`; JLC's "preferred" parts carry no extended fee, so count as basic)."""
-    if "basic" in ent:
+    if ent.get("basic") is not None:
         return "basic" if ent["basic"] else "extended"
     t = str(ent.get("type", "")).strip().lower()
     if t in ("basic", "preferred", "extended"):
