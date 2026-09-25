@@ -24,8 +24,11 @@ to finish a report) or DOC_PROJECT set in the environment (its value is the
 project). With neither, the PDF is built and nothing is filed, so test runs and
 scratch builds never reach the register. A filing that succeeds leaves
 reports/design_doc/.filed.json (a hash of the .tex, its "generated" time
-left out, and of the images it includes); a rebuild whose hash matches files
-nothing. A failed filing only warns and leaves the stamp alone.
+left out, and of the images it includes, plus the project and the cc-docs
+library, CC_DOCS_ROOT or "" for the default); a rebuild whose stamp matches
+files nothing and sets the payload's `unchanged`, so filing into a scratch
+library never stops the live one from getting the revision. A failed filing,
+or cc-docs missing from PATH, only warns and leaves the stamp alone.
 The filing names the board's part number with --describes PCB-NNNN-R when
 the boards register lists the workspace (lib/boardreg.py; hwde never
 allocates one), and passes --cost <step>=<usd> once per step of
@@ -33,7 +36,7 @@ reports/cost.json. The part number is also printed under the title, in
 every page's footer beside the board name, and as a row of the metadata
 table ("not in the boards register" otherwise). The payload's `filed` is
 cc-docs' first output line (the number and path) when this run filed, else
-null. The workspace may be named by its directory, the board's old name or
+null; `unchanged` is true when a matching stamp skipped the filing. The workspace may be named by its directory, the board's old name or
 its part number (lib/boardreg.py resolves the last two).
 
 Exit 0 "pass"   = requested outputs produced (--tex-only: the .tex alone).
@@ -393,6 +396,7 @@ class DocBuilder:
         self.missing: list[str] = []
         self.warnings: list[str] = []
         self.filed: str | None = None   # cc-docs' line when it filed
+        self.unchanged = False   # a matching FILED_STAMP skipped the filing
         self.head: list[str] = []   # title block (before \tableofcontents)
         self.body: list[str] = []
 
@@ -1085,23 +1089,26 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
     is on PATH; a failed filing warns and never fails the
     report. cc-docs stamps the number itself. Its output is captured so
     stdout stays the JSON payload. With a digest, a matching FILED_STAMP next
-    to the PDF (same digest and project) skips the filing, and a successful
-    filing writes it.
+    to the PDF (same digest, project and CC_DOCS_ROOT library) skips the
+    filing and sets builder.unchanged, and a successful filing writes it.
     """
     project = os.environ.get("DOC_PROJECT", "").strip()
     if not (requested or project):
         return
     project = project or "Boards"
     stamp = pdf.parent / FILED_STAMP
-    want = {"digest": digest, "project": project}
+    want = {"digest": digest, "project": project,
+            "library": os.environ.get("CC_DOCS_ROOT", "")}
     if digest is not None:
         try:
             if json.loads(stamp.read_text(encoding="utf-8")) == want:
+                builder.unchanged = True
                 return
         except (OSError, ValueError):
             pass
     exe = shutil.which("cc-docs")
     if exe is None:
+        builder.warn("cc-docs is not on PATH - design doc not filed")
         return
     try:
         cp = subprocess.run(
@@ -1176,6 +1183,7 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
         "warnings": builder.warnings,
         "compile": comp,
         "filed": builder.filed,
+        "unchanged": builder.unchanged,
     }
     return payload, (1 if violations else 0)
 

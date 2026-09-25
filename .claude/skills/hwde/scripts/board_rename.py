@@ -24,7 +24,9 @@ not yet <PN>_<name>) it:
      designators match the ones exported before the rename.
 
 A board with no PN in the register is refused; so is one whose target
-directory exists. --dry-run prints the plan and writes nothing. Nothing is
+directory exists, and one whose `dir:` line (quoted or not, a trailing
+`# comment` allowed) is not found exactly once - checked before anything
+moves, so a refused board is left untouched. --dry-run prints the plan and writes nothing. Nothing is
 committed: the boards repo's own session reviews and commits the result.
 
     board_rename.py (BOARD... | --all) [--root DIR] [--dry-run] [--no-verify]
@@ -70,6 +72,10 @@ def plan(root: Path, key: str) -> dict:
         return {"board": key, "pn": pn["pn"], "dir": new, "done": True}
     if (root / new).exists():
         return {"board": key, "refused": f"{root / new} already exists"}
+    try:   # checked before anything moves, so a refusal leaves no half-rename
+        register_text(root, ws.name, new)
+    except (CheckError, OSError) as exc:
+        return {"board": key, "refused": str(exc)}
     kicad = ws / "kicad"
     pros = sorted(kicad.glob("*.kicad_pro")) if kicad.is_dir() else []
     if len(pros) > 1:
@@ -127,17 +133,25 @@ def patch_state(ws: Path, p: dict) -> None:
     path.write_text(json.dumps(st, indent=2) + "\n", encoding="utf-8")
 
 
-def patch_register(root: Path, old_dir: str, new_dir: str) -> None:
-    """Rewrite `dir: <old>` and `bom: <old>/...` in place, nothing else."""
+def register_text(root: Path, old_dir: str, new_dir: str) -> str:
+    """register.yaml with `dir: <old>` and `bom: <old>/...` rewritten, nothing
+    else. The value may be quoted and followed by a `# comment`; anything but
+    exactly one `dir:` match raises CheckError."""
     reg = root / boardreg.REGISTER
     text = reg.read_text(encoding="utf-8")
     esc = re.escape(old_dir)
-    text, n = re.subn(r"(\bdir:\s*)" + esc + r"(?=\s*[,}\n])",
-                      r"\g<1>" + new_dir, text)
+    text, n = re.subn(r"""(\bdir:\s*(["']?))""" + esc
+                      + r"(?=\2\s*(?:#[^\n]*)?(?:[,}\n]|\Z))",
+                      lambda m: m.group(1) + new_dir, text)
     if n != 1:
         raise CheckError(f"{reg}: expected one `dir: {old_dir}`, found {n}")
-    text = re.sub(r"(\bbom:\s*)" + esc + "/", r"\g<1>" + new_dir + "/", text)
-    reg.write_text(text, encoding="utf-8")
+    return re.sub(r"""(\bbom:\s*["']?)""" + esc + "/",
+                  lambda m: m.group(1) + new_dir + "/", text)
+
+
+def patch_register(root: Path, old_dir: str, new_dir: str) -> None:
+    (root / boardreg.REGISTER).write_text(
+        register_text(root, old_dir, new_dir), encoding="utf-8")
 
 
 def kicad_refs(cli: Path, sch: Path) -> tuple[set[str] | None, str]:

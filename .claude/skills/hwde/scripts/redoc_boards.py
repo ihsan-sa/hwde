@@ -6,7 +6,9 @@ each design doc is rebuilt from the workspace as it stands (report_gen.py -
 state.json, reports, renders; no LLM step runs) so the PDF prints the PN
 under its title and in every footer, and is filed with
 `cc-docs file --describes <PN>`. cc-docs files a new revision only when the
-content changed, so a second run files nothing.
+content changed, so a second run files nothing (the board reports
+`unchanged`). The skip is keyed on the library too, so a rehearsal with
+--library leaves the live run free to file.
 
     redoc_boards.py [BOARD...] [--root DIR] [--library DIR] [--dry-run]
                     [--out FILE]
@@ -18,13 +20,15 @@ per board, the workspace, PN and the `cc-docs file` arguments it would use.
 The rebuilt .tex/.pdf land in each workspace's reports/design_doc/ and are
 not committed here.
 
-Exit 0 = every board rebuilt (and filed when changed); 1 = a board was
-missing, degraded or not filed; 2 = error.
+Exit 0 = every board rebuilt and filed, or unchanged; 1 = a board was
+missing, degraded or not filed; 2 = error, including cc-docs not on PATH
+(without --dry-run).
 """
 from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -47,6 +51,8 @@ def run(args) -> tuple[dict, str | None]:
     keys = args.board or sorted(reg)
     if args.library:
         os.environ["CC_DOCS_ROOT"] = str(Path(args.library).expanduser())
+    if not args.dry_run and shutil.which("cc-docs") is None:
+        raise CheckError("cc-docs is not on PATH - nothing could be filed")
     boards, bad = [], 0
     for key in keys:
         ws = boardreg.resolve(key, root)
@@ -70,8 +76,11 @@ def run(args) -> tuple[dict, str | None]:
             payload, code = report_gen.run(str(ws), file_doc=True)
             row.update(status=payload["status"], pdf=payload["pdf"],
                        filed=payload["filed"],
+                       unchanged=payload["unchanged"],
                        warnings=payload["warnings"][-3:])
-            bad += code != 0 or payload["pdf"] is None
+            # "not filed" is a finding; a stamp-matched skip is not
+            bad += (code != 0 or payload["pdf"] is None
+                    or (payload["filed"] is None and not payload["unchanged"]))
         boards.append(row)
     return {"script": SCRIPT, "status": "violations" if bad else "pass",
             "root": str(root), "dry_run": bool(args.dry_run),

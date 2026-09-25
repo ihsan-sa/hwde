@@ -438,7 +438,7 @@ def test_payload_keys(tmp_path, capsys):
                           tmp_path, capsys)
     assert list(payload) == ["script", "status", "board", "workspace", "tex",
                              "pdf", "pages", "sections", "missing", "warnings",
-                             "compile", "filed"]
+                             "compile", "filed", "unchanged"]
     assert payload["script"] == "report_gen"
     assert payload["board"] == "synth"
     assert all(set(s) == {"name", "status", "source"}
@@ -906,3 +906,32 @@ def test_failed_filing_leaves_no_stamp(tmp_path, capsys, monkeypatch):
     run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="b")
     assert len(log.read_text().splitlines()) == 2
     assert not (ws / "reports" / "design_doc" / report_gen.FILED_STAMP).exists()
+
+
+def test_stamp_is_keyed_on_the_library(tmp_path, capsys, monkeypatch):
+    """A rehearsal filed into a scratch CC_DOCS_ROOT must not stop the live
+    run from filing; a repeat against the same library reports unchanged."""
+    log = _fake_cc_docs(tmp_path, monkeypatch)
+    _stub_compile(tmp_path, monkeypatch)
+    ws = make_workspace(tmp_path)
+    monkeypatch.setenv("CC_DOCS_ROOT", str(tmp_path / "scratch-lib"))
+    _, p = run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="a")
+    assert p["filed"] is not None and p["unchanged"] is False
+    monkeypatch.delenv("CC_DOCS_ROOT")
+    _, p = run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="b")
+    assert p["filed"] is not None and p["unchanged"] is False
+    assert len(log.read_text().splitlines()) == 2
+    _, p = run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="c")
+    assert p["filed"] is None and p["unchanged"] is True
+    assert len(log.read_text().splitlines()) == 2
+
+
+def test_missing_cc_docs_warns(tmp_path, monkeypatch):
+    monkeypatch.setenv("PATH", str(tmp_path))
+    b = _Builder()
+    report_gen.file_in_register(tmp_path / "x.pdf", "b", b, True)
+    assert any("not on PATH" in w for w in b.warnings)
+    # not asked to file: no warning
+    b = _Builder()
+    report_gen.file_in_register(tmp_path / "x.pdf", "b", b)
+    assert b.warnings == []

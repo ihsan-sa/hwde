@@ -35,7 +35,9 @@ products:
 def scratch(tmp_path: Path) -> Path:
     root = tmp_path / "boards"
     ws = root / "blinky2"
-    shutil.copytree(REPO / "tests" / "golden" / "blinky2", ws / "kicad")
+    # a .kicad_prl a kicad-cli run left in the golden dir is not the fixture's
+    shutil.copytree(REPO / "tests" / "golden" / "blinky2", ws / "kicad",
+                    ignore=shutil.ignore_patterns("*.kicad_prl"))
     (ws / "fab").mkdir()
     (ws / "fab" / "blinky2_gerbers.zip").write_bytes(b"zip")
     (ws / "state.json").write_text(json.dumps({
@@ -135,3 +137,54 @@ def test_redoc_dry_run_names_the_part_number(tmp_path, capsys):
     code = redoc_boards.main(["nope", "--root", str(root), "--dry-run"])
     out = json.loads(capsys.readouterr().out)
     assert code == 1 and out["boards"][0]["error"] == "no workspace"
+
+
+def test_register_line_checked_before_anything_moves(tmp_path, capsys):
+    root = scratch(tmp_path)
+    # a quoted dir with a trailing comment is still rewritten
+    (root / "register.yaml").write_text(
+        REG.replace("A: {dir: other,", 'A: {dir: "other",  # note\n        ')
+        .replace("{dir: blinky2,", "{dir: blinky2,  # note\n        "),
+        encoding="utf-8")
+    code, out = rename(capsys, "other", "blinky2", "--no-verify",
+                       "--root", str(root))
+    assert code == 0, out
+    reg = (root / "register.yaml").read_text(encoding="utf-8")
+    assert 'dir: "PCB-0002-A_other",  # note' in reg
+    assert "dir: PCB-0001-A_blinky2,  # note" in reg
+    # a `dir:` the rewrite cannot find (YAML reads it, the regex does not):
+    # refused before anything moves
+    root = scratch(tmp_path / "second")
+    (root / "register.yaml").write_text(
+        REG.replace("{dir: other,", '{"dir": other,'), encoding="utf-8")
+    code, out = rename(capsys, "PCB-0002-A", "--no-verify", "--root", str(root))
+    assert code == 1
+    assert "expected one `dir: other`, found 0" in out["boards"][0]["refused"]
+    assert (root / "other").is_dir() and not (root / "PCB-0002-A_other").exists()
+
+
+def _redoc(capsys, monkeypatch, root, payload, cc_docs=True):
+    if cc_docs:
+        monkeypatch.setattr(redoc_boards.shutil, "which", lambda _: "/x/cc-docs")
+    else:
+        monkeypatch.setattr(redoc_boards.shutil, "which", lambda _: None)
+    monkeypatch.setattr(redoc_boards.report_gen, "run",
+                        lambda ws, file_doc: (dict(payload), 0))
+    code = redoc_boards.main(["--root", str(root)])
+    return code, json.loads(capsys.readouterr().out)
+
+
+def test_redoc_counts_an_unfiled_board(tmp_path, capsys, monkeypatch):
+    root = scratch(tmp_path)
+    base = {"status": "pass", "pdf": "x.pdf", "warnings": []}
+    code, out = _redoc(capsys, monkeypatch, root,
+                       {**base, "filed": "002-0001 x.pdf", "unchanged": False})
+    assert code == 0 and out["status"] == "pass"
+    code, out = _redoc(capsys, monkeypatch, root,
+                       {**base, "filed": None, "unchanged": True})
+    assert code == 0 and out["boards"][0]["unchanged"] is True
+    code, out = _redoc(capsys, monkeypatch, root,
+                       {**base, "filed": None, "unchanged": False})
+    assert code == 1 and out["status"] == "violations"
+    code, out = _redoc(capsys, monkeypatch, root, base, cc_docs=False)
+    assert code == 2 and "cc-docs is not on PATH" in out["error"]
