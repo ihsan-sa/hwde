@@ -73,14 +73,19 @@ def run(args) -> tuple[dict, str | None]:
                 ws, st["board"], ws / "reports" / "design_doc"
                 / f"{st['board']}-design-doc.pdf")
         else:
-            payload, code = report_gen.run(str(ws), file_doc=True)
-            row.update(status=payload["status"], pdf=payload["pdf"],
-                       filed=payload["filed"],
-                       unchanged=payload["unchanged"],
-                       warnings=payload["warnings"][-3:])
-            # "not filed" is a finding; a stamp-matched skip is not
-            bad += (code != 0 or payload["pdf"] is None
-                    or (payload["filed"] is None and not payload["unchanged"]))
+            try:
+                payload, code = report_gen.run(str(ws), file_doc=True)
+                row.update(status=payload["status"], pdf=payload["pdf"],
+                           filed=payload["filed"],
+                           unchanged=payload["unchanged"],
+                           warnings=payload["warnings"][-3:])
+                # "not filed" is a finding; a stamp-matched skip is not
+                bad += (code != 0 or payload["pdf"] is None
+                        or (payload["filed"] is None
+                            and not payload["unchanged"]))
+            except Exception as exc:   # one board's failure must not lose
+                row["error"] = f"{type(exc).__name__}: {exc}"  # the rest's
+                bad += 1
         boards.append(row)
     return {"script": SCRIPT, "status": "violations" if bad else "pass",
             "root": str(root), "dry_run": bool(args.dry_run),

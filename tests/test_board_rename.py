@@ -125,6 +125,25 @@ def test_kicad_cli_opens_the_renamed_project(tmp_path, capsys):
     assert prl == set()   # the check's own .kicad_prl files are cleaned up
 
 
+def test_rename_keeps_report_when_one_board_fails(tmp_path, capsys, monkeypatch):
+    root = scratch(tmp_path)
+    real_rename = board_rename.rename
+
+    def flaky(root_, p, cli):
+        if p["from"] == "blinky2":
+            raise RuntimeError("kicad-cli timed out")
+        return real_rename(root_, p, cli)
+    monkeypatch.setattr(board_rename, "rename", flaky)
+    code, out = rename(capsys, "--all", "--no-verify", "--root", str(root))
+    assert code == 1
+    by_from = {b.get("from"): b for b in out["boards"]}
+    assert by_from["blinky2"]["error"] == "RuntimeError: kicad-cli timed out"
+    assert "result" not in by_from["blinky2"]
+    assert (root / "blinky2").is_dir()          # the failed one never moved
+    assert by_from["other"]["result"]["verified"] is False
+    assert (root / "PCB-0002-A_other").is_dir()  # the other one still ran
+
+
 def test_redoc_dry_run_names_the_part_number(tmp_path, capsys):
     root = scratch(tmp_path)
     code = redoc_boards.main(["--root", str(root), "--dry-run"])
@@ -188,3 +207,23 @@ def test_redoc_counts_an_unfiled_board(tmp_path, capsys, monkeypatch):
     assert code == 1 and out["status"] == "violations"
     code, out = _redoc(capsys, monkeypatch, root, base, cc_docs=False)
     assert code == 2 and "cc-docs is not on PATH" in out["error"]
+
+
+def test_redoc_keeps_report_when_one_board_fails(tmp_path, capsys, monkeypatch):
+    root = scratch(tmp_path)
+    (root / "other" / "state.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(redoc_boards.shutil, "which", lambda _: "/x/cc-docs")
+
+    def flaky(ws, file_doc):
+        if Path(ws).name == "other":
+            raise RuntimeError("kicad-cli timed out")
+        return ({"status": "pass", "pdf": "x.pdf", "warnings": [],
+                 "filed": "002-0001 x.pdf", "unchanged": False}, 0)
+    monkeypatch.setattr(redoc_boards.report_gen, "run", flaky)
+    code = redoc_boards.main(["--root", str(root)])
+    out = json.loads(capsys.readouterr().out)
+    by_board = {b["board"]: b for b in out["boards"]}
+    assert by_board["PCB-0002-A"]["error"] == "RuntimeError: kicad-cli timed out"
+    assert "status" not in by_board["PCB-0002-A"]
+    assert by_board["PCB-0001-A"]["status"] == "pass"
+    assert code == 1

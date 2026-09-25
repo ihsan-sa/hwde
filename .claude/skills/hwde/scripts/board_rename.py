@@ -233,8 +233,12 @@ def run(args) -> tuple[dict, str | None]:
     for key in keys:
         p = plan(root, key)
         if "refused" not in p and not p.get("done") and not args.dry_run:
-            p["result"] = rename(root, p, cli)
-            bad += not p["result"]["verified"] and cli is not None
+            try:
+                p["result"] = rename(root, p, cli)
+                bad += not p["result"]["verified"] and cli is not None
+            except Exception as exc:   # one board's failure must not lose
+                p["error"] = f"{type(exc).__name__}: {exc}"  # the rest's report
+                bad += 1
         bad += "refused" in p
         boards.append(p)
     return {"script": SCRIPT, "status": "violations" if bad else "pass",
