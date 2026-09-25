@@ -319,3 +319,17 @@ def test_list_mode(tmp_path):
                           "applies"}
                for r in payload["records"])
     assert "checklists" in payload
+
+
+def test_boards_sources_resolve_in_the_boards_repo(tmp_path, monkeypatch):
+    """A `boards/<ws>/...` source resolves under HWDE_BOARDS_ROOT (the boards
+    repo); a file missing there is reported; with no boards repo cloned the
+    citation cannot be checked and is not reported."""
+    root = tmp_path / "boards-repo"
+    (root / "ws" / "parts").mkdir(parents=True)
+    (root / "ws" / "parts" / "d.pdf").write_bytes(b"%PDF")
+    monkeypatch.setenv("HWDE_BOARDS_ROOT", str(root))
+    assert knowledgelib._source_exists("boards/ws/parts/d.pdf")
+    assert not knowledgelib._source_exists("boards/ws/parts/gone.pdf")
+    monkeypatch.setenv("HWDE_BOARDS_ROOT", str(tmp_path / "not-cloned"))
+    assert knowledgelib._source_exists("boards/ws/parts/gone.pdf")
