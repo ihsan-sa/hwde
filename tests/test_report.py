@@ -738,6 +738,29 @@ def test_smoke_stm32_blinky(pdflatex_bin, tmp_path):
     assert_no_residue_outside_design_doc(ws, before)
 
 
+def test_layout_finds_renders_named_after_numbered_project(tmp_path, capsys):
+    """A numbered board's KiCad project is <PN>_<name> (statelib.project_stem),
+    and render.py names its output after that stem, not state.json's board -
+    the renders/ ladder rung must try the stem first."""
+    ws = make_workspace(tmp_path)
+    rf = ws / "reports" / "render_final"
+    (rf / "top.png").unlink()
+    (rf / "bottom.png").unlink()
+    kicad = ws / "kicad"
+    kicad.mkdir()
+    (kicad / "PCB-0007-C_synth.kicad_pro").write_text("{}", encoding="utf-8")
+    renders = ws / "reports" / "renders"
+    renders.mkdir()
+    write_png(renders / "PCB-0007-C_synth_top.png")
+
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="numbered")
+    assert code == 0, payload
+    assert sections_by_name(payload)["layout"] == "included"
+    src = json.dumps(payload["sections"])
+    assert "renders/PCB-0007-C_synth_top.png" in src
+
+
 def test_generation_cost_section(tmp_path, capsys):
     """The Run Record prints cost.json's total and per-step lines; without
     cost.json it says 'Not recorded' and warns, never estimating."""

@@ -613,7 +613,9 @@ class DocBuilder:
         self.body.append(self.gate_line("place"))
         self.body.append("")
         self.body.append(self.gate_line("drc_routed"))
-        main, extras = find_renders(self.ws, self.board)
+        main, extras = find_renders(self.ws, self.stem)
+        if not (main or extras) and self.stem != self.board:
+            main, extras = find_renders(self.ws, self.board)
         hard = self.core(CORE_RENDER, bool(main or extras))
         for rel in main:
             self.body.append(image_block(rel, "0.72"))
