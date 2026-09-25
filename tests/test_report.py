@@ -438,7 +438,7 @@ def test_payload_keys(tmp_path, capsys):
                           tmp_path, capsys)
     assert list(payload) == ["script", "status", "board", "workspace", "tex",
                              "pdf", "pages", "sections", "missing", "warnings",
-                             "compile"]
+                             "compile", "filed", "unchanged"]
     assert payload["script"] == "report_gen"
     assert payload["board"] == "synth"
     assert all(set(s) == {"name", "status", "source"}
@@ -738,6 +738,29 @@ def test_smoke_stm32_blinky(pdflatex_bin, tmp_path):
     assert_no_residue_outside_design_doc(ws, before)
 
 
+def test_layout_finds_renders_named_after_numbered_project(tmp_path, capsys):
+    """A numbered board's KiCad project is <PN>_<name> (statelib.project_stem),
+    and render.py names its output after that stem, not state.json's board -
+    the renders/ ladder rung must try the stem first."""
+    ws = make_workspace(tmp_path)
+    rf = ws / "reports" / "render_final"
+    (rf / "top.png").unlink()
+    (rf / "bottom.png").unlink()
+    kicad = ws / "kicad"
+    kicad.mkdir()
+    (kicad / "PCB-0007-C_synth.kicad_pro").write_text("{}", encoding="utf-8")
+    renders = ws / "reports" / "renders"
+    renders.mkdir()
+    write_png(renders / "PCB-0007-C_synth_top.png")
+
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="numbered")
+    assert code == 0, payload
+    assert sections_by_name(payload)["layout"] == "included"
+    src = json.dumps(payload["sections"])
+    assert "renders/PCB-0007-C_synth_top.png" in src
+
+
 def test_generation_cost_section(tmp_path, capsys):
     """The Run Record prints cost.json's total and per-step lines; without
     cost.json it says 'Not recorded' and warns, never estimating."""
@@ -807,6 +830,7 @@ def test_part_number_row_in_metadata(tmp_path, capsys):
                              tmp_path, capsys, name="nopn")
     text = (ws / payload["tex"]).read_text(encoding="utf-8")
     assert "part number & none (not in the boards register)" in text
+    assert "\\@oddfoot{\\small no part number" in text
     (tmp_path / "register.yaml").write_text(
         "products:\n  PCB-0007:\n    revs:\n      C: {dir: synth}\n",
         encoding="utf-8")
@@ -814,6 +838,11 @@ def test_part_number_row_in_metadata(tmp_path, capsys):
                              tmp_path, capsys, name="pn")
     text = (ws / payload["tex"]).read_text(encoding="utf-8")
     assert "part number & PCB-0007-C" in text
+    # ...and on the title page and in every page's footer (owner, #ai-ee:
+    # "in the library the PDFs should have the PNs on them").
+    assert "{\\Large\\bfseries PCB-0007-C}" in text
+    assert "\\@oddfoot{\\small PCB-0007-C -- " in text
+    assert "\\pagestyle{hwde}" in text
 
 
 # ------------------------------------------------------------- filing opt-in
@@ -900,3 +929,32 @@ def test_failed_filing_leaves_no_stamp(tmp_path, capsys, monkeypatch):
     run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="b")
     assert len(log.read_text().splitlines()) == 2
     assert not (ws / "reports" / "design_doc" / report_gen.FILED_STAMP).exists()
+
+
+def test_stamp_is_keyed_on_the_library(tmp_path, capsys, monkeypatch):
+    """A rehearsal filed into a scratch CC_DOCS_ROOT must not stop the live
+    run from filing; a repeat against the same library reports unchanged."""
+    log = _fake_cc_docs(tmp_path, monkeypatch)
+    _stub_compile(tmp_path, monkeypatch)
+    ws = make_workspace(tmp_path)
+    monkeypatch.setenv("CC_DOCS_ROOT", str(tmp_path / "scratch-lib"))
+    _, p = run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="a")
+    assert p["filed"] is not None and p["unchanged"] is False
+    monkeypatch.delenv("CC_DOCS_ROOT")
+    _, p = run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="b")
+    assert p["filed"] is not None and p["unchanged"] is False
+    assert len(log.read_text().splitlines()) == 2
+    _, p = run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="c")
+    assert p["filed"] is None and p["unchanged"] is True
+    assert len(log.read_text().splitlines()) == 2
+
+
+def test_missing_cc_docs_warns(tmp_path, monkeypatch):
+    monkeypatch.setenv("PATH", str(tmp_path))
+    b = _Builder()
+    report_gen.file_in_register(tmp_path / "x.pdf", "b", b, True)
+    assert any("not on PATH" in w for w in b.warnings)
+    # not asked to file: no warning
+    b = _Builder()
+    report_gen.file_in_register(tmp_path / "x.pdf", "b", b)
+    assert b.warnings == []

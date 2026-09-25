@@ -14,11 +14,13 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
   from `requirements.md`, `lib/` (pulled footprint libs).
 
 ## Steps
-1. `scripts/board_init.py --netlist kicad/<top>.net --name <board>
+1. `scripts/board_init.py --netlist kicad/<top>.net --name <project>
    --out kicad --layers <2|4> [--copper-oz 1|2] [--stackup <NAME>]
    [--outline auto|WxH] [--mounting-holes N]
    [--schematic kicad/<top>.kicad_sch] [--fp-lib <workspace>/lib]`
-   - creates `kicad/<board>.kicad_pcb` + `.kicad_pro`: parts loaded, pad
+   (`<project>` is the workspace directory name - `<PN>_<name>` on a
+   numbered board, so never assume it equals `state.json`'s board)
+   - creates `kicad/<project>.kicad_pcb` + `.kicad_pro`: parts loaded, pad
    nets assigned, shelf-packed, outline + corner mounting holes
    (board_only), stackup block injected from `reference/stackups.yaml`.
    Its SELF-CHECK is the phase gate: schematic parity == 0 AND zero

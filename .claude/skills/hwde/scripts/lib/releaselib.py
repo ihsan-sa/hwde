@@ -339,7 +339,7 @@ def _release_na(ws: Path, board: str, imap: dict,
     """constraints.json release.not_applicable.<gate> declarations (U2's
     verification.not_applicable pattern, lifted to whole gates). Only
     NA_ALLOWED_GATES may be excused; every entry needs reason + approved."""
-    rel = statelib.kind_path("constraints", board, imap, registry)
+    rel = statelib.kind_path("constraints", board, imap, registry, ws)
     path = Path(ws) / rel
     if not path.is_file():
         return {}, []
@@ -487,7 +487,7 @@ def build(ws: Path,
     # ---- strict release reports (U2's coverage matrices) ----------------
     gate_mod = _import_script("gate")
     gates_def = gate_mod.load_gates(gate_mod.DEFAULT_GATES)
-    pcb_rel = statelib.kind_path("pcb", board, imap, registry)
+    pcb_rel = statelib.kind_path("pcb", board, imap, registry, ws)
     pcb_path = ws / pcb_rel
     waiver_path = waivers_for_input(pcb_path)
     waivers: list[dict] = []
@@ -555,7 +555,7 @@ def build(ws: Path,
     for kind in ("pcb", "sch", "netlist"):
         if inputs.get(kind) is None:
             problems.append(f"required input {kind} missing "
-                            f"({statelib.kind_path(kind, board, imap, registry)})")
+                            f"({statelib.kind_path(kind, board, imap, registry, ws)})")
     stackup_rel = "architecture/stackup.md"
     stackup_hash = statelib.hash_artifact(ws / stackup_rel, "text_eol")
     inputs["stackup_md"] = stackup_hash
@@ -565,7 +565,7 @@ def build(ws: Path,
 
     # ---- fab package ----------------------------------------------------
     fab: dict = {}
-    gerber_rel = statelib.kind_path("gerbers", board, imap, registry)
+    gerber_rel = statelib.kind_path("gerbers", board, imap, registry, ws)
     gerber_path = ws / gerber_rel
     if not gerber_path.is_file():
         problems.append(f"fab package incomplete: {gerber_rel} missing")
@@ -577,7 +577,7 @@ def build(ws: Path,
             "design_sha256": fabhash.design_hash(gerber_path),
         }
     for kind in ("bom", "cpl", "bom_full"):
-        rel = statelib.kind_path(kind, board, imap, registry)
+        rel = statelib.kind_path(kind, board, imap, registry, ws)
         if inputs.get(kind) is None:
             problems.append(f"fab package incomplete: {rel} missing "
                             "(U3: BOM-full.csv is the BOM of record)")
@@ -769,7 +769,7 @@ def verify(ws: Path, att: dict | None = None) -> dict:
 
     # ---- waiver file + re-validation ------------------------------------
     gate_mod = _import_script("gate")
-    pcb_rel = statelib.kind_path("pcb", board, imap, registry)
+    pcb_rel = statelib.kind_path("pcb", board, imap, registry, ws)
     wv = att.get("waivers") or {}
     waivers: list[dict] = []
     if wv.get("path"):
@@ -1057,7 +1057,7 @@ def _strict_reports_current(ws: Path, data: dict) -> bool:
     imap = statelib.load_map()
     board = data.get("board") or ""
     registry = data.get("artifacts") or {}
-    pcb_rel = statelib.kind_path("pcb", board, imap, registry)
+    pcb_rel = statelib.kind_path("pcb", board, imap, registry, ws)
     pcb_hash = statelib.hash_kind(ws, board, "pcb", imap, registry)[1]
     if pcb_hash is None:
         return False

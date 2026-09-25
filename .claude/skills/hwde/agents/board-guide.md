@@ -46,8 +46,9 @@ with the repo venv python (`.venv/bin/python` on Linux,
 2. Work in `reports/guide/` (the .tex, figures, build files). Target 3-6
    pages. When `part_number` in guide_facts.json is set, print its `pn`
    (e.g. PCB-0001-B) and its rev letter on the title page, beside the board
-   name. When it is null the board is not in the boards register: print no
-   number and never make one up. Sections, in this order:
+   name, and put the `pn` in every page's footer too, so a single printed
+   page still says which board it is. When it is null the board is not in
+   the boards register: print no number and never make one up. Sections, in this order:
    - **What it is** - the lead: what the board does, for whom, its input and
      output in one paragraph, plus the top render.
    - **Schematic** - the exported schematic page(s) (`\includegraphics` of

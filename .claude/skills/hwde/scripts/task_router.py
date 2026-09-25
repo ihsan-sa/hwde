@@ -46,6 +46,8 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 import yaml  # noqa: E402
 
 from checklib import CheckError, utf8_stdout  # noqa: E402
+import boardreg  # noqa: E402
+import env  # noqa: E402
 import statelib  # noqa: E402
 
 TASKS = SKILL / "reference" / "tasks.yaml"
@@ -416,11 +418,12 @@ def workspace_context(ws: Path | None, board_hint: str | None,
         registry = data.get("artifacts") or {}
         ctx["state"] = data
     if not ctx["board"]:
-        ctx["board"] = ws.name
+        ctx["board"] = boardreg.split_dir(ws.name)[1]
     slots = {"ws": ctx["workspace"], "board": ctx["board"],
+             "project": statelib.project_stem(ws, ctx["board"]),
              "state": f"{ctx['workspace']}/state.json"}
     for slot, kind in KIND_SLOTS.items():
-        rel = statelib.kind_path(kind, ctx["board"], imap, registry)
+        rel = statelib.kind_path(kind, ctx["board"], imap, registry, ws)
         slots[slot] = f"{ctx['workspace']}/{rel}"
     for slot, sub in DIR_SLOTS.items():
         slots[slot] = f"{ctx['workspace']}/{sub}"
@@ -682,7 +685,8 @@ def run(argv: list[str] | None = None) -> tuple[dict, str | None]:
     ap.add_argument("--task", help="the request, in the user's own words")
     ap.add_argument("--verb", help="force a verb (the LLM-classification path)")
     ap.add_argument("--workspace", help="<boards root>/<name>, the boards root being "
-                         "HWDE_BOARDS_ROOT or ~/dev/boards (may not exist yet)")
+                         "HWDE_BOARDS_ROOT or ~/dev/boards (may not exist yet); a "
+                         "board name or part number resolves through register.yaml")
     ap.add_argument("--arg", action="append", default=[], metavar="K=V",
                     help="fill a recipe argument explicitly (repeatable)")
     ap.add_argument("--findings", help="gate result / check report for "
@@ -743,7 +747,8 @@ def run(argv: list[str] | None = None) -> tuple[dict, str | None]:
 
     spec = tasks["verbs"][verb]
     cwd = Path.cwd()
-    ws = Path(args.workspace) if args.workspace else None
+    ws = (boardreg.locate(args.workspace, env.boards_root())
+          if args.workspace else None)
     ctx = workspace_context(ws, None, imap)
 
     extracted = extract_args(text, spec, cwd) if text else {}

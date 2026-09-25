@@ -7,7 +7,8 @@ copied-in design files at the pinned KiCad format, a v2 state.json, baseline
 gate results, a netlist audit, renders, and a design-document digest - WITHOUT
 ever writing to the source.
 
-    intake.py --source DIR|FILE [--board NAME] [--workspace DIR] [--project STEM]
+    intake.py --source DIR|FILE [--board NAME] [--pn PCB-NNNN-R]
+              [--workspace DIR] [--project STEM]
               [--force] [--no-upgrade] [--no-gates] [--no-renders] [--no-report]
               [--views top,bottom,iso] [--out report.json]
 
@@ -18,9 +19,12 @@ What it does, in order:
  2. STAGE a copy into <workspace>.intake-tmp/kicad/ preserving the project's
     own relative layout (so ${KIPRJMOD} URIs keep resolving). The top-level
     stem files (.kicad_pro/.kicad_pcb/.kicad_sch/.kicad_dru) are renamed to the
-    board name - the pipeline resolves every artifact by stem (state kinds,
-    kicad-cli sidecar lookup: LEARNINGS 2026-08-06 [bench][kicad-cli]) - and
-    .kicad_pro's meta.filename is patched to match. Sub-sheets, .kicad_sym and
+    project name - <PN>_<board> when register.yaml has issued the board a
+    number (a rev whose dir is spelled so, or --pn), else the board name;
+    the workspace directory takes the same name. The pipeline resolves every
+    artifact by stem (state kinds, kicad-cli sidecar lookup: LEARNINGS
+    2026-08-06 [bench][kicad-cli]), and .kicad_pro's meta.filename is
+    patched to match. Sub-sheets, .kicad_sym and
     .pretty dirs keep their names (they are referenced by name/URI).
     A lib URI that escapes the project dir is copied to kicad/imported_libs/
     and the URI is rewritten IN THE COPY, so the workspace is self-contained
@@ -72,7 +76,7 @@ sys.path.insert(0, str(HERE / "lib"))
 
 import checklib  # noqa: E402
 from checklib import CheckError  # noqa: E402
-from lib import env  # noqa: E402
+from lib import boardreg, env  # noqa: E402
 
 SCRIPT = "intake"
 SOURCE = "intake"
@@ -716,8 +720,13 @@ def run(argv=None):
     ap.add_argument("--board", help="board/workspace name (default: the "
                                     "source project stem)")
     ap.add_argument("--workspace", help="workspace dir (default: "
-                                        "<boards root>/<board>; HWDE_BOARDS_ROOT, "
-                                        "default ~/dev/boards)")
+                                        "<boards root>/<PN>_<board> when "
+                                        "register.yaml issued the board a "
+                                        "number, else <boards root>/<board>; "
+                                        "HWDE_BOARDS_ROOT, default ~/dev/boards)")
+    ap.add_argument("--pn", help="the board's part number PCB-NNNN-R; the "
+                                 "workspace takes that rev's `dir` from "
+                                 "register.yaml (it must be listed there)")
     ap.add_argument("--force", action="store_true",
                     help="replace an existing workspace (refuses a directory "
                          "that is not one)")
@@ -736,8 +745,18 @@ def run(argv=None):
     started = time.strftime("%Y-%m-%dT%H:%M:%S")
     spec = discover_project(Path(args.source), args.project)
     board = sanitize_board(args.board or spec["stem"])
-    ws = (Path(args.workspace) if args.workspace
-          else env.boards_root() / board)
+    # The KiCad project (and the workspace directory) is <PN>_<board> once
+    # the register has issued the board a number, the bare board name before.
+    if args.workspace:
+        ws = Path(args.workspace)
+        pn, human = boardreg.split_dir(ws.name)
+        project = ws.name if pn and human == board else board
+    else:
+        try:
+            project = boardreg.new_dir(board, env.boards_root(), args.pn)
+        except ValueError as exc:
+            raise CheckError(str(exc)) from exc
+        ws = env.boards_root() / project
     ws = ws.resolve()
 
     if ws.exists() and any(ws.iterdir()):
@@ -764,7 +783,7 @@ def run(argv=None):
             "HWDE_KICAD_CLI.")
     pin_major = env.kicad_cli_version(cli)[0] if cli else None
 
-    copies, libs, findings = plan_copy(spec, board, kicad_share_dir(cli),
+    copies, libs, findings = plan_copy(spec, project, kicad_share_dir(cli),
                                        pin_major)
     src_hashes = source_fingerprint([Path(c["src"]) for c in copies])
 
@@ -784,7 +803,7 @@ def run(argv=None):
                 shutil.copy2(src, dest)
         for table in ("fp-lib-table", "sym-lib-table"):
             rewrite_lib_uris(stage / "kicad" / table, libs)
-        pro_copy = stage / "kicad" / f"{board}.kicad_pro"
+        pro_copy = stage / "kicad" / f"{project}.kicad_pro"
         if pro_copy.is_file():
             patch_pro_filename(pro_copy)
 
@@ -815,8 +834,8 @@ def run(argv=None):
     ws.parent.mkdir(parents=True, exist_ok=True)
     os.replace(stage, ws)
 
-    pcb = ws / "kicad" / f"{board}.kicad_pcb"
-    sch = ws / "kicad" / f"{board}.kicad_sch"
+    pcb = ws / "kicad" / f"{project}.kicad_pcb"
+    sch = ws / "kicad" / f"{project}.kicad_sch"
     pcb = pcb if pcb.is_file() else None
     sch = sch if sch.is_file() else None
     phase = board_phase(pcb)
@@ -847,7 +866,7 @@ def run(argv=None):
     if sch is not None and not args.no_gates:
         import kc  # noqa: PLC0415
         import netlist_audit  # noqa: PLC0415
-        netlist = ws / "kicad" / f"{board}.net"
+        netlist = ws / "kicad" / f"{project}.net"
         res = kc.export_netlist(cli, sch, netlist)
         if res.get("status") != "pass":
             findings.append(checklib.violation(
@@ -855,7 +874,7 @@ def run(argv=None):
                 f"netlist export failed: {res.get('stderr_tail', '')[:200]}",
                 source=SOURCE, kind="netlist_export_failed"))
         else:
-            st.set_artifact("netlist", f"kicad/{board}.net")
+            st.set_artifact("netlist", f"kicad/{project}.net")
             # netlist_audit needs a constraints file; an EMPTY one from a temp
             # dir keeps the netlist-intrinsic findings (dangling nets, unpaired
             # diff pairs, pins on no net) without planting a constraints.json

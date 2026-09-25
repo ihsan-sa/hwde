@@ -154,7 +154,7 @@ def applicable_gate_order(ws: Path, board: str,
     """
     try:
         imap = imap or statelib.load_map()
-        sims_rel = statelib.kind_path("sims", board, imap, registry)
+        sims_rel = statelib.kind_path("sims", board, imap, registry, ws)
         has_sims = (Path(ws) / sims_rel).is_dir()
     except Exception:  # noqa: BLE001 - map unreadable: fall back to the spine
         has_sims = False
@@ -509,7 +509,7 @@ class State:
         if names is None:
             names = sorted(set(registry) | {
                 k for k in imap["artifact_kinds"]
-                if (ws / statelib.kind_path(k, board, imap, registry)).exists()})
+                if (ws / statelib.kind_path(k, board, imap, registry, ws)).exists()})
         out = {}
         for name in names:
             entry = registry.get(name)
@@ -525,7 +525,7 @@ class State:
             if kind not in imap["artifact_kinds"]:
                 kind = None
             rel = entry.get("path") or statelib.kind_path(
-                kind or name, board, imap, registry)
+                kind or name, board, imap, registry, ws)
             norm = (imap["artifact_kinds"][kind]["norm"] if kind
                     else statelib.norm_for_path(ws / rel))
             old = entry.get("sha256")
