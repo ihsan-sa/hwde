@@ -26,7 +26,9 @@ On invocation:
    `~/dev/boards/<name>/`, and runs `check_env.py` + `state.py init` as the
    recipe's first steps. A board's part number (`PCB-NNNN-R`) comes from
    `~/dev/boards/register.yaml`, read-only from here; a board not listed there
-   carries no number.
+   carries no number. When the register already lists the new board as
+   `dir: <PN>_<name>`, the workspace and KiCad project take that name (the
+   router's `--workspace <name>` finds it); otherwise the board starts bare.
 
 The orchestrator never opens design files; all design work happens in spawned
 subagents using the role prompts in `.claude/skills/hwde/agents/`.

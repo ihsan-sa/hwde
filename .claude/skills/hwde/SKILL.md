@@ -117,7 +117,13 @@ first steps are `check_env.py` (exit 0 required; on failure present its
 remediation strings and stop) and `state.py init --workspace ~/dev/boards/<name>`
 (the boards repo, `HWDE_BOARDS_ROOT`; hwde holds no boards of its own), which
 creates the workspace + standard subdirs there so gate commits work. Copy user
-inputs into `brief/`.
+inputs into `brief/`. A board the register (`register.yaml`) has already
+issued a part number lives in `<PN>_<name>` (e.g. `PCB-0016-A_pd-trigger-lite`)
+and its KiCad project carries the same name; the router's workspace resolves a
+board's old name, its PN or that directory name alike (`lib/boardreg.py`).
+Throughout the docs, `<board>` in a KiCad or fab file name (`kicad/<board>.kicad_pcb`)
+means that project name - the router's `{project}` slot - while `{board}`
+stays the human name in `state.json`.
 
 **Existing workspace** (`/hwde --resume <ws>`, or any verb with `--workspace`):
 `state.py resume` is the only source of truth for where the run is. Re-run the

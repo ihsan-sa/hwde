@@ -807,6 +807,7 @@ def test_part_number_row_in_metadata(tmp_path, capsys):
                              tmp_path, capsys, name="nopn")
     text = (ws / payload["tex"]).read_text(encoding="utf-8")
     assert "part number & none (not in the boards register)" in text
+    assert "\\@oddfoot{\\small no part number" in text
     (tmp_path / "register.yaml").write_text(
         "products:\n  PCB-0007:\n    revs:\n      C: {dir: synth}\n",
         encoding="utf-8")
@@ -814,6 +815,11 @@ def test_part_number_row_in_metadata(tmp_path, capsys):
                              tmp_path, capsys, name="pn")
     text = (ws / payload["tex"]).read_text(encoding="utf-8")
     assert "part number & PCB-0007-C" in text
+    # ...and on the title page and in every page's footer (owner, #ai-ee:
+    # "in the library the PDFs should have the PNs on them").
+    assert "{\\Large\\bfseries PCB-0007-C}" in text
+    assert "\\@oddfoot{\\small PCB-0007-C -- " in text
+    assert "\\pagestyle{hwde}" in text
 
 
 # ------------------------------------------------------------- filing opt-in

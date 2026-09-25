@@ -816,10 +816,10 @@ def _ws_paths(ws: Path) -> dict:
     board = state.get("board") or ws.name
     registry = state.get("artifacts") or {}
     imap = statelib.load_map()
-    cpath = ws / statelib.kind_path("constraints", board, imap, registry)
+    cpath = ws / statelib.kind_path("constraints", board, imap, registry, ws)
     if not cpath.is_file():
         cpath = ws / "architecture" / "constraints.json"
-    ppath = ws / statelib.kind_path("parts", board, imap, registry)
+    ppath = ws / statelib.kind_path("parts", board, imap, registry, ws)
     if not ppath.is_file():
         ppath = ws / "parts" / "parts.json"
     return {"state": state, "board": board, "constraints": cpath,

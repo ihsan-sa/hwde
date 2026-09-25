@@ -199,7 +199,7 @@ def collect(ws: Path, do_render: bool = False) -> dict:
     registry = state.get("artifacts") or {}
 
     def kind(k: str) -> Path:
-        return ws / statelib.kind_path(k, board or "board", imap, registry)
+        return ws / statelib.kind_path(k, board or "board", imap, registry, ws)
 
     missing: list[str] = []
     todo: list[dict] = []

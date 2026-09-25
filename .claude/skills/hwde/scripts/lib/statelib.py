@@ -241,9 +241,33 @@ def find_workspace(input_file: Path | None,
     return None
 
 
+_PN_DIR = re.compile(r"^PCB-\d{4}-[A-HJ-NP-Z]_")  # boardreg's <PN>_<name>
+
+
+def project_stem(ws: Path | None, board: str) -> str:
+    """The KiCad project basename in workspace `ws`: `board` when
+    kicad/<board>.kicad_pro is there (or ws is None), else the stem of the one
+    .kicad_pro in kicad/ - a numbered board's project is <PN>_<name> while
+    state.json's board stays <name>. With none there yet, a workspace named
+    <PN>_<board> gives its own name (the project a new numbered board gets);
+    otherwise, and with several, `board`."""
+    kdir = Path(ws) / "kicad" if ws is not None else None
+    if kdir is None or (kdir / f"{board}.kicad_pro").is_file():
+        return board
+    pros = sorted(kdir.glob("*.kicad_pro")) if kdir.is_dir() else []
+    if len(pros) == 1:
+        return pros[0].stem
+    if not pros and _PN_DIR.match(Path(ws).name) \
+            and Path(ws).name.endswith("_" + board):
+        return Path(ws).name
+    return board
+
+
 def kind_path(kind: str, board: str, imap: dict,
-              registry: dict | None = None) -> str:
-    """Workspace-relative path for a standard artifact kind. A registry entry
+              registry: dict | None = None, ws: Path | None = None) -> str:
+    """Workspace-relative path for a standard artifact kind; {board} in the
+    template is the KiCad project basename (project_stem(ws, board)) when the
+    workspace is given. A registry entry
     registered under the kind's name overrides the default template (how a
     non-standard layout opts in) - but ONLY when the entry's own `kind` field
     matches. v1 registries reused kind names for different pipeline artifacts
@@ -254,13 +278,13 @@ def kind_path(kind: str, board: str, imap: dict,
     if isinstance(reg, dict) and reg.get("path") and reg.get("kind") == kind:
         return reg["path"]
     template = imap["artifact_kinds"][kind]["path"]
-    return template.replace("{board}", board)
+    return template.replace("{board}", project_stem(ws, board))
 
 
 def hash_kind(ws: Path, board: str, kind: str, imap: dict,
               registry: dict | None = None) -> tuple[str, str | None]:
     """(workspace-relative path, hash-or-None) for a standard kind."""
-    rel = kind_path(kind, board, imap, registry)
+    rel = kind_path(kind, board, imap, registry, ws)
     norm = imap["artifact_kinds"][kind]["norm"]
     return rel, hash_artifact(ws / rel, norm)
 

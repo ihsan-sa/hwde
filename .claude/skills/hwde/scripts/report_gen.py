@@ -29,8 +29,12 @@ nothing. A failed filing only warns and leaves the stamp alone.
 The filing names the board's part number with --describes PCB-NNNN-R when
 the boards register lists the workspace (lib/boardreg.py; hwde never
 allocates one), and passes --cost <step>=<usd> once per step of
-reports/cost.json. The part number is also a row of the metadata table
-("not in the boards register" otherwise).
+reports/cost.json. The part number is also printed under the title, in
+every page's footer beside the board name, and as a row of the metadata
+table ("not in the boards register" otherwise). The payload's `filed` is
+cc-docs' first output line (the number and path) when this run filed, else
+null. The workspace may be named by its directory, the board's old name or
+its part number (lib/boardreg.py resolves the last two).
 
 Exit 0 "pass"   = requested outputs produced (--tex-only: the .tex alone).
 Exit 1 "violations" = degraded: compile failed, pdflatex absent (auto
@@ -61,7 +65,7 @@ sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import state as statemod  # noqa: E402  (read-only: PHASES/CHECKPOINTS consts)
-from lib import boardreg, env  # noqa: E402
+from lib import boardreg, env, statelib  # noqa: E402
 
 PHASE_INDEX = {p: i for i, p in enumerate(statemod.PHASES)}
 
@@ -380,13 +384,15 @@ class DocBuilder:
     def __init__(self, ws: Path, st: dict, name: str):
         self.ws = ws
         self.st = st
-        self.board = st.get("board") or ws.name
+        self.board = st.get("board") or boardreg.split_dir(ws.name)[1]
         self.name = name
         self.pn, _ = boardreg.part_number(ws)
+        self.stem = statelib.project_stem(ws, self.board)
         self.cur = phase_idx(str(st.get("phase", "P0")))
         self.sections: list[dict] = []
         self.missing: list[str] = []
         self.warnings: list[str] = []
+        self.filed: str | None = None   # cc-docs' line when it filed
         self.head: list[str] = []   # title block (before \tableofcontents)
         self.body: list[str] = []
 
@@ -446,6 +452,11 @@ class DocBuilder:
         self.record(sid, "pending", f"due at {phase}")
 
     # -- sections ---------------------------------------------------------
+    def pn_label(self) -> str:
+        """The part number line of the title page and every footer."""
+        return (self.pn["pn"] if self.pn
+                else "no part number (not in the boards register)")
+
     def sec_title(self) -> None:
         st = self.st
         gates = st.get("gates") or {}
@@ -460,6 +471,8 @@ class DocBuilder:
         self.head.append("\\begin{center}")
         self.head.append("{\\LARGE\\bfseries " + latex_escape(self.name)
                          + " --- Design Document}\\\\[6pt]")
+        self.head.append("{\\Large\\bfseries " + latex_escape(self.pn_label())
+                         + "}\\\\[6pt]")
         self.head.append("{\\large hwde v1 pipeline}\\\\[2pt]")
         self.head.append("generated " + latex_escape(time.strftime("%Y-%m-%d %H:%M:%S"))
                          + "\n\\end{center}")
@@ -843,9 +856,9 @@ class DocBuilder:
                              latex_escape(note)])
 
         add("state.json")
-        add(f"kicad/{self.board}.kicad_pcb")
-        add(f"kicad/{self.board}.kicad_sch")
-        add(f"fab/{self.board}_gerbers.zip",
+        add(f"kicad/{self.stem}.kicad_pcb")
+        add(f"kicad/{self.stem}.kicad_sch")
+        add(f"fab/{self.stem}_gerbers.zip",
             f"sha256 {zip_sha[:16]}..." if zip_sha else "")
         for rel in ("fab/order.json", "fab/BOM.csv", "fab/CPL.csv",
                     "brief/brief.md", "requirements.md"):
@@ -898,6 +911,15 @@ class DocBuilder:
             r"\usepackage{xcolor}",
             r"\usepackage[hidelinks]{hyperref}",
             r"\setcounter{tocdepth}{1}",
+            # Every page's footer carries the part number and the board
+            # (kernel page-style macros, so no extra package is needed).
+            r"\makeatletter",
+            r"\def\ps@hwde{\let\@mkboth\@gobbletwo\def\@oddhead{}"
+            r"\def\@evenhead{}\def\@oddfoot{\small "
+            + latex_escape(f"{self.pn_label()} -- {self.board}")
+            + r"\hfil\thepage}\let\@evenfoot\@oddfoot}",
+            r"\makeatother",
+            r"\pagestyle{hwde}",
             r"\begin{document}",
             r"\sloppy",
         ])
@@ -998,6 +1020,10 @@ def resolve_workspace(arg: str) -> Path:
     rel = Path(*p.parts[1:]) if p.parts[:1] == ("boards",) else p
     candidates = [p] if p.is_absolute() else [
         Path.cwd() / p, env.boards_root() / rel, env.repo_root() / p]
+    # A board's old name, its part number or its <PN>_<name> directory all
+    # find it through the register (boardreg.locate).
+    candidates.append(boardreg.locate(
+        p if p.is_absolute() else env.boards_root() / rel, env.boards_root()))
     for c in candidates:
         if (c / "state.json").is_file():
             return c.resolve()
@@ -1088,6 +1114,7 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
         builder.warn("cc-docs filing failed (rc=%d): %s"
                      % (cp.returncode, (cp.stderr or "").strip()[:200]))
         return
+    builder.filed = ((cp.stdout or "").strip().splitlines() or [""])[0]
     if digest is not None:
         stamp.write_text(json.dumps(want), encoding="utf-8")
 
@@ -1148,6 +1175,7 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
         "missing": builder.missing,
         "warnings": builder.warnings,
         "compile": comp,
+        "filed": builder.filed,
     }
     return payload, (1 if violations else 0)
 

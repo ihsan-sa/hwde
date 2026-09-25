@@ -142,7 +142,7 @@ verbs:
     steps:
       - do: "scripts/state.py budget --workspace {ws} --path fix_loops.{gate} --consume"
         why: "exit 2 = budget exhausted -> ESCALATE, never loop again"
-      - do: "scripts/state.py snapshot --workspace {ws} --label pre-fix-{gate} --files kicad/{board}.kicad_pcb"
+      - do: "scripts/state.py snapshot --workspace {ws} --label pre-fix-{gate} --files kicad/{project}.kicad_pcb"
         why: "the rollback point; add the .kicad_sch for P4-phase fixes"
       - do: "scripts/fix_dispatch.py --input {findings} --board {pcb} --state {state} --out {log}/dispatch.json"
         why: "clusters by (net, kind, region), writes one work order per cluster
@@ -190,7 +190,7 @@ verbs:
       footprint:
         when: always
         steps:
-          - do: "scripts/state.py snapshot --workspace {ws} --label pre-move-{ref} --files kicad/{board}.kicad_pcb"
+          - do: "scripts/state.py snapshot --workspace {ws} --label pre-move-{ref} --files kicad/{project}.kicad_pcb"
             why: "atomic rollback point (place_edit is atomic per invocation, the
                   re-route that follows is not)"
           - do: "scripts/place_edit.py --pcb {pcb} --ops {work}/ops.json --allow-routed --out-report {reports}/place_edit.json"
@@ -347,7 +347,7 @@ verbs:
             '\bre-?path\b', '\bshorten\b', '\bthicken\b', '\bre-?do the (routing|tracks)\b']
       not: ['\broute (the )?(order|shipment)\b']
     steps:
-      - do: "scripts/state.py snapshot --workspace {ws} --label pre-reroute --files kicad/{board}.kicad_pcb"
+      - do: "scripts/state.py snapshot --workspace {ws} --label pre-reroute --files kicad/{project}.kicad_pcb"
         why: "route surgery has no undo of its own beyond this"
       - do: "scripts/route_edit.py --pcb {pcb} --ops {work}/ops.json --out-report {reports}/route_edit.json"
         why: 'the ONLY writer for track/via changes outside route_auto: ops =
@@ -392,7 +392,7 @@ verbs:
             '\b(grow|enlarge) the board\b']
       not: ['\b(footprint|silk|courtyard|pad|zone) outline\b']
     steps:
-      - do: "scripts/state.py snapshot --workspace {ws} --label pre-outline --files kicad/{board}.kicad_pcb"
+      - do: "scripts/state.py snapshot --workspace {ws} --label pre-outline --files kicad/{project}.kicad_pcb"
         why: "the edit is atomic, the re-pour and re-route that follow are not"
       - do: "scripts/board_edit.py --pcb {pcb} --outline {size} --report-only --out-report {reports}/board_edit-preview.json"
         why: "exit 1 lists what the new outline would push outside the board or

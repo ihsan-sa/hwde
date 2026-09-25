@@ -94,3 +94,99 @@ def test_boards_root_env(monkeypatch, tmp_path):
     monkeypatch.delenv("HWDE_BOARDS_ROOT")
     monkeypatch.delenv("AIEE_BOARDS_ROOT", raising=False)
     assert env.boards_root() == Path.home() / "dev" / "boards"
+
+
+# ---- <PN>_<name> directories (owner, #ai-ee: "project names/folders should
+# be PN_[human-name]") ----------------------------------------------------
+
+NUMBERED = """products:
+  PCB-0016:
+    title: pd trigger lite
+    revs:
+      A: {dir: PCB-0016-A_pd-lite, date: 2026-09-24}
+      B: {dir: pd-lite-dip, date: 2026-09-24}
+  PCB-0020:
+    title: issued, not built yet
+    revs:
+      A: {dir: PCB-0020-A_fresh, date: 2026-09-25}
+"""
+
+
+def numbered(tmp_path: Path) -> Path:
+    root = tmp_path / "root"
+    for d in ("PCB-0016-A_pd-lite", "pd-lite-dip", "stray"):
+        (root / d).mkdir(parents=True)
+    (root / "register.yaml").write_text(NUMBERED, encoding="utf-8")
+    return root
+
+
+def test_split_dir():
+    assert boardreg.split_dir("PCB-0016-A_pd-trigger-lite") == (
+        "PCB-0016-A", "pd-trigger-lite")
+    assert boardreg.split_dir("pd-trigger-lite") == (None, "pd-trigger-lite")
+    assert boardreg.split_dir("PCB-0016-I_x") == (None, "PCB-0016-I_x")
+
+
+def test_resolve_by_old_name_pn_or_new_dir(tmp_path):
+    root = numbered(tmp_path)
+    new = root / "PCB-0016-A_pd-lite"
+    assert boardreg.resolve("pd-lite", root) == new
+    assert boardreg.resolve("PCB-0016-A", root) == new
+    assert boardreg.resolve("PCB-0016-A_pd-lite", root) == new
+    assert boardreg.resolve("PCB-0016-B", root) == root / "pd-lite-dip"
+    assert boardreg.resolve("pd-lite-dip", root) == root / "pd-lite-dip"
+    # issued but not created, unlisted, or unknown: none, never a guess
+    assert boardreg.resolve("PCB-0020-A", root) is None
+    assert boardreg.resolve("nope", root) is None
+    assert boardreg.resolve("PCB-0099-A", root) is None
+
+
+def test_resolve_lone_pn_dir_without_register(tmp_path):
+    root = tmp_path / "root"
+    (root / "PCB-0003-A_solo").mkdir(parents=True)
+    assert boardreg.resolve("solo", root) == root / "PCB-0003-A_solo"
+    (root / "PCB-0003-B_solo").mkdir()
+    assert boardreg.resolve("solo", root) is None   # two: ambiguous
+
+
+def test_new_dir_takes_the_register_issued_name(tmp_path):
+    root = numbered(tmp_path)
+    assert boardreg.new_dir("fresh", root) == "PCB-0020-A_fresh"
+    assert boardreg.new_dir("fresh", root, "PCB-0020-A") == "PCB-0020-A_fresh"
+    assert boardreg.new_dir("unissued", root) == "unissued"
+    try:
+        boardreg.new_dir("x", root, "PCB-0099-A")
+    except ValueError as exc:
+        assert "PCB-0099-A is not in" in str(exc)
+    else:
+        raise AssertionError("an unlisted --pn must be refused")
+
+
+def test_locate(tmp_path):
+    root = numbered(tmp_path)
+    assert boardreg.locate("pd-lite", root) == root / "PCB-0016-A_pd-lite"
+    assert boardreg.locate(root / "pd-lite", tmp_path) == \
+        root / "PCB-0016-A_pd-lite"
+    assert boardreg.locate("fresh", root) == root / "PCB-0020-A_fresh"
+    assert boardreg.locate("nope", root) == Path("nope")
+
+
+def test_project_stem_finds_the_kicad_pro(tmp_path):
+    from lib import statelib
+    ws = tmp_path / "PCB-0016-A_pd-lite"
+    kicad = ws / "kicad"
+    kicad.mkdir(parents=True)
+    # new numbered board, nothing written yet: the directory's own name
+    assert statelib.project_stem(ws, "pd-lite") == "PCB-0016-A_pd-lite"
+    (kicad / "pd-lite.kicad_pro").write_text("{}")
+    assert statelib.project_stem(ws, "pd-lite") == "pd-lite"
+    (kicad / "pd-lite.kicad_pro").rename(kicad / "PCB-0016-A_pd-lite.kicad_pro")
+    assert statelib.project_stem(ws, "pd-lite") == "PCB-0016-A_pd-lite"
+    imap = statelib.load_map()
+    assert statelib.kind_path("pcb", "pd-lite", imap, {}, ws) == \
+        "kicad/PCB-0016-A_pd-lite.kicad_pcb"
+    assert statelib.kind_path("pcb", "pd-lite", imap, {}) == \
+        "kicad/pd-lite.kicad_pcb"
+    (kicad / "other.kicad_pro").write_text("{}")
+    assert statelib.project_stem(ws, "pd-lite") == "pd-lite"  # several
+    assert statelib.project_stem(tmp_path / "bare", "bare") == "bare"
