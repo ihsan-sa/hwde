@@ -68,6 +68,8 @@ ENV DEVCONTAINER=true \
     HWDE_FREEROUTING_JAR=/opt/freerouting/freerouting-2.2.4.jar \
     HWDE_KRT_DIR=/opt/krt/KiCadRoutingTools-0.19.0/plugins \
     HWDE_NGSPICE_DLL=/usr/lib/x86_64-linux-gnu/libngspice.so.0 \
+    # boards repo mount (env.boards_root(); hwde-loop exports the same default)
+    HWDE_BOARDS_ROOT=/workspace/boards \
     # SWIG Specctra export/import needs an X display: Xvfb :99 is started by project-init
     DISPLAY=:99
 COPY --chmod=755 docker/project-init docker/hwde-loop /usr/local/bin/

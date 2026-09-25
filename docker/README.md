@@ -34,8 +34,9 @@ Toolchain pins in the container are env vars read by `scripts/lib/env.py`:
 
 `hwde-loop` reads `HWDE_REPO_DIR` (the hwde repo checkout, default `/workspace`),
 `HWDE_RUN_CONTRACT` (default `docker/run-contract.md`) and `HWDE_BOARDS_ROOT`
-(the boards repo, default `/workspace/boards`), so it does not care how the
-container was started. Board workspaces live in their own repo, `~/dev/boards`
+(the boards repo, default `/workspace/boards`, which the image also sets and
+the loop exports, so claude and every hwde script it runs use the same root).
+It does not care how the container was started. Board workspaces live in their own repo, `~/dev/boards`
 on the host; mount it into the container at that path (e.g.
 `-v ~/dev/boards:/workspace/boards`), or point `HWDE_BOARDS_ROOT` elsewhere.
 `hwde-loop` commits board-state checkpoints inside that mount, in the boards

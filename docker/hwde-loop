@@ -19,7 +19,8 @@ MAXI=12; TURNS=400; ITO=21600; MODEL=claude-opus-5; EFFORT=xhigh
 while [ $# -gt 0 ]; do case "$1" in
   --max-iter) MAXI="$2"; shift;; --turns) TURNS="$2"; shift;; --iter-timeout) ITO="$2"; shift;;
   --model) MODEL="$2"; shift;; --effort) EFFORT="$2"; shift;; *) echo "hwde-loop: unknown arg $1" >&2; exit 2;; esac; shift; done
-BOARDS_ROOT="${HWDE_BOARDS_ROOT:-/workspace/boards}"
+# Exported so claude and every hwde script under it (env.boards_root()) resolve the same root.
+export HWDE_BOARDS_ROOT="${HWDE_BOARDS_ROOT:-/workspace/boards}"; BOARDS_ROOT="$HWDE_BOARDS_ROOT"
 WS="$BOARDS_ROOT/$BOARD"; BRIEF="$WS/brief/brief.md"; J="$WS/log/run-journal.md"; RUNS="$WS/log/run"
 CONTRACT="${HWDE_RUN_CONTRACT:-docker/run-contract.md}"
 [ -f "$BRIEF" ] || { echo "hwde-loop: no brief at $BRIEF" >&2; exit 2; }
