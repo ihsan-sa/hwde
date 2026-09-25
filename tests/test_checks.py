@@ -514,10 +514,13 @@ def test_reg_input_carrier_known_answer():
     the batch, invisible to value classing. With role=reg_input declared in
     the carrier sidecar this MUST fire; U20 (C61 100 nF at 5.16 mm) is the
     clean twin proving the group can pass."""
-    ws = REPO / "boards" / "lumina-carrier" / "kicad"
+    # the routed carrier PCB is frozen in the stage fixtures; its sidecar
+    # (with the reg_input roles) is copied from the board as it shipped
+    fix = REPO / "tests" / "fixtures"
     payload, _ = check_decoupling.run(
-        ["--pcb", str(ws / "lumina-carrier.kicad_pcb"),
-         "--metadata", str(ws / "decoupling.json")])
+        ["--pcb", str(fix / "stages" / "lumina_carrier" / "routed.kicad_pcb"),
+         "--metadata",
+         str(fix / "checks" / "lumina-carrier.decoupling.json")])
     ri = [v for v in payload["violations"] if v["kind"] == "reg_input_no_hf"]
     assert len(ri) == 1
     v = ri[0]

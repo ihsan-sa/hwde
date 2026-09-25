@@ -26,13 +26,15 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / ".claude" / "skills" / "hwde"
 SCRIPTS = SKILL / "scripts"
 RECIPES = SKILL / "reference" / "recipes"
-RF_DE = ROOT / "boards" / "rf-de-20m"
 
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import learnings as cli  # noqa: E402
 import learnlib  # noqa: E402
+from _boards import BOARDS, board_path, need_board  # noqa: E402
+
+RF_DE = board_path("rf-de-20m")
 
 ENTRY_A = """## 2026-08-14 [P6][placement] Locking an anchor orphans its group
 
@@ -306,6 +308,7 @@ def test_a_failed_root_promotion_does_not_strand_the_rest_of_the_pass(
 # ---------------------------------------------------------------------------
 def test_rf_de_backlog_is_processed_end_to_end():
     """U6 acceptance: 66 entries, each promoted or explicitly declined."""
+    need_board("rf-de-20m")
     queue = learnlib.load_queue(RF_DE)
     assert queue is not None, "rf-de-20m has no compiled queue"
     rows = queue["entries"]
@@ -323,12 +326,14 @@ def test_rf_de_backlog_is_processed_end_to_end():
 
 
 def test_rf_de_queue_lints_clean():
+    need_board("rf-de-20m")
     problems, _ = learnlib.validate_queue(RF_DE)
     assert problems == [], problems
 
 
 def test_rf_de_root_promotions_are_in_the_register():
     """Every root_learnings ruling points at a row that is really there."""
+    need_board("rf-de-20m")
     rows = [r for r in learnlib.load_queue(RF_DE)["entries"]
             if (r.get("resolution") or {}).get("kind") == "root_learnings"]
     assert len(rows) >= 30
@@ -350,7 +355,8 @@ def test_every_run_recipe_ends_with_the_compile_step():
 
 
 def test_sweep_reports_every_workspace_that_captures_learnings(capsys):
-    code, payload = _run(["sweep", "--boards-dir", str(ROOT / "boards")],
+    need_board("rf-de-20m")
+    code, payload = _run(["sweep", "--boards-dir", str(BOARDS)],
                          capsys)
     assert code == 0
     boards = {b["board"]: b for b in payload["boards"]}

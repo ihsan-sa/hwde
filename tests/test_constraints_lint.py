@@ -31,6 +31,7 @@ PYTHON = sys.executable
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 import constraints_lint  # noqa: E402
+from _boards import BOARDS  # noqa: E402
 
 
 def lint_doc(tmp_path: Path, doc, name: str = "frag.json"):
@@ -195,14 +196,18 @@ def test_explicit_empty_diff_pairs_is_clean(tmp_path):
 # ================================================== shipped artifacts
 
 SHIPPED = sorted(
-    list(REPO.glob("boards/*/research/*.json"))
-    + list(REPO.glob("boards/*/architecture/constraints.json"))
-    + list(REPO.glob("boards/*/kicad/constraints.json")))
+    list(BOARDS.glob("*/research/*.json"))
+    + list(BOARDS.glob("*/architecture/constraints.json"))
+    + list(BOARDS.glob("*/kicad/constraints.json")))
 
 
-@pytest.mark.parametrize("path", SHIPPED, ids=lambda p: str(
-    p.relative_to(REPO)).replace("\\", "/"))
+@pytest.mark.parametrize("path", SHIPPED or [None], ids=lambda p: (
+    "no-boards-repo" if p is None
+    else "boards/" + p.relative_to(BOARDS).as_posix()))
 def test_shipped_artifacts_have_no_errors(path):
+    if path is None:
+        pytest.skip(f"needs the boards repo ({BOARDS}; set HWDE_BOARDS_ROOT)"
+                    " - no shipped constraints found there")
     vs, _ = constraints_lint.lint_file(path)
     errs = errors(vs)
     assert not errs, [e["msg"] for e in errs]

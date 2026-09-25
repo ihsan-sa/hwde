@@ -38,6 +38,7 @@ import state as state_mod  # noqa: E402
 import statelib  # noqa: E402
 import task_router  # noqa: E402
 from checklib import CheckError  # noqa: E402
+from _boards import board_path, need_board  # noqa: E402
 
 BOARD = "wb"
 
@@ -320,15 +321,14 @@ def test_full_run_recipe_and_skill_state_the_gate_form():
 
 # ------------------------------------------- 5. the board that found the hole
 
-BB = REPO / "boards" / "bb-buck"
+BB = board_path("bb-buck")
 
 
-@pytest.mark.skipif(not (BB / "state.json").is_file(),
-                    reason="bb-buck workspace not present")
 def test_bb_buck_gates_are_recorded_and_fresh():
     """Back-recorded from its committed reports (five digest-matched, place
     re-run against the routed board). Six gates, all fresh - the board keeps
     honest provenance instead of an empty `gates: {}`."""
+    need_board("bb-buck")
     st = state_mod.State.load(BB / "state.json")
     summary = st.resume_summary()
     assert summary["gates_passed"] == ["erc", "place", "drc_routed", "verify",
@@ -340,12 +340,11 @@ def test_bb_buck_gates_are_recorded_and_fresh():
         assert all(v for v in entry["last"]["inputs"].values()), g
 
 
-@pytest.mark.skipif(not (BB / "state.json").is_file(),
-                    reason="bb-buck workspace not present")
 def test_bb_buck_gerbers_artifact_is_hashed_and_unmarked():
     """The P6 move_fp / P7 reroute_net marks on `gerbers` outlived the
     re-export: the zip was regenerated at P9 and never re-hashed, so the
     registry still carried sha256 null plus two stale marks."""
+    need_board("bb-buck")
     st = state_mod.State.load(BB / "state.json")
     entry = st.data["artifacts"]["gerbers"]
     assert entry["sha256"] and entry["sha256"].startswith("gerber_design:")

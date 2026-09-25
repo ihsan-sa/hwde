@@ -275,9 +275,9 @@ def test_mutant_current_density_max_at_neck(golden_irdrop, mutant_irdrop):
 
 @pytest.mark.smoke
 def test_pd_trigger_5a_maps_under_30s():
-    pcb = REPO / "boards" / "pd-trigger" / "kicad" / "pd-trigger.kicad_pcb"
-    if not pcb.exists():
-        pytest.skip("pd-trigger board not present")
+    # the routed pd-trigger board, frozen in the stage fixtures
+    pcb = (REPO / "tests" / "fixtures" / "stages" / "pd_trigger" / "route"
+           / "pd-trigger.kicad_pcb")
     bg = geom.load_board(pcb)
     for entry in ({"net": "VBUS", "current_a": 5.0},
                   {"net": "GND", "current_a": 5.0}):

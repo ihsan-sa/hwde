@@ -25,7 +25,6 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / ".claude" / "skills" / "hwde"
 SCRIPTS = SKILL / "scripts"
-RF_DE = ROOT / "boards" / "rf-de-20m"
 
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
@@ -36,6 +35,9 @@ import learnings as lcli  # noqa: E402
 import learnlib  # noqa: E402
 import task_router as tr  # noqa: E402
 from checklib import CheckError  # noqa: E402
+from _boards import board_path  # noqa: E402
+
+RF_DE = board_path("rf-de-20m")
 
 GOLDEN = ROOT / "tests" / "golden" / "blinky2"
 S7_NET = ROOT / "tests" / "s7_regen" / "blinky2" / "golden.net"

@@ -31,12 +31,13 @@ import geom  # noqa: E402
 import placelib  # noqa: E402
 import statelib  # noqa: E402
 from checklib import CheckError  # noqa: E402
+from _boards import board_path, need_board  # noqa: E402
 
 PD_DIR = REPO / "tests" / "fixtures" / "stages" / "pd_trigger" / "route"
 PD_PCB = PD_DIR / "pd-trigger.kicad_pcb"
 UB = REPO / "tests" / "golden" / "usbbuck4"
 UB_PCB = UB / "usbbuck4.kicad_pcb"
-BB = REPO / "boards" / "bb-buck"
+BB = board_path("bb-buck")
 
 
 # ---------------------------------------------------------------- helpers
@@ -265,14 +266,18 @@ def test_resize_board_verb_is_bound_to_this_script():
     assert not any("state.py edit" in c for c in cmds)
 
 
-def test_find_workspace_is_one_definition():
+def test_find_workspace_is_one_definition(tmp_path):
     """U16 put "which state.json owns this file" in gate.py; U17 needs the
     same answer, so the definition moved to statelib and gate.py aliases it."""
     import gate
     assert "def find_workspace" not in \
         (SCRIPTS / "gate.py").read_text(encoding="utf-8")
     assert gate.find_workspace.__module__.endswith("statelib")
-    assert statelib.find_workspace(BB / "kicad" / "bb-buck.kicad_pcb") == BB
+    ws = tmp_path / "wsx"
+    (ws / "kicad").mkdir(parents=True)
+    (ws / "state.json").write_text("{}", encoding="utf-8")
+    (ws / "kicad" / "wsx.kicad_pcb").write_text("", encoding="utf-8")
+    assert statelib.find_workspace(ws / "kicad" / "wsx.kicad_pcb") == ws
     assert statelib.find_workspace(PD_PCB) is None      # fixture, no workspace
     with pytest.raises(RuntimeError, match="no state.json"):
         statelib.find_workspace(None, str(REPO / "tests"))
@@ -360,6 +365,7 @@ def test_shrink_to_fit_bb_buck_and_record_the_edit(tmp_path):
     outline no larger than its own content bbox + margin, and the edit lands
     in the workspace's state.json as outline_change (nobody has to remember
     a second command)."""
+    need_board("bb-buck")
     ws = tmp_path / "bb"
     ws.mkdir()
     shutil.copy2(BB / "state.json", ws / "state.json")

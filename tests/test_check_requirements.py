@@ -28,6 +28,7 @@ sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import check_requirements  # noqa: E402
+from _boards import real_board  # noqa: E402
 
 ROOT_BOARDS = ["stm32-blinky", "usb-buck", "pd-trigger", "lumina-par",
                "lumina-strobe"]
@@ -51,7 +52,7 @@ def kinds(payload):
 
 @pytest.mark.parametrize("board", ROOT_BOARDS)
 def test_real_boards_pass(board, capsys):
-    code, payload = run(REPO / "boards" / board, None, capsys)
+    code, payload = run(real_board(board), None, capsys)
     assert code == 0, payload["violations"]
     assert payload["status"] == "pass"
     assert set(range(1, 10)) <= set(payload["sections_found"])
@@ -60,7 +61,7 @@ def test_real_boards_pass(board, capsys):
 def test_carrier_misplaced(capsys):
     """The one live escape: lumina-carrier wrote to architecture/ and the
     design-doc PDF shipped a 'not found' stub."""
-    code, payload = run(REPO / "boards" / "lumina-carrier", None, capsys)
+    code, payload = run(real_board("lumina-carrier"), None, capsys)
     assert code == 1
     assert kinds(payload) == ["req_misplaced"]
     v = payload["violations"][0]
