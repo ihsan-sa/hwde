@@ -181,6 +181,11 @@ mid-run, not only after. NON-BLOCKING by contract: on exit 1/2 log the
 payload warnings (`state.py log --event report_gen_degraded`), point at the
 .tex or last good PDF, and continue - the report never gates the run.
 (Without pdflatex it degrades to .tex-only; check_env warns.)
+Those runs file nothing in the document register. Only the FINAL report, the
+finished design doc, is filed: run it with `--file` (project Boards), or put
+DOC_PROJECT on that one command line (`DOC_PROJECT=Boards report_gen.py ...
+--file`). Never export DOC_PROJECT for the session, because then every run
+files. A rebuild whose content has not changed files nothing.
 
 ## Board guide (owner-facing, per board)
 

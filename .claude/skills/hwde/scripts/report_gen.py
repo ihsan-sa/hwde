@@ -19,7 +19,13 @@ reports/cost.json (gen_cost.py): the total, the split by step or the reason
 there is none. A missing cost.json is a warning and a "not recorded" line.
 
 A finished PDF is filed under the Boards project ("<board> design doc") with
-`cc-docs file` when cc-docs is on PATH; a failed filing only warns.
+`cc-docs file` only when asked: `--file` (the command a person or session runs
+to finish a report) or DOC_PROJECT set in the environment (its value is the
+project). With neither, the PDF is built and nothing is filed, so test runs and
+scratch builds never reach the register. A filing that succeeds leaves
+reports/design_doc/.filed.json (a hash of the .tex, its "generated" time
+left out, and of the images it includes); a rebuild whose hash matches files
+nothing. A failed filing only warns and leaves the stamp alone.
 
 Exit 0 "pass"   = requested outputs produced (--tex-only: the .tex alone).
 Exit 1 "violations" = degraded: compile failed, pdflatex absent (auto
@@ -28,13 +34,15 @@ Exit 2 "error"  = unusable workspace / internal error (a bad HWDE_PDFLATEX
                   pin propagates here - loud, never degraded).
 
 CLI:
-  report_gen.py --workspace boards/<name> [--out report.json] [--tex-only]
+  report_gen.py --workspace boards/<name> [--out report.json] [--tex-only] [--file]
                 [--name NAME]
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -995,19 +1003,52 @@ def load_state(ws: Path) -> dict:
     return d
 
 
-def file_in_register(pdf: Path, board: str, builder) -> None:
+FILED_STAMP = ".filed.json"
+_GENERATED_RE = re.compile(r"generated \d{4}-\d\d-\d\d \d\d:\d\d:\d\d")
+_GRAPHICS_RE = re.compile(r"\\include(?:graphics|pdf)(?:\[[^\]]*\])?\{([^}]*)\}")
+
+
+def content_hash(tex_text: str, ws: Path) -> str:
+    """Hash what the document says: the .tex without its build time, plus
+    the bytes of every image it includes (paths are relative to ws)."""
+    h = hashlib.sha256(_GENERATED_RE.sub("generated", tex_text).encode("utf-8"))
+    for rel in sorted(set(_GRAPHICS_RE.findall(tex_text))):
+        img = ws / rel
+        h.update(rel.encode("utf-8"))
+        if img.is_file():
+            h.update(hashlib.sha256(img.read_bytes()).digest())
+    return h.hexdigest()
+
+
+def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
+                     digest: str | None = None) -> None:
     """File the finished design doc under the Boards project with cc-docs.
 
-    Only when cc-docs is on PATH; a failed filing warns and never fails the
+    Only when asked (requested, or DOC_PROJECT in the environment) and cc-docs
+    is on PATH; a failed filing warns and never fails the
     report. cc-docs stamps the number itself. Its output is captured so
-    stdout stays the JSON payload.
+    stdout stays the JSON payload. With a digest, a matching FILED_STAMP next
+    to the PDF (same digest and project) skips the filing, and a successful
+    filing writes it.
     """
+    project = os.environ.get("DOC_PROJECT", "").strip()
+    if not (requested or project):
+        return
+    project = project or "Boards"
+    stamp = pdf.parent / FILED_STAMP
+    want = {"digest": digest, "project": project}
+    if digest is not None:
+        try:
+            if json.loads(stamp.read_text(encoding="utf-8")) == want:
+                return
+        except (OSError, ValueError):
+            pass
     exe = shutil.which("cc-docs")
     if exe is None:
         return
     try:
         cp = subprocess.run(
-            [exe, "file", str(pdf), "--project", "Boards", "--title",
+            [exe, "file", str(pdf), "--project", project, "--title",
              f"{board} design doc", "--source", str(pdf)],
             capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired) as exc:
@@ -1016,9 +1057,13 @@ def file_in_register(pdf: Path, board: str, builder) -> None:
     if cp.returncode != 0:
         builder.warn("cc-docs filing failed (rc=%d): %s"
                      % (cp.returncode, (cp.stderr or "").strip()[:200]))
+        return
+    if digest is not None:
+        stamp.write_text(json.dumps(want), encoding="utf-8")
 
 
-def run(workspace: str, name: str | None = None, tex_only: bool = False) -> tuple[dict, int]:
+def run(workspace: str, name: str | None = None, tex_only: bool = False,
+        file_doc: bool = False) -> tuple[dict, int]:
     ws = resolve_workspace(workspace)
     st = load_state(ws)
     doc_name = f"{name or st['board']}-design-doc"
@@ -1056,7 +1101,8 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False) -> tupl
             pages = count_pages(pdf_path)
             if pages is None:
                 builder.warn("pypdf could not read the produced PDF")
-            file_in_register(pdf_path, name or st["board"], builder)
+            file_in_register(pdf_path, name or st["board"], builder, file_doc,
+                             content_hash(tex_text, ws))
 
     degraded = (not tex_only) and pdf_path is None
     violations = bool(builder.missing) or degraded
@@ -1086,12 +1132,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", help="write the JSON payload here instead of stdout")
     ap.add_argument("--tex-only", action="store_true",
                     help="write the .tex only; skip the pdflatex compile")
+    ap.add_argument("--file", action="store_true", dest="file_doc",
+                    help="file the finished PDF in the document register "
+                         "(also: DOC_PROJECT set); default files nothing")
     ap.add_argument("--name", help="override the board name from state.json")
     args = ap.parse_args(argv)
 
     try:
         payload, code = run(args.workspace, name=args.name,
-                            tex_only=args.tex_only)
+                            tex_only=args.tex_only, file_doc=args.file_doc)
     except Exception as exc:  # noqa: BLE001 (SPEC: any error -> exit 2)
         err = {"script": "report_gen", "status": "error",
                "error": f"{type(exc).__name__}: {exc}"}
