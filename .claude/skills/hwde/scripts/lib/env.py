@@ -17,6 +17,8 @@ never silently ignored - a wrong pin must fail loudly):
   HWDE_FREEROUTING_JAR  full path to a freerouting jar
   HWDE_PDFLATEX         full path to a pdflatex executable (for report_gen)
   HWDE_NGSPICE_DLL      full path to a shared ngspice library (for sim_run)
+  HWDE_BOARDS_ROOT      where board workspaces live (default ~/dev/boards, the
+                        boards repo; hwde itself holds no boards)
 
 The skill was ai-ee before it was hwde, so the pre-rename AIEE_* spelling of
 every one of these is still read (HWDE_ wins when both are set) - an existing
@@ -88,6 +90,31 @@ def repo_root() -> Path:
             return parent
     # Fallback: fixed relative position .claude/skills/hwde/scripts/lib/env.py
     return p.parents[5]
+
+
+def boards_root() -> Path:
+    """Where board workspaces live: HWDE_BOARDS_ROOT, else ~/dev/boards.
+
+    Boards are their own repo (ihsan-sa/boards), not part of the skill, so
+    every default workspace location, sweep and render resolves through here.
+    Not validated: a fresh box may not have cloned the boards repo yet, and
+    the caller that needs a workspace says so when it is missing.
+    """
+    val, _ = skill_env("BOARDS_ROOT")
+    return Path(val or "~/dev/boards").expanduser()
+
+
+def is_boards_dir(path: Path) -> bool:
+    """True when `path` is a directory that holds board workspaces: the
+    configured boards_root(), or any directory named `boards` (the layout a
+    test fixture or an older checkout uses)."""
+    p = Path(path)
+    if p.name == "boards":
+        return True
+    try:
+        return p.resolve() == boards_root().resolve()
+    except OSError:
+        return False
 
 
 def _run(cmd: list[str], timeout: int = _TIMEOUT) -> subprocess.CompletedProcess:

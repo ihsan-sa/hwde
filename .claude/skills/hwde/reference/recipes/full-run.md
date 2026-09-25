@@ -103,13 +103,13 @@ boards may use ONE schematic agent (record it).
 ## Run close, resuming, and what not to do
 
 Before the run is finished: append what this board taught to
-`boards/<b>/LEARNINGS.md` (dated, stage-tagged, one claim per heading), then
-`learnings.py compile --workspace boards/<b>` - at the END, an entry's value is
+`~/dev/boards/<b>/LEARNINGS.md` (dated, stage-tagged, one claim per heading), then
+`learnings.py compile --workspace ~/dev/boards/<b>` - at the END, an entry's value is
 often only clear two phases later. Compiling is not promoting: entries stay
 `pending` for the `promote` pass. `compile` also exits 1 naming research the
 second reader never cleared: drafts never inject, so the board shipped without
 it. Bring-up close (T11): `state.py log --event bringup_passed`, then
-`knowledge.py --prove --workspace boards/<b>` (`--dry-run` first) - every record
+`knowledge.py --prove --workspace ~/dev/boards/<b>` (`--dry-run` first) - every record
 that APPLIED becomes `proven` with its evidence entry.
 
 A killed run resumes through `resume-phase`. A change of mind after P5 is not a

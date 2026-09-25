@@ -21,8 +21,8 @@ restates them, so the map stays the single source of truth (T7).
 
 The full pipeline is the `full-run` verb: same table, same step vocabulary.
 
-  task_router.py --task "swap R5 for a 10k" --workspace boards/pd-trigger
-  task_router.py --verb move --workspace boards/x --arg ref=C12
+  task_router.py --task "swap R5 for a 10k" --workspace ~/dev/boards/pd-trigger
+  task_router.py --verb move --workspace ~/dev/boards/x --arg ref=C12
   task_router.py --list            # the verb table (summaries + args)
   task_router.py --validate        # registry self-check (scripts/flags/gates)
 
@@ -681,7 +681,8 @@ def run(argv: list[str] | None = None) -> tuple[dict, str | None]:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--task", help="the request, in the user's own words")
     ap.add_argument("--verb", help="force a verb (the LLM-classification path)")
-    ap.add_argument("--workspace", help="boards/<name> (may not exist yet)")
+    ap.add_argument("--workspace", help="<boards root>/<name>, the boards root being "
+                         "HWDE_BOARDS_ROOT or ~/dev/boards (may not exist yet)")
     ap.add_argument("--arg", action="append", default=[], metavar="K=V",
                     help="fill a recipe argument explicitly (repeatable)")
     ap.add_argument("--findings", help="gate result / check report for "
@@ -786,7 +787,7 @@ def run(argv: list[str] | None = None) -> tuple[dict, str | None]:
     if "workspace" in needs:
         for item in need_list:
             if item["arg"] == "workspace":
-                item["question"] = ("Which workspace? (boards/<name> with a "
+                item["question"] = ("Which workspace? (~/dev/boards/<name> with a "
                                     "state.json)")
 
     blocked = [p for p in pres if not p["ok"]]

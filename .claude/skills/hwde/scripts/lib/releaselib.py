@@ -54,6 +54,7 @@ _HERE = str(Path(__file__).resolve().parent)
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 import checklib  # noqa: E402
+import env  # noqa: E402
 import statelib  # noqa: E402
 from checklib import CheckError  # noqa: E402
 
@@ -244,7 +245,7 @@ def waivers_for_input(input_file: Path) -> Path | None:
     p = Path(input_file)
     candidates = []
     for parent in p.resolve().parents:
-        if parent.parent.name == "boards":
+        if env.is_boards_dir(parent.parent):
             candidates.append(parent / "reports" / "verify-waivers.json")
             break
     candidates.append(p.parent / "reports" / "verify-waivers.json")

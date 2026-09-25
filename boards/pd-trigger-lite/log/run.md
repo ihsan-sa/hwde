@@ -1,4 +1,0 @@
-- 2026-09-24 P1/P2 done inline: CH224A + 6P USB-C + Rset links; architecture/ written, 8 decisions recorded. Next: P2 coverage, H1, P3 parts.
-- 2026-09-24 P3: parts/parts.json (10 assembled lines, 2 extended), CH224A extract, lib pulled + pin types + 3 lib edits (lib/EDITS.md). Coverage P3 1/1 covered. Next: P4 schematic gen.
-- 2026-09-24 P4 done: ERC 0/0, review 0E/2W waived, H2 approved (delegate). JP links = empty 0603 lands, R7 0R for /VHV. Next: P5 board_init 25x15 + rules_gen, P6 manual placement.
-- 2026-09-24 P5-P7 done: 25x15, manual place + hand route, drc_routed 0/0. Next: P8 verify gate + reviewer, P9 DFM/fab, guide, README.

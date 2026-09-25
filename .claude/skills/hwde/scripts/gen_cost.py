@@ -57,7 +57,7 @@ Exit 2 "error"      no workspace / unreadable state.json, price table or
                     transcript.
 
 CLI:
-  gen_cost.py --workspace boards/<name> [--out reports/cost.json]
+  gen_cost.py --workspace ~/dev/boards/<name> [--out reports/cost.json]
               [--project-dir DIR ...] [--session FILE.jsonl ...]
               [--label TEXT] [--shared-with TEXT] [--loop-log FILE ...]
               [--note TEXT ...] [--history-tz +HH:MM] [--prices FILE]
@@ -505,7 +505,7 @@ def _tz(s: str | None):
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--workspace", required=True, help="boards/<name>")
+    ap.add_argument("--workspace", required=True, help="~/dev/boards/<name>")
     ap.add_argument("--out", help="write (and merge into) this JSON file, "
                     "normally <ws>/reports/cost.json; default stdout")
     ap.add_argument("--project-dir", action="append", default=[],

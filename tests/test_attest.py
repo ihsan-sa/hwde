@@ -36,6 +36,7 @@ import order_submit  # noqa: E402
 import releaselib  # noqa: E402
 import state as state_mod  # noqa: E402
 import statelib  # noqa: E402
+from _boards import copy_board, real_board  # noqa: E402
 
 BOARD = "attboard"
 PCB_TEXT = """(kicad_pcb (version 20260101) (generator "test")
@@ -519,15 +520,16 @@ def test_record_gate_refuses_stale_result_digest(tmp_path):
 
 # ------------------------------------------ real boards (read-only pins)
 
-def test_carrier_and_rfde_refused_in_current_state(capsys):
+def test_carrier_and_rfde_refused_in_current_state(capsys, tmp_path):
     """Codex C1 acceptance: order must refuse lumina-carrier and rf-de-20m
     in their CURRENT recorded states even with fresh dfm. attest build is
     the order verb's release step: it must exit 1 with the gaps named, and
     write nothing. (These pins read the committed board records; update
-    them only when the boards' recorded states genuinely change.)"""
+    them only when the boards' recorded states genuinely change. Each board
+    is copied first, so a regression that does write lands in tmp_path.)"""
     for board, expect in (("lumina-carrier", "verify"),
                           ("rf-de-20m", "drc_routed")):
-        ws = REPO / "boards" / board
+        ws = copy_board(board, tmp_path, skip=("work", "state_snapshots"))
         before = (ws / "fab" / "attestation.json").exists()
         assert attest.main(["disposition", "--workspace", str(ws)]) == 0
         d = json.loads(capsys.readouterr().out)
@@ -540,7 +542,7 @@ def test_carrier_and_rfde_refused_in_current_state(capsys):
 
 def test_pd_trigger_disposition_derated(capsys):
     """The shipped 1 oz override (codex C2) reads back as derated."""
-    ws = REPO / "boards" / "pd-trigger"
+    ws = real_board("pd-trigger")
     assert attest.main(["disposition", "--workspace", str(ws)]) == 0
     d = json.loads(capsys.readouterr().out)
     assert d["disposition"] == "derated"
@@ -877,7 +879,7 @@ def test_reference_attestations_verify_valid():
     manifest, issue final attestation') must carry attestations that verify
     VALID against the committed tree."""
     for board in REFERENCE_BOARDS:
-        ws = REPO / "boards" / board
+        ws = real_board(board)
         att = releaselib.load_attestation(ws)
         assert att is not None, f"{board}: no attestation recorded"
         assert releaselib.check_seal(att), f"{board}: seal mismatch"

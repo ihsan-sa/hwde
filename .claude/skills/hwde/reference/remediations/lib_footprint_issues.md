@@ -28,7 +28,7 @@ the project DRC actually loaded. Says nothing about pad geometry.
   1245, 1186).
 
 ## Fix ladder (cheapest first)
-1. Re-gate the PROJECT board: `gate.py --gate drc_routed boards/<ws>/kicad/<ws>.kicad_pcb`.
+1. Re-gate the PROJECT board: `gate.py --gate drc_routed ~/dev/boards/<ws>/kicad/<ws>.kicad_pcb`.
    Clean -> report false positive, stop. No library edit.
 2. To gate a staged board in place, give it a stem-matched project: copy `<ws>.kicad_pro`,
    `<ws>.kicad_dru`, `fp-lib-table` beside it, pro/dru RENAMED to the staged stem, re-run.
@@ -38,7 +38,7 @@ the project DRC actually loaded. Says nothing about pad geometry.
 4. Prove the library exists before blaming the pull: resolve the fp-lib-table URI
    (`${KIPRJMOD}/../lib/aiee.pretty`) and COUNT .kicad_mod on disk; never trust lib_pull.
 5. Only if parts are truly absent: `lib_pull.py --lcsc <id> --out-dir <ABSOLUTE> --project
-   boards/<ws>/kicad --verify-load --overwrite`, ~20 s per part, 180 s backoff (1186, 587).
+   ~/dev/boards/<ws>/kicad --verify-load --overwrite`, ~20 s per part, 180 s backoff (1186, 587).
 6. Escalate: "on the project board this is a project-file / lib-table defect, not a fixable
    cluster"; add `requires_pipeline_rewind` if footprints under placed parts would change.
 

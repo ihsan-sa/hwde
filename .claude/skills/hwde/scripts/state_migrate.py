@@ -21,8 +21,8 @@ Idempotent by construction: a version-2 file is reported and NOT rewritten
 (second run is a byte-level no-op). Anything other than v1/v2 is an error.
 
 CLI (SPEC 6):
-    state_migrate.py --workspace boards/pd-trigger        one workspace
-    state_migrate.py --boards-dir boards                  every */state.json
+    state_migrate.py --workspace ~/dev/boards/pd-trigger one workspace
+    state_migrate.py --boards-dir ~/dev/boards          every */state.json
 Exit 0 = all migrated/already-current, 2 = error.
 """
 from __future__ import annotations

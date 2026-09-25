@@ -37,6 +37,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import yaml  # noqa: E402
 
+import env  # noqa: E402
 import learnlib  # noqa: E402
 from checklib import utf8_stdout  # noqa: E402
 
@@ -154,9 +155,13 @@ def do_queue(args) -> tuple[dict, int]:
             "counts": counts, "shown": len(rows), "entries": rows}, 0
 
 
+def _boards_dir(args) -> Path:
+    return Path(args.boards_dir) if args.boards_dir else env.boards_root()
+
+
 def do_validate(args) -> tuple[dict, int]:
     boards = ([Path(args.workspace)] if args.workspace else
-              [Path(w["workspace"]) for w in learnlib.sweep(Path(args.boards_dir))
+              [Path(w["workspace"]) for w in learnlib.sweep(_boards_dir(args))
                if learnlib.queue_path(Path(w["workspace"])).is_file()])
     problems: list[str] = []
     warnings: list[str] = []
@@ -214,7 +219,7 @@ def do_resolve(args) -> tuple[dict, int]:
 
 
 def do_sweep(args) -> tuple[dict, int]:
-    rows = learnlib.sweep(Path(args.boards_dir))
+    rows = learnlib.sweep(_boards_dir(args))
     return {"script": SCRIPT, "status": "pass", "workspaces": len(rows),
             "pending_total": sum(r["pending"] for r in rows),
             "uncompiled_total": sum(r["uncompiled"] for r in rows),
@@ -254,7 +259,9 @@ def main(argv: list[str] | None = None) -> int:
 
     p = common(sub.add_parser("validate", help="lint the queue"))
     p.add_argument("--workspace")
-    p.add_argument("--boards-dir", default="boards")
+    p.add_argument("--boards-dir", default=None,
+                   help="dir of board workspaces (default: the boards "
+                        "root, HWDE_BOARDS_ROOT or ~/dev/boards)")
 
     p = common(sub.add_parser("resolve", help="promote or decline entries"))
     p.add_argument("--workspace", required=True)
@@ -273,7 +280,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--note", help="root_learnings: triage note")
 
     p = common(sub.add_parser("sweep", help="every workspace's queue state"))
-    p.add_argument("--boards-dir", default="boards")
+    p.add_argument("--boards-dir", default=None,
+                   help="dir of board workspaces (default: the boards "
+                        "root, HWDE_BOARDS_ROOT or ~/dev/boards)")
 
     common(sub.add_parser("triage",
                           help="recompute the triage header counts"))

@@ -779,3 +779,40 @@ def test_generation_cost_section(tmp_path, capsys):
 def sections_by_name_source(payload: dict) -> str:
     return next(s["source"] for s in payload["sections"]
                 if s["name"] == "run_record")
+
+
+def test_cc_docs_args_name_part_number_and_step_costs(tmp_path):
+    """The design-doc filing passes --describes PCB-NNNN-R from the register
+    beside the workspace, and one --cost step=usd per step of cost.json; an
+    unlisted board and a board with no cost.json pass neither."""
+    ws = make_workspace(tmp_path)
+    pdf = ws / "x.pdf"
+    args = report_gen.cc_docs_args(ws, "synth", pdf)
+    assert "--describes" not in args and "--cost" not in args
+    assert args[:2] == ["file", str(pdf)]
+
+    (tmp_path / "register.yaml").write_text(
+        "products:\n  PCB-0007:\n    title: t\n    revs:\n"
+        "      A: {dir: other}\n      B: {dir: synth}\n", encoding="utf-8")
+    (ws / "reports" / "cost.json").write_text(json.dumps({
+        "by_step": [{"step": "P4", "usd": 4.0}, {"step": "P7", "usd": 8.3456},
+                    {"step": "P9", "usd": None}]}), encoding="utf-8")
+    args = report_gen.cc_docs_args(ws, "synth", pdf)
+    assert args[args.index("--describes") + 1] == "PCB-0007-B"
+    costs = [args[i + 1] for i, a in enumerate(args) if a == "--cost"]
+    assert costs == ["P4=4.00", "P7=8.35"]
+
+
+def test_part_number_row_in_metadata(tmp_path, capsys):
+    ws = make_workspace(tmp_path)
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="nopn")
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    assert "part number & none (not in the boards register)" in text
+    (tmp_path / "register.yaml").write_text(
+        "products:\n  PCB-0007:\n    revs:\n      C: {dir: synth}\n",
+        encoding="utf-8")
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="pn")
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    assert "part number & PCB-0007-C" in text

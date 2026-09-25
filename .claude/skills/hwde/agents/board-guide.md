@@ -44,7 +44,10 @@ with the repo venv python (`.venv/bin/python` on Linux,
    reviewers (math/number check + cold edit). Its house style, voice rules
    and style gate apply in full.
 2. Work in `reports/guide/` (the .tex, figures, build files). Target 3-6
-   pages. Sections, in this order:
+   pages. When `part_number` in guide_facts.json is set, print its `pn`
+   (e.g. PCB-0001-B) and its rev letter on the title page, beside the board
+   name. When it is null the board is not in the boards register: print no
+   number and never make one up. Sections, in this order:
    - **What it is** - the lead: what the board does, for whom, its input and
      output in one paragraph, plus the top render.
    - **Schematic** - the exported schematic page(s) (`\includegraphics` of

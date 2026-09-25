@@ -671,11 +671,12 @@ def build_digest(payload: dict) -> str:
 
 
 def short_ws(workspace: str) -> str:
-    """The workspace as the operator types it: repo-relative when it is under
-    the repo (boards/<name>), absolute otherwise."""
+    """The workspace as the operator types it: absolute (boards live in
+    their own repo, so a repo-relative path no longer resolves from hwde),
+    with the home directory written as ~ to keep it short."""
     try:
-        return Path(workspace).resolve().relative_to(
-            env.repo_root().resolve()).as_posix()
+        return "~/" + Path(workspace).resolve().relative_to(
+            Path.home().resolve()).as_posix()
     except (ValueError, OSError):
         return workspace
 
@@ -715,7 +716,8 @@ def run(argv=None):
     ap.add_argument("--board", help="board/workspace name (default: the "
                                     "source project stem)")
     ap.add_argument("--workspace", help="workspace dir (default: "
-                                        "<repo>/boards/<board>)")
+                                        "<boards root>/<board>; HWDE_BOARDS_ROOT, "
+                                        "default ~/dev/boards)")
     ap.add_argument("--force", action="store_true",
                     help="replace an existing workspace (refuses a directory "
                          "that is not one)")
@@ -735,7 +737,7 @@ def run(argv=None):
     spec = discover_project(Path(args.source), args.project)
     board = sanitize_board(args.board or spec["stem"])
     ws = (Path(args.workspace) if args.workspace
-          else env.repo_root() / "boards" / board)
+          else env.boards_root() / board)
     ws = ws.resolve()
 
     if ws.exists() and any(ws.iterdir()):

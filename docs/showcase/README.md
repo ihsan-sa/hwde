@@ -66,7 +66,7 @@ check instead of being collapsed into a verdict.
 
 Fourteen boards got far enough to have a laid-out, routed PCB. They run from a
 linear regulator with five parts to a 200 W RF power stage. Every render on this
-page was made from the board file in the repository, by
+page was made from the board file in the boards repo (`~/dev/boards`), by
 [`render_boards.sh`](render_boards.sh).
 
 | Board | What it is | Layers | Size (mm) | Stage reached |
@@ -213,7 +213,7 @@ leave out protection, filtering, indicators and spare rails on purpose.
 | **bb-amp** · 2 layers · 48 × 28.3 mm · 14 footprints<br>It takes a 0–20 mV differential bridge signal and gives 0–3.3 V single-ended out, from DC to 1 kHz. The nominal gain is 165 V/V. | |
 
 Two more boards stopped before layout and have no PCB to show, a 5 V/3 A buck
-and a strobe daughter board. Both are in the repository at the stage they
+and a strobe daughter board. Both are in the boards repo at the stage they
 reached.
 
 ---
@@ -267,12 +267,14 @@ the moment you hit it, so the next board does not pay for it again.
 ## Remaking any of this
 
 - `./render_boards.sh` makes every board render. One board takes about a minute,
-  and it needs Docker and the `kicad/kicad:10.0.5-full` image.
+  and it needs Docker and the `kicad/kicad:10.0.5-full` image. It reads boards
+  from the boards repo, `${HWDE_BOARDS_ROOT:-~/dev/boards}`.
 - `./build_docs.sh` makes the flow charts and the PDF. The flow charts need
   `pdflatex` and `pdftoppm`. The PDF is set in the house style of the
   pdf-material-builder skill and needs `lualatex` and that skill.
 
-The renders come from the board files in this repository, drawn by KiCad's
+The renders come from the board files in the boards repo (`~/dev/boards`,
+`HWDE_BOARDS_ROOT`), drawn by KiCad's
 command-line renderer. The dimensions, layer counts and footprint counts are
 read from those same files, and the stage each board reached is read from its
 recorded state.

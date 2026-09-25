@@ -5,19 +5,19 @@ half: it turns that pile into artifacts. Nothing here touches copper.
 
 ## The two files
 
-- `boards/<b>/LEARNINGS.md` - the run's own file, appended as the run goes.
+- `~/dev/boards/<b>/LEARNINGS.md` - the run's own file, appended as the run goes.
   Format: a `## YYYY-MM-DD [P7][tag][tag] the claim in one line` heading (stage
   tag first), then the body with the numbers it was measured on. `## ` headings
   before the first dated entry are preamble; after it they must parse.
   `learnings.py init --workspace <ws>` writes the skeleton.
-- `boards/<b>/learnings/queue.yaml` - the machine-readable queue, compiled from
+- `~/dev/boards/<b>/learnings/queue.yaml` - the machine-readable queue, compiled from
   that file. Per entry: `{entry, line, title, tags, stage, proposed_level,
   targets, status}` plus a `resolution` once ruled. Ids are stable
   (`<date>-<title slug>`), so a ruling survives every later re-compile.
 
 ## Run close (every recipe ends with it)
 
-    learnings.py compile --workspace boards/<b>
+    learnings.py compile --workspace ~/dev/boards/<b>
 
 Idempotent: new entries land `pending`, rulings are preserved, line/title/tags
 are refreshed. Exit 1 means a heading did not parse or a queue id lost its
@@ -48,7 +48,7 @@ A promotion WRITES SOMEWHERE. Pick the level, make the edit, then record it:
 | `bench_item` | a bench fixture or a `--baseline` case |
 | `root_learnings` | the repo `LEARNINGS.md` + its `design/ladder-triage.md` row |
 
-    learnings.py resolve --workspace boards/<b> --entry <id> \
+    learnings.py resolve --workspace ~/dev/boards/<b> --entry <id> \
       --status promoted --kind script_check --level L2 \
       --reason "<why it climbs>" --targets scripts/check_current.py
 
@@ -56,7 +56,7 @@ A promotion WRITES SOMEWHERE. Pick the level, make the edit, then record it:
 entry verbatim (with a provenance line) and writes the triage row, because the
 suite checks those two files against each other:
 
-    learnings.py resolve --workspace boards/<b> --entry <id> \
+    learnings.py resolve --workspace ~/dev/boards/<b> --entry <id> \
       --status promoted --kind root_learnings --level L2 \
       --now-level L0 --target-level L2 --triage-status open \
       --note "<what would own it, and how>" \
@@ -71,7 +71,7 @@ the ENTRY's candidate list instead; they are different fields.
 Write every `reason:` and `note:` as a `>-` block scalar - a multi-line PLAIN
 scalar breaks the moment the prose contains ": " or a line starting with "- ".
 Keep the batch beside the queue - it is the record of who ruled what.
-`boards/rf-de-20m/learnings/rulings-2026-08-14.yaml` is the worked example: 66
+`~/dev/boards/rf-de-20m/learnings/rulings-2026-08-14.yaml` is the worked example: 66
 entries, 42 promoted, 24 declined.
 
 Declining is a first-class outcome and needs its own kind + reason:
@@ -88,7 +88,7 @@ Declining is a first-class outcome and needs its own kind + reason:
   unit-suffixed dims; none at principle level), `maturity` - `draft` unless
   the OWNER rules it `approved` in this pass (then add `approval: {by, date}`);
   `proven` is never hand-set (bring-up evidence via `knowledge.py --prove`).
-- `learnings.py validate --workspace boards/<b>` - every promoted entry names
+- `learnings.py validate --workspace ~/dev/boards/<b>` - every promoted entry names
   artifacts that exist, every ruling carries a kind and a reason.
 - `learnings.py triage` - recompute the register header's counts from its own
   table rather than editing them.
