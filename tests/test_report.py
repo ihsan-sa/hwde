@@ -779,3 +779,40 @@ def test_generation_cost_section(tmp_path, capsys):
 def sections_by_name_source(payload: dict) -> str:
     return next(s["source"] for s in payload["sections"]
                 if s["name"] == "run_record")
+
+
+# ------------------------------------------------------------- filing opt-in
+
+class _Builder:
+    def __init__(self):
+        self.warnings = []
+
+    def warn(self, m):
+        self.warnings.append(m)
+
+
+def _fake_cc_docs(tmp_path, monkeypatch):
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    log = tmp_path / "calls.log"
+    exe = bindir / "cc-docs"
+    exe.write_text(f'#!/bin/sh\necho "$@" >> {log}\n')
+    exe.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{bindir}{os.pathsep}{os.environ['PATH']}")
+    return log
+
+
+def test_no_filing_without_opt_in_even_with_cc_docs_on_path(tmp_path, monkeypatch):
+    log = _fake_cc_docs(tmp_path, monkeypatch)
+    report_gen.file_in_register(tmp_path / "x.pdf", "b", _Builder())
+    assert not log.exists()
+
+
+def test_filing_with_flag_or_doc_project(tmp_path, monkeypatch):
+    log = _fake_cc_docs(tmp_path, monkeypatch)
+    report_gen.file_in_register(tmp_path / "x.pdf", "b", _Builder(), True)
+    assert "--project Boards" in log.read_text()
+    log.unlink()
+    monkeypatch.setenv("DOC_PROJECT", "Other")
+    report_gen.file_in_register(tmp_path / "x.pdf", "b", _Builder())
+    assert "--project Other" in log.read_text()
