@@ -39,7 +39,7 @@ def scratch(tmp_path: Path) -> Path:
     (ws / "fab").mkdir()
     (ws / "fab" / "blinky2_gerbers.zip").write_bytes(b"zip")
     (ws / "state.json").write_text(json.dumps({
-        "board": "blinky2", "workspace": "boards/blinky2",
+        "board": "blinky2", "phase": "P10", "workspace": "boards/blinky2",
         "artifacts": {
             "pcb": {"path": "kicad/blinky2.kicad_pcb", "kind": "pcb"},
             "gerbers": {"path": "fab/blinky2_gerbers.zip", "kind": "gerbers"},

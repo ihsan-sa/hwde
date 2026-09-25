@@ -438,7 +438,7 @@ def test_payload_keys(tmp_path, capsys):
                           tmp_path, capsys)
     assert list(payload) == ["script", "status", "board", "workspace", "tex",
                              "pdf", "pages", "sections", "missing", "warnings",
-                             "compile"]
+                             "compile", "filed"]
     assert payload["script"] == "report_gen"
     assert payload["board"] == "synth"
     assert all(set(s) == {"name", "status", "source"}
