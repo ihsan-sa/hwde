@@ -816,3 +816,52 @@ def test_filing_with_flag_or_doc_project(tmp_path, monkeypatch):
     monkeypatch.setenv("DOC_PROJECT", "Other")
     report_gen.file_in_register(tmp_path / "x.pdf", "b", _Builder())
     assert "--project Other" in log.read_text()
+
+
+def _stub_compile(tmp_path, monkeypatch):
+    """A compile that writes a PDF whose bytes differ every build, like pdflatex."""
+    fake = tmp_path / "pdflatex.exe"
+    fake.write_bytes(b"x")
+    monkeypatch.setattr(report_gen.env, "find_pdflatex", lambda: fake)
+
+    def compile_pdf(p, ws, name):
+        pdf = ws / "reports" / "design_doc" / f"{name}.pdf"
+        pdf.write_bytes(b"%PDF-1.4 " + os.urandom(8))
+        return {"engine": str(p), "rc": 0, "passes": 1, "seconds": 0.1}, pdf
+    monkeypatch.setattr(report_gen, "compile_pdf", compile_pdf)
+
+
+def test_smoke_build_files_nothing_with_cc_docs_on_path(tmp_path, capsys, monkeypatch):
+    log = _fake_cc_docs(tmp_path, monkeypatch)
+    _stub_compile(tmp_path, monkeypatch)
+    ws = make_workspace(tmp_path)
+    code, payload = run_main(["--workspace", str(ws)], tmp_path, capsys)
+    assert payload["pdf"] is not None
+    assert not log.exists()
+
+
+def test_unchanged_rebuild_files_once(tmp_path, capsys, monkeypatch):
+    log = _fake_cc_docs(tmp_path, monkeypatch)
+    _stub_compile(tmp_path, monkeypatch)
+    monkeypatch.setenv("DOC_PROJECT", "Boards")
+    ws = make_workspace(tmp_path)
+    run_main(["--workspace", str(ws)], tmp_path, capsys, name="a")
+    run_main(["--workspace", str(ws)], tmp_path, capsys, name="b")
+    assert len(log.read_text().splitlines()) == 1
+    # a changed document files again
+    state = json.loads((ws / "state.json").read_text(encoding="utf-8"))
+    state["board"] = state["board"] + "-rev2"
+    (ws / "state.json").write_text(json.dumps(state), encoding="utf-8")
+    run_main(["--workspace", str(ws), "--name", "renamed"], tmp_path, capsys, name="c")
+    assert len(log.read_text().splitlines()) == 2
+
+
+def test_failed_filing_leaves_no_stamp(tmp_path, capsys, monkeypatch):
+    log = _fake_cc_docs(tmp_path, monkeypatch)
+    (tmp_path / "bin" / "cc-docs").write_text(f'#!/bin/sh\necho "$@" >> {log}\nexit 3\n')
+    _stub_compile(tmp_path, monkeypatch)
+    ws = make_workspace(tmp_path)
+    run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="a")
+    run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="b")
+    assert len(log.read_text().splitlines()) == 2
+    assert not (ws / "reports" / "design_doc" / report_gen.FILED_STAMP).exists()
