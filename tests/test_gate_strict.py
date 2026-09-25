@@ -511,3 +511,26 @@ def test_stamp_fields_and_uuid_invariance(tmp_path):
     c.write_text('(kicad_pcb (version 2))', encoding="utf-8")
     pc = checklib.report("x", c, [])
     assert pc["input_digest"] != pa["input_digest"]      # content is not
+
+
+def test_commit_goes_into_the_boards_repo(tmp_path, monkeypatch):
+    """Boards live in their own repo (HWDE_BOARDS_ROOT, any dir name): a
+    workspace there is a commit scope, and the commit lands in THAT repo,
+    not hwde's. With the root unset the same path is no workspace at all."""
+    root, git = _tmp_repo(tmp_path)                 # its dir is named "r"
+    board = root / "foo" / "kicad" / "foo.kicad_pcb"
+    board.parent.mkdir(parents=True)
+    board.write_text("(kicad_pcb)", encoding="utf-8")
+
+    monkeypatch.setenv("HWDE_BOARDS_ROOT", str(tmp_path / "elsewhere"))
+    assert gate.workspace_dir(board) is None
+    assert gate.commit_repo(board) == gate.env.repo_root()
+
+    monkeypatch.setenv("HWDE_BOARDS_ROOT", str(root))
+    assert gate.workspace_dir(board) == (root / "foo").resolve()
+    assert gate.commit_repo(board).resolve() == root.resolve()
+    res = gate.git_commit_on_pass("gate pass", gate.commit_repo(board),
+                                  input_file=board)
+    assert res["committed"] is True and res["ok"] is True
+    assert "foo/kicad/foo.kicad_pcb" in git("show", "--name-only",
+                                            "HEAD").stdout

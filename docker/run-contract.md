@@ -20,8 +20,12 @@ read the result later. Nobody answers questions during the run.
 - Network is open: web search, datasheet fetches, JLCPCB/LCSC/EasyEDA APIs all work.
   Research still goes through `research.py fetch` + `domains.yaml` as the recipe says.
 - `make check` works here (POSIX Makefile). Scripts: JSON out, exit 0/1/2, ASCII.
-- Git: commit freely (gates commit on pass; commit any other repo change you make
-  with a clear message). NEVER push, never change branch, never touch other boards.
+- Boards live in their own repo, mounted at `HWDE_BOARDS_ROOT` (default
+  `/workspace/boards`) - not inside this checkout. Board-state commits (gates on
+  pass, `state.py`, the journal) land there, in the boards repo. Git: commit
+  freely (gates commit on pass; commit any other repo change you make with a
+  clear message, in whichever repo the change is in). NEVER push, never change
+  branch, never touch other boards.
 
 ## Supervisor commits
 

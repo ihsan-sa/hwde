@@ -23,8 +23,9 @@ import yaml
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
 SIMS = REPO / "tests" / "sims"
-PD_NET = REPO / "boards" / "pd-trigger" / "kicad" / "pd-trigger.net"
-BLINKY_NET = REPO / "boards" / "stm32-blinky" / "kicad" / "stm32-blinky.net"
+# the shipped boards' netlists, frozen under tests/fixtures
+PD_NET = REPO / "tests" / "fixtures" / "stages" / "pd_trigger" / "pd-trigger.net"
+BLINKY_NET = REPO / "tests" / "fixtures" / "sim" / "stm32-blinky.net"
 GATES_YAML = SCRIPTS.parent / "reference" / "gates.yaml"
 PYTHON = sys.executable
 sys.path.insert(0, str(SCRIPTS))

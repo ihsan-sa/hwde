@@ -50,10 +50,11 @@ import check_requirements  # noqa: E402
 import modeslib  # noqa: E402
 import state as state_cli  # noqa: E402
 import task_router  # noqa: E402
+from _boards import board_path, need_board  # noqa: E402
 
 DOC = SKILL / "reference" / "build-modes.md"
 AGENTS = SKILL / "agents"
-BB = REPO / "boards" / "bb-buck"
+BB = board_path("bb-buck")
 
 # The table this step ships, written out so a doc edit that changes the
 # contract has to change the test too (the plan's "test-pinned against
@@ -193,6 +194,7 @@ def test_the_legacy_token_is_canonical_now():
     """The owner ruling (2026-08-16): `ultra bare bones design:` always meant
     'the smallest outline that keeps the layout HONEST', which is a canonical
     binding in prose. bb-buck's binding size was the accident."""
+    need_board("bb-buck")
     legacy = modeslib.resolve_text(
         (BB / "brief" / "brief.md").read_text(encoding="utf-8"))
     assert legacy["target"] == "block-basics"
@@ -482,9 +484,11 @@ def test_the_real_boards_and_bb_buck_under_the_new_leg():
     """The five mode-less boards stay green; bb-buck - the board that started
     this - is now non-conforming, and honestly so: its brief's token is
     canonical and its section 1 never said the geometry was an output."""
+    need_board("stm32-blinky", "usb-buck", "pd-trigger", "lumina-par",
+               "lumina-strobe", "bb-buck")
     for board in ("stm32-blinky", "usb-buck", "pd-trigger", "lumina-par",
                   "lumina-strobe"):
-        code, payload = _lint(REPO / "boards" / board)
+        code, payload = _lint(board_path(board))
         assert code == 0, (board, payload["violations"])
         assert payload["mode"] is None and payload["brief_token"] is None
     code, payload = _lint(BB)
@@ -568,6 +572,7 @@ def test_canonical_and_constrained_diverge_on_the_same_board(tmp_path):
     35 x 25; `fit` therefore returns 35.9 x 25.9 (0.05 mm slack + 2 x 0.5 mm
     margin), which is the whole point: the size was never earned.
     """
+    need_board("bb-buck")
     def stage(name: str) -> Path:
         ws = tmp_path / name
         ws.mkdir()

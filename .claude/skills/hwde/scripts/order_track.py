@@ -19,7 +19,7 @@ tracking surface is a documented unknown (TDP's expressNo equivalent).
 Credentials: HWDE_JLCPCB_APPID / HWDE_JLCPCB_KEY / HWDE_JLCPCB_SECRET.
 
 CLI:
-  order_track.py --workspace boards/<name> [--batch NUM] [--out track.json]
+  order_track.py --workspace ~/dev/boards/<name> [--batch NUM] [--out track.json]
 Exit 0 ok / 1 order-level problem (cancelled) / 2 error (no batch recorded,
 API/business failure, transport).
 """

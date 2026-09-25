@@ -26,7 +26,6 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
-BOARDS = REPO / "boards"
 PYTHON = sys.executable
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
@@ -34,9 +33,10 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 import bom_cpl  # noqa: E402
 import checklib  # noqa: E402
 import dfm_check  # noqa: E402
+from _boards import BOARDS, board_path, need_board  # noqa: E402
 
-RF_DE = BOARDS / "rf-de-20m"
-RF_TERM = BOARDS / "rf-term-150w"
+RF_DE = board_path("rf-de-20m")
+RF_TERM = board_path("rf-term-150w")
 
 # The nine sites route-notes s17 / fab/README s2.2 name. Three of them (C203,
 # C308, C309) ARE the P8 ZVS fix - fitting them halves the output power.
@@ -305,6 +305,7 @@ def test_rf_de_regenerates_without_a_local_filter(tmp_path):
     """The C9 known answer. A plain bom_cpl run on the shipped inputs must
     reproduce the shipped package - 59 placements, the nine DNP sites absent -
     with nothing between it and the files."""
+    need_board("rf-de-20m")
     rep = _run(RF_DE, tmp_path, RF_DE / "parts" / "parts.json")
     assert rep["status"] == "pass"
     assert rep["n_parts"] == 68 and rep["n_placed"] == 59
@@ -334,6 +335,7 @@ def test_rf_de_regenerates_without_a_local_filter(tmp_path):
 def test_no_board_local_dnp_filter_survives():
     """The removal is the acceptance: a board-local mutating post-step is the
     thing U3 replaces, and it must not creep back into any workspace."""
+    need_board("rf-de-20m")
     assert not (RF_DE / "fab" / "filter_dnp.py").exists()
     assert not list(BOARDS.glob("*/fab/filter_dnp.py"))
 
@@ -389,6 +391,7 @@ def test_rf_term_regeneration_preserves_r1(tmp_path):
     """codex H1's own example. R1 is a BeO-flanged 250 W load that bolts to the
     user's heatsink; it was in the hand-authored BOM and nowhere in the
     generator's model, so a regeneration silently deleted it."""
+    need_board("rf-term-150w")
     rep = _run(RF_TERM, tmp_path, RF_TERM / "parts" / "parts.json")
     assert rep["status"] == "pass"
     assert rep["assembly_classes"]["R1"] == "off_board"
@@ -418,6 +421,7 @@ def test_rf_term_regeneration_preserves_r1(tmp_path):
 def test_rf_term_hand_authored_bom_semantics_are_covered(tmp_path):
     """Every part row of the delivered hand-authored BOM.csv reappears in the
     regenerated BOM of record (byte-diff of the semantics, per the plan)."""
+    need_board("rf-term-150w")
     rep = _run(RF_TERM, tmp_path, RF_TERM / "parts" / "parts.json")
     assert rep["n_placed"] == 2
     hand = [r for r in _rows(RF_TERM / "fab" / "BOM.csv") if r["Designator"]]

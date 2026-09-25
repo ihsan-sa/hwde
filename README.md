@@ -6,10 +6,13 @@ An AI PCB engineer for KiCad + JLCPCB, packaged as a Claude Code skill
 this board, fix these findings, move a part, re-route a net, make a footprint,
 DFM, order, resume - and the full brief-to-order pipeline is one of those tasks.
 
-Everything it produces lives in a per-board workspace under `boards/<name>/`
+Everything it produces lives in a per-board workspace under `~/dev/boards/<name>`
 (brief, research, architecture, parts, lib, kicad, routing, reports, fab, log,
-`state.json`). The design work is done by subagents; the deterministic work is
-done by 57 scripts (plus 24 library modules) under
+`state.json`), in the separate boards repo (set by `HWDE_BOARDS_ROOT`, default
+`~/dev/boards`) - this repo holds no boards. Part numbers (`PCB-NNNN-R`) come
+from `~/dev/boards/register.yaml`, read-only from here; a board not in it
+carries no number. The design work is done by subagents; the deterministic
+work is done by 57 scripts (plus 24 library modules) under
 `.claude/skills/hwde/scripts/`, each with the same CLI contract (argparse,
 JSON out, exit 0/1/2, no interactivity).
 
@@ -49,7 +52,7 @@ here wins.
 | Task recipes and their exact commands | `.claude/skills/hwde/reference/recipes/` |
 | Gate definitions and pass criteria | `.claude/skills/hwde/reference/gates.yaml` |
 | What goes stale when something changes | `.claude/skills/hwde/reference/invalidation.yaml` |
-| Per-board truth (phase, gates, decisions, holds, artifacts) | `boards/<name>/state.json` |
+| Per-board truth (phase, gates, decisions, holds, artifacts) | `~/dev/boards/<name>/state.json` |
 | Fab capability, stackups, pricing assumptions | `.claude/skills/hwde/reference/jlc_capabilities.yaml`, `stackups.yaml`, `jlc_pricing.yaml` |
 | Non-obvious gotchas, dated and tagged | `LEARNINGS.md` (index: `design/ladder-triage.md`) |
 | Build state of the skill itself | `PROGRESS.md` |
@@ -80,10 +83,12 @@ Plans are historical once their steps are done: `ai-ee-implementation-plan.md`
   responsible engineer, and no output is safety-certified for mains, medical,
   automotive or aerospace use.
 
+Board workspaces are not in this repo - they live in the separate boards repo,
+`~/dev/boards/<name>` (`HWDE_BOARDS_ROOT`).
+
 ## Repo layout
 
     .claude/skills/hwde/  the skill: SKILL.md, agents/, scripts/, reference/, templates/
-    boards/               board workspaces (see boards/README.md)
     tests/                pytest suite incl. the golden corpus + mutants
     design/               knowledge-ladder triage and stage evaluations
     docker/               Linux container image + the unattended run loop

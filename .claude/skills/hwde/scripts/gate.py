@@ -40,7 +40,9 @@ U2 additions (codex C4):
    generation-time staleness bound (--max-report-age-h, default 24).
    Anything malformed/stale/mismatched -> exit 2, never a pass.
  - --commit requires an explicit board scope: the input must resolve to a
-   boards/<name>/ workspace. The repo-wide `git add -A` fallback is gone;
+   boards/<name>/ workspace (under env.boards_root(), HWDE_BOARDS_ROOT,
+   default ~/dev/boards; the commit goes into the git repo that holds the
+   workspace - the boards repo, not hwde). The repo-wide `git add -A` fallback is gone;
    pre-staged index entries outside the scope refuse the commit. A
    requested commit that does not occur (other than a clean nothing-to-do
    skip) is an OPERATIONAL error: the process exits 2 even on gate pass.
@@ -424,14 +426,27 @@ def evaluate(gate_name: str, gate: dict, report: dict,
 
 
 def workspace_dir(input_file: Path | None) -> Path | None:
-    """The boards/<name>/ workspace an input path sits in, or None."""
+    """The board workspace an input path sits in, or None: the directory
+    directly under a boards dir (env.boards_root(), or any dir named boards)."""
     if input_file is None:
         return None
     p = Path(input_file).resolve()
     for parent in p.parents:
-        if parent.parent.name == "boards":
+        if env.is_boards_dir(parent.parent):
             return parent
     return None
+
+
+def commit_repo(input_file: Path | None) -> Path:
+    """The git repo a gate commit goes into: the one holding the input's
+    workspace (the boards repo, since boards left hwde), else hwde's own."""
+    ws = workspace_dir(input_file)
+    if ws is not None:
+        top = subprocess.run(["git", "rev-parse", "--show-toplevel"],
+                             cwd=str(ws), capture_output=True, text=True)
+        if top.returncode == 0 and top.stdout.strip():
+            return Path(top.stdout.strip())
+    return env.repo_root()
 
 
 # The workspace a gate result belongs in (U16). One definition, in statelib,
@@ -503,6 +518,7 @@ def git_commit_on_pass(msg: str, cwd: Path,
         return {"committed": False, "ok": False,
                 "reason": "--commit requires an explicit board scope: the "
                           "gate input must live under boards/<name>/ "
+                          "(the boards root, HWDE_BOARDS_ROOT) "
                           "(the repo-wide fallback is gone)"}
     try:
         ws_rel = ws.resolve().relative_to(Path(cwd).resolve()).as_posix()
@@ -644,7 +660,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if result["status"] == "pass" and args.commit:
             result["commit_result"] = git_commit_on_pass(
-                args.commit, env.repo_root(), input_file=eff_input)
+                args.commit, commit_repo(eff_input), input_file=eff_input)
     except Exception:
         print(json.dumps({"script": "gate", "status": "error",
                           "error": traceback.format_exc()}))

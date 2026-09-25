@@ -507,14 +507,35 @@ def envelope_contains(env, op) -> dict:
 NOT_REDISTRIBUTED_SUFFIX = ".not-redistributed.md"
 
 
+def _boards_root() -> Path:
+    try:
+        from lib import env  # noqa: PLC0415
+    except ImportError:
+        import env  # type: ignore  # noqa: PLC0415
+    return env.boards_root()
+
+
 def _source_exists(file: str, roots=()) -> bool:
     """Source files resolve skill-relative or repo-relative - plus any extra
     `roots` (U15: a workspace, whose research records cite
     `research/sources/<file>` relative to the workspace root). A
     `<file>.not-redistributed.md` sidecar stands in for a source that may not
-    be redistributed."""
+    be redistributed.
+
+    A `boards/<ws>/...` source cites a board workspace, which lives in the
+    boards repo (env.boards_root()), not in the skill: it resolves there, and
+    when that repo is not cloned it cannot be checked, so it is not reported
+    missing."""
     if not file or file != file.strip():
         return False
+    if file.startswith("boards/"):
+        broot = _boards_root()
+        if not broot.is_dir():
+            return True
+        file_in_boards = broot / file[len("boards/"):]
+        if file_in_boards.is_file() or file_in_boards.with_name(
+                file_in_boards.name + NOT_REDISTRIBUTED_SUFFIX).is_file():
+            return True
     for base in (SKILL, REPO, *(Path(r) for r in roots)):
         p = base / file
         if p.is_file() or p.with_name(p.name + NOT_REDISTRIBUTED_SUFFIX).is_file():
@@ -661,7 +682,7 @@ def validate(records_dir: Path | str | None = None,
                     src.get("file", ""), source_roots):
                 problems.append(
                     f"{where}: sources[{i}].file {src.get('file')!r} not found "
-                    "(skill-relative or repo-relative)")
+                    "(skill-, repo- or boards-root-relative)")
         rule = data.get("rule")
         if isinstance(rule, dict) and rule.get("enforced_by"):
             ref = str(rule["enforced_by"])

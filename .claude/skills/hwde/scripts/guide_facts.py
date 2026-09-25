@@ -21,6 +21,10 @@ It reads, all read-only:
   reports/cost.json             model cost of generating the board, total
                                 and by hwde step        (gen_cost.py)
   requirements.md, architecture/*.md, reports/*_top.png  prose + renders
+  ../register.yaml              the board's part number PCB-NNNN-R, if the
+                                boards register lists it (lib/boardreg.py);
+                                `part_number` is null otherwise and
+                                `part_number_reason` says why
 With --render it also writes, through render.py (the path that shows the
 parts), fresh reports/<board>_top.png and _bottom.png before gathering: the
 guide's board picture must never be a render older than the parts on it.
@@ -38,7 +42,7 @@ Exit 1 "violations" the fab package is incomplete (no zip / BOM / CPL / board
 Exit 2 "error"      no workspace / unreadable state.json or parts.json.
 
 CLI:
-  guide_facts.py --workspace boards/<name> [--render] [--out facts.json]
+  guide_facts.py --workspace ~/dev/boards/<name> [--render] [--out facts.json]
 """
 from __future__ import annotations
 
@@ -52,7 +56,7 @@ SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
-from lib import statelib  # noqa: E402
+from lib import boardreg, statelib  # noqa: E402
 
 GATES_SHOWN = ("erc", "place", "drc_routed", "verify", "sim", "dfm")
 
@@ -310,11 +314,15 @@ def collect(ws: Path, do_render: bool = False) -> dict:
     decisions = [d.get("text") or d.get("decision")
                  for d in state.get("decisions") or [] if isinstance(d, dict)]
 
+    pn, pn_why = boardreg.part_number(ws)
+
     return {
         "script": "guide_facts",
         "status": "violations" if missing else "pass",
         "board": board,
         "workspace": ws.as_posix(),
+        "part_number": pn,
+        "part_number_reason": pn_why or None,
         "phase": state.get("phase"),
         "mode": state.get("mode"),
         "gates": gates,
@@ -348,7 +356,7 @@ def collect(ws: Path, do_render: bool = False) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--workspace", required=True, help="boards/<name>")
+    ap.add_argument("--workspace", required=True, help="~/dev/boards/<name>")
     ap.add_argument("--render", action="store_true",
                     help="re-render the top/bottom views first (render.py)")
     ap.add_argument("--out", help="write JSON here instead of stdout")

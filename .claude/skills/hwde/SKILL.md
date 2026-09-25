@@ -12,7 +12,7 @@ everything checkable. Optimize for a working board at JLCPCB.
 ## Front door - route the task first
 
 ```
-scripts/task_router.py --task "<the user's words>" [--workspace boards/<name>]
+scripts/task_router.py --task "<the user's words>" [--workspace ~/dev/boards/<name>]
 ```
 
 - **exit 0** - one verb matched. `recipe.steps` are bound to this workspace's
@@ -114,9 +114,10 @@ recorded at `fab/attestation.json`) and `state.py resume` reports the derived
 
 **New workspace** (`full-run`, or `review` of an outside project): the recipe's
 first steps are `check_env.py` (exit 0 required; on failure present its
-remediation strings and stop) and `state.py init --workspace boards/<name>`,
-which creates the workspace + standard subdirs IN-REPO so gate commits work.
-Copy user inputs into `brief/`.
+remediation strings and stop) and `state.py init --workspace ~/dev/boards/<name>`
+(the boards repo, `HWDE_BOARDS_ROOT`; hwde holds no boards of its own), which
+creates the workspace + standard subdirs there so gate commits work. Copy user
+inputs into `brief/`.
 
 **Existing workspace** (`/hwde --resume <ws>`, or any verb with `--workspace`):
 `state.py resume` is the only source of truth for where the run is. Re-run the

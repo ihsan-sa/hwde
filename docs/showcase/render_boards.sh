@@ -4,9 +4,9 @@
 # Why the temp copy: the (model "...") paths inside the .kicad_pcb files are
 # absolute paths from the machines the boards were designed on
 # (C:/dev/ai-ee3/..., /workspace/boards/..., or repo-relative). The real model
-# files are in the repo at boards/<board>/lib/aiee.3dshapes/. So we copy each
+# files are in the boards repo at <board>/lib/aiee.3dshapes/. So we copy each
 # board file, rewrite every prefix that ends in "boards/" to the path where the
-# repo's boards dir is mounted in the container, and render the copy. The board
+# boards root is mounted in the container, and render the copy. The board
 # files themselves are never touched.
 #
 # Needs: docker (image kicad/kicad:10.0.5-full, which carries KiCad's stock 3D
@@ -16,11 +16,11 @@
 #   ./render_boards.sh                # every board, in parallel
 #   ./render_boards.sh g0-sense ...   # only these
 #   JOBS=2 ./render_boards.sh         # cap the parallelism (default 3)
+#   HWDE_BOARDS_ROOT=... ./render_boards.sh   # boards root, default ~/dev/boards
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="$(cd "$HERE/../.." && pwd)"
-BOARDS="$REPO/boards"
+BOARDS="${HWDE_BOARDS_ROOT:-$HOME/dev/boards}"
 OUT="$HERE/renders"
 IMAGE="kicad/kicad:10.0.5-full"
 JOBS="${JOBS:-3}"

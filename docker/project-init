@@ -9,6 +9,7 @@ if cd "$REPO" 2>/dev/null; then
   git config --global --add safe.directory "$REPO" 2>/dev/null
   mkdir -p tools; [ -f tools/CONTAINER.txt ] || printf 'In the container the toolchain lives under /opt (JRE 25, Freerouting 2.2.4, KRT 0.19.0)\nand is pinned through HWDE_* env vars - nothing is vendored here. See docker/README.md.\n' > tools/CONTAINER.txt
 fi
+git config --global --add safe.directory "${HWDE_BOARDS_ROOT:-/workspace/boards}" 2>/dev/null   # the boards repo is a bind mount with host ownership too
 if command -v Xvfb >/dev/null && [ ! -e /tmp/.X11-unix/X99 ]; then   # KiCad SWIG (Specctra DSN/SES, wx paths) needs a display
   (Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &); sleep 1
 fi

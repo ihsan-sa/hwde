@@ -1,6 +1,0 @@
-# pd-trigger-lite-dip run journal
-Copied from boards/pd-trigger-lite (2026-09-24); lite's own journal stays in its workspace.
-- 2026-09-24 P3: SW1 = SHOU HAN 1.27-5P TPPT (C7421518, 5P 1.27 mm SMD, ext, $0.53) + R5 100k C25803 pulled; footprint attr through_hole->smd, 3D paths made ${KIPRJMOD}-relative (lib/EDITS.md). Pin types retyped.
-- 2026-09-24 P4: gen/root.py adapted (SW1 one-hot, R5 100k->VHV = 5 V, R1-R4 Rset->GND; JP1-3 and 0R link gone). ERC 0/0, netlist checked by hand. Next: P5 board_init (grown outline) + manual place/route.
-- 2026-09-24 P5-P7: fresh board_init 25x21 (lite 25x15 + 6 mm for the switch block), rules_gen as lite. Placement/route = lite's J1/U1/LED/VBUS-band geometry shifted down, plus SW1 (rot 90, CFG1 column left, Rset column right edge) hand-routed with route_edit (reports/route_edit_manual.json, generator kicad/gen/layout_ops.py (reads lite tracks dumped to /tmp/lite_tracks.txt)). VBUS zone set solid (pcbnew, as lite). R1-R5 refdes hidden (no room; voltage labels instead). DRC 0/0.
-- 2026-09-24 P8-P9: gates place/drc_routed/verify/dfm pass. fab_export + bom_cpl (12 placed, J2 board feature), order_quote qty 5 (27.42 + parts 5.44 = ~33 USD). Renders top/bottom, schematic.pdf, guide built with lualatex (house style) -> fab/pd-trigger-lite-dip-guide.pdf. README written. Not ordered.

@@ -7,7 +7,7 @@ is blind to, and when to stop and ask.
 
 ## How a recipe reaches you
 
-    scripts/task_router.py --task "<the user's words>" --workspace boards/<b>
+    scripts/task_router.py --task "<the user's words>" --workspace ~/dev/boards/<b>
 
 exit 0 -> `recipe.steps` bound to this workspace's real paths, plus `gates`
 and `human_hold` read from `reference/invalidation.yaml` (never restated here).

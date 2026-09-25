@@ -7,7 +7,7 @@ project into a normal hwde workspace and runs every gate as a BASELINE. The
 source is never written to (sha256-verified before/after) - if the owner wants
 fixes applied to their own tree, that is a separate, explicit copy-back.
 
-**workspace** (the project is already `boards/<name>/`): re-establish the gates
+**workspace** (the project is already `~/dev/boards/<name>/`): re-establish the gates
 against the current files, render, and hand a fresh-context reviewer the
 summary.
 
@@ -48,9 +48,9 @@ the fix loop and `resume-phase` all work on it unchanged.
 
 A review teaches the skill as much as a build does - usually about the checks
 themselves, since a foreign board exercises them on geometry no run of ours
-produced. Append those to `boards/<b>/LEARNINGS.md` and compile:
+produced. Append those to `~/dev/boards/<b>/LEARNINGS.md` and compile:
 
-    learnings.py compile --workspace boards/<b>
+    learnings.py compile --workspace ~/dev/boards/<b>
 
 They stay `pending` for a later `promote` pass.
 

@@ -57,6 +57,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 import check_env  # noqa: E402
 import report_gen  # noqa: E402
 from lib import env  # noqa: E402
+from _boards import copy_board  # noqa: E402
 
 TS = "2026-07-28T10:00:00"
 
@@ -666,47 +667,42 @@ def pdflatex_bin():
     return p
 
 
-def git_status_lines(scope: str) -> set[str]:
-    """Porcelain lines SCOPED to the workspace under test (ladder row 92 /
-    LEARNINGS 2026-07-28 [testing][windows]): a global diff makes any
-    concurrent session's dirty file - or a stray repo-root file - fail the
-    litter assertion falsely. The assertion keeps full power within scope."""
-    r = subprocess.run(["git", "-C", str(REPO), "status", "--porcelain",
-                        "--", scope],
-                       capture_output=True, text=True, timeout=60)
-    return {ln for ln in r.stdout.splitlines() if ln.strip()}
+def tree_state(ws: Path) -> dict[str, tuple[int, int]]:
+    """Every file under the workspace copy with its size and mtime."""
+    return {p.relative_to(ws).as_posix(): (p.stat().st_size, p.stat().st_mtime_ns)
+            for p in ws.rglob("*") if p.is_file()}
 
 
-def assert_no_residue_outside_design_doc(scope: str, before: set[str]) -> None:
+def assert_no_residue_outside_design_doc(ws: Path, before: dict) -> None:
     """The run may only touch `<workspace>/reports/design_doc/`.
 
-    It deliberately does NOT require the new lines to be untracked (`?? `).
-    report_gen writes into the workspace with no output-dir override, so once a
-    board's design doc has been COMMITTED - which it must be, it is a P10
-    deliverable - a re-run produces ` M ` lines for those same files. Requiring
-    `?? ` made this assertion pass only while the artifact had never been
-    committed (U0, 2026-08-13). Anything appearing outside design_doc/ still
-    fails, which is the invariant that was worth having. Making the smoke run
-    hermetic needs report_gen to grow an output-dir flag (codex H2).
+    report_gen writes into the workspace with no output-dir override, so the
+    smoke runs on a private copy of the board (the boards repo is never
+    written) and compares that copy's tree before and after: a file added,
+    removed or rewritten outside design_doc/ fails, which is the invariant
+    worth having. A re-run overwriting design_doc/ files is expected.
     """
-    new = git_status_lines(scope) - before
-    assert all("/reports/design_doc/" in ln for ln in new), sorted(new)
+    after = tree_state(ws)
+    changed = {k for k in before.keys() | after.keys()
+               if before.get(k) != after.get(k)}
+    assert all(k.startswith("reports/design_doc/") for k in changed), \
+        sorted(changed)
 
 
-def run_cli(workspace_rel: str) -> subprocess.CompletedProcess:
+def run_cli(ws: Path) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, str(SCRIPTS / "report_gen.py"),
-         "--workspace", workspace_rel],
+         "--workspace", str(ws)],
         capture_output=True, text=True, encoding="utf-8", errors="replace",
         timeout=280, cwd=str(REPO))
 
 
-def assert_real_run(r: subprocess.CompletedProcess, board: str) -> dict:
+def assert_real_run(r: subprocess.CompletedProcess, ws: Path) -> dict:
     assert r.returncode == 0, (r.stdout or "")[-2500:] + (r.stderr or "")[-500:]
     payload = json.loads(r.stdout)
     assert payload["status"] == "pass"
     assert payload["compile"]["rc"] == 0 and payload["compile"]["passes"] == 2
-    pdf = REPO / "boards" / board / payload["pdf"]
+    pdf = ws / payload["pdf"]
     assert pdf.is_file() and pdf.stat().st_size > 0
     assert payload["pages"] >= 8
     from pypdf import PdfReader                      # independent recount
@@ -718,26 +714,28 @@ def assert_real_run(r: subprocess.CompletedProcess, board: str) -> dict:
 
 
 @pytest.mark.smoke
-def test_smoke_pd_trigger_with_residue_and_rerun(pdflatex_bin):
+def test_smoke_pd_trigger_with_residue_and_rerun(pdflatex_bin, tmp_path):
     """render_final/{top,bottom}.png convention + full pipeline data."""
-    before = git_status_lines("boards/pd-trigger")
-    payload = assert_real_run(run_cli("boards/pd-trigger"), "pd-trigger")
+    ws = copy_board("pd-trigger", tmp_path)
+    before = tree_state(ws)
+    payload = assert_real_run(run_cli(ws), ws)
     assert "render_final/top.png" in json.dumps(payload["sections"])
     # second run must overwrite cleanly
-    assert_real_run(run_cli("boards/pd-trigger"), "pd-trigger")
+    assert_real_run(run_cli(ws), ws)
     # residue: nothing new outside reports/design_doc/
-    assert_no_residue_outside_design_doc("boards/pd-trigger", before)
+    assert_no_residue_outside_design_doc(ws, before)
 
 
 @pytest.mark.smoke
-def test_smoke_stm32_blinky(pdflatex_bin):
+def test_smoke_stm32_blinky(pdflatex_bin, tmp_path):
     """renders/<board>_{top,bottom,iso}.png convention + labeled + layers."""
-    before = git_status_lines("boards/stm32-blinky")
-    payload = assert_real_run(run_cli("boards/stm32-blinky"), "stm32-blinky")
+    ws = copy_board("stm32-blinky", tmp_path)
+    before = tree_state(ws)
+    payload = assert_real_run(run_cli(ws), ws)
     src = json.dumps(payload["sections"])
     assert "renders/stm32-blinky_top.png" in src
     assert "render_labeled/stm32-blinky_top.png" in src
-    assert_no_residue_outside_design_doc("boards/stm32-blinky", before)
+    assert_no_residue_outside_design_doc(ws, before)
 
 
 def test_generation_cost_section(tmp_path, capsys):
@@ -779,6 +777,43 @@ def test_generation_cost_section(tmp_path, capsys):
 def sections_by_name_source(payload: dict) -> str:
     return next(s["source"] for s in payload["sections"]
                 if s["name"] == "run_record")
+
+
+def test_cc_docs_args_name_part_number_and_step_costs(tmp_path):
+    """The design-doc filing passes --describes PCB-NNNN-R from the register
+    beside the workspace, and one --cost step=usd per step of cost.json; an
+    unlisted board and a board with no cost.json pass neither."""
+    ws = make_workspace(tmp_path)
+    pdf = ws / "x.pdf"
+    args = report_gen.cc_docs_args(ws, "synth", pdf)
+    assert "--describes" not in args and "--cost" not in args
+    assert args[:2] == ["file", str(pdf)]
+
+    (tmp_path / "register.yaml").write_text(
+        "products:\n  PCB-0007:\n    title: t\n    revs:\n"
+        "      A: {dir: other}\n      B: {dir: synth}\n", encoding="utf-8")
+    (ws / "reports" / "cost.json").write_text(json.dumps({
+        "by_step": [{"step": "P4", "usd": 4.0}, {"step": "P7", "usd": 8.3456},
+                    {"step": "P9", "usd": None}]}), encoding="utf-8")
+    args = report_gen.cc_docs_args(ws, "synth", pdf)
+    assert args[args.index("--describes") + 1] == "PCB-0007-B"
+    costs = [args[i + 1] for i, a in enumerate(args) if a == "--cost"]
+    assert costs == ["P4=4.00", "P7=8.35"]
+
+
+def test_part_number_row_in_metadata(tmp_path, capsys):
+    ws = make_workspace(tmp_path)
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="nopn")
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    assert "part number & none (not in the boards register)" in text
+    (tmp_path / "register.yaml").write_text(
+        "products:\n  PCB-0007:\n    revs:\n      C: {dir: synth}\n",
+        encoding="utf-8")
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="pn")
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    assert "part number & PCB-0007-C" in text
 
 
 # ------------------------------------------------------------- filing opt-in

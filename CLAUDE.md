@@ -25,6 +25,15 @@ When the user says `run step N` (or just `step N`):
    row + step entry: built / deviations with reasons / new verify-later items / interface
    changes affecting later steps); `git commit`. Do NOT start the next step.
 
+## Boards live in their own repo
+
+This repo is the skill only. Board workspaces live in the boards repo
+(ihsan-sa/boards, cloned at `~/dev/boards`); every script finds them through
+`env.boards_root()` = `HWDE_BOARDS_ROOT`, default `~/dev/boards`. A board's part
+number (PCB-NNNN-R) comes from that repo's `register.yaml`, which hwde only
+reads. Tests never need the boards repo: a test that needs a real board goes
+through `tests/_boards.py` and skips, with the reason, when it is absent.
+
 ## Environment (S0-verified on this Windows 11 host)
 
 - venv: `.venv\Scripts\python.exe` (Python 3.13.5). Pins: `requirements.txt` / `requirements.lock`.

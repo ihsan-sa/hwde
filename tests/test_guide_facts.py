@@ -321,3 +321,19 @@ def test_unreadable_state_exit2(tmp_path, capsys):
     code, payload = run_main(ws, tmp_path, capsys)
     assert code == 2
     assert payload["status"] == "error"
+
+
+def test_part_number_reaches_the_guide(tmp_path, capsys):
+    """A board the register lists carries its PCB-NNNN-R for the title page;
+    one it does not list carries none and says why."""
+    ws = make_workspace(tmp_path)
+    code, payload = run_main(ws, tmp_path, capsys, name="nopn")
+    assert payload["part_number"] is None
+    assert "no register.yaml" in payload["part_number_reason"]
+    (ws.parent / "register.yaml").write_text(
+        "products:\n  PCB-0001:\n    title: t\n    revs:\n"
+        f"      B: {{dir: {ws.name}}}\n", encoding="utf-8")
+    code, payload = run_main(ws, tmp_path, capsys, name="pn")
+    assert payload["part_number"]["pn"] == "PCB-0001-B"
+    assert payload["part_number"]["rev"] == "B"
+    assert payload["part_number_reason"] is None

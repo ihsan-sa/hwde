@@ -26,6 +26,11 @@ scratch builds never reach the register. A filing that succeeds leaves
 reports/design_doc/.filed.json (a hash of the .tex, its "generated" time
 left out, and of the images it includes); a rebuild whose hash matches files
 nothing. A failed filing only warns and leaves the stamp alone.
+The filing names the board's part number with --describes PCB-NNNN-R when
+the boards register lists the workspace (lib/boardreg.py; hwde never
+allocates one), and passes --cost <step>=<usd> once per step of
+reports/cost.json. The part number is also a row of the metadata table
+("not in the boards register" otherwise).
 
 Exit 0 "pass"   = requested outputs produced (--tex-only: the .tex alone).
 Exit 1 "violations" = degraded: compile failed, pdflatex absent (auto
@@ -34,7 +39,7 @@ Exit 2 "error"  = unusable workspace / internal error (a bad HWDE_PDFLATEX
                   pin propagates here - loud, never degraded).
 
 CLI:
-  report_gen.py --workspace boards/<name> [--out report.json] [--tex-only] [--file]
+  report_gen.py --workspace ~/dev/boards/<name> [--out report.json] [--tex-only] [--file]
                 [--name NAME]
 """
 from __future__ import annotations
@@ -56,7 +61,7 @@ sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import state as statemod  # noqa: E402  (read-only: PHASES/CHECKPOINTS consts)
-from lib import env  # noqa: E402
+from lib import boardreg, env  # noqa: E402
 
 PHASE_INDEX = {p: i for i, p in enumerate(statemod.PHASES)}
 
@@ -377,6 +382,7 @@ class DocBuilder:
         self.st = st
         self.board = st.get("board") or ws.name
         self.name = name
+        self.pn, _ = boardreg.part_number(ws)
         self.cur = phase_idx(str(st.get("phase", "P0")))
         self.sections: list[dict] = []
         self.missing: list[str] = []
@@ -460,6 +466,8 @@ class DocBuilder:
         self.start("Board and Run Metadata")
         rows = [
             ["board", latex_escape(self.board)],
+            ["part number", latex_escape(self.pn["pn"] if self.pn else
+                                         "none (not in the boards register)")],
             ["workspace", r"\texttt{" + latex_escape(st.get("workspace", "")) + "}"],
             ["phase", latex_escape(st.get("phase", "?"))],
             ["gate status", latex_escape(overall)],
@@ -985,7 +993,11 @@ def count_pages(pdf: Path) -> int | None:
 
 def resolve_workspace(arg: str) -> Path:
     p = Path(arg)
-    candidates = [p] if p.is_absolute() else [Path.cwd() / p, env.repo_root() / p]
+    # Relative: from the cwd, then the boards root (a bare <name>, or the
+    # old repo-relative boards/<name> spelling), then hwde's own root.
+    rel = Path(*p.parts[1:]) if p.parts[:1] == ("boards",) else p
+    candidates = [p] if p.is_absolute() else [
+        Path.cwd() / p, env.boards_root() / rel, env.repo_root() / p]
     for c in candidates:
         if (c / "state.json").is_file():
             return c.resolve()
@@ -1001,6 +1013,25 @@ def load_state(ws: Path) -> dict:
     if not isinstance(d, dict) or "board" not in d or "phase" not in d:
         raise ReportError("state.json lacks the board/phase schema fields")
     return d
+
+
+def cc_docs_args(ws: Path | None, board: str, pdf: Path,
+                 project: str = "Boards") -> list[str]:
+    """The `cc-docs file` arguments for this board's design doc: the part
+    number it describes when the register has one, and one --cost per step
+    of reports/cost.json that carries a number (neither without a ws)."""
+    args = ["file", str(pdf), "--project", project, "--title",
+            f"{board} design doc", "--source", str(pdf)]
+    if ws is None:
+        return args
+    pn, _ = boardreg.part_number(ws)
+    if pn:
+        args += ["--describes", pn["pn"]]
+    for s in (read_json(ws, "reports/cost.json") or {}).get("by_step") or []:
+        usd = s.get("usd")
+        if s.get("step") and isinstance(usd, (int, float)):
+            args += ["--cost", f"{s['step']}={usd:.2f}"]
+    return args
 
 
 FILED_STAMP = ".filed.json"
@@ -1021,7 +1052,7 @@ def content_hash(tex_text: str, ws: Path) -> str:
 
 
 def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
-                     digest: str | None = None) -> None:
+                     digest: str | None = None, ws: Path | None = None) -> None:
     """File the finished design doc under the Boards project with cc-docs.
 
     Only when asked (requested, or DOC_PROJECT in the environment) and cc-docs
@@ -1048,8 +1079,7 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
         return
     try:
         cp = subprocess.run(
-            [exe, "file", str(pdf), "--project", project, "--title",
-             f"{board} design doc", "--source", str(pdf)],
+            [exe, *cc_docs_args(ws, board, pdf, project)],
             capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired) as exc:
         builder.warn(f"cc-docs filing failed: {type(exc).__name__}: {exc}")
@@ -1102,7 +1132,7 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
             if pages is None:
                 builder.warn("pypdf could not read the produced PDF")
             file_in_register(pdf_path, name or st["board"], builder, file_doc,
-                             content_hash(tex_text, ws))
+                             content_hash(tex_text, ws), ws)
 
     degraded = (not tex_only) and pdf_path is None
     violations = bool(builder.missing) or degraded
