@@ -48,7 +48,7 @@ import gerblib  # noqa: E402
 import netlist_audit  # noqa: E402
 import order_quote  # noqa: E402
 import order_submit  # noqa: E402
-from _boards import board_path, need_board  # noqa: E402
+from _boards import BOARDS as BOARDS_ROOT, need_board  # noqa: E402
 
 MANIFEST = yaml.safe_load((GOLDEN / "manifest.yaml").read_text(encoding="utf-8"))
 BOARDS = list(MANIFEST["golden_boards"])
@@ -529,7 +529,7 @@ def test_dfm_open_outline_is_error(tmp_path):
 
 # ================== U1: outline snap + arc interpolation (carrier retro)
 
-CARRIER_GERBERS = board_path("lumina-carrier") / "fab" / "gerbers"
+CARRIER_GERBERS = BOARDS_ROOT / "lumina-carrier" / "fab" / "gerbers"
 RULES_4L = yaml.safe_load(
     (REFERENCE / "jlc_capabilities.yaml").read_text(encoding="utf-8")
 )["design_rules"]["4layer_1oz"]
