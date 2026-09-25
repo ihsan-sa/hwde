@@ -19,6 +19,10 @@ never silently ignored - a wrong pin must fail loudly):
   HWDE_NGSPICE_DLL      full path to a shared ngspice library (for sim_run)
   HWDE_BOARDS_ROOT      where board workspaces live (default ~/dev/boards, the
                         boards repo; hwde itself holds no boards)
+  HWDE_TOOLS_DIR        the tools/ dir holding jre/, freerouting/ and krt/
+                        (default: this checkout's tools/ when it has one, else
+                        ~/dev/ai-ee/tools - a vendored copy of the skill, as in
+                        the boards repo, has no tools/ of its own)
 
 The skill was ai-ee before it was hwde, so the pre-rename AIEE_* spelling of
 every one of these is still read (HWDE_ wins when both are set) - an existing
@@ -102,6 +106,24 @@ def boards_root() -> Path:
     """
     val, _ = skill_env("BOARDS_ROOT")
     return Path(val or "~/dev/boards").expanduser()
+
+
+def tools_dir() -> Path:
+    """Where the vendored JRE, Freerouting and KRT live (tools/jre, ...).
+
+    HWDE_TOOLS_DIR wins (a set-but-missing dir is an error). Otherwise the
+    checkout's own tools/ when it exists, else the hwde checkout's at
+    ~/dev/ai-ee/tools: a copy of the skill vendored into another repo (the
+    boards repo) resolves repo_root() to that repo, which carries no tools/.
+    """
+    pin, var = skill_env("TOOLS_DIR")
+    if pin:
+        p = Path(pin).expanduser()
+        if not p.is_dir():
+            raise EnvError(f"{var} does not exist: {pin}")
+        return p
+    own = repo_root() / "tools"
+    return own if own.is_dir() else Path("~/dev/ai-ee/tools").expanduser()
 
 
 def is_boards_dir(path: Path) -> bool:
@@ -256,7 +278,7 @@ def java_major(java: Path) -> int:
 
 
 def find_java() -> tuple[Path, int] | None:
-    """Best java for Freerouting: HWDE_JAVA > repo tools/jre > PATH.
+    """Best java for Freerouting: HWDE_JAVA > tools_dir()/jre > PATH.
 
     Returns (path, major). Callers decide if major is sufficient.
     """
@@ -267,7 +289,7 @@ def find_java() -> tuple[Path, int] | None:
             raise EnvError(f"{var} does not exist: {pin}")
         return p, java_major(p)
     name = "java.exe" if sys.platform == "win32" else "java"
-    candidates = sorted(repo_root().glob(f"tools/jre/*/bin/{name}"))
+    candidates = sorted(tools_dir().glob(f"jre/*/bin/{name}"))
     w = shutil.which("java")
     if w:
         candidates.append(Path(w))
@@ -286,14 +308,14 @@ def find_freerouting_jar() -> Path | None:
         if not p.exists():
             raise EnvError(f"{var} does not exist: {pin}")
         return p
-    jars = sorted(repo_root().glob("tools/freerouting/freerouting-*.jar"))
+    jars = sorted(tools_dir().glob("freerouting/freerouting-*.jar"))
     return jars[-1] if jars else None
 
 
 def find_krt() -> Path | None:
     """KiCadRoutingTools plugins dir (vendored under tools/krt, S11).
 
-    Returns the newest tools/krt/KiCadRoutingTools-*/plugins directory (the
+    Returns the newest tools_dir()/krt/KiCadRoutingTools-*/plugins dir (the
     scripts sys.path-insert relative dirs, so callers must run them with
     cwd=plugins). Override with HWDE_KRT_DIR (points at the plugins dir).
     """
@@ -303,7 +325,7 @@ def find_krt() -> Path | None:
         if not p.is_dir():
             raise EnvError(f"{var} does not exist: {pin}")
         return p
-    dirs = sorted(repo_root().glob("tools/krt/KiCadRoutingTools-*/plugins"))
+    dirs = sorted(tools_dir().glob("krt/KiCadRoutingTools-*/plugins"))
     return dirs[-1] if dirs else None
 
 

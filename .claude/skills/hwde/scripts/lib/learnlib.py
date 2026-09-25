@@ -427,6 +427,16 @@ def triage_row(n: int, line: int, title: str, tags: list[str], now: str,
     return "| " + " | ".join(c.replace("|", "/").strip() for c in cells) + " |"
 
 
+def _need_root_files(root: Path, tri: Path) -> None:
+    """A copy of the skill vendored outside the hwde repo (the boards repo)
+    has no root LEARNINGS.md or triage register: say so as a ValueError, which
+    a promotion pass reports per entry, instead of a bare FileNotFoundError."""
+    for f in (root, tri):
+        if not f.is_file():
+            raise ValueError(f"{f} not found - root promotion runs from the "
+                             "hwde checkout, not a vendored copy of the skill")
+
+
 def promote_to_root(ws: Path, entry_id: str, triage: dict,
                     root: Path | None = None,
                     triage_file: Path | None = None) -> dict:
@@ -463,6 +473,7 @@ def promote_to_root(ws: Path, entry_id: str, triage: dict,
     if not block.isascii():
         raise ValueError(f"{entry_id}: non-ASCII text cannot be promoted")
 
+    _need_root_files(root, tri)
     text = root.read_text(encoding="utf-8")
     if header in text:
         raise ValueError(f"{entry_id}: {root.name} already carries this entry")
@@ -488,6 +499,12 @@ def triage_summary(triage_file: Path | None = None,
     """Recompute the register header's counts from the table itself - the U0
     summary went stale the first time rows were appended without it."""
     tri = Path(triage_file) if triage_file else TRIAGE
+    root = Path(root) if root else ROOT_LEARNINGS
+    if not (tri.is_file() and root.is_file()):
+        return {"rows": 0, "learnings_entries": 0, "last_entry_line": 0,
+                "levels": {}, "status": {}, "climbing": 0,
+                "absent": "no root LEARNINGS.md / triage register here "
+                          "(vendored copy of the skill)"}
     rows = []
     for ln in tri.read_text(encoding="utf-8").splitlines():
         if not ln.startswith("|"):
@@ -497,7 +514,6 @@ def triage_summary(triage_file: Path | None = None,
             continue
         rows.append({"n": int(cells[0]), "now": cells[4], "target": cells[5],
                      "owner": cells[6], "status": cells[7]})
-    root = Path(root) if root else ROOT_LEARNINGS
     entries = _root_entries(root.read_text(encoding="utf-8"))
     levels = {lv: {"now": sum(1 for r in rows if r["now"] == lv),
                    "target": sum(1 for r in rows if r["target"] == lv)}

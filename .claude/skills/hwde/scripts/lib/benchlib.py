@@ -47,7 +47,9 @@ def default_manifest() -> Path:
 def load_manifest(path: Path | None = None) -> dict:
     p = Path(path) if path else default_manifest()
     if not p.is_file():
-        raise BenchError(f"stage-fixture manifest not found: {p}")
+        raise BenchError(f"stage-fixture manifest not found: {p} (the frozen "
+                         "fixtures live in the hwde checkout's tests/, which a "
+                         "vendored copy of the skill does not carry)")
     data = yaml.safe_load(p.read_text(encoding="utf-8"))
     if not isinstance(data, dict) or "fixtures" not in data:
         raise BenchError(f"manifest has no 'fixtures' key: {p}")
