@@ -2,14 +2,14 @@
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
 # U19 2026-08-16; U18 2026-08-16)
 
-One row per `LEARNINGS.md` entry (339 of them; the last starts at
-line 4996), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (342 of them; the last starts at
+line 5039), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (145) are the gaps nothing owns yet -
+the outer-loop worklist. `open` rows (146) are the gaps nothing owns yet -
 they are the input to T6 (per-stage deep evaluation) and to any later step
 looking for the next promotion.
 
@@ -35,18 +35,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table at the g0-sense + U12 merge (2026-09-05), all 339 rows
+Recomputed from the table on 2026-09-26 (three 2026-09-24 entries), all 342 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 127 | 15 |
-| L1 | 20 | 16 |
+| L0 | 128 | 15 |
+| L1 | 20 | 17 |
 | L2 | 62 | 126 |
-| L3 | 130 | 182 |
+| L3 | 132 | 184 |
 
-137 entries want to climb at least one level. Status: **done 168**,
-**open 145**, **n/a 8**, planned 18
+138 entries want to climb at least one level. Status: **done 170**,
+**open 146**, **n/a 8**, planned 18
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
 U3/U5/U8 1 each).
 
@@ -458,3 +458,6 @@ the row's Now level and status in the same commit as the code.
 | 337 | 4978 | SWIG Specctra export/import needs an X display on Linux - Xvfb :99 | [swig][freerouting][linux] | L3 | L3 | docker/project-init | done | Xvfb :99 + DISPLAY baked into the image and env.py's fallback; nothing to check at run time |
 | 338 | 4986 | KiCad 10.0.5 vs 10.0.3 deltas seen through the suite (fixture-recorded | [kicad][drc][erc][linux] | L0 | L1 | scripts/bench.py | open | A toolchain-delta report (run the frozen fixtures on both kicad-cli versions, diff the violation sets by type) would turn 'the numbers moved' into a list; today it is prose + this row. Same decision as row 317 |
 | 339 | 4996 | Two writers, one file: the old `<name>.tmp` + os.replace pattern is NOT concurrency-safe, and a snapshot manifest is an input, not evidence | [state][order_submit][lock][snapshot][U12] | L3 | L3 | scripts/lib/safelib.py | done | FIXED in U12: `safelib.atomic_write_*` (mkstemp unique temp + fsync + os.replace + dir fsync), `writer_lock` (OS-exclusive, re-entrant per thread, bounded wait) held across state CLI load->save and the order latch load->check->create->finalize, `State.save()` base-digest compare-and-swap (`StaleWriteError`), `contained_rel` on every snapshot/restore entry, staged+verified+swapped restore, append-only `fab/order_attempts.jsonl`. Proven by `tests/test_u12_safety.py` (real-subprocess lock race + os._exit crash). Residual: board writer lock not yet wired into the four swig dispatchers (needs a KiCad host) |
+| 340 | 5015 | No-container host needs three more things than CLAUDE.md lists | [linux][kicad][freerouting] | L0 | L1 | scripts/check_env.py | open | check_env does not load _eeschema.kiface, look for stock symbols through KICAD_SYMBOL_DIR or try a flat tools/jre layout, so each of the three shows up only as a later script failure. A --full probe for each would make it a reported number. |
+| 341 | 5025 | JLC's public parts search cannot see idle stock - list every Extended  | [jlc][parts][bom][order] | L3 | L3 | scripts/bom_cpl.py | done | bom_cpl.py writes fab/prebuy.csv (every placed Extended part, LCSC, qty) and the guide lists it, so the pre-buy is on paper by construction. Residual: whether the credentialed Open API can tell idle stock apart is unchecked. |
+| 342 | 5039 | The guide reused a render made before renders showed parts | [render][guide][kicad-cli][3d] | L3 | L3 | scripts/guide_facts.py | done | guide_facts.py --render re-renders top and bottom on every guide build, and render_png relinks dead absolute model paths on a temp copy. Residual: the stock 3D library is absent on the no-container host. |

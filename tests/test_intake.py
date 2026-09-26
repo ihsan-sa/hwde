@@ -503,6 +503,7 @@ def test_intake_golden_board_runs_every_gate(tmp_path):
     assert (ws / "kicad" / "blinky2-in.net").is_file()
 
 
+@pytest.mark.kicad_recorded
 @pytest.mark.smoke
 def test_intake_kicad_demo_upgrades_the_format_and_reports_findings(tmp_path):
     """Acceptance leg 2: a foreign project (KiCad's own demo, shipped in

@@ -327,6 +327,7 @@ def test_known_answer_on_unsupported_stage_refused(tmp_path):
 @pytest.mark.smoke
 @pytest.mark.parametrize("stage,fixture", SMOKE_FIXTURES,
                          ids=[f for _, f in SMOKE_FIXTURES])
+@pytest.mark.kicad_recorded
 def test_live_fixture_matches_baseline(stage, fixture):
     payload = run_bench(stage, fixture, "--compare")
     b = payload["baseline"]
@@ -335,6 +336,7 @@ def test_live_fixture_matches_baseline(stage, fixture):
     assert payload["composite_inputs"] == "full"
 
 
+@pytest.mark.kicad_recorded
 @pytest.mark.smoke
 def test_artifact_override_detects_regression():
     """The tuning loop's failure direction: a WORSE candidate artifact must

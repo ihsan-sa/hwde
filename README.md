@@ -96,6 +96,14 @@ Board workspaces are not in this repo - they live in the separate boards repo,
 
 Run the suite with `check.cmd` (the `make check` equivalent on this host).
 
+Every push, and every pull request from a fork, runs the same suite on GitHub
+Actions (the `checks` workflow, split into 8 `pytest` jobs inside the KiCad 10
+image; the live-API `net` tests are left out). A run takes about 4 minutes of wall
+time (about 27 runner-minutes across the 8 jobs). A red run names its failing job: open that job's `pytest` step for the failures,
+or download its `junit-N` file. The image carries KiCad 10.0.5, so the tests
+marked `kicad_recorded` (numbers recorded on 10.0.3) are skipped there, with
+the reason in the skip line.
+
 ## License
 
 MIT - see [LICENSE](LICENSE). Vendor datasheets, component 3D models and footprints

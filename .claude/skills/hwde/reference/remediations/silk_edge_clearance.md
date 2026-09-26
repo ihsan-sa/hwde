@@ -18,7 +18,7 @@ the router mills through it, leaving a half-glyph or a smeared outline.
 - Yes at P7: min_silk_clearance is 0.0 in all four boards/*/kicad/*.kicad_pro:152, so this is actual clipping,
   not a margin miss; min_copper_edge_clearance (:145, 0.3-0.5 mm) is copper-only (LEARNINGS 1821).
 - Blind the other way: at a 0 mm rule silk 0.01 mm inside the edge passes and still smears at the mill. The P8
-  solver demanded EDGE_MARGIN = 0.10 mm (p8/silk/solve.py:28); zero means "not clipped", not "clean".
+  solver demanded EDGE_MARGIN = 0.10 mm (the p8/silk/solve script in the boards repo, line 28); zero means "not clipped", not "clean".
 - Bad input, not a board defect: at board_init parts sit on a temporary shelf, so hits there are noise and are
   classed transient (board_init.py:228-232). pd-trigger's 14 init hits were an undersized outline; the fix was
   45x25 -> 48x30 (log/P5-digest.md:2).
@@ -67,4 +67,4 @@ the router mills through it, leaving a half-glyph or a smeared outline.
   outline (964), arc endpoints -> POLYGON EMPTY (908)
 - kc.py:90-119; board_init.py:225-233; check_silk.py:303-321; place_edit.py:54-56,98; gates.yaml:52-68;
   cluster_violations.py:87,105-122,146; fix_dispatch.py:88-102; lumina-carrier/work/p6/drc_r1.json +
-  work/p8/silk/solve.py:11-16,28; pd-trigger/log/P5-digest.md:2; agents/fixer.md:38-41
+  work/p8/silk/solve script lines 11-16,28 (boards repo); pd-trigger/log/P5-digest.md:2; agents/fixer.md:38-41

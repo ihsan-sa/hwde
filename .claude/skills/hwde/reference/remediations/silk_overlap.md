@@ -26,7 +26,7 @@ neighbour's label or body outline. Warning severity: never fails P6 `drc`, alway
    (1 ref), or fp_text-user-vs-own-outline (library -> step 5). Fix nothing before this.
 2. Build the obstacle set from KiCad's own model, not a hand transform: bundled python +
    `TransformShapeToPolygon` / `TransformTextToPolySet`; read-only probe to copy is
-   boards/lumina-carrier/work/p8/silk/probe_geom.py. A text field's stored `at` POSITION is local but
+   the boards repo's lumina-carrier/work/p8/silk/probe_geom script. A text field's stored `at` POSITION is local but
    its ANGLE is ABSOLUTE - adding the footprint angle mis-rotates the obstacle (LEARNINGS 1750).
 3. Move labels with place_edit `move_text` (`{"op":"move_text","ref":R,"field":"reference","x":..,
    "y":..,"deg":..}`, x/y in ABSOLUTE board mm, place_swig.py:19-23). What took lumina-carrier from 95
@@ -67,4 +67,4 @@ nothing in the pipeline catches that (LEARNINGS 1958).
 - LEARNINGS 2026-07-29 [silk][place_edit][kicad] GetTextBox 1.70 vs inked 1.16 mm (1821);
   [parts][silk] blanket (0,-4.0) refdes offsets (1958); refdes must clear OWN silk (1986)
 - .claude/skills/hwde/scripts/board_init.py:225-233, lib/place_swig.py:19-23, check_silk.py:1-11
-- boards/lumina-carrier/work/p8/silk/probe_geom.py:1-40
+- boards repo: lumina-carrier/work/p8/silk/probe_geom script, lines 1-40
