@@ -179,6 +179,7 @@ def test_cli_contract(tmp_path, lib):
 
 # ------------------------------------------------- real DRC (the only oracle)
 
+@pytest.mark.kicad_recorded
 @pytest.mark.smoke
 def test_scratch_drc_pristine_then_fixed(lib):
     """16 -> 0 violations, measured the way EDITS.md measured them."""
@@ -393,6 +394,7 @@ def test_audit_finds_the_overlaps_the_generator_leaves():
     assert any(o["field"].startswith("U2.") for o in overlaps)
 
 
+@pytest.mark.kicad_recorded
 def test_placement_clears_every_field_and_is_stable(sheets):
     payload, _ = sr.run(["--sch"] + [str(p) for p in sheets])
     assert payload["status"] == "pass", payload["sheets"]
@@ -561,6 +563,7 @@ def test_rotmirror_erc_oracle():
     assert payload["counts"]["total"] == 0, payload["violations"]
 
 
+@pytest.mark.kicad_recorded
 @pytest.mark.smoke
 def test_placement_is_electrically_inert(sheets):
     """Fields carry no connectivity: ERC stays clean, netlist stays identical."""

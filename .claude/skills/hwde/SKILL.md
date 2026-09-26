@@ -183,31 +183,21 @@ mid-run, not only after. NON-BLOCKING by contract: on exit 1/2 log the
 payload warnings (`state.py log --event report_gen_degraded`), point at the
 .tex or last good PDF, and continue - the report never gates the run.
 (Without pdflatex it degrades to .tex-only; check_env warns.)
-Those runs file nothing in the document register. Only the FINAL report, the
-finished design doc, is filed: run it with `--file` (project Boards), or put
-DOC_PROJECT on that one command line (`DOC_PROJECT=Boards report_gen.py ...
---file`). Never export DOC_PROJECT for the session, because then every run
-files. A rebuild whose content has not changed files nothing.
+Only the FINAL design doc is filed in the document register: run that one
+with `--file`, or `DOC_PROJECT=Boards report_gen.py ... --file`. Never export
+DOC_PROJECT for the session, or every run files. An unchanged rebuild files nothing.
 
 ## Board guide (owner-facing, per board)
 
 After the `dfm` gate passes and the fab package exists (gerber zip, BOM.csv,
-CPL.csv), and before the H5 order handoff: export the schematic
-(`kc.py sch-pdf`), quote (`order_quote.py --assembly`), record what the run
-cost (`scripts/gen_cost.py --workspace <ws> --out <ws>/reports/cost.json`:
-the model spend by hwde step from this worktree's Claude Code transcripts,
-including iterations that timed out; exit 1 = no session found, and the guide
-then says the cost is unknown), collect the facts
-(`scripts/guide_facts.py --workspace <ws> --render --out
-reports/guide_facts.json`; `--render` re-renders the board so the guide never
-shows a stale, bare render; exit 1 = fab package incomplete or the render
-failed), then spawn `board-guide`. It writes
+CPL.csv), and before the H5 order handoff, spawn `board-guide`. It gathers
+its own facts (`guide_facts.py --render`, then the quote, schematic export and
+`gen_cost.py` run cost that its `todo` names) and writes
 `fab/<board>-guide.pdf` with the pdf-material-builder skill: what the board
-does, the schematic, how to use it, the BOM with LCSC and Basic/Extended, the
-cost estimate, the JLCPCB ordering steps and what it cost to design. Like report_gen it never gates
-anything, but a full run is NOT done until the guide exists: a build failure
-is reported at H5 with the .tex path, never skipped silently. It sits beside
-the design doc, not in place of it.
+does, the schematic, how to use it, the BOM, the cost, how to order it at
+JLCPCB and what it cost to design. It never gates anything, but a full run is
+NOT done until the guide exists: a build failure is reported at H5 with the
+.tex path, never skipped silently. It sits beside the design doc.
 
 ## Human checkpoint presentation format
 

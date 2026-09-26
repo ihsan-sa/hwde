@@ -50,6 +50,13 @@ def PD(center, net="N", layers=("F.Cu",), half=0.5):
 
 # ============================================================ pure: helpers
 
+def _plan(payload):
+    """A dry-run payload as comparable JSON, without its wall-clock
+    `generated_at`, which can tick over between two runs."""
+    return json.dumps({k: v for k, v in payload.items() if k != "generated_at"},
+                      sort_keys=True)
+
+
 def test_pt_seg_dist():
     assert rcl._pt_seg_dist((0, 1), (0, 0), (2, 0)) == pytest.approx(1.0)
     assert rcl._pt_seg_dist((3, 0), (0, 0), (2, 0)) == pytest.approx(1.0)
@@ -393,7 +400,7 @@ def test_dry_run_plan_and_determinism(tmp_path_factory):
     raw = p.read_bytes()
     p1, _ = rcl.run(["--pcb", str(p), "--dry-run"])
     p2, _ = rcl.run(["--pcb", str(p), "--dry-run"])
-    assert json.dumps(p1, sort_keys=True) == json.dumps(p2, sort_keys=True)
+    assert _plan(p1) == _plan(p2)
     assert p.read_bytes() == raw  # dry-run never touches the board
     assert p1["status"] == "pass" and p1["dry_run"] is True
     # stub removed (via at 30,30 is isolated -> also dangling), corner smoothed
@@ -603,7 +610,7 @@ def test_cleanup_acceptance_blinky2(dirty_board, tmp_path):
     raw = pcb.read_bytes()
     p1, _ = rcl.run(["--pcb", str(pcb), "--dry-run"])
     p2, _ = rcl.run(["--pcb", str(pcb), "--dry-run"])
-    assert json.dumps(p1, sort_keys=True) == json.dumps(p2, sort_keys=True)
+    assert _plan(p1) == _plan(p2)
     assert pcb.read_bytes() == raw
     assert p1["dangling_segments"] == 1 and p1["dangling_vias"] == 0
     assert p1["loops_broken"] == 1

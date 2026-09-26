@@ -489,6 +489,7 @@ def test_state_prevalidated_before_mutation(tmp_path):
 # smoke: the three modes end-to-end (SWIG worker + kicad-cli)
 # ---------------------------------------------------------------------------
 
+@pytest.mark.kicad_recorded
 @pytest.mark.smoke
 def test_swap_apply_fields_only_bom_cpl_and_state(tmp_path):
     """Acceptance (a): the swap diff touches ONLY fields/BOM/CPL. Geometry
@@ -553,6 +554,7 @@ def test_swap_apply_fields_only_bom_cpl_and_state(tmp_path):
         == sorted(imap["edit_classes"]["swap_part_same_fp"]["gates"])
 
 
+@pytest.mark.kicad_recorded
 @pytest.mark.smoke
 def test_del_apply_rips_orphans_and_silk(tmp_path):
     """Acceptance (c): delete leaves no orphan stubs (connectivity-checked
@@ -590,6 +592,7 @@ def test_del_apply_rips_orphans_and_silk(tmp_path):
     assert "IN CAP" not in pcb.read_text(encoding="utf-8")
 
 
+@pytest.mark.kicad_recorded
 @pytest.mark.smoke
 def test_replace_c2_reaches_drc_zero(tmp_path):
     """Acceptance (b): one invocation deletes C2 and adds C99 at the freed
@@ -747,6 +750,7 @@ CRUMB = ('  (segment (start 24.3 47.2) (end 24.3 47.2) (width 0.25) '
          '(uuid "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeee01"))\n')
 
 
+@pytest.mark.kicad_recorded
 @pytest.mark.smoke
 def test_zero_length_crumb_inside_deleted_pad_is_removed(tmp_path):
     """Zero-length editing residue under a deleted pad is invisible to
