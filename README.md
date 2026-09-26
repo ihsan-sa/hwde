@@ -96,6 +96,11 @@ Board workspaces are not in this repo - they live in the separate boards repo,
 
 Run the suite with `check.cmd` (the `make check` equivalent on this host).
 
+Every push, and every pull request from a fork, runs the same suite on GitHub
+Actions (the `checks` workflow, split into 8 `pytest` jobs inside the KiCad 10
+image; the live-API `net` tests are left out). A red run names its failing job:
+open that job's `pytest` step for the failures, or download its `junit-N` file.
+
 ## License
 
 MIT - see [LICENSE](LICENSE). Vendor datasheets, component 3D models and footprints

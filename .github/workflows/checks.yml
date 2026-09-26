@@ -1,0 +1,94 @@
+# The repo's own checks on GitHub-hosted runners: the full pytest suite plus
+# check_env, inside the official KiCad 10 image (the same base as
+# docker/Dockerfile), with the rest of the docker/Dockerfile toolchain added in
+# the job: Temurin 25 + Freerouting 2.2.4, KiCadRoutingTools 0.19.0, the venv
+# from requirements.lock, pdflatex and Xvfb. There are no secrets and no deploy.
+#
+# Runs on every push (any branch) and on pull requests from forks; a PR from a
+# branch of this repo is already covered by its push run.
+# The suite is split by test file into SHARDS jobs balanced on the timings in
+# .github/test-times.json (a file with no timing counts its size in lines).
+# Tests marked `net` hit live JLCPCB/EasyEDA APIs, so they are left out here to
+# keep a third-party outage from turning a PR red.
+name: checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    name: pytest ${{ matrix.shard }}/8
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    container:
+      image: kicad/kicad:10.0.5
+      options: --user root
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    env:
+      SHARDS: 8
+      DEBIAN_FRONTEND: noninteractive
+      HWDE_KICAD_CLI: /usr/bin/kicad-cli
+      HWDE_JAVA: /opt/jre/bin/java
+      HWDE_FREEROUTING_JAR: /opt/freerouting/freerouting-2.2.4.jar
+      HWDE_KRT_DIR: /opt/krt/KiCadRoutingTools-0.19.0/plugins
+      HWDE_NGSPICE_DLL: /usr/lib/x86_64-linux-gnu/libngspice.so.0
+      HWDE_BOARDS_ROOT: /nonexistent/boards
+      DISPLAY: ":99"
+      JRE_URL: https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/OpenJDK25U-jre_x64_linux_hotspot_25.0.4.1_1.tar.gz
+      FREEROUTING_URL: https://github.com/freerouting/freerouting/releases/download/v2.2.4/freerouting-2.2.4.jar
+      KRT_URL: https://github.com/drandyhaas/KiCadRoutingTools/releases/download/v0.19.0/KiCadRoutingTools-0.19.0.zip
+    steps:
+      - name: OS packages
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git curl ca-certificates unzip \
+            python3-venv python3-pip xvfb xauth \
+            texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+      - uses: actions/checkout@v4
+      - name: Java 25, Freerouting, KiCadRoutingTools
+        run: |
+          mkdir -p /opt/jre /opt/freerouting /opt/krt
+          curl -fsSL "$JRE_URL" | tar -xz -C /opt/jre --strip-components=1
+          curl -fsSL -o "$HWDE_FREEROUTING_JAR" "$FREEROUTING_URL"
+          curl -fsSL -o /tmp/krt.zip "$KRT_URL"
+          unzip -q /tmp/krt.zip -d /opt/krt/KiCadRoutingTools-0.19.0
+          cp "$HWDE_KRT_DIR/rust_router/grid_router-linux-x86_64.so" "$HWDE_KRT_DIR/rust_router/grid_router.so"
+          /opt/jre/bin/java -version
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('requirements.lock') }}
+      - name: venv from requirements.lock
+        run: |
+          python3 -m venv /opt/venv
+          grep -v -E '^(pywin32|pywin32-ctypes)==' requirements.lock > /tmp/requirements.linux.lock
+          /opt/venv/bin/pip install -q -r /tmp/requirements.linux.lock
+          ln -s /opt/venv .venv
+      - name: check_env
+        run: .venv/bin/python .claude/skills/hwde/scripts/check_env.py --quiet
+      - name: pytest shard ${{ matrix.shard }}/8
+        run: |
+          (Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &); sleep 1
+          files=$(.venv/bin/python .github/shard.py "${{ matrix.shard }}" "$SHARDS")
+          echo "$files"
+          .venv/bin/python -m pytest -m "not net" -p no:cacheprovider \
+            --durations=15 --junitxml=junit-${{ matrix.shard }}.xml $files
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-${{ matrix.shard }}
+          path: junit-${{ matrix.shard }}.xml
+          if-no-files-found: ignore
