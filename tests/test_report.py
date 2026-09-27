@@ -32,8 +32,8 @@ Criteria -> tests:
   - env.find_pdflatex override ladder (check_env's) -> test_find_pdflatex_*
   - report_gen.find_lualatex ladder, house style by path
                                      -> test_find_lualatex_*, test_house_style_*
-  - check_env pdflatex check (warn-level, loud on bad pin)
-                                     -> test_check_env_pdflatex_unit
+  - check_env lualatex + house style check (warn-level, loud on bad pin)
+                                     -> test_check_env_lualatex_unit
   - real boards produce a real PDF (both render conventions), >= 8 pages via
     pypdf, sections included, zero residue outside reports/design_doc/,
     second run overwrites cleanly    -> test_smoke_* (smoke marker)
@@ -422,7 +422,7 @@ def test_sections_pending_at_p4(tmp_path, capsys):
     assert by_name["requirements"] == "included"
     assert by_name["architecture"] == "included"
     text = (ws / payload["tex"]).read_text(encoding="utf-8")
-    assert "Pending --- produced at P6" in text
+    assert "Pending \\textemdash{} produced at P6" in text
 
 
 def test_missing_core_exits_1(tmp_path, capsys):
@@ -696,25 +696,33 @@ def test_find_pdflatex_miktex_default(monkeypatch, tmp_path):
     assert env.find_pdflatex() == exe
 
 
-def test_check_env_pdflatex_unit(monkeypatch):
-    # F3: hermetic against an ambient HWDE_PDFLATEX pin in the caller's env
-    monkeypatch.delenv("HWDE_PDFLATEX", raising=False)
-    resolved: dict = {}
-    c = check_env.check_pdflatex(resolved)
-    assert c["name"] == "pdflatex"
+def test_check_env_lualatex_unit(monkeypatch, tmp_path):
+    # F3: hermetic against an ambient HWDE_LUALATEX pin in the caller's env
+    monkeypatch.delenv("HWDE_LUALATEX", raising=False)
+    c = check_env.check_lualatex({})
+    assert c["name"] == "lualatex"
     assert c["status"] in ("pass", "warn")     # never a hard fail when absent
 
-    monkeypatch.setattr(check_env.env, "find_pdflatex", lambda: None)
-    c_absent = check_env.check_pdflatex({})
+    monkeypatch.setattr(report_gen, "find_lualatex", lambda: None)
+    c_absent = check_env.check_lualatex({})
     assert c_absent["status"] == "warn"        # absent branch, deterministic
-    assert "HWDE_PDFLATEX" in c_absent["remediation"]
+    assert "HWDE_LUALATEX" in c_absent["remediation"]
+
+    fake = tmp_path / "lualatex"
+    monkeypatch.setattr(report_gen, "find_lualatex", lambda: fake)
+    monkeypatch.setattr(report_gen, "house_style_dir", lambda: None)
+    c_nostyle = check_env.check_lualatex({})
+    assert c_nostyle["status"] == "warn"       # engine without its style
+    assert "house style not found" in c_nostyle["detail"]
+    monkeypatch.setattr(report_gen, "house_style_dir", lambda: tmp_path)
+    assert check_env.check_lualatex({})["status"] == "pass"
 
     def raiser():
-        raise env.EnvError("HWDE_PDFLATEX does not exist: bad")
-    monkeypatch.setattr(check_env.env, "find_pdflatex", raiser)
-    c2 = check_env.check_pdflatex({})
+        raise env.EnvError("HWDE_LUALATEX does not exist: bad")
+    monkeypatch.setattr(report_gen, "find_lualatex", raiser)
+    c2 = check_env.check_lualatex({})
     assert c2["status"] == "fail"              # bad pin fails loudly
-    assert "HWDE_PDFLATEX" in c2["detail"]
+    assert "HWDE_LUALATEX" in c2["detail"]
 
 
 # ------------------------------------------------------------------ smoke
@@ -905,7 +913,7 @@ def test_part_number_row_in_metadata(tmp_path, capsys):
     # ...and on the title page and in every page's running head (owner, #ai-ee:
     # "in the library the PDFs should have the PNs on them").
     assert "\\hstitleblock{PCB-0007-C \\textperiodcentered" in text
-    assert "\\hsslug{PCB-0007-C -- " in text
+    assert "\\hsslug{PCB-0007-C \\textperiodcentered" in text
 
 
 # ------------------------------------------------------------- filing opt-in

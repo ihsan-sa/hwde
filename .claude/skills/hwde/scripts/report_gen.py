@@ -535,7 +535,7 @@ class DocBuilder:
 
     def pending(self, sid: str, heading: str, phase: str) -> None:
         self.start(heading)
-        self.body.append(r"\emph{Pending --- produced at " + phase + ".}")
+        self.body.append(r"\emph{Pending \textemdash{} produced at " + phase + ".}")
         self.record(sid, "pending", f"due at {phase}")
 
     # -- sections ---------------------------------------------------------
@@ -561,7 +561,7 @@ class DocBuilder:
             "\\hstitleblock{" + latex_escape(self.pn_label())
             + " \\textperiodcentered\\ hwde v1 pipeline \\textperiodcentered\\ generated "
             + latex_escape(time.strftime("%Y-%m-%d %H:%M")) + "}%\n{"
-            + latex_escape(self.name) + " --- " + KINDS[self.kind][2] + "}%\n{"
+            + latex_escape(self.name) + r" \textemdash{} " + KINDS[self.kind][2] + "}%\n{"
             + latex_escape(f"Phase {st.get('phase', '?')}; {overall}.") + "}")
         if self.kind == "highlight":
             self.sec_glance()
@@ -1434,7 +1434,9 @@ class DocBuilder:
             r"\setcounter{tocdepth}{1}",
             # Running head: part number and board at the left, the current
             # section at the right; the foot keeps the page number.
-            r"\hsslug{" + latex_escape(f"{self.pn_label()} -- {self.board}") + "}",
+            # House fonts set ASCII dashes as typed, so no "--" here.
+            r"\hsslug{" + latex_escape(self.pn_label()) + r" \textperiodcentered\ "
+            + latex_escape(self.board) + "}",
             r"\renewcommand{\sectionmark}[1]{\markboth{#1}{}}",
             r"\hssection{\leftmark}",
             r"\begin{document}",
@@ -1717,6 +1719,8 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
     engine: Path | None = None
     style = house_style_dir()
     if not tex_only:
+        # Brief: "keep the degraded exit-1 path when lualatex is absent" -
+        # no engine or no style leaves engine None, so pdf_path stays None.
         # Resolved after the tex write: a bad HWDE_LUALATEX pin still exits 2
         # (EnvError propagates) but must not discard the built document.
         engine = find_lualatex()
