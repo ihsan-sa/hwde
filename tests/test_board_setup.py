@@ -415,6 +415,49 @@ def test_last_json_helper():
     assert board_init._last_json("nothing here") is None
 
 
+# ==================================== board_swig footprint root (no-container host)
+
+def _board_swig_module():
+    """Import lib/board_swig.py with a stub pcbnew - resolve_default_fp_root
+    is pure pathlib/os/re and needs neither KiCad nor a real board."""
+    import importlib.util
+    import types
+    sys.modules.setdefault("pcbnew", types.ModuleType("pcbnew"))
+    spec = importlib.util.spec_from_file_location(
+        "board_swig", SCRIPTS / "lib" / "board_swig.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_resolve_default_fp_root_prefers_highest_kicad_env_var(tmp_path):
+    mod = _board_swig_module()
+    k9, k10 = tmp_path / "k9", tmp_path / "k10"
+    k9.mkdir()
+    k10.mkdir()
+    got = mod.resolve_default_fp_root(
+        {"KICAD9_FOOTPRINT_DIR": str(k9), "KICAD10_FOOTPRINT_DIR": str(k10)},
+        executable="/usr/bin/python3")
+    assert got == k10
+
+
+def test_resolve_default_fp_root_skips_a_var_naming_a_missing_dir(tmp_path):
+    mod = _board_swig_module()
+    k9 = tmp_path / "k9"
+    k9.mkdir()
+    got = mod.resolve_default_fp_root(
+        {"KICAD10_FOOTPRINT_DIR": str(tmp_path / "does-not-exist"),
+         "KICAD9_FOOTPRINT_DIR": str(k9)},
+        executable="/usr/bin/python3")
+    assert got == k9
+
+
+def test_resolve_default_fp_root_falls_back_to_executable_layout():
+    mod = _board_swig_module()
+    got = mod.resolve_default_fp_root({}, executable="/opt/kicad/bin/python")
+    assert got == Path("/opt/kicad/share/kicad/footprints")
+
+
 # ==================================================== T1: fab floors (one source)
 
 def test_fabfloors_profile_and_rules():
