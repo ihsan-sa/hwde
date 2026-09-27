@@ -169,17 +169,29 @@ def volts_from_name(net: str) -> float | None:
 
 
 def reg_out_volts(mpn: str) -> float | None:
-    """Fixed output of a regulator MPN: AMS1117-3.3 -> 3.3, L78L33 -> 3.3."""
+    """Fixed output of a regulator MPN: AMS1117-3.3 -> 3.3, L78L33 -> 3.3,
+    L7815 -> 15. A 78xx code counts only as the MPN's own prefix (L, LM,
+    MC, UA, KA, NCV, CJ) and reads as whole volts, bar 33 = 3.3; any other
+    MPN (HT7850, TPS78233) is unknown, never a guess."""
     m = re.search(r"[-_](\d{1,2}\.\d{1,2})(?![0-9])", mpn)
     if m:
         return float(m.group(1))
-    m = re.search(r"78L?M?(\d{2})", mpn.upper())
+    m = re.match(r"(?:L|LM|MC|UA|KA|NCV|CJ)?78L?M?(\d{2})", mpn.upper())
     if m:
-        a, b = m.group(1)
-        return float(b) if a == "0" else (float(f"{a}.{b}") if
-                                         m.group(1) in ("33", "25", "18", "15")
-                                         else float(m.group(1)))
+        return 3.3 if m.group(1) == "33" else float(m.group(1))
     return None
+
+
+def cell_volts(cell: str) -> list[float]:
+    """Voltages in a power-tree volts cell: '5.0 / 4.7' -> [5.0, 4.7];
+    a range '4.5-5.5' (or 'to', '..') is its upper end; tolerance terms
+    ('1.8 +-5%', '3.3 +/-0.1', '5%') are dropped, leaving the nominal."""
+    s = cell.replace("\u2013", "-").replace("\u00b1", "+/-")
+    s = re.sub(r"\+\s*/?\s*-\s*\d+(?:\.\d+)?\s*%?", " ", s)
+    s = re.sub(r"\d+(?:\.\d+)?\s*%", " ", s)
+    s = re.sub(r"(\d+(?:\.\d+)?)\s*(?:-|to|\.\.)\s*(\d+(?:\.\d+)?)",
+               lambda m: str(max(float(m.group(1)), float(m.group(2)))), s)
+    return [float(x) for x in re.findall(r"(?<![\d.])-?\d+(?:\.\d+)?", s)]
 
 
 def power_tree_volts(path: Path, nets: set[str]) -> dict[str, float]:
@@ -208,7 +220,7 @@ def power_tree_volts(path: Path, nets: set[str]) -> dict[str, float]:
             continue
         names = [by_base.get(x.strip().lstrip("/"))
                  for x in cells[0].split(",")]
-        nums = [float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", cells[1])]
+        nums = cell_volts(cells[1])
         if not nums:
             continue
         for k, name in enumerate(names):

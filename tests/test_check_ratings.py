@@ -111,6 +111,30 @@ def test_regulator_mpn_volts():
     assert cr.reg_out_volts("L78L33ACUTR") == 3.3
     assert cr.reg_out_volts("L7805") == 5.0
     assert cr.reg_out_volts("TPS563201DDCR") is None
+    # review #32: two digits are whole volts, and 78 only counts as the
+    # MPN's own family prefix
+    assert cr.reg_out_volts("L7815CV") == 15.0
+    assert cr.reg_out_volts("L7818CV") == 18.0
+    assert cr.reg_out_volts("MC78M05CDTRKG") == 5.0
+    assert cr.reg_out_volts("HT7850") is None
+    assert cr.reg_out_volts("TPS78233DDCR") is None
+
+
+@pytest.mark.parametrize("cell,v", [
+    ("3.3", [3.3]), ("5.0 / 4.7", [5.0, 4.7]), ("-5", [-5.0]),
+    ("4.5-5.5", [5.5]), ("4.5 to 5.5 V", [5.5]), ("1.8 \u00b15%", [1.8]),
+    ("3.3 +/-0.1", [3.3]), ("12 (5%)", [12.0])])
+def test_power_tree_cell_volts(cell, v):
+    assert cr.cell_volts(cell) == v
+
+
+def test_power_tree_range_and_tolerance_cells(tmp_path):
+    tree = ("| Rail | Nom V |\n|---|---|\n| /VA | 4.5-5.5 |\n"
+            "| /VB | 1.8 \u00b15% |\n")
+    path = tmp_path / "power_tree.md"
+    path.write_text(tree, encoding="utf-8")
+    assert cr.power_tree_volts(path, {"/VA", "/VB"}) == {"/VA": 5.5,
+                                                         "/VB": 1.8}
 
 
 # ------------------------------------------------------------ synthetic boards
