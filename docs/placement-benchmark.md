@@ -59,6 +59,31 @@ is the number to trust there.
 For comparison, `SPEC.md` 1 asks for at least 98%. Quilter's placement reached 99.4%
 and naive simulated annealing 93.8% on the reference board.
 
+### rf-term-150w after the edge and hole fixes (2026-09-27)
+
+After PR #35 fixed the edge snap, rf-term routed 100% with 13 DRC errors and 4
+warnings, and the anneal still found no legal placement: only two of the three M3
+holes fit. Three causes, all fixed:
+
+- `place_seed` read an edge part's `pos` as a fraction of the cluster-centre span,
+  so J1 and R1 sat at x 30.5 mm where the constraints meant their origin at 0.375 of
+  the edge (x 34.0). It now reads `pos` as the fraction of the edge where the part's
+  origin sits, clamped so its pads keep their copper-to-edge clearance.
+- The seed kept every courtyard 0.8 mm inside the outline. The shipped board packs
+  its holes 0.2 mm off the edge, and the rule that matters is the board's
+  copper-to-edge clearance (0.3 mm). `placelib.edge_keep` now gives how far a
+  courtyard must stay in so its pad copper clears that rule. The seed legalizes the
+  holes against it and searches from the nearest corner, and the anneal and the
+  courtyard-flush edge snap both honour it. That also removes the three R1 pad
+  edge-clearance errors the flush snap caused.
+- route_auto's DSN ignored the `.kicad_dru` per-net rules, so `/RF` routed at the
+  default width and clearance (4 width and 3 clearance errors). The DSN now gives
+  each net with a DRU width or clearance its own class.
+
+Rerun on a stripped copy: seed legal, anneal legal (HPWL 62.9 -> 59.5 mm), 100%
+completion, **0 DRC errors** and 3 warnings. All three warnings are silkscreen
+(H2's reference clipped by mask, C1 and R1 silk clipped by the edge).
+
 ## Method
 
 Every board in the boards repo that has a `.kicad_pcb` (15 of 18; `PCB-0006-A` and

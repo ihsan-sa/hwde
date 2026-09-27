@@ -375,3 +375,39 @@ def test_dedup_copper_removes_exact_echoes(tmp_path):
     r2 = _rl.run_worker(bp, {"verb": "dedup_copper", "board": str(pcb),
                              "out": str(pcb)}, work)
     assert r2["removed"] == 0 and r2["changed"] is False
+
+
+_DSN_CLASS = '''(pcb x
+  (resolution um 10)
+  (network
+    (class kicad_default /RF GND "Net-(C1-Pad2)"
+      (circuit
+        (use_via "Via[0-1]_600:300_um")
+      )
+      (rule
+        (width 200)
+        (clearance 200)
+      )
+    )
+  )
+)
+'''
+
+
+def test_dsn_apply_net_rules_moves_a_floored_net_to_its_own_class():
+    """rf-term's /RF: the .kicad_dru's 0.9392 mm width and 0.8 mm HV
+    clearance never reached Freerouting, which laid it at 0.2 mm."""
+    import routelib
+    text, moved = routelib.dsn_apply_net_rules(
+        _DSN_CLASS, {"/RF": 0.9392, "GND": 0.1}, {"/RF": 0.8})
+    assert moved == ["/RF"]
+    assert "(class kicad_default GND \"Net-(C1-Pad2)\"" in text
+    rf = text[text.index("(class aiee__RF /RF"):]
+    assert "(width 939.2)" in rf and "(clearance 800)" in rf
+    assert '(use_via "Via[0-1]_600:300_um")' in rf
+    # the suppressed case: GND's 0.1 mm floor is below its class's 0.2 mm,
+    # so it stays put, and the default class keeps its own rule
+    default = text[text.index("(class kicad_default"):text.index("aiee__RF")]
+    assert "(width 200)" in default and "GND" in default
+    # nothing floored -> the DSN comes back unchanged
+    assert routelib.dsn_apply_net_rules(_DSN_CLASS, {}, {}) == (_DSN_CLASS, [])

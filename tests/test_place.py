@@ -998,9 +998,10 @@ def test_edge_snap_lets_designed_overhang_hang_off():
     c1 = model.footprints["C1"].extents_abs()
     assert c1.difference(model.outline).area <= placelib.EPS_AREA
     # the suppressed case: R1's courtyard does not reach past its pads, so
-    # it stays courtyard-flush with the bottom edge as before
+    # it stays courtyard-flush with the bottom edge, less the 0.05 mm its
+    # pad copper needs against the board's 0.3 mm copper-to-edge rule
     r1 = model.footprints["R1"].extents_abs()
-    assert r1.bounds[3] == pytest.approx(maxy, abs=1e-6)
+    assert maxy - r1.bounds[3] == pytest.approx(0.05, abs=1e-6)
     # J1, C1 and R1 are legal against the outline and each other (the
     # mounting holes are the free legalizer's, not the edge snap's)
     viol = placelib.legality_violations(model, con["placement"])
@@ -1014,4 +1015,35 @@ def test_perimeter_slot_starts_at_courtyard_not_circumradius():
     (_ops, _v, _f, model), _con = _rf_term_seed()
     gap = (model.footprints["C1"].extents_abs().bounds[0]
            - model.footprints["J1"].extents_abs().bounds[2])
-    assert 0.0 <= gap < 2.0
+    # the slot starts at C1's own side, not its circumradius (was 1.6 mm)
+    assert 0.0 <= gap < 0.5
+
+
+def test_pos_is_edge_fraction_and_all_three_holes_fit():
+    """Schema: "pos 0..1 along the edge"; rf-term's constraints mean the
+    part's origin (the SMA pin, R1's tab) at that fraction. With it, and the
+    M3 holes allowed as close to the edge as their copper may go, the seed
+    finds the legal three-hole layout the shipped board has."""
+    (_ops, viol, _f, model), con = _rf_term_seed()
+    minx, miny, maxx, maxy = model.outline.bounds
+    for ref in ("J1", "R1"):
+        assert model.footprints[ref].pos[0] == pytest.approx(
+            minx + 0.375 * (maxx - minx), abs=1e-6)
+    assert not viol
+    assert not placelib.legality_violations(model, con["placement"])
+    cu = placelib.copper_edge_mm(model)
+    assert cu == pytest.approx(0.3)             # the board's own rule
+    for ref in ("H1", "H2", "H3"):
+        fp = model.footprints[ref]
+        assert fp.is_mechanical
+        for p in fp.pads:
+            x, y = fp.to_abs(p.local)
+            hx, hy = p.size[0] / 2, p.size[1] / 2
+            gap = min(x - hx - minx, y - hy - miny, maxx - x - hx,
+                      maxy - y - hy)
+            assert gap >= cu - 1e-6, (ref, gap)
+    # the suppressed case: an assembled part is not mechanical, and a
+    # rule looser than the courtyard's own 0.25 mm asks for no keep
+    assert not model.footprints["C1"].is_mechanical
+    assert model.footprints["H1"].edge_keep(0.3) == pytest.approx(0.05)
+    assert model.footprints["H1"].edge_keep(0.2) == 0.0
