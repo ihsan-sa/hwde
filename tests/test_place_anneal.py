@@ -248,6 +248,107 @@ def test_gnd_excluded_from_mst_terms(tmp_path_factory):
     assert eng._wnet["GND"] == place_anneal.W_GND
 
 
+def _pro(pcb: Path, patterns: list, classes: list) -> None:
+    pro = {"net_settings": {"classes": classes,
+                            "netclass_patterns": patterns}}
+    pcb.with_suffix(".kicad_pro").write_text(json.dumps(pro),
+                                             encoding="utf-8")
+
+
+DEFAULT_CLS = {"name": "Default", "track_width": 0.2, "clearance": 0.2}
+
+
+def test_net_pitch_units_reads_netclass_and_dru(tmp_path_factory):
+    pcb = _scatter_board(tmp_path_factory, "pitch")
+    nets = ["A", "B", "C", "GND", "VCC"]
+    # no project: every net demands one track, as before widths counted
+    assert place_anneal.net_pitch_units(pcb, nets) == {}
+    _pro(pcb, [{"netclass": "Power", "pattern": "VCC"}],
+         [DEFAULT_CLS, {"name": "Power", "track_width": 1.0,
+                        "clearance": 0.2}])
+    pcb.with_suffix(".kicad_dru").write_text(
+        "(version 1)\n(rule \"w_B\"\n"
+        "\t(constraint track_width (min 0.6000mm))\n"
+        "\t(condition \"A.NetName == 'B' && A.Type == 'track'\")\n)\n",
+        encoding="utf-8")
+    got = place_anneal.net_pitch_units(pcb, nets)
+    # (1.0 + 0.2) / (0.2 + 0.2) from the netclass; (0.6 + 0.2) / 0.4 from
+    # the DRU floor; Default-width nets are left out (1.0)
+    assert got == {"B": 2.0, "VCC": 3.0}
+
+
+def test_congestion_charges_gnd_and_width(tmp_path_factory):
+    pcb = _scatter_board(tmp_path_factory, "cwidth")
+    eng, _m = _engine(pcb, cong_cap=1)
+    # GND stays out of the crossing term but now demands channel room
+    assert "GND" not in eng.mst_nets and "GND" in eng.cong_nets
+    assert eng.plane_nets == []
+    narrow = sum(eng.demand.values())
+    _pro(pcb, [{"netclass": "Power", "pattern": "VCC"}],
+         [DEFAULT_CLS, {"name": "Power", "track_width": 1.0,
+                        "clearance": 0.2}])
+    wide, _m2 = _engine(pcb, cong_cap=1)
+    assert wide._unit["VCC"] == 3.0 and wide._unit["A"] == 1.0
+    # VCC's flight lines now cost 3 tracks each instead of 1
+    vcc = sum(wide.netcells["VCC"].values())
+    assert sum(wide.demand.values()) == pytest.approx(narrow + 2 * vcc)
+    assert wide.overflow > eng.overflow
+    # incremental bookkeeping stays exact with fractional demand
+    for cid, c in ((0, (30.0, 12.0)), (1, (8.0, 30.0)), (0, (44.0, 22.0))):
+        if wide.bodies[cid].kind != "edge_fixed":
+            wide.set_state(cid, c, 90.0)
+    kept = (wide.overflow, wide.cross_total)
+    wide.full_sync()
+    assert kept == pytest.approx((wide.overflow, wide.cross_total), abs=1e-6)
+
+
+def test_plane_net_left_out_of_congestion(tmp_path_factory):
+    body = _fp("R1", 10, 20, pads=_pad("1", 0, 0, "GND"))
+    body += _fp("R2", 50, 20, pads=_pad("1", 0, 0, "GND"))
+    body += _fp("R3", 10, 30, pads=_pad("1", 0, 0, "S"))
+    body += _fp("R4", 50, 30, pads=_pad("1", 0, 0, "S"))
+    zone = ('  (zone (net "GND") (layers "In1.Cu")\n'
+            '    (polygon (pts (xy 0 0) (xy 60 0) (xy 60 40) (xy 0 40))))\n')
+    pcb = _pcb(tmp_path_factory, "plane", body + zone)
+    text = pcb.read_text(encoding="utf-8").replace(
+        '(2 "B.Cu" signal)', '(4 "In1.Cu" power) (2 "B.Cu" signal)')
+    pcb.write_text(text, encoding="utf-8")
+    eng, _m = _engine(pcb, {"placement": {}}, {})
+    assert eng.plane_nets == ["GND"]
+    assert eng.cong_nets == ["S"]
+    # the same GND pour on an outer layer is not a plane: it is charged
+    pcb.write_text(text.replace('(layers "In1.Cu")', '(layers "B.Cu")'),
+                   encoding="utf-8")
+    eng2, _m2 = _engine(pcb, {"placement": {}}, {})
+    assert eng2.plane_nets == [] and eng2.cong_nets == ["GND", "S"]
+
+
+def test_power_plane_net_still_crosses(tmp_path_factory):
+    # usb-buck: +3V3 owns an inner zone, so it leaves the demand, but a
+    # power net still counts in the crossings (it crashed with KeyError)
+    body = _fp("R1", 10, 20, pads=_pad("1", 0, 0, "P"))
+    body += _fp("R2", 50, 20, pads=_pad("1", 0, 0, "P"))
+    body += _fp("R3", 30, 5, pads=_pad("1", 0, 0, "S"))
+    body += _fp("R4", 30, 35, pads=_pad("1", 0, 0, "S"))
+    zone = ('  (zone (net "P") (layers "In1.Cu")\n'
+            '    (polygon (pts (xy 0 0) (xy 60 0) (xy 60 40) (xy 0 40))))\n')
+    pcb = _pcb(tmp_path_factory, "pplane", body + zone)
+    text = pcb.read_text(encoding="utf-8").replace(
+        '(2 "B.Cu" signal)', '(4 "In1.Cu" power) (2 "B.Cu" signal)')
+    pcb.write_text(text, encoding="utf-8")
+    eng, _m = _engine(pcb, {"placement": {}, "power": [{"net": "P"}]}, {})
+    assert eng.plane_nets == ["P"] and eng.cong_nets == ["S"]
+    assert "P" in eng.mst_nets and "P" not in eng.netcells
+    assert eng.cross_total > 0
+    # moving the plane net's body updates its crossings, not the demand
+    demand = dict(eng.demand)
+    eng.set_state(0, (30.0, 30.0), 0.0)
+    assert eng.demand == demand
+    kept = (eng.overflow, eng.cross_total)
+    eng.full_sync()
+    assert kept == pytest.approx((eng.overflow, eng.cross_total), abs=1e-6)
+
+
 # ============================================================ pure: annealing
 
 def test_anneal_improves_and_stays_legal(tmp_path_factory):
