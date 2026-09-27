@@ -16,8 +16,8 @@ repo (env.boards_root()) that has a kicad/*.kicad_pcb, run_board:
      with "wxEntryStart failed";
   5. writes WORK/<board>/result.json the moment the board finishes.
 
-A board whose .kicad_pcb is gone by the time its turn comes (renamed in the
-boards repo mid-run) gets a result.json with only an error, and the run goes on.
+A board whose .kicad_pcb, or whole dir, is gone by the time its turn comes
+(renamed in the boards repo mid-run) gets a result.json with only an error, and the run goes on.
 
 Runtime is only a measurement when the box was quiet: a sampler reads the
 1-minute load average every few seconds while the board runs, and
@@ -138,13 +138,18 @@ def run_board(board_dir: Path, work: Path, *, scripts: Path, venv_py: str,
     bdir = Path(work) / name
     if bdir.exists():
         shutil.rmtree(bdir)
-    shutil.copytree(board_dir / "kicad", bdir / "kicad")
+    try:
+        shutil.copytree(board_dir / "kicad", bdir / "kicad")
+    except FileNotFoundError:
+        pass  # the whole board dir is gone: recorded as lost just below
     for d in STALE_DIRS:
         shutil.rmtree(bdir / "kicad" / d, ignore_errors=True)
     pcbs = sorted((bdir / "kicad").glob("*.kicad_pcb"))
     if not pcbs:
-        # the board lost its .kicad_pcb after the corpus was listed (a rename
-        # in the boards repo mid-run): record it as failed, keep the run going
+        # the board lost its .kicad_pcb, or its whole dir, after the corpus
+        # was listed (a rename in the boards repo mid-run): record it as
+        # failed, keep the run going
+        bdir.mkdir(parents=True, exist_ok=True)
         return _write_result(work, name, {
             "board": name, "error": f"no kicad/*.kicad_pcb in {board_dir} "
                                     "when its turn came (moved or deleted "
