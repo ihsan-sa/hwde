@@ -60,6 +60,15 @@ KRT facts this adapter encodes (all machine-verified against KRT 0.19.0):
     retries. --grid-step 0.05 (default here) matters: 0.1 quantizes away the
     tap corridors of 0.5 mm-pitch parts (S11-verified: +3V3 15/16 pads at 0.1,
     21/21 at 0.05).
+  * KRT 0.19.0 limitation + workaround: a power net routed wider than the
+    base width keeps its extra half-width as a FRACTIONAL grid margin, and
+    against an off-grid 45-degree obstacle (a diff-pair track) that margin
+    comes up to half a diagonal grid phase short (usbbuck4: VBUS ran 0.1854
+    mm from USB_DM against 0.2, 3-6 DRC errors depending on the board's
+    incidental UUID order). The power pass therefore routes with the
+    clearance of every net already carrying tracks raised by grid_step / 2
+    in its own --net-clearances file (power_net_clearances); DRC still
+    grades against the board's real floors.
 
 Layer discipline: diff pairs and RF prefer the outer layer over the first
 inner reference plane (F.Cu on the 4-layer stack, cost 1) with the far outer
@@ -849,8 +858,12 @@ def route_diff_item(ctx: dict, spec: dict) -> tuple[dict | None, dict | None]:
 
 
 def _route_single_item(ctx: dict, kind: str, nets: list[str],
-                       extra: list[str], per_net_meta: dict) -> tuple[list, list]:
+                       extra: list[str], per_net_meta: dict,
+                       net_clearances: Path | None = None
+                       ) -> tuple[list, list]:
     """Shared route.py runner for power/rf. Returns (facts, violations).
+    net_clearances: this run's --net-clearances file (default: the shared
+    ctx map).
 
     Iteration ladder (T6, LEARNINGS 1433/1504): when KRT reports
     'No route found after N iterations' and the Coverage diagnostic blames a
@@ -858,13 +871,14 @@ def _route_single_item(ctx: dict, kind: str, nets: list[str],
     the scripted form of the fix that routed both carrier long hauls first
     try, replacing ~10 manual rip-set attempts."""
     staged = ctx["staged"]
+    ncl = net_clearances or ctx.get("net_clearances")
     out = _next_out(ctx, kind)
     sink: list[str] = []
     summary = run_krt(ctx["krt"], "route.py", staged, out,
                       ["--nets", *nets] + extra,
                       ctx["floors"], ctx["fab_file"], ctx["grid_step"],
                       ctx["timeout_s"],
-                      net_clearances=ctx.get("net_clearances"),
+                      net_clearances=ncl,
                       stdout_sink=sink)
     os.replace(out, staged)  # keep partial successes; failures become violations
     stdout = sink[0] if sink else ""
@@ -885,7 +899,7 @@ def _route_single_item(ctx: dict, kind: str, nets: list[str],
                             str(RETRY_MAX_PROBE_ITERATIONS)],
                          ctx["floors"], ctx["fab_file"], ctx["grid_step"],
                          ctx["timeout_s"],
-                         net_clearances=ctx.get("net_clearances"))
+                         net_clearances=ncl)
         except CheckError as exc:
             retry["error"] = str(exc)[:200]
         else:
@@ -970,6 +984,28 @@ def normalize_power_widths(staged: Path, specs: list[dict]) -> dict:
     return {"widened": widened, "crumbs_removed": crumbs}
 
 
+def power_net_clearances(ctx: dict, obstacle_nets: list[str]) -> Path | None:
+    """--net-clearances file for the power route.py runs: the shared map with
+    `obstacle_nets` (nets already carrying tracks - the diff pairs, off-grid)
+    raised by grid_step / 2 over their own clearance (else the floor). KRT
+    keeps an obstacle out by that obstacle net's clearance, and its
+    fractional-margin shortfall (module docstring) is under half a diagonal
+    grid phase, so half a grid step covers it. Only those nets are raised:
+    raising the routed power nets instead cost +3V3 a fine-pitch pad tap.
+    Returns the shared map unchanged when there is nothing to raise."""
+    path = ctx.get("net_clearances")
+    if not obstacle_nets:
+        return path
+    ncl = json.loads(path.read_text(encoding="utf-8")) if path else {}
+    for net in obstacle_nets:
+        base = max(ncl.get(net, 0.0), ctx["floors"]["clearance"])
+        ncl[net] = round(base + ctx["grid_step"] / 2.0, 4)
+    out = ctx["work"] / "net_clearances_power.json"
+    out.write_text(json.dumps(ncl, indent=1, sort_keys=True) + "\n",
+                   encoding="utf-8")
+    return out
+
+
 def route_power_item(ctx: dict, specs: list[dict]) -> tuple[list, list]:
     bg = geom.BoardGeom.from_file(ctx["staged"])
     live = [s for s in specs if s["net"] in bg.nets]
@@ -1008,6 +1044,9 @@ def route_power_item(ctx: dict, specs: list[dict]) -> tuple[list, list]:
     # that cannot take the un-necked width then fails loudly.
     relaxed = [s for s in live if s["ipc_min_mm"] <= BASE_TRACK_WIDTH + 1e-3]
     strict = [s for s in live if s["ipc_min_mm"] > BASE_TRACK_WIDTH + 1e-3]
+    power = {s["net"] for s in specs}
+    ncl = power_net_clearances(ctx, sorted(
+        {tk.net for tk in bg.tracks_of() if tk.net} - power))
     facts, vs = list(plane_facts), []
     for group, extra in ((strict, ["--no-power-tap-neckdown"]), (relaxed, [])):
         if not group:
@@ -1022,7 +1061,8 @@ def route_power_item(ctx: dict, specs: list[dict]) -> tuple[list, list]:
             {s["net"]: {"current_a": s["current_a"],
                         "width_mm": s["width_mm"],
                         "ipc_min_mm": s["ipc_min_mm"],
-                        "neckdown": not extra} for s in group})
+                        "neckdown": not extra} for s in group},
+            ncl)
         facts.extend(f)
         vs.extend(v)
     norm = normalize_power_widths(ctx["staged"], live)

@@ -5084,3 +5084,15 @@ Every gate that loads a board through kicad-cli (drc, place, verify, dfm) create
 `mcp_server.py` deletes the prl files its read-only calls created (ones that were
 already there stay), and `tests/test_mcp_server.py` asserts the whole workspace tree
 hashes the same afterwards.
+
+## 2026-09-27 [routing][krt][drc] KRT power widths under-clear off-grid 45-degree tracks by up to half a diagonal grid phase
+usbbuck4's critical routing failed DRC with 3 or 6 `clearance` errors, VBUS (0.375 mm, on the
+0.05 grid) running 45-degree-parallel to the off-grid USB_DM pair track at 0.1854 mm against
+0.2. Not a host difference: the same placed board fails the same way under any PYTHONHASHSEED,
+and whether it fails at all turns on the fresh board's incidental UUID order, so a clean
+pytest run proves little. KRT keeps a power net's extra half-width over the base width as a
+fractional A* margin, which falls short by under half a diagonal phase (0.05/(2*sqrt 2) =
+0.0177 mm). route_critical's power pass now raises the clearance of nets already carrying
+tracks by grid_step/2 in its own --net-clearances file (KRT keeps each obstacle out by that
+obstacle net's clearance). Raising the routed power nets instead also fixed the DRC but cost
++3V3 a fine-pitch pad tap.

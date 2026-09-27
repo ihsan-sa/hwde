@@ -369,6 +369,32 @@ def test_build_net_clearances_class_plus_dru(tmp_path):
     assert rc.build_net_clearances(bad, dru, nets) is None
 
 
+def test_power_net_clearances_raises_track_nets_only(tmp_path):
+    """KRT fractional-margin workaround: the power runs keep half a grid step
+    more off nets already carrying tracks (usbbuck4: VBUS 0.1854 mm from the
+    off-grid USB_DM diagonal against 0.2), raising nothing else."""
+    shared = tmp_path / "net_clearances.json"
+    shared.write_text(json.dumps({"/USB_DM": 0.3, "V48": 0.635}),
+                      encoding="utf-8")
+    ctx = {"work": tmp_path, "floors": {"clearance": 0.2}, "grid_step": 0.05,
+           "net_clearances": shared}
+    out = rc.power_net_clearances(ctx, ["/USB_DP", "/USB_DM"])
+    m = json.loads(out.read_text(encoding="utf-8"))
+    # a net at the floor and a net with its own clearance both gain 0.025;
+    # a net with no tracks keeps its value
+    assert m == {"/USB_DP": 0.225, "/USB_DM": 0.325, "V48": 0.635}
+    # the shared map the diff/rf runs use is untouched
+    assert json.loads(shared.read_text(encoding="utf-8")) == \
+        {"/USB_DM": 0.3, "V48": 0.635}
+    # nothing routed yet -> the shared map (or no file) goes through as is
+    assert rc.power_net_clearances(ctx, []) == shared
+    assert rc.power_net_clearances({**ctx, "net_clearances": None}, []) is None
+    # no shared map -> the raised nets alone
+    out2 = rc.power_net_clearances({**ctx, "net_clearances": None},
+                                   ["/USB_DP"])
+    assert json.loads(out2.read_text(encoding="utf-8")) == {"/USB_DP": 0.225}
+
+
 def test_run_krt_passes_net_clearances_and_captures_stdout(tmp_path,
                                                           monkeypatch):
     seen = {}
