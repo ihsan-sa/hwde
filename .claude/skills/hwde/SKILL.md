@@ -50,10 +50,8 @@ reviewer spawns. A mode relaxes geometry, cost and packaging only - never a
 gate, the coverage check, research, or a safety question - and every relaxed
 spec is a recorded decision shown at H1.
 
-**Other agents** reach the same answers through `scripts/mcp_server.py`, a
-local stdio MCP server (no port): `hwde_route`, `hwde_state`, `hwde_gate`,
-`hwde_dfm_check` and `hwde_review`. Every tool is read-only unless the call
-passes `write: true`. The README says how to register it in `.mcp.json`.
+**Other agents** call the same routing, state, gates and review as MCP tools through
+`scripts/mcp_server.py` (stdio, read-only unless `write: true`; see the README).
 
 ## Non-negotiable operating rules
 
@@ -180,24 +178,12 @@ remaining violations with coordinates), present to the human with options
 
 ## Design document (living, per-run)
 
-Before EVERY human checkpoint (H1-H5) and once more at P10 close, run inline:
-`scripts/report_gen.py --workspace <ws>` -> assembles state.json + digests +
-reports + renders into `reports/design_doc/<board>-design-doc.pdf`. Phase-
-aware: sections not yet due render as pending stubs, so the doc is valid
-mid-run, not only after. NON-BLOCKING by contract: on exit 1/2 log the
-payload warnings (`state.py log --event report_gen_degraded`), point at the
-.tex or last good PDF, and continue - the report never gates the run.
-(Without pdflatex it degrades to .tex-only; check_env warns.)
-Only the FINAL design doc is filed in the document register: run that one
-with `--file`, or `DOC_PROJECT=Boards report_gen.py ... --file`. Never export
-DOC_PROJECT for the session, or every run files. An unchanged rebuild files nothing.
-At P10 close (or when the owner asks) every board also gets two more documents,
-each filed as its own: `--kind highlight` (a few pages: what it is, a picture,
-BOM, the decisions that changed it, checks) and `--kind full --render-history`
-(the design doc plus a render of each routing snapshot, every decision and why,
-the run's history and a diagram-maker figure of how it went). Once the board's
-boards PR has squash-merged, pass `--history-ref <its track branch>` so the
-history reads the run's own commits.
+Before EVERY human checkpoint (H1-H5) and once more at P10 close, run inline
+`scripts/report_gen.py --workspace <ws>` -> `reports/design_doc/<board>-design-doc.pdf`
+(phase-aware: sections not yet due render as pending stubs). NON-BLOCKING: on
+exit 1/2 log `state.py log --event report_gen_degraded` and continue - the
+report never gates the run. Filing the final doc (`--file`) and the P10
+highlight and full documents: `reference/design-docs.md`.
 
 ## Board guide (owner-facing, per board)
 

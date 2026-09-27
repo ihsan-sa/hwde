@@ -48,6 +48,9 @@ from shapely.ops import unary_union
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
+import env  # noqa: E402
+
+env.export_kicad_symbol_dir()   # before kicad-sch-api's first library scan
 
 # Text metrics. KiCad's stroke font inks a box of the nominal glyph height plus
 # the stroke thickness (LEARNINGS 2026-07-29 [parts][silk]); the per-character
