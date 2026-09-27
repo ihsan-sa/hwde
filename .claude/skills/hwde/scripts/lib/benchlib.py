@@ -330,6 +330,12 @@ WEIGHTS = {
     "P9": {"errors": 0.5, "warnings": 0.1, "known_answer_missed": 40.0,
            "forbidden_errors": 10.0},
     "P10": {"not_ready": 50.0, "missing_items": 10.0},
+    # E2E (reference/e2e-scoring.md): each shortfall is 1 - a category score
+    # in [0, 1].  Cost keeps EEBench's 0.35; electrical + layout split its
+    # 0.65 technical share, so a board with no layout scores as EEBench would
+    # minus the 20 layout points.
+    "E2E": {"electrical_shortfall": 45.0, "layout_shortfall": 20.0,
+            "cost_shortfall": 35.0},
 }
 
 
