@@ -18,8 +18,9 @@ arrangement:
    fraction of the edge's length (clamped so the cluster's copper clears the
    edge's ends, Footprint.edge_keep), rotated so the body
    overhang points off-board (explicit rot wins; symmetric parts keep their
-   angle). The edge part's courtyard sits flush with the edge unless it
-   reaches past the part's pad field: then the pads sit edge_margin inside
+   angle). The edge part's courtyard sits flush with the edge (stepped in
+   by Footprint.edge_keep so its pad copper clears the board's
+   copper-to-edge rule) unless it reaches past the part's pad field: then the pads sit edge_margin inside
    the edge and the rest of the courtyard (an SMA barrel, a flange) hangs
    off the board, never so far that less than placelib.ON_BOARD_MIN of it
    stays on. A satellite that would cross the edge is slid inboard in its
