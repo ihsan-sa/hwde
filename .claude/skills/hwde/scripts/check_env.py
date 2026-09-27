@@ -63,6 +63,8 @@ KICAD_INSTALL_HELP = (
     "Or point HWDE_KICAD_CLI at an existing kicad-cli."
 )
 JAVA_HELP = (
+    "On the Linux host: . ~/.local/kicad10/hwde-env.sh (tools under "
+    "~/.local/hwde-tools; see CLAUDE.md, Linux host section). "
     "Freerouting 2.2.4 needs Java >= 25 (the 'Java 21+' docs are stale; "
     "verified: Java 24 fails with UnsupportedClassVersionError). Unzip a "
     "portable Temurin 25 JRE into tools/jre/ "
@@ -71,6 +73,8 @@ JAVA_HELP = (
     "ghcr.io/freerouting/freerouting image."
 )
 JAR_HELP = (
+    "On the Linux host: . ~/.local/kicad10/hwde-env.sh (tools under "
+    "~/.local/hwde-tools; see CLAUDE.md, Linux host section). "
     "Download freerouting-2.2.4.jar from "
     "https://github.com/freerouting/freerouting/releases into "
     "tools/freerouting/, or set HWDE_FREEROUTING_JAR."
@@ -266,7 +270,8 @@ def check_java(resolved: dict) -> list[dict]:
         return out
     resolved["freerouting_jar"] = str(jar) if jar else None
     out.append(check("freerouting-jar", jar is not None,
-                     str(jar) if jar else "no jar in tools/freerouting/",
+                     str(jar) if jar else
+                     "no jar in tools/freerouting/ and HWDE_FREEROUTING_JAR not set",
                      JAR_HELP))
     return out
 
