@@ -487,7 +487,16 @@ def test_intake_golden_board_runs_every_gate(tmp_path):
     assert set(gates) == set(intake.BASELINE_GATES)
     assert all(g["status"] == "pass" for g in gates.values()), gates
     # the golden ships constraints/decoupling, so every check really ran
-    assert set(payload["baseline"]["verify_checks"].values()) == {"pass"}
+    checks = dict(payload["baseline"]["verify_checks"])
+    # ...but no datasheet extractions, so check_ratings (#32) runs on the
+    # scaffold's empty parts/ and must say every part is unrated - one
+    # rating_unrated warning per part, never an error and never a silent pass
+    assert checks.pop("check_ratings") == "violations"
+    ratings = json.loads((ws / "reports" / "checks" / "check_ratings.json")
+                         .read_text(encoding="utf-8"))["violations"]
+    assert ratings and {(v["kind"], v["severity"]) for v in ratings} == {
+        ("rating_unrated", "warning")}
+    assert set(checks.values()) == {"pass"}, checks
     assert payload["baseline"]["netlist_audit"]["status"] in ("pass",
                                                               "violations")
     # gate results are recorded AND hash-fresh in state v2

@@ -58,6 +58,11 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+import env  # noqa: E402
+
+env.export_kicad_symbol_dir()   # before kicad-sch-api's first library scan
+
 # kicad-sch-api prints library-scan noise on import; keep stdout JSON-clean
 # (LEARNINGS [python]).
 with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):

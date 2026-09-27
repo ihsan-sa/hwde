@@ -371,7 +371,7 @@ def test_shrink_to_fit_bb_buck_and_record_the_edit(tmp_path):
     shutil.copy2(BB / "state.json", ws / "state.json")
     shutil.copytree(BB / "kicad", ws / "kicad")
     (ws / "reports").mkdir()
-    pcb = ws / "kicad" / "bb-buck.kicad_pcb"
+    pcb = ws / "kicad" / f"{BB.name}.kicad_pcb"   # <PN>_bb-buck
 
     payload = _run(pcb, "--outline", "fit", "--margin", "0.5")
     assert payload["status"] == "pass" and payload["applied"] is True
