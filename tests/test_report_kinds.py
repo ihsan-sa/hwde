@@ -279,3 +279,51 @@ def test_layers_not_drawn_is_a_warning_not_a_failure(tmp_path, capsys):
     assert code == 0, payload
     assert sections_by_name(payload)["hl_layers"] == "missing"
     assert any("--render-layers" in w for w in payload["warnings"])
+
+
+def _layer_runs(ws, monkeypatch, status):
+    """A board, a layers.json newer than it saying `status`, and a record of
+    every layer_views.py run report_gen starts under --render-layers."""
+    import os
+    import time
+    stem = report_gen.statelib.project_stem(ws, "synth")
+    pcb = ws / "kicad" / f"{stem}.kicad_pcb"
+    pcb.parent.mkdir(parents=True, exist_ok=True)
+    pcb.write_text("(kicad_pcb)", encoding="utf-8")
+    _with_layers(ws, ["F.Cu", "B.Cu"])
+    index = ws / "reports/layers/layers.json"
+    rep = json.loads(index.read_text(encoding="utf-8"))
+    rep["status"] = status
+    index.write_text(json.dumps(rep), encoding="utf-8")
+    later = time.time() + 60
+    os.utime(index, (later, later))
+    runs = []
+    real = subprocess.run
+
+    def fake(cmd, *a, **kw):
+        if any(str(c).endswith("layer_views.py") for c in cmd):
+            runs.append(cmd)
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+        return real(cmd, *a, **kw)
+    monkeypatch.setattr(report_gen.subprocess, "run", fake)
+    return runs
+
+
+def test_render_layers_keeps_a_passing_layers_json(tmp_path, capsys, monkeypatch):
+    ws = _ws_with_run(tmp_path)
+    runs = _layer_runs(ws, monkeypatch, "pass")
+    code, payload = run_main(["--workspace", str(ws), "--kind", "highlight",
+                              "--tex-only", "--render-layers"], tmp_path, capsys)
+    assert code == 0, payload
+    assert runs == []
+
+
+@pytest.mark.parametrize("status", ["error", "violations"])
+def test_render_layers_redraws_a_failed_layers_json(tmp_path, capsys, monkeypatch,
+                                                    status):
+    ws = _ws_with_run(tmp_path)
+    runs = _layer_runs(ws, monkeypatch, status)
+    code, payload = run_main(["--workspace", str(ws), "--kind", "highlight",
+                              "--tex-only", "--render-layers"], tmp_path, capsys)
+    assert code == 0, payload
+    assert len(runs) == 1

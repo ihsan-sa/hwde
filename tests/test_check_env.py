@@ -123,3 +123,14 @@ def test_out_file_and_quiet():
     assert r.stderr.strip() == ""
     report = json.loads(out.read_text(encoding="utf-8"))
     assert report["status"] == "pass"
+
+
+def test_lualatex_check_survives_report_gen_import_failure(monkeypatch):
+    """pyyaml missing makes report_gen unimportable; check_env reports the
+    lualatex check as a warning instead of dying (package:pyyaml says why)."""
+    import check_env
+    monkeypatch.setitem(sys.modules, "report_gen", None)  # import -> ImportError
+    resolved: dict = {}
+    c = check_env.check_lualatex(resolved)
+    assert c["name"] == "lualatex" and c["status"] == "warn"
+    assert "cannot load report_gen" in c["detail"]

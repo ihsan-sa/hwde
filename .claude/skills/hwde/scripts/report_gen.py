@@ -63,7 +63,7 @@ its pads, tracks and zones, then the top, bottom and iso 3D views - and the
 highlight gets the outer two layers and the iso view. layer_views.py draws
 them into reports/layers/ (layers.json lists them), which both kinds share;
 --render-layers runs it first unless its layers.json is newer than the
-board, and without it only what is already there is shown, with a warning. --history-ref names the git ref whose log is the
+board and says pass (a failed run is drawn again), and without it only what is already there is shown, with a warning. --history-ref names the git ref whose log is the
 history (a board squash-merged into the boards repo keeps its run on its
 track branch). The figure needs node and the diagram-maker skill
 (HWDE_DIAGRAM_MAKER, else ~/.claude/skills/diagram-maker); without them it
@@ -1193,12 +1193,18 @@ class DocBuilder:
     def layer_views(self) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
         """([(layer, pdf)], [(view, png)]) from reports/layers/layers.json,
         workspace-relative and only those on disk; --render-layers runs
-        layer_views.py first when that file is missing or older than the board."""
+        layer_views.py first when that file is missing, older than the board
+        or not a pass."""
         pcb = self.ws / "kicad" / f"{self.stem}.kicad_pcb"
         ldir = self.ws / LAYERS_REL
         index = ldir / "layers.json"
-        if (self.render_layers and pcb.is_file()
-                and not (index.is_file() and index.stat().st_mtime >= pcb.stat().st_mtime)):
+        # Reuse layers.json only when it is newer than the board AND passed:
+        # a failed run (exit 2 without layers, or a 3D view that failed) is
+        # drawn again rather than kept as fresh.
+        fresh = (index.is_file() and pcb.is_file()
+                 and index.stat().st_mtime >= pcb.stat().st_mtime
+                 and (read_json(self.ws, f"{LAYERS_REL}/layers.json") or {}).get("status") == "pass")
+        if self.render_layers and pcb.is_file() and not fresh:
             ldir.mkdir(parents=True, exist_ok=True)
             try:
                 cp = subprocess.run(

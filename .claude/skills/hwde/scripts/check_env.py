@@ -281,7 +281,11 @@ def check_lualatex(resolved: dict) -> dict:
     """report_gen's engine (lualatex) and the house style it sets every doc
     in are optional (report_gen degrades to --tex-only), so absence is a
     warning - but a set-but-invalid HWDE_LUALATEX pin still fails loudly."""
-    import report_gen  # the engine ladder lives with its only user
+    try:  # the engine ladder lives with its only user, report_gen
+        import report_gen
+    except Exception as e:  # e.g. pyyaml missing: its own check reports that
+        return check("lualatex", False, f"cannot load report_gen: {e}",
+                     LUALATEX_HELP, warn=True)
     try:
         p = report_gen.find_lualatex()
     except env.EnvError as e:
