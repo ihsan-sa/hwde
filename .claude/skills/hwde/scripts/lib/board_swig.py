@@ -46,6 +46,8 @@ Result JSON to stdout: {status, out, ...verb fields..., notes}. Exit 0 ok,
 from __future__ import annotations
 
 import json
+import os
+import re
 import sys
 from pathlib import Path
 
@@ -55,7 +57,34 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 import pcbnew  # noqa: E402  (bundled python only)
 
-DEFAULT_FP_ROOT = Path(sys.executable).parents[1] / "share" / "kicad" / "footprints"
+# KiCad's own path-variable family (see intake.py's _KICAD_VAR_RE / kind
+# "env"): on the no-container Linux host these are real OS env vars, exported
+# by ~/.local/kicad10/env.sh, and the ONLY way to find the footprint library -
+# sys.executable there is a wrapper that execs the system python, so it is not
+# inside the KiCad install. Highest major version first; first that names an
+# existing dir wins. Falls back to the sys.executable-derived layout, which is
+# right when sys.executable IS the KiCad install (container bundled python,
+# Windows kicad-cli.exe's python.exe).
+_FP_ENV_RE = re.compile(r"^KICAD(\d*)_FOOTPRINT_DIR$")
+
+
+def resolve_default_fp_root(environ: dict | None = None,
+                            executable: str | None = None) -> Path:
+    environ = os.environ if environ is None else environ
+    executable = sys.executable if executable is None else executable
+    hits = []
+    for k, v in environ.items():
+        m = _FP_ENV_RE.match(k)
+        if m and v:
+            hits.append((int(m.group(1)) if m.group(1) else -1, v))
+    for _, v in sorted(hits, key=lambda kv: -kv[0]):
+        p = Path(v)
+        if p.is_dir():
+            return p
+    return Path(executable).parents[1] / "share" / "kicad" / "footprints"
+
+
+DEFAULT_FP_ROOT = resolve_default_fp_root()
 
 
 def mm(x: float, y: float) -> "pcbnew.VECTOR2I":

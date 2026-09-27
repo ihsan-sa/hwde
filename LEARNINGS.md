@@ -5063,3 +5063,16 @@ a divider's DC gain is two decks (bench E2E `rc_lowpass`). And kicad-cli ERC/DRC
 - `POST .../jlcTools/impedance/calc` takes `{accessId, impedance_calc_mark, impedance_calc_arg:{H1,Er1,W1,W2,[S1],T1,C1,C2,[C3],CEr,...}, uuid}` in MIL, but the answer comes back over `wss://tools.jlc.com/jlcTools/webSocket/{uuid}`, not in the POST response. Forward mode (width -> ohms) works; the solve-for-width mode returned status 6 for every argument set tried.
 - SI9000 OffsetStripline1B1A: the trace sits on H1 and is embedded in H2 (eps_eff matched lib/impedance.py to 4 digits with that reading).
 - lib/impedance.py's field solver runs +0.6..0.9% above JLC on every case; treat that as the solver's known bias, well inside JLC's +/-10%.
+
+## 2026-09-27 [linux][kicad][swig][footprint] board_swig's footprint root assumed sys.executable is inside the KiCad install
+On the no-container host, board_init/board_swig's own footprints (Capacitor_SMD:C_0603_1608Metric
+etc., not covered by a board's fp_paths) all "footprint not found". `board_swig.py`'s
+`DEFAULT_FP_ROOT` was `Path(sys.executable).parents[1]/"share"/"kicad"/"footprints"` - true only
+when sys.executable IS the KiCad install (container's bundled python, Windows kicad-cli's
+python.exe). Here `sys.executable` is `~/.local/kicad10/bin/python3`, a wrapper that sources
+`env.sh` then `exec /usr/bin/python3`, so the derived path is `/usr/share/kicad/footprints`,
+which doesn't exist - the real library is `env.sh`'s `KICAD10_FOOTPRINT_DIR`. Fixed by preferring
+the `KICAD<n>_FOOTPRINT_DIR` env var family (same family intake.py's `classify_uri` already
+reads for lib-table URIs, kind "env") - highest major first, first that names an existing dir -
+and falling back to the old sys.executable path otherwise. `resolve_default_fp_root()` takes
+environ/executable so a test can monkeypatch both with no KiCad and no real board.
