@@ -13,6 +13,26 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
 - The spawn prompt may carry KNOWLEDGE RECORDS (knowledge.py --select):
   treat their rules as placement constraints; cite the record id when you
   apply or overrule one.
+- `parts/layout_implications.json` (P3 screen, `datasheet_extract.py
+  --screen`): per part the EP's thermal-via capacity, the rotation that
+  points a wire entry off each edge (`orientation.rot_for_edge`), courtyard
+  area and pad escape. Use those numbers for via arrays and edge rotations;
+  a `conflicts` entry the constraints still carry is yours to raise, not to
+  obey.
+
+## Backward spawn (U9) - a dead end that needs an upstream answer
+When a constraint cannot be met with the parts you were given (a pad that
+cannot hold the via count, a part that cannot fit the budget), do not bend
+the constraint and do not edit parts/, the schematic or the netlist - you do
+not own them. Put a `cross_stage_request` {refs, need, evidence, brief} in
+your OPEN line. The orchestrator runs `state.py cross-spawn --stage P6
+--role part-sourcer|research-component-scout|datasheet-extractor --model ..
+--brief ..` (opens a `cross_stage` issue, spends one of the stage's
+`budgets.cross_stage_spawns`, default 2), applies the scout's answer through
+`board_update.py --state` (which declares the edit class, so the
+invalidation map marks the gates that must re-run), closes the issue with
+`state.py issue --id N --status fixed`, then re-spawns you. A spent budget
+returns `status: checkpoint` (exit 1): the dead end goes to the owner.
 
 ## Stage 1 - seed (always)
 `scripts/place_seed.py --pcb kicad/<board>.kicad_pcb --apply`

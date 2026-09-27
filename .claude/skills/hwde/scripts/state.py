@@ -23,7 +23,8 @@ Schema (version 2 - T7 freshness; v1 files upgrade via state_migrate.py):
                        waived, agent, attempts, opened, closed}],
       "next_issue_id": int,
       "budgets": {"fix_loops": {gate_name: remaining},
-                  "research": {per_run, depth_per_gap}, ...},  # U15 caps
+                  "research": {per_run, depth_per_gap},        # U15 caps
+                  "cross_stage_spawns": {P4..P9: remaining}},  # U9
       "mode": {token, target, scope, binding, stage, geometry,        # U18
                geometry_is_output, excludes[], requires[], stated_size,
                board_init_outline, ts} | absent,   # reference/build-modes.md
@@ -31,7 +32,7 @@ Schema (version 2 - T7 freshness; v1 files upgrade via state_migrate.py):
       "edits": [{ts, class, refs, note, human_hold, gates, gates_marked,
                  stale_artifacts}],                   # edit-class ledger
       "spawns": [{ts, role, model, effort?, phase?, tokens?, cost_usd?,
-                  note?}],                            # subagent ledger (XC-8)
+                  note?, cross_stage?, issue?}],      # subagent ledger (XC-8)
       "history": [{ts, event, ...detail}]
     }
     mark = {ts, edit_class, refs, human_hold} - stamped by `edit` from
@@ -40,8 +41,8 @@ Schema (version 2 - T7 freshness; v1 files upgrade via state_migrate.py):
     current normalized hashes AND it carries no mark (lib/statelib.py; the
     two-layer semantics are documented in invalidation.yaml).
 
-CLI (spec 6 contract: argparse, JSON to stdout, exit 0 ok / 2 error; state.py
-has no violation concept so exit 1 is unused):
+CLI (spec 6 contract: argparse, JSON to stdout, exit 0 ok / 2 error; exit 1
+only for a cross-spawn checkpoint):
     state.py init --workspace DIR --board NAME [--phase P0] [--force]
     state.py show|resume|freshness [--workspace DIR | --state FILE]
     state.py set-phase --phase P7 [--force] ...
@@ -50,6 +51,8 @@ has no violation concept so exit 1 is unused):
     state.py edit --class move_fp [--refs U1 U2] [--note TEXT] ...
     state.py rehash [--names gerbers bom] ...
     state.py spawn --role fixer --model opus [--effort high] [--tokens N] ...
+    state.py cross-spawn --stage P6 --role part-sourcer --model sonnet
+             --brief TEXT [--kinds K ...] [--effort E] ...
     state.py mode --token "learning stage-placement:" [--stated 35x25] ...
     state.py decision --what W --why Y ...
     state.py human --checkpoint 2 --status approved [--note N] ...
@@ -57,6 +60,14 @@ has no violation concept so exit 1 is unused):
     state.py budget --path fix_loops.drc_routed [--consume] ...
     state.py log --event name [--data JSON] ...
     state.py snapshot --label L [--files F ...] / restore --label L ...
+
+`cross-spawn` (U9) is the backward-spawn step: a stage at a dead end opens a
+`cross_stage` issue and records a ledger spawn tagged `cross_stage: true` with
+the issue id, consuming `budgets.cross_stage_spawns.<stage>`. Only the read-only
+roles in CROSS_SPAWN_ROLES may be spawned. With the stage's budget spent it
+spawns nothing: the issue opens as `escalated`, a decision and a
+`cross_spawn_checkpoint` event are recorded, the payload's status is
+`checkpoint` and the exit is 1 - the owner decides at the next checkpoint.
 
 `set-phase` REFUSES to advance past a gate phase whose gate has no recorded
 result (U16 - bb-buck reached P9 with six passing gate reports on disk and
@@ -125,7 +136,19 @@ DEFAULT_BUDGETS = {
     # a VISIBLE checkpoint (status checkpoint, decision + event recorded),
     # never silent truncation.
     "research": {"per_run": 6, "depth_per_gap": 4},
+    # U9 backward spawns (design decision 4): a stage at a dead end spawns a
+    # read-only scout for an upstream answer, at most this many per stage.
+    # Exhausted = a visible checkpoint to the owner, never a third spawn.
+    # U8/U10 live evidence may tune the default 2 per stage.
+    "cross_stage_spawns": {p: 2 for p in ("P4", "P5", "P6", "P7", "P8",
+                                          "P9")},
 }
+# Roles a backward spawn may launch. They RETURN a proposal (a candidate
+# part, an extraction, a finding); none of them writes a board artifact -
+# the orchestrator applies the answer through board_update + `edit --class`,
+# so one writer per artifact stands.
+CROSS_SPAWN_ROLES = ("part-sourcer", "research-component-scout",
+                     "datasheet-extractor", "researcher")
 SNAP_DIR = "state_snapshots"
 # Standard workspace layout (T6 state-scaffold): init owns the scaffold so
 # the orchestrator playbook does not transcribe a directory list every run.
@@ -550,6 +573,47 @@ class State:
         self._log("spawn", role=rec.get("role"), model=rec.get("model"))
         return rec
 
+    def cross_spawn(self, stage: str, role: str, model: str, brief: str,
+                    kinds: list[str] | None = None,
+                    effort: str | None = None) -> dict:
+        """U9 backward spawn: issue + budget + tagged ledger entry, or a
+        visible checkpoint when the stage's budget is spent."""
+        if stage not in PHASES:
+            raise CheckError(f"unknown stage {stage!r}")
+        if role not in CROSS_SPAWN_ROLES:
+            raise CheckError(
+                f"role {role!r} may not be spawned backward: it would write "
+                "an artifact another stage owns (allowed: "
+                f"{', '.join(CROSS_SPAWN_ROLES)})")
+        path = f"cross_stage_spawns.{stage}"
+        remaining = self.budget(path)
+        issue = self.open_issue({
+            "gate": None, "phase": stage, "fixer": role,
+            "kinds": ["cross_stage", *(kinds or [])], "severity": "blocking",
+            "work_order": brief, "cross_stage": True})
+        if remaining <= 0:
+            issue["status"] = "escalated"
+            self.add_decision(
+                what=f"cross-stage spawn budget spent at {stage}: issue "
+                     f"{issue['id']} escalated, no spawn",
+                why=f"budgets.{path} exhausted; visible checkpoint, not a "
+                    "silent third spawn", phase=stage)
+            self._log("cross_spawn_checkpoint", stage=stage,
+                      issue=issue["id"])
+            return {"status": "checkpoint", "checkpoint": "cross_stage_cap",
+                    "issue": issue, "remaining": 0,
+                    "action": ("present at the next human checkpoint: raise "
+                               f"budgets.{path} in state.json and re-run, "
+                               "or rule on the dead end directly (state.py "
+                               "decision), then close the issue")}
+        remaining = self.budget(path, consume=True)
+        issue["status"], issue["agent"] = "fixing", role
+        spawn = self.record_spawn({
+            "role": role, "model": model, "effort": effort, "phase": stage,
+            "note": brief, "cross_stage": True, "issue": issue["id"]})
+        return {"status": "spawned", "issue": issue, "spawn": spawn,
+                "remaining": remaining}
+
     def set_mode(self, token: str, stated: str | None = None) -> dict:
         """Record the brief's build mode as FIRST-CLASS state (U18).
 
@@ -901,6 +965,17 @@ def run(argv=None):
     p.add_argument("--cost-usd", type=float, dest="cost_usd")
     p.add_argument("--note")
 
+    p = sub.add_parser("cross-spawn", help="U9 backward spawn: issue + "
+                       "budgeted, tagged ledger spawn (checkpoint when spent)")
+    common(p)
+    p.add_argument("--stage", required=True, help="the stage at the dead end")
+    p.add_argument("--role", required=True, choices=CROSS_SPAWN_ROLES)
+    p.add_argument("--model", required=True)
+    p.add_argument("--effort")
+    p.add_argument("--brief", required=True,
+                   help="the narrow brief the scout gets")
+    p.add_argument("--kinds", nargs="*", default=None)
+
     p = sub.add_parser("mode", help="record the brief's build mode "
                        "(reference/build-modes.md)")
     common(p)
@@ -1023,6 +1098,9 @@ def _mutate(st: "State", args, result: dict):
             "phase": args.phase, "tokens": args.tokens,
             "cost_usd": args.cost_usd, "note": args.note})
         result.update(spawn=rec)
+    elif args.cmd == "cross-spawn":
+        result.update(st.cross_spawn(args.stage, args.role, args.model,
+                                     args.brief, args.kinds, args.effort))
     elif args.cmd == "mode":
         try:
             result.update(st.set_mode(args.token, args.stated))
@@ -1084,7 +1162,7 @@ def main(argv=None) -> int:
         Path(out).write_text(text, encoding="utf-8")
     else:
         print(text)
-    return 0
+    return 1 if payload.get("status") == "checkpoint" else 0
 
 
 if __name__ == "__main__":

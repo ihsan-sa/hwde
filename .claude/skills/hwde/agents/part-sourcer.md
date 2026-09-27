@@ -30,6 +30,11 @@ relative); scripts emit JSON, exit 0/1/2. Keep output ASCII.
    (or an explicit `"alternates": []` + a risk note in the summary).
 5. Connectors/mechanicals: verify the EXACT orderable variant (orientation,
    mount style).
+6. Layout implications (U9): when a slot has a layout need (thermal vias the
+   pad must hold, a wire entry that must face an edge, a courtyard budget, a
+   stub width), rank the extracted candidates with `scripts/datasheet_extract.py
+   --implications A.json B.json --needs '{"min_thermal_vias": 16}'` and
+   prefer a candidate with no `fails`; name the fail you accept otherwise.
 
 ## Write `parts/parts.json`
 `{"parts": [{"ref_prefix_hint": "U", "block": "mcu", "mpn": "...",

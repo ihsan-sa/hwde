@@ -47,7 +47,11 @@ venv python; JSON out, exit 0/1/2. Keep output ASCII.
   (e.g. "100nF per VDD pin + 4.7uF bulk").
 - Land pattern: pad_count, pitch_mm, pad_size_mm from the RECOMMENDED land
   pattern drawing (not the package outline); exposed_pad with paste/via
-  guidance when present.
+  guidance when present. U9 layout-implication inputs, when the drawing
+  states them: `exposed_pad.size_mm` = the recommended EP LAND [w, h] (not
+  the body), `land_pattern.courtyard_mm` [w, h], and for a connector
+  `land_pattern.wire_entry_local` (+X/-X/+Y/-Y, KiCad y down). A missing one
+  is a gap the P3 screen reports, never a number you guess.
 - Layout notes: transcribe the vendor's layout section as terse bullets
   (loop areas, Kelvin connections, keepouts, plane advice).
 - abs_max: supply, IO, temperature - the schematic reviewer checks against

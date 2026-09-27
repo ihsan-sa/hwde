@@ -1,6 +1,6 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
-# U19 2026-08-16; U18 2026-08-16)
+# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27)
 
 One row per `LEARNINGS.md` entry (342 of them; the last starts at
 line 5039), placed on the maturity ladder from
@@ -35,19 +35,19 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-09-26 (three 2026-09-24 entries), all 342 rows
+Recomputed from the table on 2026-09-27 (U9 closed rows 222-223), all 342 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 128 | 15 |
+| L0 | 126 | 15 |
 | L1 | 20 | 17 |
-| L2 | 62 | 126 |
+| L2 | 64 | 126 |
 | L3 | 132 | 184 |
 
-138 entries want to climb at least one level. Status: **done 170**,
-**open 146**, **n/a 8**, planned 18
-(T2 10, T8 1 - both shipped, those rows need re-reading; U2 2, U9 2,
+136 entries want to climb at least one level. Status: **done 172**,
+**open 146**, **n/a 8**, planned 16
+(T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
 
 Read that as: two waves of prose arrived faster than the promotions did. The
@@ -340,8 +340,8 @@ the row's Now level and status in the same commit as the code.
 | 219 | 2872 | `placement.fixed` silently DISABLES every separation constraint that n | [placement][constraints] | L1 | L2 | scripts/place_anneal.py | open | Fixed refs are excluded from the cluster list, so every separation naming one is dropped with zero cost weight and surfaces only as `separation_unknown_refs`. Separation is also a soft squared-distance cost on cluster centres, never a legality violation, so `gate place` cannot catch it either |
 | 220 | 2884 | Schematic-sourced mounting holes trip their OWN keepout rects - lock t | [placement][kicad] | L0 | L3 | scripts/place_seed.py | open | With `board_init --mounting-holes 0` the holes arrive as movable schematic footprints and each intersects the very rect that exists to protect it. Both the keepout and outside-outline tests are gated on `is_movable`, so seeding them locked is the by-construction fix; `board_only` holes are already exempt |
 | 221 | 2892 | The board-local -> absolute keepout translation is a real, silently-sk | [constraints][placement] | L0 | L2 | scripts/lib/placelib.py | open | Untranslated rects either land off-board (no effect at all) or produce a phantom violation against an unrelated part. Give `placement.keepouts` an explicit frame field, or lint `rect` against `board_init.json.outline_bbox` - the entry's own sanity check is two lines |
-| 222 | 2902 | DB128L-5.08-2P wire entry is at local +Y, same as KF128 (270 = out the | [placement][kicad][render] | L0 | L2 | scripts/datasheet_extract.py | planned-U9 | Second footprint family confirming the KF128 finding, and the constraints file was wrong again - both declared rotations pointed the wire entry INTO the board. U9's orientation field is the home. Settle it with `render.py --views left,right`; the WRL is corroboration only, since the mouth-end face is the SHORTER one |
-| 223 | 2911 | SO-8EP (AP64350) cannot hold a 4x4 in-pad thermal via array - 12 is th | [placement][thermal] | L0 | L2 | scripts/datasheet_extract.py | planned-U9 | U9 names this as a known-answer fixture: thermal-via capacity derived from the land pattern against JLC's 0.5 mm hole-to-hole floor. Never write a `min_vias` the pad cannot physically hold - check_thermal will not catch it (entry 214), and the 12-vs-16 thermal cost here is only +0.5 C of Tj |
+| 222 | 2902 | DB128L-5.08-2P wire entry is at local +Y, same as KF128 (270 = out the | [placement][kicad][render] | L2 | L2 | scripts/lib/layoutimpl.py (datasheet_extract.py --screen) | done | U9 (2026-09-27): the P3 screen computes it and exits 1 on the conflict - `orientation.rot_for_edge` from the DB128L/KF128 wire-entry family table flags an inward `placement.edges` rot; pinned on the sbuck fixture in tests/test_cross_stage.py. Second footprint family confirming the KF128 finding, and the constraints file was wrong again - both declared rotations pointed the wire entry INTO the board. U9's orientation field is the home. Settle it with `render.py --views left,right`; the WRL is corroboration only, since the mouth-end face is the SHORTER one |
+| 223 | 2911 | SO-8EP (AP64350) cannot hold a 4x4 in-pad thermal via array - 12 is th | [placement][thermal] | L2 | L2 | scripts/lib/layoutimpl.py (datasheet_extract.py --screen) | done | U9 (2026-09-27): the P3 screen computes it and exits 1 on the conflict - `thermal_vias.max_vias` from `exposed_pad.size_mm` at the fab pitch floor flags a `thermal.min_vias` over capacity; pinned on the sbuck fixture in tests/test_cross_stage.py. U9 names this as a known-answer fixture: thermal-via capacity derived from the land pattern against JLC's 0.5 mm hole-to-hole floor. Never write a `min_vias` the pad cannot physically hold - check_thermal will not catch it (entry 214), and the 12-vs-16 thermal cost here is only +0.5 C of Tj |
 | 224 | 2921 | A per-net `track_width` floor makes every SMALL-PART STUB on that net  | [routing][rules_gen][placement] | L0 | L2 | scripts/rules_gen.py | open | Third instance of this class (pd-trigger VBUS 2026-07-28, sbuck /SW). The floor applies to the whole net and a 2.31 mm track cannot land on a 0.9 mm pad; pouring the net as a ZONE is the fix, plus P6 placing stub parts 0.7-1.2 mm from the pour. U11 scopes the post-route half |
 | 225 | 2931 | Off-board-part footprint SILK (registration marks/labels) is a hard pl | [placement][drc][silk] | L0 | L2 | scripts/lib/placelib.py | open | placelib legality is courtyard and pad-bbox only, but `drc_routed` fails on warnings, so a footprint's own silk becomes a P7 blocker discovered late. Glyph extent is `+/-(size/2 + thickness/2)`, NOT GetBoundingBox - designing to the bbox costs 0.24 mm of board per side |
 | 226 | 2943 | place_anneal cannot rotate a `placement.groups` satellite - a big sate | [placement][anneal] | L1 | L2 | scripts/place_anneal.py | open | A satellite rides its anchor at whatever rotation the seed gave it, so both candidates returned illegal after 33 720 moves while hand placement solved the board (HPWL 54.4 vs 67.6). `movable_clusters` is already in the report - if it is <= half the footprint count the SA numbers are noise and the tool should say so |
