@@ -104,6 +104,45 @@ or download its `junit-N` file. The image carries KiCad 10.0.5, so the tests
 marked `kicad_recorded` (numbers recorded on 10.0.3) are skipped there, with
 the reason in the skip line.
 
+## Calling hwde from another agent (MCP)
+
+`scripts/mcp_server.py` is a local MCP server over stdio. It opens no port;
+anything that listens on one needs the owner first. It gives another agent
+five tools and returns hwde's own JSON from each:
+
+- `hwde_route` routes a task to a verb and returns the bound plan. It never runs it.
+- `hwde_state` reads a workspace's state (`show`, `resume` or `freshness`).
+- `hwde_gate` runs one named gate on a workspace. With no name, it lists the gates.
+- `hwde_dfm_check` runs the JLCPCB dfm gate. The fab files go to scratch.
+- `hwde_review` reviews an existing workspace: state, then the erc,
+  drc_routed, verify and dfm gates. Importing a new board stays with `/hwde`.
+
+Every call is read-only unless it passes `"write": true`. That records gate
+results in `state.json`, and a gate's `"commit"` message is refused without
+it. A read-only call leaves the workspace byte-identical, because it also
+deletes the `.kicad_prl` file kicad-cli creates beside a board it loads.
+
+To register it with Claude Code, add this to the project's `.mcp.json`, with
+your own absolute paths. The server needs the same environment as any hwde
+script, so on the Linux host without the container it sources
+`hwde-env.sh` first (see `CLAUDE.md`); inside the container, `command` is
+just `.venv/bin/python` with the script as its one argument.
+
+```json
+{
+  "mcpServers": {
+    "hwde": {
+      "command": "bash",
+      "args": ["-c", ". ~/.local/kicad10/hwde-env.sh && exec ~/.local/hwde-venv/bin/python ~/dev/ai-ee/.claude/skills/hwde/scripts/mcp_server.py"],
+      "env": {"HWDE_BOARDS_ROOT": "/home/you/dev/boards"}
+    }
+  }
+}
+```
+
+`mcp_server.py --tools` prints the tool table. `tests/test_mcp_server.py`
+drives the server over stdio against a frozen fixture workspace.
+
 ## License
 
 MIT - see [LICENSE](LICENSE). Vendor datasheets, component 3D models and footprints
