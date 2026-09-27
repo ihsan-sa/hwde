@@ -18,7 +18,16 @@ accept time):
               its pad copper clears the board's copper-to-edge rule)
               (ramped by sqrt(T0/T) so late epochs are effectively legal-only)
   w_cong    * congestion overflow (MST flight-line demand above --cong-cap
-              per 2 mm cell; gnd-class nets excluded - they ride planes)
+              per 2 mm cell). Each flight line demands its net's track
+              pitch in Default-class pitches (net_pitch_units: width +
+              clearance from the .kicad_pro netclass patterns and the
+              .kicad_dru per-net floors), so a 1.75 mm VBUS asks for its
+              real channel. Ground and power nets are charged like any
+              other; only a net that owns an inner-layer zone (a real
+              plane) is left out, because it leaves by via, not channel.
+              (The benchmark: a demand blind to GND and to width packed
+              stm32-blinky/usb-buck/pd-trigger 25-31% below the designer
+              and left exactly the widest power net unrouted.)
   w_cross   * weighted MST flight-line crossings (pair weight = w(a)*w(b))
   w_rule    * rule terms: high-current path length (current_a * hpwl of each
               constraints.power net), separation groups
@@ -118,8 +127,55 @@ FLIP_P = 0.08
 # hpwl class weights (S9 spring precedent: planes carry gnd; power matters
 # less than signal for wirelength but more than gnd)
 W_GND, W_PWR, W_SIG = 0.25, 0.6, 1.0
-# MST-term weights (crossings/congestion): gnd excluded entirely
+# crossing weights: gnd excluded entirely (a pour crosses anything);
+# congestion demand uses the net's pitch instead (net_pitch_units)
 MST_PWR, MST_SIG = 0.5, 1.0
+
+
+def net_pitch_units(pcb: Path, nets) -> dict[str, float]:
+    """{net: (track_width + clearance) / Default-class pitch} for every net
+    whose pitch is wider than Default's. Width and clearance are each the
+    max of the net's .kicad_pro netclass (by netclass_patterns) and its
+    .kicad_dru per-net floor. A missing or unreadable project gives {}, so
+    every net demands 1.0 - the behaviour before widths were charged."""
+    import fnmatch  # noqa: PLC0415
+    import route_critical as rc  # noqa: PLC0415 - lazy, heavy imports
+    pro = Path(pcb).with_suffix(".kicad_pro")
+    try:
+        ns = json.loads(pro.read_text(encoding="utf-8")).get(
+            "net_settings") or {}
+    except (OSError, ValueError):
+        return {}
+    classes = {c.get("name"): c for c in ns.get("classes") or []
+               if isinstance(c, dict)}
+    dflt = classes.get("Default") or {}
+    try:
+        base_w = float(dflt.get("track_width") or 0.2)
+        base_c = float(dflt.get("clearance") or 0.2)
+    except (TypeError, ValueError):
+        return {}
+    width = {n: base_w for n in nets}
+    clear = {n: base_c for n in nets}
+    for pat in ns.get("netclass_patterns") or []:
+        cls = classes.get(pat.get("netclass")) or {}
+        pattern = pat.get("pattern")
+        if not pattern:
+            continue
+        for n in nets:
+            if fnmatch.fnmatchcase(n, pattern):
+                for key, tgt in (("track_width", width),
+                                 ("clearance", clear)):
+                    v = cls.get(key)
+                    if isinstance(v, (int, float)):
+                        tgt[n] = max(tgt[n], float(v))
+    dru = Path(pcb).with_suffix(".kicad_dru")
+    for key, tgt in (("track_width", width), ("clearance", clear)):
+        for n, v in rc.dru_net_floors(dru, key).items():
+            if n in tgt:
+                tgt[n] = max(tgt[n], v)
+    base = base_w + base_c
+    out = {n: (width[n] + clear[n]) / base for n in nets}
+    return {n: round(u, 4) for n, u in sorted(out.items()) if u > 1.0}
 
 FB_GAIN = 2.0            # cong/cross boost per (1 - completion)
 
@@ -437,6 +493,16 @@ class Engine:
             self._wmst[n] = 0.0 if n in gnd else \
                 MST_PWR if n in power else MST_SIG
         self.mst_nets = [n for n in self.nets if self._wmst[n] > 0]
+        # congestion demand: every net but a plane net, each flight line
+        # charged its track pitch (module docstring, w_cong)
+        inner = set(model.bg.copper_layers[1:-1])
+        self.plane_nets = sorted(
+            {z.net for z in model.bg.zones_of()
+             if z.net and inner.intersection(z.layers)} & set(self.nets))
+        self.pitch = net_pitch_units(model.path, self.nets)
+        planes = set(self.plane_nets)
+        self.cong_nets = [n for n in self.nets if n not in planes]
+        self._unit = {n: self.pitch.get(n, 1.0) for n in self.cong_nets}
         self.nets_of_body = {
             b.cid: sorted({net for net, _x, _y in b.pads
                            if net in self.entries}) for b in bodies}
@@ -650,7 +716,7 @@ class Engine:
         self.hpwl_raw_total = sum(self.hpwl_raw.values())
         self.hpwl_w_total = sum(self._wnet[n] * v
                                 for n, v in self.hpwl_raw.items())
-        self.segs = {n: self._mst_segs(n) for n in self.mst_nets}
+        self.segs = {n: self._mst_segs(n) for n in self.cong_nets}
         self.cross: dict[tuple[str, str], int] = {}
         self.cross_total = 0.0
         for i, a in enumerate(self.mst_nets):
@@ -660,11 +726,11 @@ class Engine:
                     self.cross[(a, b)] = c
                     self.cross_total += c * self._wmst[a] * self._wmst[b]
         self.netcells = {n: self._cells_of_segs(self.segs[n])
-                         for n in self.mst_nets}
-        self.demand: dict[tuple[int, int], int] = {}
-        for n in self.mst_nets:
+                         for n in self.cong_nets}
+        self.demand: dict[tuple[int, int], float] = {}
+        for n in self.cong_nets:
             for c, k in self.netcells[n].items():
-                self.demand[c] = self.demand.get(c, 0) + k
+                self.demand[c] = self.demand.get(c, 0.0) + k * self._unit[n]
         self.overflow = sum(max(0, d - self.cong_cap)
                             for d in self.demand.values())
         self.polys = {b.cid: self.poly_at(b.cid) for b in self.bodies}
@@ -832,27 +898,29 @@ class Engine:
                 if c:
                     self.rule_total += c * (new - old)
 
-        changed = [n for n in self.nets_of_body[cid] if self._wmst[n] > 0]
+        changed = [n for n in self.nets_of_body[cid] if n in self._unit]
         if changed:
-            chset = set(changed)
             for net in changed:
                 segs = self._mst_segs(net)
                 self.segs[net] = segs
                 old_cells = self.netcells[net]
                 new_cells = self._cells_of_segs(segs)
+                u = self._unit[net]
                 for c, k in old_cells.items():
                     d0 = self.demand[c]
-                    d1 = d0 - k
+                    d1 = d0 - k * u
                     self.demand[c] = d1
                     self.overflow += (max(0, d1 - self.cong_cap)
                                       - max(0, d0 - self.cong_cap))
                 for c, k in new_cells.items():
-                    d0 = self.demand.get(c, 0)
-                    d1 = d0 + k
+                    d0 = self.demand.get(c, 0.0)
+                    d1 = d0 + k * u
                     self.demand[c] = d1
                     self.overflow += (max(0, d1 - self.cong_cap)
                                       - max(0, d0 - self.cong_cap))
                 self.netcells[net] = new_cells
+            changed = [n for n in changed if self._wmst[n] > 0]
+            chset = set(changed)
             for net in changed:
                 for other in self.mst_nets:
                     if other == net or (other in chset and other < net):
@@ -931,7 +999,7 @@ class Engine:
         return {"hpwl_raw_mm": checklib.rnd(self.hpwl_raw_total),
                 "hpwl_weighted": checklib.rnd(self.hpwl_w_total),
                 "overlap_mm2": checklib.rnd(self.overlap_total),
-                "cong_overflow": self.overflow,
+                "cong_overflow": checklib.rnd(self.overflow),
                 "crossings_weighted": checklib.rnd(self.cross_total),
                 "rule": checklib.rnd(self.rule_total),
                 "corridor_mm2": checklib.rnd(self.corridor_area),
