@@ -2,11 +2,17 @@
 """render.py - multi-view PCB render wrapper for VLM review (SPEC.md 6.2).
 
     render.py --views top,bottom,iso --w 2400 board.kicad_pcb [--out-dir DIR]
+    render.py --views review --w 2400 board.kicad_pcb     (the fixed review set)
 
 Renders each requested view to `<out-dir>/<stem>_<view>.png` with consistent
 naming so the placement / verify-reviewer agents can reference views by name.
 "iso" is orthographic isometric (kicad-cli `pcb render` has no iso side, so we
 rotate -45,0,45). Thin driver over kc.render_png.
+
+A name in VIEW_SETS stands for a fixed list of views. `review` is the set the
+verify-reviewer judges placement and routing style from (top, bottom, iso), so
+every review of every board looks at the same pictures; it may be mixed with
+single view names and duplicates are dropped.
 
 The render shows the assembled board: kc.render_png points kicad-cli at its
 3D model loaders (APPDIR for a KiCad unpacked into a user prefix) and fails
@@ -41,6 +47,11 @@ VIEWS = {
     "iso": ("top", True),
 }
 
+# fixed view sets: name -> views (agents/verify-reviewer.md renders `review`)
+VIEW_SETS = {
+    "review": ["top", "bottom", "iso"],
+}
+
 
 def render_views(pcb: Path, views: list[str], out_dir: Path, *,
                  width: int, height: int, quality: str) -> dict:
@@ -70,11 +81,15 @@ def out_dir_relpath(result: dict, out: Path) -> str:
 
 
 def parse_views(spec: str) -> list[str]:
-    views = [v.strip() for v in spec.split(",") if v.strip()]
+    views: list[str] = []
+    for v in (v.strip() for v in spec.split(",")):
+        for name in VIEW_SETS.get(v, [v] if v else []):
+            if name not in views:
+                views.append(name)
     bad = [v for v in views if v not in VIEWS]
     if bad:
         raise ValueError(
-            f"unknown view(s) {bad}; valid: {','.join(VIEWS)}")
+            f"unknown view(s) {bad}; valid: {','.join([*VIEWS, *VIEW_SETS])}")
     if not views:
         raise ValueError("no views requested")
     return views
@@ -87,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("input", help="input .kicad_pcb")
     ap.add_argument("--views", default="top,bottom,iso",
-                    help="comma list from: " + ",".join(VIEWS))
+                    help="comma list from: " + ",".join([*VIEWS, *VIEW_SETS]))
     ap.add_argument("--w", "--width", dest="width", type=int, default=1600)
     ap.add_argument("--height", type=int, default=900)
     ap.add_argument("--quality", default="high",

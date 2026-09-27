@@ -58,7 +58,7 @@ FIXER_HINTS = {
     "creepage": "placement", "plane_missing": "plane",
     "thermal_area": "plane", "thermal_vias": "router",
     "silk_over_pad": "silk", "silk_illegible": "silk", "silk_thin": "silk",
-    "silk_misattributed": "silk",
+    "silk_misattributed": "silk", "route_style": "router",
     "pdn_undecoupled": "schematic", "pdn_no_bulk": "schematic",
     "reg_input_no_hf": "schematic",
     # check_ratings: a pin past its datasheet rating is a schematic fix (a
