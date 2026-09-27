@@ -323,6 +323,32 @@ def test_plane_net_left_out_of_congestion(tmp_path_factory):
     assert eng2.plane_nets == [] and eng2.cong_nets == ["GND", "S"]
 
 
+def test_power_plane_net_still_crosses(tmp_path_factory):
+    # usb-buck: +3V3 owns an inner zone, so it leaves the demand, but a
+    # power net still counts in the crossings (it crashed with KeyError)
+    body = _fp("R1", 10, 20, pads=_pad("1", 0, 0, "P"))
+    body += _fp("R2", 50, 20, pads=_pad("1", 0, 0, "P"))
+    body += _fp("R3", 30, 5, pads=_pad("1", 0, 0, "S"))
+    body += _fp("R4", 30, 35, pads=_pad("1", 0, 0, "S"))
+    zone = ('  (zone (net "P") (layers "In1.Cu")\n'
+            '    (polygon (pts (xy 0 0) (xy 60 0) (xy 60 40) (xy 0 40))))\n')
+    pcb = _pcb(tmp_path_factory, "pplane", body + zone)
+    text = pcb.read_text(encoding="utf-8").replace(
+        '(2 "B.Cu" signal)', '(4 "In1.Cu" power) (2 "B.Cu" signal)')
+    pcb.write_text(text, encoding="utf-8")
+    eng, _m = _engine(pcb, {"placement": {}, "power": [{"net": "P"}]}, {})
+    assert eng.plane_nets == ["P"] and eng.cong_nets == ["S"]
+    assert "P" in eng.mst_nets and "P" not in eng.netcells
+    assert eng.cross_total > 0
+    # moving the plane net's body updates its crossings, not the demand
+    demand = dict(eng.demand)
+    eng.set_state(0, (30.0, 30.0), 0.0)
+    assert eng.demand == demand
+    kept = (eng.overflow, eng.cross_total)
+    eng.full_sync()
+    assert kept == pytest.approx((eng.overflow, eng.cross_total), abs=1e-6)
+
+
 # ============================================================ pure: annealing
 
 def test_anneal_improves_and_stays_legal(tmp_path_factory):

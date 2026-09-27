@@ -503,6 +503,10 @@ class Engine:
         planes = set(self.plane_nets)
         self.cong_nets = [n for n in self.nets if n not in planes]
         self._unit = {n: self.pitch.get(n, 1.0) for n in self.cong_nets}
+        # a power plane net is out of the demand but still in the crossings,
+        # so flight lines are kept for either
+        self.seg_nets = [n for n in self.nets
+                         if n in self._unit or self._wmst[n] > 0]
         self.nets_of_body = {
             b.cid: sorted({net for net, _x, _y in b.pads
                            if net in self.entries}) for b in bodies}
@@ -716,7 +720,7 @@ class Engine:
         self.hpwl_raw_total = sum(self.hpwl_raw.values())
         self.hpwl_w_total = sum(self._wnet[n] * v
                                 for n, v in self.hpwl_raw.items())
-        self.segs = {n: self._mst_segs(n) for n in self.cong_nets}
+        self.segs = {n: self._mst_segs(n) for n in self.seg_nets}
         self.cross: dict[tuple[str, str], int] = {}
         self.cross_total = 0.0
         for i, a in enumerate(self.mst_nets):
@@ -898,11 +902,14 @@ class Engine:
                 if c:
                     self.rule_total += c * (new - old)
 
-        changed = [n for n in self.nets_of_body[cid] if n in self._unit]
+        changed = [n for n in self.nets_of_body[cid]
+                   if n in self._unit or self._wmst[n] > 0]
         if changed:
             for net in changed:
                 segs = self._mst_segs(net)
                 self.segs[net] = segs
+                if net not in self._unit:
+                    continue
                 old_cells = self.netcells[net]
                 new_cells = self._cells_of_segs(segs)
                 u = self._unit[net]
