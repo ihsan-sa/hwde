@@ -177,7 +177,8 @@ def test_highlight_kind_tex_only(tmp_path, capsys):
     assert payload["kind"] == "highlight"
     assert payload["tex"] == "reports/highlight/synth-highlight.tex"
     assert set(sections_by_name(payload)) == {
-        "title", "hl_board", "hl_parts", "hl_decisions", "hl_run", "hl_checks"}
+        "title", "hl_board", "hl_layers", "hl_parts", "hl_decisions", "hl_run",
+        "hl_checks"}
     text = (ws / payload["tex"]).read_text(encoding="utf-8")
     assert "Highlights" in text and r"\tableofcontents" not in text
     assert "went back to an earlier phase 3 times" in text
@@ -221,3 +222,60 @@ def test_cc_docs_titles_differ_by_kind(tmp_path):
               for k in report_gen.KINDS}
     assert titles == {"design": "amp design doc", "highlight": "amp highlight doc",
                       "full": "amp full design doc"}
+
+
+# ------------------------------------------------------------ layer views
+
+def _with_layers(ws, layers, views=("top", "bottom", "iso")):
+    """reports/layers/ as layer_views.py leaves it: layers.json plus the files."""
+    ldir = ws / "reports" / "layers"
+    ldir.mkdir(parents=True)
+    rep = {"layers": [], "views": [], "warnings": []}
+    for name in layers:
+        f = ldir / f"synth_{name.replace('.', '_')}.pdf"
+        f.write_bytes(b"%PDF-1.4")
+        rep["layers"].append({"layer": name, "path": str(f), "labels": 3})
+    for v in views:
+        f = ldir / f"synth_{v}.png"
+        f.write_bytes(b"png")
+        rep["views"].append({"view": v, "path": str(f), "status": "kept"})
+    (ldir / "layers.json").write_text(json.dumps(rep), encoding="utf-8")
+
+
+def test_full_kind_has_a_page_per_copper_layer(tmp_path, capsys, monkeypatch):
+    monkeypatch.setenv("HWDE_DIAGRAM_MAKER", str(tmp_path / "nowhere"))
+    ws = _ws_with_run(tmp_path)
+    _with_layers(ws, ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"])
+    code, payload = run_main(["--workspace", str(ws), "--kind", "full",
+                              "--tex-only"], tmp_path, capsys)
+    assert code == 0, payload
+    assert sections_by_name(payload)["layers"] == "included"
+    text = (ws / "reports/design_full/synth-design-full.tex").read_text(encoding="utf-8")
+    body = text.split(r"\section{Board Layers}")[1].split(r"\section{")[0]
+    for name in ("F_Cu", "In1_Cu", "In2_Cu", "B_Cu", "top", "bottom", "iso"):
+        assert f"reports/layers/synth_{name}." in body
+    assert body.index("F_Cu") < body.index("In1_Cu") < body.index("B_Cu")
+    assert not any("--render-layers" in w for w in payload["warnings"])
+
+
+def test_highlight_shows_the_outer_layers_and_iso_only(tmp_path, capsys):
+    ws = _ws_with_run(tmp_path)
+    _with_layers(ws, ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"])
+    code, payload = run_main(["--workspace", str(ws), "--kind", "highlight",
+                              "--tex-only"], tmp_path, capsys)
+    assert code == 0, payload
+    assert sections_by_name(payload)["hl_layers"] == "included"
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    body = text.split(r"\section{Copper Layers}")[1].split(r"\section{")[0]
+    assert "synth_F_Cu.pdf" in body and "synth_B_Cu.pdf" in body
+    assert "synth_In1_Cu" not in body and "synth_top.png" not in body
+    assert "synth_iso.png" in body and "all 4" in body
+
+
+def test_layers_not_drawn_is_a_warning_not_a_failure(tmp_path, capsys):
+    ws = _ws_with_run(tmp_path)
+    code, payload = run_main(["--workspace", str(ws), "--kind", "highlight",
+                              "--tex-only"], tmp_path, capsys)
+    assert code == 0, payload
+    assert sections_by_name(payload)["hl_layers"] == "missing"
+    assert any("--render-layers" in w for w in payload["warnings"])

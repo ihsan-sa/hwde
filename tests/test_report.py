@@ -1,4 +1,5 @@
-"""Design-document generator acceptance tests (report_gen.py + env.find_pdflatex).
+"""Design-document generator acceptance tests (report_gen.py + env.find_pdflatex,
+report_gen.find_lualatex).
 
 Criteria -> tests:
   - latex_escape is a total function: specials, backslash handled first,
@@ -17,9 +18,10 @@ Criteria -> tests:
                                         test_corrupt_state_exit2
   - --tex-only is full success (pdf null, ASCII .tex)
                                      -> test_tex_only_pass
-  - pdflatex not installed -> auto tex-only, warning, exit 1
-                                     -> test_no_pdflatex_degrades
-  - set-but-invalid HWDE_PDFLATEX -> EnvError -> exit 2, .tex still written
+  - lualatex or the house style not installed -> auto tex-only, warning,
+    exit 1                           -> test_no_lualatex_degrades,
+                                        test_no_house_style_degrades
+  - set-but-invalid HWDE_LUALATEX -> EnvError -> exit 2, .tex still written
                                      -> test_bad_pin_exit2
   - [ ] * brace-wrapped: a line-initial [ after the line-join is a fatal
     "Missing number", item labels swallow [x] content (adversarial F1/F2)
@@ -27,14 +29,16 @@ Criteria -> tests:
                                         test_bracket_content_never_breaks_latex
   - compile failure/timeout explains itself in warnings (adversarial F5)
                                      -> test_compile_failure_adds_warning
-  - env.find_pdflatex override ladder -> test_find_pdflatex_*
+  - env.find_pdflatex override ladder (check_env's) -> test_find_pdflatex_*
+  - report_gen.find_lualatex ladder, house style by path
+                                     -> test_find_lualatex_*, test_house_style_*
   - check_env pdflatex check (warn-level, loud on bad pin)
                                      -> test_check_env_pdflatex_unit
   - real boards produce a real PDF (both render conventions), >= 8 pages via
     pypdf, sections included, zero residue outside reports/design_doc/,
     second run overwrites cleanly    -> test_smoke_* (smoke marker)
 
-Hermetic tests never invoke pdflatex (all synthetic runs are --tex-only or
+Hermetic tests never invoke lualatex (all synthetic runs are --tex-only or
 have discovery monkeypatched/failed), so they pass on TeX-less machines.
 """
 from __future__ import annotations
@@ -463,21 +467,46 @@ def test_corrupt_state_exit2(tmp_path, capsys):
     assert payload["status"] == "error"
 
 
-def test_no_pdflatex_degrades(tmp_path, capsys, monkeypatch):
+def test_no_lualatex_degrades(tmp_path, capsys, monkeypatch):
     ws = make_workspace(tmp_path)
-    monkeypatch.setattr(report_gen.env, "find_pdflatex", lambda: None)
+    monkeypatch.setattr(report_gen, "find_lualatex", lambda: None)
     code, payload = run_main(["--workspace", str(ws)], tmp_path, capsys)
     assert code == 1
     assert payload["status"] == "violations"
     assert payload["pdf"] is None and payload["compile"] is None
-    assert any("pdflatex" in w for w in payload["warnings"])
+    assert any("lualatex not installed" in w for w in payload["warnings"])
     assert (ws / payload["tex"]).is_file()   # tex still written
+
+
+def test_no_house_style_degrades(tmp_path, capsys, monkeypatch):
+    ws = make_workspace(tmp_path)
+    fake = tmp_path / "lualatex"
+    fake.write_bytes(b"x")
+    monkeypatch.setattr(report_gen, "find_lualatex", lambda: fake)
+    monkeypatch.setenv("HWDE_HOUSE_STYLE", str(tmp_path / "nowhere"))
+    monkeypatch.setattr(report_gen, "compile_pdf",
+                        lambda *a: pytest.fail("compiled without a style"))
+    code, payload = run_main(["--workspace", str(ws)], tmp_path, capsys)
+    assert code == 1 and payload["compile"] is None
+    assert any("house style not found" in w for w in payload["warnings"])
+    assert (ws / payload["tex"]).is_file()
+
+
+def test_tex_uses_house_style(tmp_path, capsys):
+    ws = make_workspace(tmp_path)
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys)
+    assert code == 0, payload
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    assert r"\usepackage[nodiagramkit]{housestyle}" in text
+    assert r"\hstitleblock{" in text and r"\hsslug{" in text
+    assert "geometry" not in text and r"\toprule" not in text
 
 
 def test_bad_pin_exit2(tmp_path):
     ws = make_workspace(tmp_path)
     e = dict(os.environ)
-    e["HWDE_PDFLATEX"] = r"C:\nonexistent\pdflatex.exe"
+    e["HWDE_LUALATEX"] = r"C:\nonexistent\lualatex.exe"
     r = subprocess.run(
         [sys.executable, str(SCRIPTS / "report_gen.py"),
          "--workspace", str(ws)],
@@ -485,7 +514,7 @@ def test_bad_pin_exit2(tmp_path):
     assert r.returncode == 2, r.stdout + r.stderr
     payload = json.loads(r.stdout)
     assert payload["status"] == "error"
-    assert "HWDE_PDFLATEX" in payload["error"]
+    assert "HWDE_LUALATEX" in payload["error"]
     # F4: the loud exit must not discard the already-built document
     assert (ws / "reports" / "design_doc" / "synth-design-doc.tex").is_file()
 
@@ -571,16 +600,17 @@ def test_requirements_registry_path_wins(tmp_path, capsys):
 def test_compile_failure_adds_warning(tmp_path, capsys, monkeypatch):
     """F5: a failed or timed-out compile must explain itself in warnings."""
     ws = make_workspace(tmp_path)
-    fake = tmp_path / "pdflatex.exe"
+    fake = tmp_path / "lualatex.exe"
     fake.write_bytes(b"x")
-    monkeypatch.setattr(report_gen.env, "find_pdflatex", lambda: fake)
+    monkeypatch.setattr(report_gen, "find_lualatex", lambda: fake)
+    monkeypatch.setattr(report_gen, "house_style_dir", lambda: tmp_path)
     monkeypatch.setattr(
         report_gen, "compile_pdf",
         lambda p, w, n, *_: ({"engine": str(p), "rc": 1, "passes": 1,
                           "seconds": 0.1, "latex_log_tail": "boom"}, None))
     code, payload = run_main(["--workspace", str(ws)], tmp_path, capsys)
     assert code == 1 and payload["status"] == "violations"
-    assert any("pdflatex failed" in w for w in payload["warnings"])
+    assert any("lualatex failed" in w for w in payload["warnings"])
 
     monkeypatch.setattr(
         report_gen, "compile_pdf",
@@ -590,6 +620,39 @@ def test_compile_failure_adds_warning(tmp_path, capsys, monkeypatch):
                                name="out2")
     assert code2 == 1
     assert any("timed out" in w for w in payload2["warnings"])
+
+
+# ------------------------------------------------------------------ find_lualatex
+
+def test_find_lualatex_pin(monkeypatch, tmp_path):
+    exe = tmp_path / "lualatex"
+    exe.write_bytes(b"x")
+    monkeypatch.setenv("HWDE_LUALATEX", str(exe))
+    assert report_gen.find_lualatex() == exe
+
+
+def test_find_lualatex_pin_invalid(monkeypatch):
+    monkeypatch.setenv("HWDE_LUALATEX", r"C:\nonexistent\lualatex.exe")
+    with pytest.raises(env.EnvError, match="HWDE_LUALATEX does not exist"):
+        report_gen.find_lualatex()
+
+
+def test_find_lualatex_path_or_none(monkeypatch, tmp_path):
+    monkeypatch.delenv("HWDE_LUALATEX", raising=False)
+    monkeypatch.delenv("AIEE_LUALATEX", raising=False)
+    exe = tmp_path / "lualatex"
+    monkeypatch.setattr(report_gen.shutil, "which",
+                        lambda n: str(exe) if n == "lualatex" else None)
+    assert report_gen.find_lualatex() == exe
+    monkeypatch.setattr(report_gen.shutil, "which", lambda n: None)
+    assert report_gen.find_lualatex() is None
+
+
+def test_house_style_dir(monkeypatch, tmp_path):
+    monkeypatch.setenv("HWDE_HOUSE_STYLE", str(tmp_path))
+    assert report_gen.house_style_dir() is None
+    (tmp_path / "housestyle.sty").write_text("%", encoding="utf-8")
+    assert report_gen.house_style_dir() == tmp_path
 
 
 # ------------------------------------------------------------------ find_pdflatex
@@ -658,12 +721,13 @@ def test_check_env_pdflatex_unit(monkeypatch):
 
 @pytest.fixture(scope="session")
 def pdflatex_bin():
+    """The report engine (lualatex + the house style); named for history."""
     try:
-        p = env.find_pdflatex()
+        p = report_gen.find_lualatex()
     except env.EnvError:
         p = None
-    if p is None:
-        pytest.skip("pdflatex not installed")
+    if p is None or report_gen.house_style_dir() is None:
+        pytest.skip("lualatex or the pdf-material-builder house style absent")
     return p
 
 
@@ -830,7 +894,7 @@ def test_part_number_row_in_metadata(tmp_path, capsys):
                              tmp_path, capsys, name="nopn")
     text = (ws / payload["tex"]).read_text(encoding="utf-8")
     assert "part number & none (not in the boards register)" in text
-    assert "\\@oddfoot{\\small no part number" in text
+    assert "\\hsslug{no part number" in text
     (tmp_path / "register.yaml").write_text(
         "products:\n  PCB-0007:\n    revs:\n      C: {dir: synth}\n",
         encoding="utf-8")
@@ -838,11 +902,10 @@ def test_part_number_row_in_metadata(tmp_path, capsys):
                              tmp_path, capsys, name="pn")
     text = (ws / payload["tex"]).read_text(encoding="utf-8")
     assert "part number & PCB-0007-C" in text
-    # ...and on the title page and in every page's footer (owner, #ai-ee:
+    # ...and on the title page and in every page's running head (owner, #ai-ee:
     # "in the library the PDFs should have the PNs on them").
-    assert "{\\Large\\bfseries PCB-0007-C}" in text
-    assert "\\@oddfoot{\\small PCB-0007-C -- " in text
-    assert "\\pagestyle{hwde}" in text
+    assert "\\hstitleblock{PCB-0007-C \\textperiodcentered" in text
+    assert "\\hsslug{PCB-0007-C -- " in text
 
 
 # ------------------------------------------------------------- filing opt-in
@@ -883,12 +946,13 @@ def test_filing_with_flag_or_doc_project(tmp_path, monkeypatch):
 
 
 def _stub_compile(tmp_path, monkeypatch):
-    """A compile that writes a PDF whose bytes differ every build, like pdflatex."""
-    fake = tmp_path / "pdflatex.exe"
+    """A compile that writes a PDF whose bytes differ every build, like lualatex."""
+    fake = tmp_path / "lualatex.exe"
     fake.write_bytes(b"x")
-    monkeypatch.setattr(report_gen.env, "find_pdflatex", lambda: fake)
+    monkeypatch.setattr(report_gen, "find_lualatex", lambda: fake)
+    monkeypatch.setattr(report_gen, "house_style_dir", lambda: tmp_path)
 
-    def compile_pdf(p, ws, name, subdir="design_doc"):
+    def compile_pdf(p, ws, name, subdir="design_doc", style=None):
         pdf = ws / "reports" / subdir / f"{name}.pdf"
         pdf.write_bytes(b"%PDF-1.4 " + os.urandom(8))
         return {"engine": str(p), "rc": 0, "passes": 1, "seconds": 0.1}, pdf

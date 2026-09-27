@@ -3,8 +3,12 @@
 
 Reads state.json (read-only) plus the run's markdown/JSON/render artifacts and
 writes reports/design_doc/<board>-design-doc.tex (other --kind: below), then compiles it to PDF with
-pdflatex (two passes, staged in a system temp dir so no .aux/.log/.toc litter
-ever lands in the git-tracked workspace). Sections are conditional on the run's
+lualatex (HWDE_LUALATEX pin, else PATH; two passes, staged in a system temp dir
+so no .aux/.log/.toc litter ever lands in the git-tracked workspace). Every
+kind is set in pdf-material-builder's house style: housestyle.sty and its
+vendored Source Serif 4 / IBM Plex Mono are used by path from
+HWDE_HOUSE_STYLE, else ~/.claude/skills/pdf-material-builder/references/
+house-style (put on TEXINPUTS for the compile, never copied into hwde). Sections are conditional on the run's
 phase: not-yet-due sections render a one-line "Pending" stub; due-but-absent
 CORE artifacts (schematic.pdf, a board render, bom_rows, order.json) are
 violations, everything else absent is a warning. All external text goes
@@ -33,7 +37,7 @@ The filing names the board's part number with --describes PCB-NNNN-R when
 the boards register lists the workspace (lib/boardreg.py; hwde never
 allocates one), and passes --cost <step>=<usd> once per step of
 reports/cost.json. The part number is also printed under the title, in
-every page's footer beside the board name, and as a row of the metadata
+every page's running head beside the board name, and as a row of the metadata
 table ("not in the boards register" otherwise). The payload's `filed` is
 cc-docs' first output line (the number and path) when this run filed, else
 null; `unchanged` is true when a matching stamp skipped the filing. The workspace may be named by its directory, the board's old name or
@@ -53,22 +57,29 @@ reports/<design_doc|highlight|design_full>/ and files as its own document
 ("<board> design doc", "... highlight doc", "... full design doc").
 --render-history renders the snapshots first (render.py, top view; a PNG
 newer than its board is kept); without it only PNGs already there are shown
-and a warning says so. --history-ref names the git ref whose log is the
+and a warning says so. The full doc also gets Board Layers - one page per
+copper layer, front to back, drawn as KiCad shows it with the net names on
+its pads, tracks and zones, then the top, bottom and iso 3D views - and the
+highlight gets the outer two layers and the iso view. layer_views.py draws
+them into reports/layers/ (layers.json lists them), which both kinds share;
+--render-layers runs it first unless its layers.json is newer than the
+board, and without it only what is already there is shown, with a warning. --history-ref names the git ref whose log is the
 history (a board squash-merged into the boards repo keeps its run on its
 track branch). The figure needs node and the diagram-maker skill
 (HWDE_DIAGRAM_MAKER, else ~/.claude/skills/diagram-maker); without them it
 is a warning and a line saying why.
 
 Exit 0 "pass"   = requested outputs produced (--tex-only: the .tex alone).
-Exit 1 "violations" = degraded: compile failed, pdflatex absent (auto
-                  tex-only), or core artifacts missing for the run's phase.
-Exit 2 "error"  = unusable workspace / internal error (a bad HWDE_PDFLATEX
+Exit 1 "violations" = degraded: compile failed, lualatex or the house style
+                  absent (auto tex-only), or core artifacts missing for the
+                  run's phase.
+Exit 2 "error"  = unusable workspace / internal error (a bad HWDE_LUALATEX
                   pin propagates here - loud, never degraded).
 
 CLI:
   report_gen.py --workspace ~/dev/boards/<name> [--out report.json] [--tex-only] [--file]
                 [--name NAME] [--kind design|highlight|full] [--render-history]
-                [--history-ref REF]
+                [--render-layers] [--history-ref REF]
 """
 from __future__ import annotations
 
@@ -113,6 +124,7 @@ SECTIONS = [
 HIGHLIGHT_SECTIONS = [
     ("title", "At a Glance", None),
     ("hl_board", "The Board", None),
+    ("hl_layers", "Copper Layers", "P6"),
     ("hl_parts", "What Is On It", None),
     ("hl_decisions", "Key Decisions", None),
     ("hl_run", "How the Run Went", None),
@@ -121,6 +133,7 @@ HIGHLIGHT_SECTIONS = [
 # The full design doc: the design doc's sections plus every render, every
 # decision and why, the run's history and a figure of how it actually went.
 FULL_SECTIONS = SECTIONS[:6] + [
+    ("layers", "Board Layers", "P6"),
     ("renders", "Routing Renders", "P6"),
     ("decisions", "Design Decisions", None),
     ("history", "Design History", None),
@@ -142,8 +155,10 @@ CORE_RENDER = ("board render (reports render ladder)", "layout", "P6")
 CORE_BOM = ("reports/bom_cpl.json bom_rows", "dfm_fab", "P9")
 CORE_ORDER = ("fab/order.json", "dfm_fab", "P10")
 
-PDF_TIMEOUT = 300  # seconds per pdflatex pass
+PDF_TIMEOUT = 300  # seconds per lualatex pass
 RENDER_TIMEOUT = 300  # seconds per routing-snapshot render
+LAYERS_REL = "reports/layers"   # layer_views.py output, shared by highlight and full
+LAYERS_TIMEOUT = 1200  # seconds for every layer plus three 3D views
 DIAGRAM_TIMEOUT = 120  # seconds for the flow figure's export
 
 
@@ -344,11 +359,14 @@ def longtable(colspec: str, header: list[str], rows: list[list[str]]) -> str:
     """Cells must already be LaTeX-ready (escaped by the caller)."""
     if not rows:
         return r"\emph{(no entries)}"
-    out = ["{\\small", r"\begin{longtable}{" + colspec + "}", r"\toprule",
-           " & ".join(header) + r" \\", r"\midrule", r"\endhead"]
+    # House-style data table: an ink rule over small-caps heads, grey rules
+    # below (\hstoprule / \hshead from housestyle.sty).
+    head = [h.replace(r"\textbf{", r"\hshead{") for h in header]
+    out = ["{\\small", r"\begin{longtable}{" + colspec + "}", r"\hstoprule",
+           " & ".join(head) + r" \\", r"\hline", r"\endhead"]
     for r in rows:
         out.append(" & ".join(r) + r" \\")
-    out += [r"\bottomrule", r"\end{longtable}", "}"]
+    out += [r"\hline", r"\end{longtable}", "}"]
     return "\n".join(out)
 
 
@@ -436,8 +454,10 @@ def find_renders(ws: Path, board: str) -> tuple[list[str], list[str]]:
 
 class DocBuilder:
     def __init__(self, ws: Path, st: dict, name: str, kind: str = "design",
-                 render_history: bool = False, history_ref: str = "HEAD"):
+                 render_history: bool = False, history_ref: str = "HEAD",
+                 render_layers: bool = False):
         self.ws = ws
+        self.render_layers = render_layers
         self.history_ref = history_ref
         self.kind = kind
         self.render_history = render_history
@@ -520,7 +540,7 @@ class DocBuilder:
 
     # -- sections ---------------------------------------------------------
     def pn_label(self) -> str:
-        """The part number line of the title page and every footer."""
+        """The part number line of the title block and every running head."""
         return (self.pn["pn"] if self.pn
                 else "no part number (not in the boards register)")
 
@@ -535,14 +555,14 @@ class DocBuilder:
         else:
             bad = sorted(k for k, g in gates.items() if g.get("status") != "pass")
             overall = f"{n_pass}/{len(gates)} gates pass (not passing: {', '.join(bad)})"
-        self.head.append("\\begin{center}")
-        self.head.append("{\\LARGE\\bfseries " + latex_escape(self.name)
-                         + " --- " + KINDS[self.kind][2] + "}\\\\[6pt]")
-        self.head.append("{\\Large\\bfseries " + latex_escape(self.pn_label())
-                         + "}\\\\[6pt]")
-        self.head.append("{\\large hwde v1 pipeline}\\\\[2pt]")
-        self.head.append("generated " + latex_escape(time.strftime("%Y-%m-%d %H:%M:%S"))
-                         + "\n\\end{center}")
+        # House-style title block: eyebrow (part number, pipeline, date),
+        # the title, and a one-line lead with the gate status.
+        self.head.append(
+            "\\hstitleblock{" + latex_escape(self.pn_label())
+            + " \\textperiodcentered\\ hwde v1 pipeline \\textperiodcentered\\ generated "
+            + latex_escape(time.strftime("%Y-%m-%d %H:%M")) + "}%\n{"
+            + latex_escape(self.name) + " --- " + KINDS[self.kind][2] + "}%\n{"
+            + latex_escape(f"Phase {st.get('phase', '?')}; {overall}.") + "}")
         if self.kind == "highlight":
             self.sec_glance()
             return
@@ -1170,6 +1190,93 @@ class DocBuilder:
             if not ok:
                 self.warn(f"render of {s} failed")
 
+    def layer_views(self) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
+        """([(layer, pdf)], [(view, png)]) from reports/layers/layers.json,
+        workspace-relative and only those on disk; --render-layers runs
+        layer_views.py first when that file is missing or older than the board."""
+        pcb = self.ws / "kicad" / f"{self.stem}.kicad_pcb"
+        ldir = self.ws / LAYERS_REL
+        index = ldir / "layers.json"
+        if (self.render_layers and pcb.is_file()
+                and not (index.is_file() and index.stat().st_mtime >= pcb.stat().st_mtime)):
+            ldir.mkdir(parents=True, exist_ok=True)
+            try:
+                cp = subprocess.run(
+                    [sys.executable, str(SCRIPTS / "layer_views.py"), str(pcb),
+                     "--out-dir", str(ldir), "--out", str(index)],
+                    capture_output=True, text=True, timeout=LAYERS_TIMEOUT)
+                if cp.returncode != 0:
+                    self.warn(f"layer_views.py exited {cp.returncode}: "
+                              + (cp.stderr or "").strip()[-200:])
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                self.warn(f"layer_views.py failed: {exc}")
+        rep = read_json(self.ws, f"{LAYERS_REL}/layers.json") or {}
+        for w in rep.get("warnings", []):
+            self.warn(w)
+
+        def here(items: list[dict], key: str) -> list[tuple[str, str]]:
+            rels = [(i[key], f"{LAYERS_REL}/{Path(i['path']).name}") for i in items]
+            return [(k, rel) for k, rel in rels if (self.ws / rel).is_file()]
+        return here(rep.get("layers", []), "layer"), here(rep.get("views", []), "view")
+
+    def no_layers(self, sid: str) -> None:
+        self.body.append(latex_escape(
+            "The layer views are not drawn yet: report_gen.py --render-layers draws them."))
+        self.warn("layer views not drawn - pass --render-layers")
+        self.record(sid, "missing", f"{LAYERS_REL}/layers.json")
+
+    def layer_page(self, layer: str, rel: str) -> None:
+        """One copper layer on a page of its own, as large as the page allows."""
+        self.body.append(r"\clearpage")
+        self.body.append(r"\subsection*{" + latex_escape(layer) + "}")
+        self.body.append("\\begin{center}\n\\includegraphics[width=\\textwidth,"
+                         "height=0.82\\textheight,keepaspectratio]{" + rel + "}\\\\\n"
+                         "{\\small\\texttt{" + latex_escape(rel) + "}}\n\\end{center}")
+
+    def sec_layers(self) -> None:
+        """Full doc: every copper layer with its net names, then the 3D views."""
+        self.start("Board Layers")
+        layers, views = self.layer_views()
+        if not layers:
+            self.no_layers("layers")
+            return
+        self.body.append(latex_escape(
+            f"Each of the board's {len(layers)} copper layers as KiCad's editor shows "
+            "it, seen from the top: the copper with its side's silkscreen, fabrication "
+            "and courtyard outlines, and each pad, track and zone labelled with its "
+            "net. The pages are vector drawings, so zooming in keeps the names sharp."))
+        for layer, rel in layers:
+            self.layer_page(layer, rel)
+        if views:
+            self.body.append(r"\clearpage")
+            self.body.append(r"\subsection*{3D views}")
+            for view, rel in views:
+                self.body.append(r"\paragraph*{" + latex_escape(view) + "}")
+                self.body.append(image_block(rel, "0.8"))
+        self.record("layers", "included",
+                    ", ".join(rel for _, rel in layers + views))
+
+    def sec_hl_layers(self) -> None:
+        """Highlight: the outer copper layers with their net names, and the iso view."""
+        self.start("Copper Layers")
+        layers, views = self.layer_views()
+        if not layers:
+            self.no_layers("hl_layers")
+            return
+        outer = [layers[0]] + ([layers[-1]] if len(layers) > 1 else [])
+        self.body.append(latex_escape(
+            "The outer copper layers as KiCad shows them, with every pad, track and "
+            "zone labelled with its net (zoom in to read the small ones)"
+            + (f"; the full design doc has all {len(layers)}." if len(layers) > 2 else ".")))
+        for layer, rel in outer:
+            self.layer_page(layer, rel)
+        iso = [rel for view, rel in views if view == "iso"]
+        if iso:
+            self.body.append(r"\subsection*{3D view}")
+            self.body.append(image_block(iso[0], "0.8"))
+        self.record("hl_layers", "included",
+                    ", ".join([rel for _, rel in outer] + iso[:1]))
+
     def sec_decisions(self) -> None:
         self.start("Design Decisions")
         ds = dochistory.decisions(self.st)
@@ -1297,6 +1404,7 @@ class DocBuilder:
         "hl_board": sec_hl_board, "hl_parts": sec_hl_parts,
         "hl_decisions": sec_hl_decisions,
         "hl_run": sec_hl_run, "hl_checks": sec_hl_checks,
+        "hl_layers": sec_hl_layers, "layers": sec_layers,
         "renders": sec_renders, "decisions": sec_decisions,
         "history": sec_history, "flow": sec_flow,
     }
@@ -1309,10 +1417,11 @@ class DocBuilder:
             self.BUILDERS[sid](self)
         preamble = "\n".join([
             "% Generated by report_gen.py (hwde v1) - do not hand-edit.",
-            r"\documentclass[11pt,a4paper]{article}",
-            r"\usepackage[margin=2.2cm]{geometry}",
-            r"\usepackage{graphicx}",
-            r"\usepackage{booktabs}",
+            # pdf-material-builder's house style (housestyle.sty, found on
+            # TEXINPUTS by compile_pdf; it loads its own vendored fonts).
+            r"\documentclass[11pt]{article}",
+            r"\newcommand\hspaper{a4paper}",
+            r"\usepackage[nodiagramkit]{housestyle}",
             r"\usepackage{longtable}",
             r"\usepackage{pdfpages}",
             # Compat shim (host-verified): pdfpages >= 2026 v0.6h passes an
@@ -1322,18 +1431,12 @@ class DocBuilder:
             r"\makeatletter",
             r"\@ifundefined{KV@Gin@artifact}{\define@key{Gin}{artifact}[]{}}{}",
             r"\makeatother",
-            r"\usepackage{xcolor}",
-            r"\usepackage[hidelinks]{hyperref}",
             r"\setcounter{tocdepth}{1}",
-            # Every page's footer carries the part number and the board
-            # (kernel page-style macros, so no extra package is needed).
-            r"\makeatletter",
-            r"\def\ps@hwde{\let\@mkboth\@gobbletwo\def\@oddhead{}"
-            r"\def\@evenhead{}\def\@oddfoot{\small "
-            + latex_escape(f"{self.pn_label()} -- {self.board}")
-            + r"\hfil\thepage}\let\@evenfoot\@oddfoot}",
-            r"\makeatother",
-            r"\pagestyle{hwde}",
+            # Running head: part number and board at the left, the current
+            # section at the right; the foot keeps the page number.
+            r"\hsslug{" + latex_escape(f"{self.pn_label()} -- {self.board}") + "}",
+            r"\renewcommand{\sectionmark}[1]{\markboth{#1}{}}",
+            r"\hssection{\leftmark}",
             r"\begin{document}",
             r"\sloppy",
         ])
@@ -1384,41 +1487,62 @@ def render_diagram(spec: Path) -> str | None:
     return None
 
 
-def pdflatex_is_miktex(pdflatex: Path) -> bool:
-    try:
-        cp = subprocess.run([str(pdflatex), "--version"], capture_output=True,
-                            text=True, encoding="utf-8", errors="replace",
-                            timeout=30)
-        return "miktex" in ((cp.stdout or "") + (cp.stderr or "")).lower()
-    except (OSError, subprocess.TimeoutExpired):
-        return False
+def find_lualatex() -> Path | None:
+    """lualatex for the house style (optional toolchain member).
+
+    Ladder: HWDE_LUALATEX pin > PATH. None = not installed (degraded to
+    --tex-only, exit 1); a pin naming no file raises EnvError (exit 2).
+    """
+    pin, var = env.skill_env("LUALATEX")
+    if pin:
+        p = Path(pin)
+        if not p.exists():
+            raise env.EnvError(f"{var} does not exist: {pin}")
+        return p
+    w = shutil.which("lualatex")
+    return Path(w) if w else None
 
 
-def compile_pdf(pdflatex: Path, ws: Path, name: str,
-                subdir: str = "design_doc") -> tuple[dict, Path | None]:
-    """Two pdflatex passes staged in a system temp dir; only the final PDF is
+def house_style_dir() -> Path | None:
+    """pdf-material-builder's references/house-style/ (housestyle.sty), used
+    by path and never copied: HWDE_HOUSE_STYLE, else the skill under
+    ~/.claude/skills. None when housestyle.sty is not there."""
+    d = Path(os.environ.get("HWDE_HOUSE_STYLE")
+             or Path.home() / ".claude" / "skills" / "pdf-material-builder"
+             / "references" / "house-style")
+    return d if (d / "housestyle.sty").is_file() else None
+
+
+def compile_pdf(engine: Path, ws: Path, name: str, subdir: str = "design_doc",
+                style: Path | None = None) -> tuple[dict, Path | None]:
+    """Two lualatex passes (housestyle.sty put on TEXINPUTS from `style`) staged in a system temp dir; only the final PDF is
     moved into the workspace (no .aux/.log/.toc residue - boards/ is
     git-tracked and gate commits sweep the whole tree). Never raises on
     compile failure/timeout: returns a compile dict with latex_log_tail."""
     tex_rel = f"reports/{subdir}/{name}.tex"
-    comp: dict = {"engine": str(pdflatex).replace("\\", "/"), "rc": None,
+    comp: dict = {"engine": str(engine).replace("\\", "/"), "rc": None,
                   "passes": 0, "seconds": 0.0}
-    extra = ["--enable-installer"] if pdflatex_is_miktex(pdflatex) else []
-    # Guard the two files pdflatex can drop in cwd on exotic failures.
+    run_env = dict(os.environ)
+    if style is not None:
+        # Trailing separator keeps the default search path after it.
+        run_env["TEXINPUTS"] = (str(style) + os.pathsep
+                                + os.environ.get("TEXINPUTS", ""))
+    # Guard the two files the engine can drop in cwd on exotic failures.
     guards = {n: (ws / n).exists() for n in ("missfont.log", "texput.log")}
     t0 = time.time()
     final_pdf: Path | None = None
     with tempfile.TemporaryDirectory(prefix="aiee_report_") as td:
         staging = Path(td)
-        argv = [str(pdflatex), "-interaction=nonstopmode", "-halt-on-error",
-                "-output-directory", str(staging)] + extra + [tex_rel]
+        argv = [str(engine), "-interaction=nonstopmode", "-halt-on-error",
+                "-output-directory", str(staging), tex_rel]
         rc = None
         tail_src = ""
         for _ in range(2):
             try:
                 cp = subprocess.run(argv, capture_output=True, text=True,
                                     encoding="utf-8", errors="replace",
-                                    timeout=PDF_TIMEOUT, cwd=str(ws))
+                                    timeout=PDF_TIMEOUT, cwd=str(ws),
+                                    env=run_env)
                 rc = cp.returncode
                 tail_src = cp.stdout or ""
             except subprocess.TimeoutExpired as exc:
@@ -1575,14 +1699,14 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
 def run(workspace: str, name: str | None = None, tex_only: bool = False,
         file_doc: bool = False, kind: str = "design",
         render_history: bool = False,
-        history_ref: str = "HEAD") -> tuple[dict, int]:
+        history_ref: str = "HEAD", render_layers: bool = False) -> tuple[dict, int]:
     ws = resolve_workspace(workspace)
     st = load_state(ws)
     subdir, suffix = KINDS[kind][:2]
     doc_name = f"{name or st['board']}-{suffix}"
 
     builder = DocBuilder(ws, st, name or st["board"], kind, render_history,
-                         history_ref)
+                         history_ref, render_layers)
     tex_text = builder.build()
 
     out_dir = ws / "reports" / subdir
@@ -1590,26 +1714,32 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
     tex_path = out_dir / f"{doc_name}.tex"
     tex_path.write_text(tex_text, encoding="utf-8")
 
-    pdflatex: Path | None = None
+    engine: Path | None = None
+    style = house_style_dir()
     if not tex_only:
-        # Resolved after the tex write: a bad HWDE_PDFLATEX pin still exits 2
+        # Resolved after the tex write: a bad HWDE_LUALATEX pin still exits 2
         # (EnvError propagates) but must not discard the built document.
-        pdflatex = env.find_pdflatex()
-        if pdflatex is None:
-            builder.warn("pdflatex not installed - degraded to --tex-only "
+        engine = find_lualatex()
+        if engine is None:
+            builder.warn("lualatex not installed - degraded to --tex-only "
+                         "(no PDF produced)")
+        elif style is None:
+            engine = None
+            builder.warn("pdf-material-builder house style not found (set "
+                         "HWDE_HOUSE_STYLE) - degraded to --tex-only "
                          "(no PDF produced)")
 
     comp = None
     pdf_path: Path | None = None
     pages = None
-    if pdflatex is not None:
-        comp, pdf_path = compile_pdf(pdflatex, ws, doc_name, subdir)
+    if engine is not None:
+        comp, pdf_path = compile_pdf(engine, ws, doc_name, subdir, style)
         if pdf_path is None:
             if comp.get("timed_out"):
-                builder.warn(f"pdflatex timed out after {PDF_TIMEOUT}s - "
+                builder.warn(f"lualatex timed out after {PDF_TIMEOUT}s - "
                              "PDF not produced")
             else:
-                builder.warn(f"pdflatex failed (rc={comp.get('rc')}) - PDF "
+                builder.warn(f"lualatex failed (rc={comp.get('rc')}) - PDF "
                              "not produced; see compile.latex_log_tail")
         else:
             pages = count_pages(pdf_path)
@@ -1648,7 +1778,7 @@ def main(argv: list[str] | None = None) -> int:
                          "(absolute or repo-relative)")
     ap.add_argument("--out", help="write the JSON payload here instead of stdout")
     ap.add_argument("--tex-only", action="store_true",
-                    help="write the .tex only; skip the pdflatex compile")
+                    help="write the .tex only; skip the lualatex compile")
     ap.add_argument("--file", action="store_true", dest="file_doc",
                     help="file the finished PDF in the document register "
                          "(also: DOC_PROJECT set); default files nothing")
@@ -1658,6 +1788,9 @@ def main(argv: list[str] | None = None) -> int:
                          "doc + renders, every decision, history, flow figure)")
     ap.add_argument("--render-history", action="store_true",
                     help="--kind full: render the routing/ snapshots first")
+    ap.add_argument("--render-layers", action="store_true",
+                    help="--kind full or highlight: draw the copper layers and 3D "
+                         "views first (layer_views.py)")
     ap.add_argument("--history-ref", default="HEAD",
                     help="--kind full: the git ref whose log is the run's history "
                          "(the board's track branch once its PR squash-merged)")
@@ -1667,7 +1800,8 @@ def main(argv: list[str] | None = None) -> int:
         payload, code = run(args.workspace, name=args.name,
                             tex_only=args.tex_only, file_doc=args.file_doc,
                             kind=args.kind, render_history=args.render_history,
-                            history_ref=args.history_ref)
+                            history_ref=args.history_ref,
+                            render_layers=args.render_layers)
     except Exception as exc:  # noqa: BLE001 (SPEC: any error -> exit 2)
         err = {"script": "report_gen", "status": "error",
                "error": f"{type(exc).__name__}: {exc}"}
