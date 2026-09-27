@@ -82,7 +82,8 @@ Consumers per key (script -> phase):
   "placement": {
     "edges": [{"ref": "J1", "edge": "left", "pos": 0.5, "rot": 90}],
     //        edge in left|right|top|bottom (render-oriented: top = min y);
-    //        pos 0..1 along the edge (omit = distributed); rot optional
+    //        pos 0..1 along the edge: where the part's ORIGIN sits, as a
+    //        fraction of the edge's length (omit = distributed); rot optional
     "groups": [{"name": "xtal", "anchor": "Y1", "members": ["C8", "C9"]}],
     "keepouts": [{"rect": [x1, y1, x2, y2], "side": "front",
                   "reason": "antenna"}],   // or "poly": [[x,y], ...]

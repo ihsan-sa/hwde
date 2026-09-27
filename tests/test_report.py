@@ -438,7 +438,7 @@ def test_payload_keys(tmp_path, capsys):
                           tmp_path, capsys)
     assert list(payload) == ["script", "status", "board", "workspace", "tex",
                              "pdf", "pages", "sections", "missing", "warnings",
-                             "compile", "filed", "unchanged"]
+                             "compile", "filed", "unchanged", "kind"]
     assert payload["script"] == "report_gen"
     assert payload["board"] == "synth"
     assert all(set(s) == {"name", "status", "source"}
@@ -576,7 +576,7 @@ def test_compile_failure_adds_warning(tmp_path, capsys, monkeypatch):
     monkeypatch.setattr(report_gen.env, "find_pdflatex", lambda: fake)
     monkeypatch.setattr(
         report_gen, "compile_pdf",
-        lambda p, w, n: ({"engine": str(p), "rc": 1, "passes": 1,
+        lambda p, w, n, *_: ({"engine": str(p), "rc": 1, "passes": 1,
                           "seconds": 0.1, "latex_log_tail": "boom"}, None))
     code, payload = run_main(["--workspace", str(ws)], tmp_path, capsys)
     assert code == 1 and payload["status"] == "violations"
@@ -584,7 +584,7 @@ def test_compile_failure_adds_warning(tmp_path, capsys, monkeypatch):
 
     monkeypatch.setattr(
         report_gen, "compile_pdf",
-        lambda p, w, n: ({"engine": str(p), "rc": 124, "passes": 1,
+        lambda p, w, n, *_: ({"engine": str(p), "rc": 124, "passes": 1,
                           "seconds": 0.1, "timed_out": True}, None))
     code2, payload2 = run_main(["--workspace", str(ws)], tmp_path, capsys,
                                name="out2")
@@ -888,8 +888,8 @@ def _stub_compile(tmp_path, monkeypatch):
     fake.write_bytes(b"x")
     monkeypatch.setattr(report_gen.env, "find_pdflatex", lambda: fake)
 
-    def compile_pdf(p, ws, name):
-        pdf = ws / "reports" / "design_doc" / f"{name}.pdf"
+    def compile_pdf(p, ws, name, subdir="design_doc"):
+        pdf = ws / "reports" / subdir / f"{name}.pdf"
         pdf.write_bytes(b"%PDF-1.4 " + os.urandom(8))
         return {"engine": str(p), "rc": 0, "passes": 1, "seconds": 0.1}, pdf
     monkeypatch.setattr(report_gen, "compile_pdf", compile_pdf)

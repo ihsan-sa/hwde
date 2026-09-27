@@ -4,7 +4,9 @@ Flow (all on a STAGED copy in the work dir; the real board is swapped only on
 success): refill zones (a stale/unfilled pour exports wrong) -> Specctra DSN
 export via the SWIG worker (wx-suppressed; plane layers marked LT_POWER so the
 DSN carries "(type power)") -> Freerouting CLI over an escalation ladder
-(routelib.DEFAULT_LADDER; deterministic flags, per-rung process timeout, score
+(the DSN first carries each net's .kicad_dru width/clearance floor as its own
+class, routelib.dsn_apply_net_rules;
+routelib.DEFAULT_LADDER; deterministic flags, per-rung process timeout, score
 logging) -> import the best rung's SES -> refill (imported tracks stale every
 pour they cross - S11-verified: 33 clearance violations before refill, 0
 after) -> final `kicad-cli pcb drc --schematic-parity --all-track-errors`.
@@ -78,6 +80,20 @@ def _stage_board(pcb: Path, work: Path) -> Path:
     if not staged.is_file():
         raise CheckError(f"staging failed: {staged}")
     return staged
+
+
+def _dsn_net_rules(staged: Path, dsn: Path) -> list[str]:
+    """Write the staged board's per-net .kicad_dru track_width/clearance
+    floors into the exported DSN; returns the nets given their own class."""
+    import route_critical as rc
+    dru = staged.with_suffix(".kicad_dru")
+    text, moved = routelib.dsn_apply_net_rules(
+        dsn.read_text(encoding="utf-8"),
+        rc.dru_net_floors(dru, "track_width"),
+        rc.dru_net_floors(dru, "clearance"))
+    if moved:
+        dsn.write_text(text, encoding="utf-8")
+    return moved
 
 
 def _auto_power_layers(bg: geom.BoardGeom) -> list[str]:
@@ -263,6 +279,7 @@ def route_probe(pcb: Path, *, passes: int = 4, timeout_s: int = 180,
     routelib.run_worker(bp, {
         "verb": "export_dsn", "board": str(staged), "dsn": str(dsn),
         "layer_types": {ly: "power" for ly in _auto_power_layers(bg)}}, work)
+    _dsn_net_rules(staged, dsn)
     facts = routelib.run_freerouting(
         java, jar, dsn, ses, rung={"mp": passes}, timeout=timeout_s,
         log_file=work / "probe.log")
@@ -330,6 +347,7 @@ def run(argv: list[str] | None = None):
     routelib.run_worker(bp, {
         "verb": "export_dsn", "board": str(staged), "dsn": str(dsn),
         "layer_types": {ly: "power" for ly in power_layers}}, work)
+    dsn_net_rules = _dsn_net_rules(staged, dsn)
 
     # 3. Freerouting escalation ladder
     ladder = routelib.DEFAULT_LADDER[:max(1, args.max_rungs)]
@@ -450,6 +468,7 @@ def run(argv: list[str] | None = None):
             "fr_completion": routelib.completion_fraction(best_facts)
             if fr_ok else None,
             "power_layers": power_layers,
+            "dsn_net_rules": dsn_net_rules,
             "krt_finish": finish_facts,
             "ses_echo_dups_removed": dedup_facts.get("removed", 0),
             "work_dir": str(work),

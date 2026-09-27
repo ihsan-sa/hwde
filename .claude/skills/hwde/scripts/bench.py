@@ -70,6 +70,16 @@ CLI: bench.py --list
               --from task=<ws>/research/tasks/<t>.json
               --from-dir research=<ws>/research --freeze-args '{"task": "<t>"}'
               --grade "<owner verdict on the extraction>"
+     bench.py --corpus WORK [--boards A,B] [--rerun A,B] [--boards-root DIR]
+
+--corpus is the one mode that DOES run the live pipeline: place_seed,
+place_anneal and route_auto (Freerouting) on a copy of every board in the
+boards repo, one at a time, each writing WORK/<board>/result.json as it
+finishes; a board with a result.json is skipped unless --rerun names it
+(lib/benchcorpus.py has the steps; docs/placement-benchmark.md is the
+report).  Its completion and runtime numbers are informational, never a
+composite.
+
 Exit 0 scored (no regression), 1 known-answer miss or composite regression,
 2 error/drifted fixture/missing toolchain for a live-only stage.
 """
@@ -88,6 +98,7 @@ for p in (SCRIPTS, SCRIPTS / "lib"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
+import benchcorpus  # noqa: E402
 import benchlib  # noqa: E402
 import checklib  # noqa: E402
 from checklib import CheckError  # noqa: E402
@@ -927,6 +938,24 @@ def do_freeze(args, manifest_path: Path) -> dict:
 
 # --------------------------------------------------------------------- main
 
+def do_corpus(args) -> dict:
+    import env
+    root = Path(args.boards_root) if args.boards_root else env.boards_root()
+    if not root.is_dir():
+        raise CheckError(f"no boards repo at {root}")
+    cli = env.find_kicad_cli()
+    bundled = env.find_kicad_python(cli) if cli else None
+    if bundled is None:
+        raise CheckError("--corpus needs kicad-cli and its bundled python "
+                         "(SWIG pcbnew) to strip copper")
+    split = lambda v: [x for x in (v or "").split(",") if x]  # noqa: E731
+    summary = benchcorpus.run_corpus(
+        root, Path(args.corpus), boards=split(args.boards),
+        rerun=split(args.rerun), scripts=SCRIPTS, venv_py=sys.executable,
+        bundled_py=str(bundled))
+    return {"script": SCRIPT, "status": "pass", "corpus": summary}
+
+
 def run(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--list", action="store_true",
@@ -975,8 +1004,23 @@ def run(argv=None):
     ap.add_argument("--freeze-args",
                     help="--freeze: JSON object stored as the entry's args "
                     "(e.g. '{\"copper_oz\": 2.0}')")
+    ap.add_argument("--corpus", metavar="WORK",
+                    help="run the placement benchmark on copies of every "
+                    "board in the boards repo, results under WORK")
+    ap.add_argument("--boards", help="--corpus: only these boards (comma list)")
+    ap.add_argument("--rerun", help="--corpus: re-run these boards even if "
+                    "they have a result.json (comma list)")
+    ap.add_argument("--boards-root", help="--corpus: boards repo (default "
+                    "env.boards_root())")
     ap.add_argument("--out")
     args = ap.parse_args(argv)
+
+    if args.corpus:
+        return do_corpus(args), args.out
+    for flag, val in (("--boards", args.boards), ("--rerun", args.rerun),
+                      ("--boards-root", args.boards_root)):
+        if val:
+            raise CheckError(f"{flag} only makes sense with --corpus")
 
     manifest_path = Path(args.manifest) if args.manifest else benchlib.default_manifest()
 

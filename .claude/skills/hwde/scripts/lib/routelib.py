@@ -21,6 +21,13 @@ Three concerns, used by route_edit.py / route_auto.py / planes_gen.py:
    - a pass line WITHOUT the parenthetical means 0 unrouted at that pass -
    (c) None (unknown -> caller treats as failure). Gate on kicad-cli DRC,
    never on FR's numbers.
+
+4. dsn_apply_net_rules(): KiCad's DSN export writes only netclass rules, so
+   a per-net .kicad_dru floor (rules_gen's aiee_pwr_width_* track width and
+   aiee_hv_* clearance) never reaches Freerouting, which then lays that net
+   at the default 0.2 mm (rf-term's /RF: 4 track_width + 3 HV clearance DRC
+   errors). Each such net is moved into its own DSN class carrying the
+   floor.
 """
 from __future__ import annotations
 
@@ -201,3 +208,91 @@ def completion_fraction(facts: dict) -> float | None:
     if left is None:
         return None
     return max(0.0, min(1.0, 1.0 - left / started))
+
+
+def _sexp_end(text: str, i: int) -> int:
+    """Index just past the s-expression opening at text[i] == '('."""
+    depth, quoted = 0, False
+    for j in range(i, len(text)):
+        ch = text[j]
+        if ch == '"':
+            quoted = not quoted
+        elif quoted:
+            continue
+        elif ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth == 0:
+                return j + 1
+    raise CheckError("unbalanced s-expression in DSN")
+
+
+def _quote_mask(text: str) -> str:
+    """`text` with every character inside double quotes blanked, so a paren
+    in a quoted net name ("Net-(C1-Pad2)") is not read as structure."""
+    out, quoted = [], False
+    for ch in text:
+        if ch == '"':
+            quoted = not quoted
+            out.append(ch)
+        else:
+            out.append(" " if quoted else ch)
+    return "".join(out)
+
+
+_DSN_TOKEN_RE = re.compile(r'"[^"]*"|[^\s()]+')
+
+
+def dsn_apply_net_rules(dsn_text: str, widths: dict[str, float],
+                        clearances: dict[str, float]) -> tuple[str, list]:
+    """Give every net with a width or clearance floor (mm) above its DSN
+    class's own its own class carrying max(class, floor). Returns (text,
+    [net, ...] moved). Only a `(resolution um N)` DSN is handled - values are
+    in um - anything else comes back unchanged."""
+    if not re.search(r"\(resolution\s+um\s+\d+\)", dsn_text):
+        return dsn_text, []
+    nets = set(widths) | set(clearances)
+    out, moved, pos = [], [], 0
+    for m in re.finditer(r"\(class\s", dsn_text):
+        if m.start() < pos:
+            continue
+        end = _sexp_end(dsn_text, m.start())
+        block = dsn_text[m.start():end]
+        head_end = next((j for j, t in enumerate(_quote_mask(block))
+                         if j and t == "("), -1)
+        head = block[:head_end] if head_end > 0 else block[:-1]
+        body = block[head_end:-1] if head_end > 0 else ""
+        toks = _DSN_TOKEN_RE.findall(head)[1:]     # drop "class"
+        name, members = toks[0], toks[1:]
+        cw = re.search(r"\(width\s+([\d.]+)\)", body)
+        cc = re.search(r"\(clearance\s+([\d.]+)\)", body)
+        cw = float(cw.group(1)) if cw else 0.0
+        cc = float(cc.group(1)) if cc else 0.0
+        keep, extra = [], []
+        for tok in members:
+            net = tok.strip('"')
+            w = widths.get(net, 0.0) * 1000.0
+            c = clearances.get(net, 0.0) * 1000.0
+            if net not in nets or (w <= cw and c <= cc):
+                keep.append(tok)
+                continue
+            nb = body
+            if w > cw:
+                nb = re.sub(r"\(width\s+[\d.]+\)", f"(width {w:g})", nb,
+                            count=1)
+            if c > cc:
+                nb = re.sub(r"\(clearance\s+[\d.]+\)", f"(clearance {c:g})",
+                            nb, count=1)
+            cname = "aiee_" + re.sub(r"[^A-Za-z0-9_]", "_", net)
+            extra.append(f"(class {cname} {tok}\n      {nb.strip()}\n    )")
+            moved.append(net)
+        out.append(dsn_text[pos:m.start()])
+        if keep:
+            out.append(f"(class {name} {' '.join(keep)}\n      "
+                       f"{body.strip()}\n    )")
+        for i, e in enumerate(extra):
+            out.append(("\n    " if keep or i else "") + e)
+        pos = end
+    out.append(dsn_text[pos:])
+    return "".join(out), moved

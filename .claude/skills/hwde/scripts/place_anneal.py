@@ -14,6 +14,8 @@ Cost (raw term totals maintained incrementally, recombined with weights at
 accept time):
   w_hpwl    * sum_net class_weight(net) * hpwl(net)     [gnd 0.25/pwr 0.6/sig 1]
   w_overlap * mm^2 of courtyard overlap + keepout overlap + outside-outline
+              (a free body's outline is pulled in by Footprint.edge_keep, so
+              its pad copper clears the board's copper-to-edge rule)
               (ramped by sqrt(T0/T) so late epochs are effectively legal-only)
   w_cong    * congestion overflow (MST flight-line demand above --cong-cap
               per 2 mm cell; gnd-class nets excluded - they ride planes)
@@ -372,7 +374,19 @@ class Engine:
         self.fb_boost = 1.0       # route-feedback steering multiplier
 
         self.outline = model.outline
-        self._outline_prep = prep(self.outline)
+        # a free body's courtyard stays edge_keep inside the outline, so its
+        # pad copper clears the board's copper-to-edge rule: kissing the
+        # edge left rf-term's M3 hole pads 0.25 mm off it against 0.3 mm
+        cu_edge = placelib.copper_edge_mm(model)
+        self._keep_in = []
+        for b in bodies:
+            keep = 0.0
+            if b.kind == "free":
+                keep = max(model.footprints[r].edge_keep(cu_edge)
+                           for r in b.cluster.refs)
+            region = self.outline if keep <= 0 else \
+                self.outline.buffer(-keep, join_style=2)
+            self._keep_in.append((region, prep(region)))
         placement = (constraints or {}).get("placement") or {}
         # U19 placement.sides: a ruled side is a PIN - the annealer never
         # flips that cluster. A ref already sitting on the wrong side is
@@ -559,9 +573,10 @@ class Engine:
             + ASM_PER_PART_MM * back_parts
 
     def _outside_area(self, cid: int, poly) -> float:
-        if self._outline_prep.contains_properly(poly):
+        region, region_prep = self._keep_in[cid]
+        if region_prep.contains_properly(poly):
             return 0.0
-        out = poly.difference(self.outline).area
+        out = poly.difference(region).area
         return out if out > EPS else 0.0
 
     def _coords(self, net: str) -> list[tuple[float, float]]:
