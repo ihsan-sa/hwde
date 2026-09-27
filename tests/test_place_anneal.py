@@ -1151,3 +1151,31 @@ def test_anneal_reproducible_on_corpus(seeded_board):
             Params(seed=11, max_epochs=8, stall=8))
         outs.append(json.dumps([x["ops"] for x in c]))
     assert outs[0] == outs[1]
+
+
+def test_spot_legal_holds_edge_overhang_to_the_seed():
+    """_spot_legal agrees with the SA cost and placelib: an edge cluster may
+    keep the seed's designed overhang (J1's barrel off rf-term's top edge)
+    but not grow it."""
+    import place_seed
+    fix = REPO / "tests" / "fixtures" / "rf_term_edge"
+    con = json.loads((fix / "constraints.json").read_text("utf-8"))
+    _o, _v, _f, model = place_seed.seed(fix / "rf_term_edge.kicad_pcb", con,
+                                        {}, 1.0, 0.8)
+    placement = con["placement"]
+    clusters, warns = placelib.build_clusters(model, {}, placement)
+    eng = Engine(model, place_anneal._build_bodies(model, clusters, warns),
+                 con, {})
+    cid = next(b.cid for b in eng.bodies if b.cluster.anchor == "J1")
+    assert eng.out_base[cid] > 30.0          # the barrel's designed overhang
+    x, y = eng.centers[cid]
+    # other bodies are ignored here: only the outline term is under test
+    from shapely.geometry import Polygon
+    for b in eng.bodies:
+        if b.cid != cid:
+            eng.polys[b.cid] = Polygon()
+    eng.obstacles.clear()
+    assert place_anneal._spot_legal(eng, cid, (x, y), eng.angles[cid])
+    assert place_anneal._spot_legal(eng, cid, (x, y + 1.0), eng.angles[cid])
+    assert not place_anneal._spot_legal(eng, cid, (x, y - 1.0),
+                                        eng.angles[cid])

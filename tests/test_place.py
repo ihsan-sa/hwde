@@ -967,3 +967,51 @@ def test_seed_and_metrics_fast(init_board):
                     1.0, 0.8)
     place_metrics.collect(init_board, None, None, 2.0)
     assert time.time() - t0 < 30.0
+
+
+# ---- designed edge overhang (rf-term-150w regression) -------------------
+
+RF_TERM = REPO / "tests" / "fixtures" / "rf_term_edge"
+
+
+def _rf_term_seed():
+    con = json.loads((RF_TERM / "constraints.json").read_text("utf-8"))
+    return place_seed.seed(RF_TERM / "rf_term_edge.kicad_pcb", con, {},
+                           1.0, 0.8), con
+
+
+def test_edge_snap_lets_designed_overhang_hang_off():
+    """J1's SMA barrel courtyard runs 12 mm past its origin by design: the
+    seed must align its pads (edge_margin inside the top edge) and let the
+    barrel hang off, not pull the whole courtyard on-board onto R1."""
+    (_ops, _v, _f, model), con = _rf_term_seed()
+    minx, miny, maxx, maxy = model.outline.bounds
+    j1 = model.footprints["J1"]
+    # designer: y 24.81; the old courtyard-flush snap put it at 32.51
+    assert abs(j1.pos[1] - 24.81) < 0.6
+    assert j1.extents_abs().bounds[1] < miny - 5.0          # barrel off-board
+    pad_edge = min(j1.to_abs(p.local)[1] - p.size[1] / 2 for p in j1.pads)
+    assert pad_edge - miny >= 0.8 + 0.25 - 1e-6              # margin kept
+    on = j1.extents_abs().intersection(model.outline).area
+    assert on >= placelib.ON_BOARD_MIN * j1.extents_abs().area
+    # J1's satellite C1 is slid inboard, fully on the board
+    c1 = model.footprints["C1"].extents_abs()
+    assert c1.difference(model.outline).area <= placelib.EPS_AREA
+    # the suppressed case: R1's courtyard does not reach past its pads, so
+    # it stays courtyard-flush with the bottom edge as before
+    r1 = model.footprints["R1"].extents_abs()
+    assert r1.bounds[3] == pytest.approx(maxy, abs=1e-6)
+    # J1, C1 and R1 are legal against the outline and each other (the
+    # mounting holes are the free legalizer's, not the edge snap's)
+    viol = placelib.legality_violations(model, con["placement"])
+    assert not [v for v in viol
+                if set(v.get("refs", [])) <= {"J1", "C1", "R1"}], viol
+
+
+def test_perimeter_slot_starts_at_courtyard_not_circumradius():
+    """An elongated anchor's circumradius is far past its side: C1 sits
+    beside J1's body, not 6.5 mm off it."""
+    (_ops, _v, _f, model), _con = _rf_term_seed()
+    gap = (model.footprints["C1"].extents_abs().bounds[0]
+           - model.footprints["J1"].extents_abs().bounds[2])
+    assert 0.0 <= gap < 2.0

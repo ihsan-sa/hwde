@@ -5096,3 +5096,8 @@ fractional A* margin, which falls short by under half a diagonal phase (0.05/(2*
 tracks by grid_step/2 in its own --net-clearances file (KRT keeps each obstacle out by that
 obstacle net's clearance). Raising the routed power nets instead also fixed the DRC but cost
 +3V3 a fine-pitch pad tap.
+
+## 2026-09-27 [placement][place_seed][place_anneal] Edge snap goes by the pads when the courtyard is a designed overhang
+- A declared-edge part whose courtyard reaches past its pad field (rf-term's SMA barrel, 12 mm) is snapped with its pads `edge_margin` inside the edge; the rest hangs off, floored at `placelib.ON_BOARD_MIN` (+0.05) on-board. A courtyard that ends at its pads (R1's on-board-only lap pad) is still courtyard-flush.
+- Perimeter satellite slots used to start at the anchor's circumradius, which a long barrel inflates (C1 landed 6.5 mm off J1). They now start where the ray leaves the anchor courtyard.
+- `pos` is the fraction of the span the CLUSTER CENTER can take, not of the edge. A designer who writes "pos 0.375 = x 9 mm" means the edge length; on rf-term that leaves no room for the three mounting holes. Unresolved.

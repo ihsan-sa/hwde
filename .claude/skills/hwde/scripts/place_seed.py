@@ -16,7 +16,14 @@ arrangement:
 3. placement.edges pins connector clusters to board edges: distributed along
    the declared edge (or at an explicit pos fraction), rotated so the body
    overhang points off-board (explicit rot wins; symmetric parts keep their
-   angle), courtyard flush with the edge.
+   angle). The edge part's courtyard sits flush with the edge unless it
+   reaches past the part's pad field: then the pads sit edge_margin inside
+   the edge and the rest of the courtyard (an SMA barrel, a flange) hangs
+   off the board, never so far that less than placelib.ON_BOARD_MIN of it
+   stays on. A satellite that would cross the edge is slid inboard in its
+   slot (kept collision-free); only one that cannot be pulls its cluster in.
+   The along-edge span uses the cluster's real extent on each side of its
+   center, so a one-sided satellite stays on the board.
 4. Remaining clusters: connectivity-weighted deterministic spring embedding
    (GND 0.2 / power 0.5 / signal 1.0; no RNG - fixed circle init + fixed
    iteration count), then greedy grid legalization (largest first, spiral
@@ -56,6 +63,7 @@ import sys
 from pathlib import Path
 
 from shapely import affinity
+from shapely.geometry import LineString, box
 from shapely.ops import unary_union
 
 SCRIPTS = Path(__file__).resolve().parent
@@ -137,7 +145,8 @@ def layout_satellites(model: PlaceModel, cluster: Cluster,
         else:
             spread = i * (360.0 / max(1, len(cluster.satellites)))
             base_dir = _unit(_rot(1.0, 0.0, spread))
-            pivot = (ac[0] + base_dir[0] * rc, ac[1] + base_dir[1] * rc)
+            r = _ray_exit(ext, ac, base_dir, rc)
+            pivot = (ac[0] + base_dir[0] * r, ac[1] + base_dir[1] * r)
 
         toward = (-base_dir[0], -base_dir[1])  # sat center -> pin direction
         rel = _facing_rel(anchor, fp, sat, toward)
@@ -164,6 +173,20 @@ def layout_satellites(model: PlaceModel, cluster: Cluster,
         slots[sat.ref] = (chosen[0], rel)
         placed.append(chosen[1])
     return slots
+
+
+def _ray_exit(poly, origin, d, rc: float) -> float:
+    """Distance from `origin` along unit `d` to where it leaves `poly`: a
+    perimeter slot starts at the courtyard itself, not its circumradius,
+    which an elongated anchor (an SMA barrel) inflates far past its side."""
+    ray = LineString([origin, (origin[0] + d[0] * 2 * rc,
+                               origin[1] + d[1] * 2 * rc)])
+    hit = ray.intersection(poly.exterior)
+    pts = [(g.x, g.y) for g in getattr(hit, "geoms", [hit])
+           if g.geom_type == "Point"]
+    if not pts:
+        return rc
+    return max(math.dist(origin, q) for q in pts)
 
 
 def _pin_local(anchor: Footprint, sat) -> tuple[float, float] | None:
@@ -246,6 +269,72 @@ def auto_edge_rot(fp: Footprint, edge: str) -> float:
     return (round(theta / 90.0) * 90.0) % 360.0
 
 
+def _outer(poly, o) -> float:
+    """Farthest reach of `poly` along the unit axis vector `o`."""
+    minx, miny, maxx, maxy = poly.bounds
+    return max(_dot((x, y), o) for x, y in
+               [(minx, miny), (minx, maxy), (maxx, miny), (maxx, maxy)])
+
+
+def _on_board_frac(poly, o, s: float) -> float:
+    """Fraction of `poly` on the board side of an edge at s along `o`."""
+    big = 1e4
+    half = affinity.rotate(box(-big, -big, s, big), _ang(o), origin=(0, 0))
+    return poly.intersection(half).area / poly.area if poly.area else 1.0
+
+
+def edge_snap(model: PlaceModel, cluster: Cluster, slots, angle: float,
+              o, edge_margin: float) -> float:
+    """How far the edge line sits from the anchor courtyard center along the
+    outward axis `o`, in the cluster frame rotated to `angle`. May re-slot
+    satellites inboard (mutates `slots`).
+
+    The brief (docs/placement-benchmark.md): "snap an edge part by its
+    on-board body ... and leave satellites out of the outward extent"."""
+    anchor = model.footprints[cluster.anchor]
+    ac = anchor.center_local()
+
+    def rot(poly):
+        return affinity.rotate(affinity.translate(poly, -ac[0], -ac[1]),
+                               -angle, origin=(0, 0))
+
+    cy = rot(anchor.extents_local())
+    edge_s = _outer(cy, o)
+    pads = anchor.pad_shape_local()
+    if cluster.edge.get("ref") == cluster.anchor and pads is not None:
+        # a courtyard reaching past the pads by more than the margin is a
+        # designed overhang: pads edge_margin inside, the rest hangs off
+        edge_s = min(edge_s, _outer(rot(pads), o) + edge_margin)
+        floor = placelib.ON_BOARD_MIN + 0.05
+        if _on_board_frac(cy, o, edge_s) < floor:
+            lo, hi = edge_s, _outer(cy, o)
+            for _ in range(30):
+                mid = (lo + hi) / 2
+                lo, hi = (lo, mid) if _on_board_frac(cy, o, mid) >= floor \
+                    else (mid, hi)
+            edge_s = hi
+    sat_polys = {}
+    for ref, (slot, rel) in slots.items():
+        p = affinity.rotate(_centered(model.footprints[ref].extents_local()),
+                            -rel, origin=(0, 0))
+        sat_polys[ref] = rot(affinity.translate(p, slot[0], slot[1]))
+    for ref in sorted(sat_polys):
+        d = _outer(sat_polys[ref], o) - edge_s
+        if d <= 0:
+            continue
+        d += edge_margin
+        moved = affinity.translate(sat_polys[ref], -o[0] * d, -o[1] * d)
+        others = [cy] + [p for r, p in sat_polys.items() if r != ref]
+        if any(moved.intersection(p).area > placelib.EPS_AREA
+               for p in others):
+            continue  # cannot slide in: it sets the snap below
+        slot, rel = slots[ref]
+        vx, vy = _rot(-o[0] * d, -o[1] * d, angle)
+        slots[ref] = ((slot[0] + vx, slot[1] + vy), rel)
+        sat_polys[ref] = moved
+    return max([edge_s] + [_outer(p, o) for p in sat_polys.values()])
+
+
 def place_edge_clusters(model, clusters, slots_of, edge_margin, warnings):
     minx, miny, maxx, maxy = model.outline.bounds
     by_edge: dict[str, list[Cluster]] = {}
@@ -269,18 +358,16 @@ def place_edge_clusters(model, clusters, slots_of, edge_margin, warnings):
             rot = c.edge.get("rot")
             angle = float(rot) if rot is not None else auto_edge_rot(
                 target_fp, edge)
+            outer = edge_snap(model, c, slots_of[c.anchor], angle, o,
+                              edge_margin)
             rel_poly, _ac = cluster_rel_poly(model, c, slots_of[c.anchor])
             poly = affinity.rotate(rel_poly, -angle, origin=(0, 0))
             bminx, bminy, bmaxx, bmaxy = poly.bounds
-            outer = max(_dot((x, y), o) for x, y in
-                        [(bminx, bminy), (bminx, bmaxy),
-                         (bmaxx, bminy), (bmaxx, bmaxy)])
-            half_along = (bmaxy - bminy) / 2 if along[1] else \
-                (bmaxx - bminx) / 2
+            a_lo, a_hi = (bminy, bmaxy) if along[1] else (bminx, bmaxx)
             frac = c.edge.get("pos")
             frac = frac if frac is not None else (i + 0.5) / n
-            span_lo = lo + edge_margin + half_along
-            span_hi = hi - edge_margin - half_along
+            span_lo = lo + edge_margin - a_lo
+            span_hi = hi - edge_margin - a_hi
             at = span_lo + max(0.0, min(1.0, frac)) * max(0.0,
                                                           span_hi - span_lo)
             edge_pt = (exy, at) if along[1] else (at, exy)
