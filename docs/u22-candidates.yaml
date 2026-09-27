@@ -1,0 +1,1038 @@
+version: 1
+prepared: '2026-09-27'
+source: ~/dev/boards PCB-0010..0014 (bb-*), read only
+rulings: docs/u22-rulings.md
+note: Recommendations only. Nothing here is approved; every queue entry stays pending until the owner rules.
+records:
+- id: buck-cmode-inductor-window
+  board: PCB-0010-A_bb-buck
+  level: family
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: buck-cmode-internal-comp-cout-window
+  board: PCB-0010-A_bb-buck
+  level: family
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: buck-constraints-emission-layout-groups
+  board: PCB-0010-A_bb-buck
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: buck-dc-input-hot-plug-overshoot
+  board: PCB-0010-A_bb-buck
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: buck-ep-agnd-thermal-via-array
+  board: PCB-0010-A_bb-buck
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: buck-integrated-fet-bypass-trio
+  board: PCB-0010-A_bb-buck
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: buck-precision-en-fixed-softstart
+  board: PCB-0010-A_bb-buck
+  level: principle
+  maturity: verified
+  rec: fold
+  note: fold into library buck-en-softstart-sequencing (both principle; same rule)
+- id: buck-sync-hot-loop-cin-placement
+  board: PCB-0010-A_bb-buck
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: buck-two-layer-ground-shield-continuity
+  board: PCB-0010-A_bb-buck
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: mcu-analog-rail-tracks-digital-rail
+  board: PCB-0011-A_bb-mcu
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: mcu-boot-select-strap-stm32f0
+  board: PCB-0011-A_bb-mcu
+  level: family
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: mcu-decoupler-is-the-local-source
+  board: PCB-0011-A_bb-mcu
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: mcu-package-power-budget
+  board: PCB-0011-A_bb-mcu
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: mcu-reset-sampled-pin-audit
+  board: PCB-0011-A_bb-mcu
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: mcu-supply-pin-pair-decoupling
+  board: PCB-0011-A_bb-mcu
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: mcu-supply-return-continuity
+  board: PCB-0011-A_bb-mcu
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: mcu-swd-port-live-at-reset-stm32f0
+  board: PCB-0011-A_bb-mcu
+  level: family
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: swd-debug-port-edge-rate-sets-layout-demand
+  board: PCB-0011-A_bb-mcu
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: swd-debug-port-nrst-on-the-header
+  board: PCB-0011-A_bb-mcu
+  level: family
+  maturity: verified
+  rec: approve-with-edit
+  note: widen vio_v to 2.4-3.6 with the 500 ns clause (contradiction C2)
+- id: swd-debug-port-stm32f0-internal-pulls
+  board: PCB-0011-A_bb-mcu
+  level: family
+  maturity: verified
+  rec: approve
+  note: 'flagged: contradiction C2 (the band it keeps)'
+- id: swd-debug-port-termination-follows-silicon
+  board: PCB-0011-A_bb-mcu
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: swd-debug-port-unkeyed-header-pin-order
+  board: PCB-0011-A_bb-mcu
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: linear-regulator-1117-output-cap-esr-window
+  board: PCB-0012-A_bb-ldo
+  level: family
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: linear-regulator-copper-is-the-heatsink
+  board: PCB-0012-A_bb-ldo
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: linear-regulator-esr-zero-compensation
+  board: PCB-0012-A_bb-ldo
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: linear-regulator-fixed-variant-min-load
+  board: PCB-0012-A_bb-ldo
+  level: family
+  maturity: verified
+  rec: approve-with-edit
+  note: envelope variant_kind in [fixed] instead of iout_a max 0.8
+- id: linear-regulator-live-tab-thermal-vias
+  board: PCB-0012-A_bb-ldo
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: linear-regulator-tab-copper-area-theta-ja
+  board: PCB-0012-A_bb-ldo
+  level: family
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: in-aggressor-separation
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: draft
+  rec: second-read
+  note: ''
+- id: in-bias-current-return-path
+  board: PCB-0013-A_bb-amp
+  level: principle
+  maturity: draft
+  rec: merge
+  note: folded into staged principle design/u22-staged/records/in-bias-current-return-path.yaml; its INA333 pages need one
+    second read (Q3)
+- id: in-bias-return-failure-signature
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: verified
+  rec: approve-with-edit
+  note: level part (bound is the AD8226 Ib span)
+- id: in-bias-return-path-required
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: verified
+  rec: merge
+  note: folded into the staged principle; its Ib envelope is one part's spec span
+- id: in-bias-return-resistor-sizing-ad8226
+  board: PCB-0013-A_bb-amp
+  level: part
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: in-bias-return-sizing
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: draft
+  rec: second-read
+  note: ''
+- id: in-cable-shield-termination
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: verified
+  rec: approve
+  note: 'flagged: vcm_v bound is the witnessed regime; alt supply_kind single'
+- id: in-constraints-emission
+  board: PCB-0013-A_bb-amp
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: in-input-path-equivalence
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: in-leakage-symmetry-and-guarding
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: draft
+  rec: second-read
+  note: carries contradiction C1
+- id: in-path-symmetry-sets-cmrr
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: draft
+  rec: second-read
+  note: ''
+- id: in-terminal-selection
+  board: PCB-0013-A_bb-amp
+  level: family
+  maturity: verified
+  rec: approve-with-edit
+  note: level topology (no family key)
+- id: in-terminal-thermal-emf
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: inamp-cmrr-over-frequency-and-source-imbalance
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: inamp-gain-partition-first-stage
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: inamp-gain-pin-and-input-node-parasitics
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: draft
+  rec: second-read
+  note: only 2 sources; decline not_actionable if refuted
+- id: inamp-headroom-escape-gain-in-difference-amp
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: inamp-input-network-differential-cap-dominance
+  board: PCB-0013-A_bb-amp
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: inamp-internal-node-headroom-inequalities
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: inamp-internal-node-saturation
+  board: PCB-0013-A_bb-amp
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: inamp-ref-pin-drive-impedance
+  board: PCB-0013-A_bb-amp
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: inamp-supply-decoupling-and-local-ground
+  board: PCB-0013-A_bb-amp
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: precision-buffer-capacitive-load-isolation
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: precision-buffer-chopper-artifacts-into-sampler
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve-with-edit
+  note: add amp_kind in [zero-drift]
+- id: precision-buffer-pin-decoupling-and-input-routing
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve-with-edit
+  note: level principle, drop the vacuous board_layers envelope
+- id: precision-buffer-rail-to-rail-output-floor
+  board: PCB-0014-A_bb-adc
+  level: family
+  maturity: verified
+  rec: approve-with-edit
+  note: level topology (no family key)
+- id: precision-buffer-riso-settling-stability-collision
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: precision-buffer-sar-charge-bucket-interface
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: precision-buffer-settles-not-bandwidth
+  board: PCB-0014-A_bb-adc
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: precision-buffer-zero-drift-source-impedance-ceiling
+  board: PCB-0014-A_bb-adc
+  level: family
+  maturity: verified
+  rec: approve-with-edit
+  note: add amp_kind in [zero-drift]
+- id: precision-buffer-zero-drift-speed-vs-impedance-trade
+  board: PCB-0014-A_bb-adc
+  level: family
+  maturity: verified
+  rec: approve-with-edit
+  note: add amp_kind in [zero-drift]
+- id: resistive-attenuator-bottom-node-is-a-reference
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: resistive-attenuator-high-z-tap-guard-and-leakage
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: 'flagged: contradiction C1 (100k guard threshold)'
+- id: resistive-attenuator-loading-source-and-load
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: resistive-attenuator-ratio-from-relative-specs
+  board: PCB-0014-A_bb-adc
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: resistive-attenuator-self-heating-and-gradient
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: resistive-attenuator-tcr-tracking-not-absolute-tcr
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: 'flagged: spec-range envelope; owner may rule principle'
+- id: sar-adc-acquisition-charge-transfer
+  board: PCB-0014-A_bb-adc
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: sar-adc-analog-ground-and-remote-sense
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: sar-adc-constraints-emission
+  board: PCB-0014-A_bb-adc
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: sar-adc-conversion-window-noise-timing
+  board: PCB-0014-A_bb-adc
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: sar-adc-high-z-node-vs-digital-aggressors
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: sar-adc-input-settling-and-source-impedance
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: sar-adc-reference-bypass-and-recharge
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve-with-edit
+  note: 'add generalizes: [sar-adc-acquisition-charge-transfer]'
+- id: sar-adc-reference-charge-loop
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve-with-edit
+  note: 'add generalizes: [sar-adc-acquisition-charge-transfer]'
+- id: sar-adc-reference-sets-the-gain
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: sar-adc-supply-bypass-and-rail-isolation
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: series-voltage-reference-error-stack
+  board: PCB-0014-A_bb-adc
+  level: principle
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: series-voltage-reference-input-headroom-gate
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: series-voltage-reference-kelvin-and-ir-drop
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: series-voltage-reference-output-cap-window
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: series-voltage-reference-solder-shift-and-grade
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: envelope note stands as the approval note
+- id: series-voltage-reference-switched-cap-load
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve-with-edit
+  note: 'add generalizes: [sar-adc-acquisition-charge-transfer]'
+- id: series-voltage-reference-tempco-box-and-hysteresis
+  board: PCB-0014-A_bb-adc
+  level: topology
+  maturity: verified
+  rec: approve
+  note: 'flagged: spec-range envelope; owner may rule principle'
+queue:
+- entry: 2026-08-15-research-task-block-buck-1-9-verified
+  board: PCB-0010-A_bb-buck
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-15-an-already-retyped-pulled-library-can-still
+  board: PCB-0010-A_bb-buck
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/lib_pin_types.py (BOOT/BST pin class)
+  reason: 'one pin escapes the retype; sibling of adc #15'
+- entry: 2026-08-15-the-runner-s-injected-rshunt-1e9-is
+  board: PCB-0010-A_bb-buck
+  status: pending
+  rec: promote
+  ladder: L0 -> L1, scripts/sim_run.py (report rshunt injection at the measured node; overridable)
+  reason: root L983/L3978 mandate rshunt=1e9; this is its cost on high-Z nodes
+- entry: 2026-08-15-a-switcher-s-dc-setpoint-is-simmable
+  board: PCB-0010-A_bb-buck
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, agents/sim-analyst.md (Tier-B VCVS boundary model)
+  reason: not in root
+- entry: 2026-08-15-an-in-stock-lcsc-part-can-have
+  board: PCB-0010-A_bb-buck
+  status: pending
+  rec: promote
+  ladder: L0 -> L1, scripts/lib_pull.py (distinct "no CAD record" outcome)
+  reason: not in root
+- entry: 2026-08-16-planes-gen-s-default-thermal-relief-pad
+  board: PCB-0010-A_bb-buck
+  status: pending
+  rec: promote (K3 lead)
+  ladder: L0 -> L3, scripts/planes_gen.py (per-pad connect)
+  reason: see K3; corollary "island count is not connectivity" rides in the row
+- entry: 2026-08-16-read-pad-extents-from-geom-pads-of
+  board: PCB-0010-A_bb-buck
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/lib/geom.py (API note + lint on raw size reads)
+  reason: pad carries its own rotation
+- entry: 2026-08-16-a-tht-footprint-with-attr-through-hole
+  board: PCB-0010-A_bb-buck
+  status: pending
+  rec: promote
+  ladder: L2 -> L2, scripts/bom_cpl.py (THT rows need an explicit assembly-class decision)
+  reason: root L3255 is the classing base; this is its THT gap
+- entry: 2026-08-16-the-dfm-gate-reported-pass-with-its
+  board: PCB-0010-A_bb-buck
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: root L4083 (2026-08-09) is the same defect, triage row owns scripts/gate.py; the "read coverage.skipped_error on
+    every non-strict gate" line is that row's target
+- entry: 2026-08-16-research-task-block-swd-debug-port-1
+  board: PCB-0011-A_bb-mcu
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-research-task-block-mcu-1-8-verified
+  board: PCB-0011-A_bb-mcu
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-wj500v-5-08-2p-wire-entry-is
+  board: PCB-0011-A_bb-mcu
+  status: pending
+  rec: decline superseded after C4 is settled
+  ladder: '-'
+  reason: 'contradicts adc #23 on the same footprint (see C4); if the owner finds -Y is right, this row is promoted instead
+    and adc #23''s orientation claim is corrected'
+- entry: 2026-08-16-placement-edges-pins-the-connectors-to-the
+  board: PCB-0011-A_bb-mcu
+  status: pending
+  rec: promote (K4 lead)
+  ladder: L0 -> L3, reference/recipes/resize-board.md + agents/placement.md (order) + scripts/gate.py (place gate at canonical
+    grades edges against the FITTED outline)
+  reason: see K4; the recipe line is a 2-line edit if the owner prefers prompt_line now
+- entry: 2026-08-16-a-pulled-tht-footprint-was-under-drilled
+  board: PCB-0011-A_bb-mcu
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/fp_verify.py (drill vs stated pin, square-pin diagonal) + P3 roster extracts THT connector datasheets
+  reason: 'PIPELINE BUG; side finding for the owner: boards/bb-ldo/lib/aiee.pretty/CONN-TH_2P-P5.00_WJ500V-5.08-2P.kicad_mod
+    still carries the 1.30 mm drill (bb-adc/bb-mcu/buck-5v3a copies are 1.50)'
+- entry: 2026-08-16-fp-verify-never-compares-row-spacing-mm
+  board: PCB-0011-A_bb-mcu
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/fp_verify.py
+  reason: field exists in land_pattern, never compared
+- entry: 2026-08-16-being-on-the-fetch-allowlist-says-nothing
+  board: PCB-0011-A_bb-mcu
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: K5
+- entry: 2026-08-16-silk-place-skips-board-only-refs-by
+  board: PCB-0011-A_bb-mcu
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/silk_place.py (solve or explicitly skip-and-report board_only refs)
+  reason: a mounting hole's refdes ended up labelling the IC; root L3103 is attribution-blindness, different
+- entry: 2026-08-16-backticks-in-a-bash-tool-argument-are
+  board: PCB-0011-A_bb-mcu
+  status: pending
+  rec: promote
+  ladder: n/a (host/tool fact), sibling of root L4310
+  reason: a state.py decision lost a word to command substitution
+- entry: 2026-08-16-research-task-block-linear-regulator-1-6
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-a-pulled-symbol-s-reversed-pin-angles
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/lib_pull.py (normalise pin angles on pull)
+  reason: rotating the part is not the fix
+- entry: 2026-08-16-hang-a-rail-s-power-symbol-in
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/schlib.py
+  reason: '2.54 mm pitch: power symbol in its own cluster'
+- entry: 2026-08-16-a-pulled-2-pin-passive-names-its
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/lib_pull.py (hide pin names on 2-pin passives)
+  reason: names print on the body
+- entry: 2026-08-16-two-pins-of-one-part-are-two
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/netlist_audit.py (unnamed rail nets; same-part pins on distinct nets)
+  reason: ERC stayed 0/0
+- entry: 2026-08-17-planes-gen-would-have-via-stitched-the
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/planes_gen.py (honour constraints.thermal[].min_vias, incl. 0)
+  reason: live-tab short forbidden by verified linear-regulator-live-tab-thermal-vias; the two numbers never meet
+- entry: 2026-08-17-route-auto-s-krt-finish-connects-plane
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/route_auto.py (KRT finish never traces plane-net SMD pads)
+  reason: root L3586 is the hand-KRT rule; the automatic finish pass does the same
+- entry: 2026-08-17-out-report-into-a-missing-directory-crashes
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/route_critical.py (mkdir parents before the board write)
+  reason: trivial fix; crash lands after the board is written
+- entry: 2026-08-18-a-provisional-outline-binds-placement-just-as
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: K4
+- entry: 2026-08-18-silk-place-solves-against-the-outline-on
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: K4 (the lead already carries "re-run silk_place after the fit")
+- entry: 2026-08-18-stitch-vias-places-vias-inside-large-pads
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote (K2 lead)
+  ladder: L0 -> L2, scripts/stitch_vias.py
+  reason: see K2
+- entry: 2026-08-18-no-scripted-way-to-set-a-per
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: K3 (inverse case folded into the root row)
+- entry: 2026-08-18-check-current-charges-every-transition-via-the
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote (K7 lead)
+  ladder: L1 -> L1, scripts/check_current.py (split current across parallel vias)
+  reason: see K7; root L3798 (pour_neck) is a different leg
+- entry: 2026-08-18-at-block-only-thermal-is-the-whole
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0, agents/architect.md
+  reason: at block-only the datasheet copper table IS the spec; framing rule, prose is its level
+- entry: 2026-08-20-planes-gen-has-no-re-pour-path
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/planes_gen.py --repour or route_edit zone op
+  reason: roots L2586/L4526 are adjacent (no resize; outline does not follow); the duplicate-zone + no-delete path is new
+- entry: 2026-08-20-centring-both-edge-connectors-on-a-small
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L1, scripts/silk_place.py (report the binding obstacle)
+  reason: the obstacle was a neighbour's polarity marker
+- entry: 2026-08-20-freerouting-cannot-read-this-board-at-all
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote (K6 residual)
+  ladder: L1 -> L2, scripts/route_auto.py (abort ladder on DSN-read StackOverflow; --timeout-s 120 meanwhile)
+  reason: wedge itself landed (root L435/L3662)
+- entry: 2026-08-20-the-in-pad-defect-reproduces-on-new
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: K2
+- entry: 2026-08-20-via-redundancy-and-check-current-s-clustering
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: K7
+- entry: 2026-08-20-moving-the-edge-parts-in-fixes-the
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L1, scripts/check_thermal.py (report min short dimension = 2 x (reach + inset))
+  reason: 'K4-adjacent, distinct: ASPECT is derivable; 22-candidate study'
+- entry: 2026-08-20-silk-can-pass-check-silk-and-real
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/check_silk.py (visibility leg)
+  reason: passes check_silk + DRC while invisible
+- entry: 2026-08-20-freerouting-2-2-4-cannot-parse-this
+  board: PCB-0012-A_bb-ldo
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: K6
+- entry: 2026-08-16-research-task-interface-in-1-1-verified
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-research-task-block-inamp-1-6-verified
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-research-task-block-inamp-2-2-verified
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-research-task-interface-in-2-7-verified
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-meas-ac-rms-is-frequency-weighted-which
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, agents/sim-analyst.md bench recipe
+  reason: integrated noise without .noise; root L3939's ten traps do not include it
+- entry: 2026-08-16-pad-every-dc-ac-sweep-the-first
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/sim_run.py (pad sweeps by default)
+  reason: first point junk / at= on last point errors
+- entry: 2026-08-16-a-behavioural-op-amp-needs-its-anti
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, NEW reference/sim/opamp_behavioural.cir
+  reason: 'template owner shared with #5 and adc #17'
+- entry: 2026-08-16-a-series-isolation-resistor-only-isolates-when
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: 'verified precision-buffer-capacitive-load-isolation (R_O x C_LOAD, R_ISO) + -riso-settling-stability-collision,
+    envelope topology_kind: unity-follower'
+- entry: 2026-08-16-build-the-in-amp-from-its-own
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, NEW reference/sim/opamp_behavioural.cir (3-op-amp in-amp variant)
+  reason: REF-impedance defect becomes a gate failure
+- entry: 2026-08-16-a-datasheet-stability-curve-is-taken-at
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0, agents/datasheet-extractor.md (record the gain a curve is taken at)
+  reason: not covered by the records' unity-follower envelope wording
+- entry: 2026-08-17-outline-bbox-is-a-bbox-not-a
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/board_init.py (report outline_wh_mm)
+  reason: 'K4-adjacent, distinct: bbox read as size inverted the scarce axis'
+- entry: 2026-08-17-outline-fit-clips-to-the-current-outline
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/board_edit.py (warn when content exceeds the outline)
+  reason: 'K4-adjacent, distinct: content_bounds intersects with the current outline -> grow first'
+- entry: 2026-08-17-the-kf128-top-view-teeth-are-the
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: 'K1: confirms root L2902; the rotate 180 model note is folded into the K1 root row'
+- entry: 2026-08-17-a-connector-s-pole-order-against-the
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0, agents/schematic-block.md
+  reason: pole order vs IC pin order is a free P4 fix; measure both ways
+- entry: 2026-08-17-diff-pairs-conflates-route-these-symmetrically-with
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, reference/constraints_schema.md + scripts/rules_gen.py + scripts/check_diffpair.py (symmetry_only)
+  reason: PIPELINE BUG seen in four phases; the 1.37 mm class width ships silently
+- entry: 2026-08-17-a-late-pin-change-must-sweep-every
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/netlist_audit.py (artifacts that STATE pin order agree with the netlist)
+  reason: process rule with a checkable core
+- entry: 2026-08-17-kicad-draws-text-box-overflow-instead-of
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/schlib.py (size text boxes to content)
+  reason: no gate sees it
+- entry: 2026-08-20-envelope-authoring-not-citation-accuracy-is-where
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: L0, agents/research-second-reader.md (read the envelope's DIRECTION first)
+  reason: root L4280 is the principle ruling; "runs backwards" is a new failure signature
+- entry: 2026-08-20-a-blind-re-read-is-worth-running
+  board: PCB-0013-A_bb-amp
+  status: pending
+  rec: promote
+  ladder: n/a (process), agents/research-second-reader.md
+  reason: prices the repair; keep as prose
+- entry: 2026-08-16-a-blockquoted-brief-silently-disables-the-entire
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L2 -> L2, scripts/lib/modeslib.py
+  reason: 'PIPELINE BUG: detect skips > lines, lint goes silently blind; not in root'
+- entry: 2026-08-16-jlc-s-external-reference-attribute-lies-for
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, NEW reference/part_errata.yaml
+  reason: MCP3202 VDD=VREF one pin; catalog attribute wrong; triage already names the errata file as owner x2
+- entry: 2026-08-16-a-12-bit-part-s-5-lsb
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L0, agents/part-sourcer.md
+  reason: rank converters by error in VOLTS at the target resolution; knowledge_record candidate later (principle)
+- entry: 2026-08-16-one-lcsc-search-term-returns-six-clone
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L1, scripts/parts_search.py
+  reason: manufacturer column + clone warning; not in root
+- entry: 2026-08-16-source-impedance-and-divider-total-resistance-are
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: rule lives in verified resistive-attenuator-loading-source-and-load + sar-adc-input-settling-and-source-impedance
+    (Q4); a root row would be a second home
+- entry: 2026-08-16-a-reference-family-s-dropout-is-per
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: verified series-voltage-reference-input-headroom-gate states specified_per_member and the inverse-to-Vout split
+- entry: 2026-08-16-analog-com-and-mouser-com-time-out
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote (K5 lead)
+  ladder: L0 -> L1, scripts/research.py
+  reason: see K5; since the packet, root LEARNINGS 2026-08-27 records st.com and mouser.com as dark, so the new part is analog.com,
+    the farnell mirror and the reachability probe
+- entry: 2026-08-16-research-task-block-resistive-attenuator-1-6
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-the-session-scratchpad-is-shared-across-concurrently
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/state.py (per-agent scratch subdir)
+  reason: parallel agents collide on filenames; not in root
+- entry: 2026-08-16-a-second-reader-s-non-binding-blemish
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote prompt_line
+  ladder: L0, agents/research-second-reader.md
+  reason: 'one line: a non-binding note is never applied; flag-without-refute has a cost'
+- entry: 2026-08-16-research-task-block-series-voltage-reference-1
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-research-task-block-sar-adc-1-10
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-research-task-block-precision-buffer-1-9
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote knowledge_record
+  ladder: ''
+  reason: resolves with the promoted records
+- entry: 2026-08-16-lcsc-s-own-datasheet-url-can-resolve
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L1, scripts/parts_search.py
+  reason: filter the "temporarily unavailable" stub pattern
+- entry: 2026-08-17-place-ic-with-decoupling-s-default-caps
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/schlib.py
+  reason: derive caps_dx from symbol width; error message misattributes
+- entry: 2026-08-17-kicad-10-0-3-erc-is-indifferent
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/netlist_audit.py
+  reason: audit NC-typed pins that carry a net, ERC will not (root L657 is the export sibling, not this)
+- entry: 2026-08-17-schlib-guards-labels-landing-on-wires-a
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L2 -> L3, scripts/schlib.py
+  reason: extend the guard to hand-drawn wires (mirror check)
+- entry: 2026-08-18-supersedes-the-2026-08-17-sense-run
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/netlist_audit.py
+  reason: a sense line is its OWN net + single-point tie PART once a pour exists; electrical parent = series-voltage-reference-kelvin-and-ir-drop
+- entry: 2026-08-18-a-freshly-pulled-symbol-comes-back-with
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/lib_pull.py + scripts/lib_pin_types.py
+  reason: 'retype on pull, per symbol, never clobber hand edits; sibling of buck #1 (same owner, different defect)'
+- entry: 2026-08-19-meas-param-rejects-braces-and-the-measure
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/sim_run.py
+  reason: count .meas vs results, fail on a vanished measure; root L2706/L3947 cover param= forms, not this
+- entry: 2026-08-19-mixing-clamped-and-unclamped-output-stages-in
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, NEW reference/sim/opamp_behavioural.cir
+  reason: 'same owner as amp #3/#5 (one behavioural op-amp template)'
+- entry: 2026-08-18-seeding-a-rejected-part-as-the-deliberate
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0, agents/sim-analyst.md
+  reason: bench-design heuristic; prose is its level
+- entry: 2026-08-19-stitch-vias-hole-to-hole-model-is
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, scripts/stitch_vias.py
+  reason: floor = rule + drill_a/2 + drill_b/2 centre-to-centre; already_stitched 0.2 mm test; root L2954 is THT-drill blindness,
+    a different defect
+- entry: 2026-08-19-a-driven-guard-ring-is-a-planes
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L2, NEW scripts/check_guard.py (closure is provable)
+  reason: 'separate from K3 (uses connect: solid but the fact is the closure proof)'
+- entry: 2026-08-19-verify-fill-is-broken-by-a-missing
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0 -> L3, scripts/lib/geom.py _refill_copy copies the .kicad_dru
+  reason: ROOT CAUSE of root L2967 (which blamed a custom DRU); mis-measures every ai-ee board; owner may retire L2967's reading
+    in its triage note
+- entry: 2026-08-19-an-unavoidable-layer-change-crossing-stops-being
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L2 -> L2, scripts/check_return_path.py
+  reason: 'false positive: exempt crossings inside the transition via''s excision disk'
+- entry: 2026-08-19-conn-th-2p-p5-00-wj500v-5
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote (K1 lead)
+  ladder: L0 -> L2, scripts/fp_verify.py (mating-face asymmetry check) + NEW reference/part_errata.yaml
+  reason: see K1 and C4 - the orientation CLAIM (+Y) is contested; promote the METHOD, hold the number; place_edit silk_clear
+    (2026-08-27) now removes footprint-instance silk, so only the mirror op remains a gap
+- entry: 2026-08-19-guard-ring-leakage-is-set-by-what
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: promote
+  ladder: L0, agents/router.md
+  reason: leakage = what is INSIDE the ring; re-route the guarded net before moving the offender
+- entry: 2026-08-19-a-footprint-can-contradict-itself-and-then
+  board: PCB-0014-A_bb-adc
+  status: pending
+  rec: decline duplicate
+  ladder: '-'
+  reason: 'K1: same event as #23, folded'
