@@ -13,16 +13,12 @@ quiet box: on 2026-09-27 the load average stayed near 140 on 6 cores, `place_ann
 got about 4% of a CPU per process, and three boards were still annealing after
 20 minutes (the same step took 50 s on bb-ldo earlier in the hour).
 
-What the run did find is a router failure, not a placement one. On bb-ldo, Freerouting's
-first rung died with `java.lang.StackOverflowError` in `PolylineTrace.combine`, then sat
-until the 600 s rung timeout, and route_auto gave up with "Freerouting produced nothing
-usable". A board that hits this scores 0% whatever the placement.
-A rerun with a 64 MB thread stack (`-Xss64m`) crashed the same way, so it looks like
-unbounded recursion on this geometry rather than a small default stack. Only `rung1.log`
-exists in both runs, so the ladder never tried rungs 2 and 3 after the crash. Two things
-follow for the next run: find out why route_auto stops the ladder on a crashed rung, and
-check bb-ldo's annealed placement for the geometry that sends `PolylineTrace.combine`
-into recursion.
+A first attempt earlier the same hour is void. Its copper-strip step crashed before it
+saved, so every board kept its old routed copper. On bb-ldo that left nine KRT GND stubs,
+which sent Freerouting's DSN reader into the known `PolylineTrace.combine` recursion
+(`LEARNINGS.md`, 2026-07-23), and route_auto correctly skipped the other rungs of a wedged
+DSN. That was the benchmark's fault, not the placer's or the router's. The rerun checks
+that no track or via is left before it places anything.
 
 ## Results
 
