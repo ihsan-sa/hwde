@@ -848,6 +848,38 @@ def test_board_init_small_board_gets_no_default_holes(cli, usbbuck4_net,
     assert json.loads(rep.read_text("utf-8"))["mounting_holes"] == 2
 
 
+def test_board_init_fixed_outline_too_tight_gets_no_default_holes(cli,
+                                                                  tmp_path):
+    """A fixed outline is not widened for the holes, so "auto" adds none when
+    the parts sit closer to an edge than a corner hole needs (a hole there
+    would overlap a corner part's courtyard and fail the self-check)."""
+    net = REPO / "tests" / "s7_regen" / "blinky2" / "kicad" / "blinky2.net"
+    rep = tmp_path / "report.json"
+    # auto outline with holes off = parts bbox + the 5 mm margin each side
+    assert board_init.main([
+        "--netlist", str(net), "--name", "blinky2",
+        "--out", str(tmp_path / "k0"), "--layers", "2",
+        "--mounting-holes", "0", "--out-report", str(rep)]) == 0
+    x1, y1, x2, y2 = json.loads(rep.read_text("utf-8"))["outline_bbox"]
+    w, h = round(x2 - x1, 2), round(y2 - y1, 2)
+    assert min(w, h) >= 30, (w, h)     # big enough that size is not why
+    assert board_init.main([
+        "--netlist", str(net), "--name", "blinky2",
+        "--out", str(tmp_path / "k1"), "--layers", "2",
+        "--outline", f"{w}x{h}", "--out-report", str(rep)]) == 0
+    r = json.loads(rep.read_text("utf-8"))
+    assert r["status"] == "pass" and r["mounting_holes"] == 0, r
+    assert any("the fixed outline leaves" in n for n in r["worker_notes"])
+
+    # the kept case: the same parts in a roomier fixed outline get holes
+    assert board_init.main([
+        "--netlist", str(net), "--name", "blinky2",
+        "--out", str(tmp_path / "k2"), "--layers", "2",
+        "--outline", f"{w + 10}x{h + 10}", "--out-report", str(rep)]) == 0
+    r = json.loads(rep.read_text("utf-8"))
+    assert r["status"] == "pass" and r["mounting_holes"] == 4, r
+
+
 @pytest.mark.smoke
 def test_board_init_lcsc_fields_and_inplace_schematic(cli, usbbuck4_net, tmp_path):
     """S14 regressions: (a) symbols with custom LCSC fields must init to a

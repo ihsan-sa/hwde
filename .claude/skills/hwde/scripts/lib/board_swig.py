@@ -33,7 +33,9 @@ headless (LEARNINGS [swig]).
                  none. A hole with plated copper (the *_Pad_Via default) sits
                  at least its copper radius + cu_edge in from each edge, the
                  auto outline widens its border so corner parts clear the
-                 hole's courtyard, and its pads join the ground net
+                 hole's courtyard (a fixed outline is not widened, so there
+                 "auto" gives none unless the parts already sit that border
+                 in from every edge), and its pads join the ground net
                  (GND_NET_RE) so the ring is stitched, not floating.
 
 verb "set_outline" (board_edit, U17): REPLACES the Edge.Cuts graphics of an
@@ -434,6 +436,15 @@ def build(job: dict) -> dict:
         notes.append(f"mounting holes auto: {mh_count} (shorter side "
                      f"{round(short_side, 1)} mm, 4 from "
                      f"{AUTO_HOLES_MIN_SIDE} mm)")
+        # A fixed outline is not widened for the holes, so "auto" only adds
+        # them where the parts already sit `border` in from every edge;
+        # otherwise a corner hole would land on a corner part's courtyard.
+        gap = min(cx1 - ex1, cy1 - ey1, ex2 - cx2, ey2 - cy2)
+        if mh_count and ol.get("mode") == "fixed" and gap < border:
+            mh_count = 0
+            notes.append(f"mounting holes auto: 0 - the fixed outline leaves "
+                         f"{round(gap, 2)} mm between the parts and an edge, "
+                         f"and a corner hole needs {round(border, 2)} mm")
     mh_count = int(mh_count)
     # A corner radius larger than the mounting-hole inset would leave the hole
     # inside the rounded-away quadrant. Shrink the radius rather than move the
