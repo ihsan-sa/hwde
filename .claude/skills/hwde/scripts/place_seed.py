@@ -14,7 +14,9 @@ arrangement:
    points at the pin), deterministically nudged around the perimeter until
    collision-free.
 3. placement.edges pins connector clusters to board edges: distributed along
-   the declared edge (or at an explicit pos fraction), rotated so the body
+   the declared edge, or with an explicit pos the part's ORIGIN sits at that
+   fraction of the edge's length (clamped so the cluster's copper clears the
+   edge's ends, Footprint.edge_keep), rotated so the body
    overhang points off-board (explicit rot wins; symmetric parts keep their
    angle). The edge part's courtyard sits flush with the edge unless it
    reaches past the part's pad field: then the pads sit edge_margin inside
@@ -27,7 +29,11 @@ arrangement:
 4. Remaining clusters: connectivity-weighted deterministic spring embedding
    (GND 0.2 / power 0.5 / signal 1.0; no RNG - fixed circle init + fixed
    iteration count), then greedy grid legalization (largest first, spiral
-   search) against courtyard overlap, board interior, and keepouts.
+   search) against courtyard overlap, board interior, and keepouts. The
+   interior is the outline edge_margin in, except for a cluster of
+   mechanical parts only (mounting holes, Footprint.is_mechanical): it is
+   held just far enough in for its pad copper to clear the board's
+   copper-to-edge rule, and its search starts from the nearest board corner.
 
 Emits an ABSOLUTE op list for place_edit.py; --apply applies it and re-checks
 legality on the saved file. constraints.json["placement"] shape (all keys
@@ -63,7 +69,7 @@ import sys
 from pathlib import Path
 
 from shapely import affinity
-from shapely.geometry import LineString, box
+from shapely.geometry import LineString, Point, box
 from shapely.ops import unary_union
 
 SCRIPTS = Path(__file__).resolve().parent
@@ -154,9 +160,13 @@ def layout_satellites(model: PlaceModel, cluster: Cluster,
         chosen = None
         for off in NUDGE_ANGLES:
             d = _unit(_rot(base_dir[0], base_dir[1], off))
+            # a perimeter slot starts where the satellite's own side facing
+            # the anchor meets the courtyard: its circumradius left rf-term's
+            # 11 mm trimmer C1 1.6 mm off J1 and J1 short of its pos
+            reach = r_sat if pin is not None else _support(poly0, toward)
             for push in range(14):
-                cand = (pivot[0] + d[0] * (r_sat + SAT_GAP + push * 0.4),
-                        pivot[1] + d[1] * (r_sat + SAT_GAP + push * 0.4))
+                cand = (pivot[0] + d[0] * (reach + SAT_GAP + push * 0.4),
+                        pivot[1] + d[1] * (reach + SAT_GAP + push * 0.4))
                 poly = affinity.translate(poly0, cand[0], cand[1])
                 if all(poly.intersection(p).area <= placelib.EPS_AREA
                        for p in placed):
@@ -173,6 +183,11 @@ def layout_satellites(model: PlaceModel, cluster: Cluster,
         slots[sat.ref] = (chosen[0], rel)
         placed.append(chosen[1])
     return slots
+
+
+def _support(poly, d) -> float:
+    """How far `poly` (about its own center) reaches along unit `d`."""
+    return max(_dot(q, d) for q in poly.exterior.coords)
 
 
 def _ray_exit(poly, origin, d, rc: float) -> float:
@@ -299,7 +314,10 @@ def edge_snap(model: PlaceModel, cluster: Cluster, slots, angle: float,
                                -angle, origin=(0, 0))
 
     cy = rot(anchor.extents_local())
-    edge_s = _outer(cy, o)
+    # courtyard-flush, less the step that lets its pad copper clear the
+    # board's copper-to-edge rule (rf-term's R1: pads 0.25 mm off the edge
+    # against 0.3 mm)
+    edge_s = _outer(cy, o) + anchor.edge_keep(placelib.copper_edge_mm(model))
     pads = anchor.pad_shape_local()
     if cluster.edge.get("ref") == cluster.anchor and pads is not None:
         # a courtyard reaching past the pads by more than the margin is a
@@ -337,6 +355,7 @@ def edge_snap(model: PlaceModel, cluster: Cluster, slots, angle: float,
 
 def place_edge_clusters(model, clusters, slots_of, edge_margin, warnings):
     minx, miny, maxx, maxy = model.outline.bounds
+    cu_edge = placelib.copper_edge_mm(model)
     by_edge: dict[str, list[Cluster]] = {}
     for c in clusters:
         if c.edge:
@@ -365,11 +384,26 @@ def place_edge_clusters(model, clusters, slots_of, edge_margin, warnings):
             bminx, bminy, bmaxx, bmaxy = poly.bounds
             a_lo, a_hi = (bminy, bmaxy) if along[1] else (bminx, bmaxx)
             frac = c.edge.get("pos")
-            frac = frac if frac is not None else (i + 0.5) / n
             span_lo = lo + edge_margin - a_lo
             span_hi = hi - edge_margin - a_hi
-            at = span_lo + max(0.0, min(1.0, frac)) * max(0.0,
-                                                          span_hi - span_lo)
+            if frac is None:
+                at = span_lo + (i + 0.5) / n * max(0.0, span_hi - span_lo)
+            else:
+                # schema: "pos 0..1 along the edge" - the fraction of the
+                # edge where the anchor's ORIGIN sits (rf-term: "pos 0.375 =
+                # x 9.0 mm on the 24 mm width"), clamped so the cluster's
+                # copper clears the edge's ends (edge_keep), as a designer
+                # pinning a part near a corner places it
+                keep = max(model.footprints[r].edge_keep(cu_edge)
+                           for r in c.refs)
+                span_lo = lo + keep - a_lo
+                span_hi = hi - keep - a_hi
+                ac = model.footprints[c.anchor].center_local()
+                org = affinity.rotate(Point(-ac[0], -ac[1]), -angle,
+                                      origin=(0, 0))
+                off = org.y if along[1] else org.x
+                at = lo + max(0.0, min(1.0, frac)) * (hi - lo) - off
+                at = min(max(at, span_lo), max(span_lo, span_hi))
             edge_pt = (exy, at) if along[1] else (at, exy)
             center = (edge_pt[0] - o[0] * outer, edge_pt[1] - o[1] * outer)
             if c.anchor != ref:
@@ -473,8 +507,13 @@ def spring_positions(free: list[str], pinned: dict[str, tuple], w,
 
 
 def legalize(model, free_clusters, slots_of, desired, obstacles, interior,
-             forbidden, grid, warnings):
-    """Largest-first greedy snap to the nearest legal grid position."""
+             forbidden, grid, warnings, cu_edge):
+    """Largest-first greedy snap to the nearest legal grid position.
+
+    A cluster of mechanical parts only (mounting holes) is held
+    edge_keep(cu_edge) inside the outline instead of `interior`: a hole
+    kisses the edge by design, and edge_margin's 0.8 mm per side is what
+    left no room for rf-term's third M3 hole."""
     order = sorted(free_clusters,
                    key=lambda c: (-cluster_rel_poly(model, c,
                                                     slots_of[c.anchor])[0].area,
@@ -488,6 +527,11 @@ def legalize(model, free_clusters, slots_of, desired, obstacles, interior,
         angle = model.footprints[c.anchor].angle
         poly0 = affinity.rotate(rel, -angle, origin=(0, 0))
         want = desired[c.anchor]
+        fps = [model.footprints[r] for r in c.refs]
+        region = interior
+        if all(f.is_mechanical for f in fps):
+            region = model.outline.buffer(
+                -max(f.edge_keep(cu_edge) for f in fps), join_style=2)
         spot = None
         for r in range(max_r):
             ring = []
@@ -501,7 +545,7 @@ def legalize(model, free_clusters, slots_of, desired, obstacles, interior,
                     (p[0] - want[0]) ** 2 + (p[1] - want[1]) ** 2,
                     p[1], p[0])):
                 poly = affinity.translate(poly0, cand[0], cand[1])
-                if poly.difference(interior).area > placelib.EPS_AREA:
+                if poly.difference(region).area > placelib.EPS_AREA:
                     continue
                 if any(poly.intersection(f).area > placelib.EPS_AREA
                        for f in forbidden):
@@ -564,9 +608,18 @@ def seed(pcb: Path, constraints: dict, decoupling: dict,
               for c in edge_clusters}
     desired = spring_positions([c.anchor for c in free_clusters], pinned, w,
                                interior.bounds)
+    # a mounting hole goes to a corner: legalize searches out from the board
+    # corner nearest its spring position, not from mid-board, where one hole
+    # can take the room two would share (rf-term: 3 M3 holes, 26 x 20 mm)
+    ix0, iy0, ix1, iy1 = interior.bounds
+    corners = [(ix0, iy0), (ix1, iy0), (ix0, iy1), (ix1, iy1)]
+    for c in free_clusters:
+        if all(model.footprints[r].is_mechanical for r in c.refs):
+            want = desired[c.anchor]
+            desired[c.anchor] = min(corners, key=lambda k: math.dist(k, want))
     unplaced = legalize(model, free_clusters, slots_of, desired,
                         fixed_polys + edge_polys, interior, forbidden, grid,
-                        warnings)
+                        warnings, placelib.copper_edge_mm(model))
 
     ops = []
     for c in clusters:

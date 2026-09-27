@@ -23,6 +23,7 @@ Everything is mm / mm^2; angles are file-convention degrees.
 """
 from __future__ import annotations
 
+import json
 import math
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -217,6 +218,28 @@ class Footprint:
     @property
     def is_movable(self) -> bool:
         return not (self.locked or "board_only" in self.attrs)
+
+    @property
+    def is_mechanical(self) -> bool:
+        """Not assembled: excluded from both the BOM and the pos files (a
+        mounting hole). It has no fanout to route, so the seed lets it sit
+        as close to the edge as its copper allows (edge_keep), not
+        edge_margin in."""
+        return {"exclude_from_bom", "exclude_from_pos_files"} <= self.attrs
+
+    def edge_keep(self, cu_edge: float) -> float:
+        """How far (mm) the effective courtyard must stay inside the outline
+        so every pad's copper clears `cu_edge`, the board's copper-to-edge
+        rule. An M3 hole's 5.0 mm pad in a 5.5 mm courtyard needs 0.05 mm
+        against a 0.3 mm rule; a courtyard kissing the edge would leave the
+        pad 0.25 mm off it, a copper_edge_clearance DRC error."""
+        pb = self._pad_box_local()
+        if pb is None:
+            return 0.0
+        px0, py0, px1, py1 = pb.buffer(-0.25, join_style=2).bounds
+        ex0, ey0, ex1, ey1 = self.extents_local().bounds
+        gap = min(px0 - ex0, py0 - ey0, ex1 - px1, ey1 - py1)
+        return max(0.0, cu_edge - gap)
 
 
 class PlaceModel:
@@ -502,6 +525,23 @@ EDGE_TOL = 2.5  # mm
 # board edge) keeps only 35% of its courtyard on-board by design.
 ON_BOARD_MIN = 0.25
 
+
+# KiCad's own default for min_copper_edge_clearance, used when the board's
+# .kicad_pro does not set one.
+COPPER_EDGE_DEFAULT = 0.5  # mm
+
+
+def copper_edge_mm(model: PlaceModel) -> float:
+    """The board's copper-to-edge rule: .kicad_pro
+    board.design_settings.rules.min_copper_edge_clearance beside the pcb."""
+    try:
+        pro = json.loads(model.path.with_suffix(".kicad_pro").read_text(
+            encoding="utf-8"))
+        v = pro["board"]["design_settings"]["rules"][
+            "min_copper_edge_clearance"]
+        return float(v)
+    except (OSError, ValueError, KeyError, TypeError):
+        return COPPER_EDGE_DEFAULT
 
 def edge_line(outline: Polygon, edge: str) -> LineString:
     minx, miny, maxx, maxy = outline.bounds
