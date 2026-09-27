@@ -5545,3 +5545,39 @@ might teach.
 **New verify-later items:** V22 - the screen's first live P3 (U10) and the
 first live backward spawn; both are test-pinned only.
 
+
+## Backlog 5 - check_ratings: pin ratings against their nets (2026-09-27) - DONE
+
+docs/competitive-research.md item 5, run as track ratings-check.
+
+**Built:** `scripts/check_ratings.py` (pure Python: .kicad_pcb pad nets + the
+parts dir). Rail volts per net, first source wins: constraints `voltages`,
+the power_tree.md rail table, a fixed-output regulator's OUT pin (MPN
+voltage), the net name; unknown signal nets take a pull-up rail (not a
+divider). Pin ratings: extraction `pin_ratings` (new optional schema field)
+first, else the free-text `abs_max` rows parsed (named pins > FT > class >
+"any other pin"; pair ratings like VGS / BST-SW against the ref pin's net;
+"VDD+0.3" resolved from the part's own supply net). Kinds:
+rating_over_voltage / rating_reverse_polarity (error; warning when the volts
+came through a pull-up), rating_outside_recommended, rating_over_current
+(power_out pins vs `power[].current_a`), rating_unrated (warning, one per
+part; bare two-terminal parts grouped). Wired into verify_all (needs the
+parts dir, derived as <ws>/parts; `--parts`), gates.yaml verify text,
+FIXER_HINTS, three remediations.
+
+**Accept:** tests/test_check_ratings.py (34, no KiCad): the overvolt fixture
+(PCB-0001 with U1 PA0 on +5V) gives exactly one error at 4.0 V; the blinky
+fixture (PCB-0001, P10) gives none. Swept all 16 boards in ~/dev/boards: no
+error on any; two warnings worth a look - pd-trigger CH224K VBUS pin at 20 V
+through a series R (13.5 V max; likely the datasheet's clamp use) and
+sbuck-5v3a AP64350 SW at 3.6 A of copper sizing vs 3.5 A rated.
+
+**Deviations:** the brief said U9 extended the extraction with per-pin
+ratings; it had not (U9 added layout fields only), so the rows are parsed
+from abs_max free text and `pin_ratings` is the structured escape hatch.
+Golden boards have no parts dir, so verify_all --strict on them now also
+lists check_ratings as skipped_error (test_gate_strict updated).
+
+**Verify-later:** the free-text parser is tuned on 16 boards' extractions;
+a new extraction style can mis-rate a pin - the remediations say to fix the
+row or add `pin_ratings`, never to waive blind.

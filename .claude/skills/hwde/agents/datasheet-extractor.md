@@ -54,8 +54,13 @@ venv python; JSON out, exit 0/1/2. Keep output ASCII.
   is a gap the P3 screen reports, never a number you guess.
 - Layout notes: transcribe the vendor's layout section as terse bullets
   (loop areas, Kelvin connections, keepouts, plane advice).
-- abs_max: supply, IO, temperature - the schematic reviewer checks against
-  these.
+- abs_max: supply, IO, temperature - the schematic reviewer and
+  check_ratings check every pin against these. Keep electrical
+  characteristics (VOL, hysteresis, thresholds) out of abs_max. Name the
+  pins a row covers as the pinout names them; where a row cannot (a pin
+  class the free text does not say, a pin pair), add `pin_ratings`
+  entries: {pins, kind voltage|current, level abs_max|recommended,
+  min/max (a number or "VDD+0.3"), ref (pair pin), source page}.
 
 ## Output contract (end your final message with exactly this block)
 FILES: parts/<lcsc>.json

@@ -99,7 +99,9 @@ gates:
     max_count: 0
     description: >-
       P8 verification suite (verify_all.py): return path, current, decoupling,
-      diff pairs, creepage, thermal, silk, PDN. Fails on any error-severity
+      diff pairs, creepage, thermal, silk, PDN, pin ratings (check_ratings:
+      every pin's datasheet rating against its net's voltage; needs the
+      workspace parts dir, so it can run from P4 on). Fails on any error-severity
       finding; warnings are surfaced for human review, not auto-failed.
       Human-approved residuals can be waived via the verify-waivers.json
       sidecar (gate.py --waivers; every entry needs reason + approved) so a
@@ -133,7 +135,7 @@ gates:
     max_count: 0
     description: >-
       Strict release verification (verify_all --strict): every applicable
-      check must run; a missing constraints/decoupling input or an errored
+      check must run; a missing constraints/decoupling/parts input or an errored
       check is a coverage failure (exit 2). Checks may only be excused via
       constraints.json verification.not_applicable entries carrying reason +
       approved, or per-violation waivers (reason + approved) in

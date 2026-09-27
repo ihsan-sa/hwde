@@ -7,7 +7,9 @@ reads this summary; cluster_violations.py groups its violations for fixers.
 
 Default (exploratory) mode: a check is SKIPPED (not failed) when an input it
 requires is absent - e.g. no constraints.json means the constraint-driven
-checks do not run. check_silk and check_diffpair need only the board.
+checks do not run. check_silk and check_diffpair need only the board;
+check_ratings needs the workspace parts dir (--parts, default <ws>/parts
+beside the board's kicad/ dir).
 
 --strict (U2, codex C7 - release contexts): every APPLICABLE check must run;
 a missing input is a `skipped_error` coverage failure and the summary status
@@ -43,7 +45,8 @@ Exit: 0 all pass, 1 any violations, 2 any check errored (could not verify),
 a strict coverage failure, or a bad invocation.
 
 CLI: --pcb board.kicad_pcb [--constraints c.json] [--decoupling d.json]
-     [--reports-dir DIR] [--out summary.json] [--jobs N] [--strict]
+     [--parts DIR] [--reports-dir DIR] [--out summary.json] [--jobs N]
+     [--strict]
 """
 from __future__ import annotations
 
@@ -81,6 +84,9 @@ CHECKS = [
     {"name": "check_pdn", "needs": ["constraints", "decoupling"],
      "args": lambda a: ["--constraints", a["constraints"],
                         "--decoupling", a["decoupling"]]},
+    {"name": "check_ratings", "needs": ["parts"],
+     "args": lambda a: ["--parts", a["parts"]] + (
+         ["--constraints", a["constraints"]] if a.get("constraints") else [])},
 ]
 
 
@@ -257,6 +263,8 @@ def run(argv=None):
     ap.add_argument("--pcb", required=True, help="path to .kicad_pcb")
     ap.add_argument("--constraints", help="constraints.json")
     ap.add_argument("--decoupling", help="decoupling.json")
+    ap.add_argument("--parts", help="P3 parts dir: parts.json + per-part "
+                    "extractions (default <ws>/parts when it exists)")
     ap.add_argument("--reports-dir", help="dir for per-check + summary JSON "
                     "(default: <pcb dir>/reports/checks)")
     ap.add_argument("--out", help="write the summary here (also to reports dir)")
@@ -274,8 +282,11 @@ def run(argv=None):
     reports_dir = Path(args.reports_dir) if args.reports_dir else \
         pcb.parent / "reports" / "checks"
     reports_dir.mkdir(parents=True, exist_ok=True)
+    parts = Path(args.parts) if args.parts else \
+        pcb.resolve().parent.parent / "parts"
     inputs = {"pcb": str(pcb), "constraints": args.constraints,
-              "decoupling": args.decoupling}
+              "decoupling": args.decoupling,
+              "parts": str(parts) if parts.is_dir() else None}
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.jobs)) \
             as ex:

@@ -59,7 +59,8 @@ Consumers per key (script -> phase):
   // > 30 V apart. rules_gen emits named aiee_hv_* clearance DRU rules from
   // these (never hand-author HV rules); check_creepage audits the routed
   // copper. T2: reports EVERY violating item pair (not just the worst per
-  // net pair); violation pos = the actual gap midpoint.
+  // net pair); violation pos = the actual gap midpoint. check_ratings reads
+  // these as each rail's worst case, ahead of the power tree and net names.
   "voltages": [{"net": "HV_BUS", "voltage": 48}],
   // voltage_pairs (T2): explicit net-PAIR differential that node voltages
   // cannot express (bridge/AC inputs - two 57 V taps carry 114 V between
