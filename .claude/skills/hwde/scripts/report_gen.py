@@ -2,7 +2,7 @@
 """report_gen.py - assemble a board's design document (LaTeX -> PDF) from its run workspace.
 
 Reads state.json (read-only) plus the run's markdown/JSON/render artifacts and
-writes reports/design_doc/<board>-design-doc.tex, then compiles it to PDF with
+writes reports/design_doc/<board>-design-doc.tex (other --kind: below), then compiles it to PDF with
 pdflatex (two passes, staged in a system temp dir so no .aux/.log/.toc litter
 ever lands in the git-tracked workspace). Sections are conditional on the run's
 phase: not-yet-due sections render a one-line "Pending" stub; due-but-absent
@@ -39,6 +39,26 @@ cc-docs' first output line (the number and path) when this run filed, else
 null; `unchanged` is true when a matching stamp skipped the filing. The workspace may be named by its directory, the board's old name or
 its part number (lib/boardreg.py resolves the last two).
 
+--kind picks the document (KINDS): `design` (the default, everything above),
+`highlight` (a few pages: the brief's opening, the board's facts, top and
+bottom renders, the BOM and the schematic's first page, the decisions that
+changed the board, how often the run went back, gates and cost) or `full`
+(the design doc plus a render of every routing/pre-* and post-* snapshot,
+every state.json decision with its why, the run's history - phase timeline,
+backtracks, part choices and the kicad/parts.json changes git shows, commits
+by hour, COMPARISON.md and the placement and routing notes - and a figure of
+how the run went, drawn by the diagram-maker skill from reports/design_full/
+flow.json; lib/dochistory.py reads all of it). Each kind writes its own
+reports/<design_doc|highlight|design_full>/ and files as its own document
+("<board> design doc", "... highlight doc", "... full design doc").
+--render-history renders the snapshots first (render.py, top view; a PNG
+newer than its board is kept); without it only PNGs already there are shown
+and a warning says so. --history-ref names the git ref whose log is the
+history (a board squash-merged into the boards repo keeps its run on its
+track branch). The figure needs node and the diagram-maker skill
+(HWDE_DIAGRAM_MAKER, else ~/.claude/skills/diagram-maker); without them it
+is a warning and a line saying why.
+
 Exit 0 "pass"   = requested outputs produced (--tex-only: the .tex alone).
 Exit 1 "violations" = degraded: compile failed, pdflatex absent (auto
                   tex-only), or core artifacts missing for the run's phase.
@@ -47,7 +67,8 @@ Exit 2 "error"  = unusable workspace / internal error (a bad HWDE_PDFLATEX
 
 CLI:
   report_gen.py --workspace ~/dev/boards/<name> [--out report.json] [--tex-only] [--file]
-                [--name NAME]
+                [--name NAME] [--kind design|highlight|full] [--render-history]
+                [--history-ref REF]
 """
 from __future__ import annotations
 
@@ -68,7 +89,7 @@ sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import state as statemod  # noqa: E402  (read-only: PHASES/CHECKPOINTS consts)
-from lib import boardreg, env, statelib  # noqa: E402
+from lib import boardreg, dochistory, env, statelib  # noqa: E402
 
 PHASE_INDEX = {p: i for i, p in enumerate(statemod.PHASES)}
 
@@ -86,6 +107,34 @@ SECTIONS = [
     ("run_record", "Run Record (Appendix)", None),
     ("artifact_index", "Artifact Index", None),
 ]
+# The short highlight doc: what the board is, a picture, the facts, the BOM
+# and the schematic's first page, the decisions that shaped it and where the
+# checks stand.
+HIGHLIGHT_SECTIONS = [
+    ("title", "At a Glance", None),
+    ("hl_board", "The Board", None),
+    ("hl_parts", "What Is On It", None),
+    ("hl_decisions", "Key Decisions", None),
+    ("hl_run", "How the Run Went", None),
+    ("hl_checks", "Checks and Cost", None),
+]
+# The full design doc: the design doc's sections plus every render, every
+# decision and why, the run's history and a figure of how it actually went.
+FULL_SECTIONS = SECTIONS[:6] + [
+    ("renders", "Routing Renders", "P6"),
+    ("decisions", "Design Decisions", None),
+    ("history", "Design History", None),
+    ("flow", "How the Design Process Went", None),
+] + SECTIONS[6:]
+# kind -> output subdir of reports/, file stem suffix, title words, the
+# cc-docs title suffix, and its sections. Each kind files as its own document.
+KINDS = {
+    "design": ("design_doc", "design-doc", "Design Document", "design doc", SECTIONS),
+    "highlight": ("highlight", "highlight", "Highlights", "highlight doc",
+                  HIGHLIGHT_SECTIONS),
+    "full": ("design_full", "design-full", "Full Design Document",
+             "full design doc", FULL_SECTIONS),
+}
 # Core artifacts: (payload label, owning section, phase that must have PASSED
 # for absence to be a violation). Renders are special-cased (ladder).
 CORE_SCHEMATIC = ("reports/schematic.pdf", "schematic", "P4")
@@ -94,6 +143,8 @@ CORE_BOM = ("reports/bom_cpl.json bom_rows", "dfm_fab", "P9")
 CORE_ORDER = ("fab/order.json", "dfm_fab", "P10")
 
 PDF_TIMEOUT = 300  # seconds per pdflatex pass
+RENDER_TIMEOUT = 300  # seconds per routing-snapshot render
+DIAGRAM_TIMEOUT = 120  # seconds for the flow figure's export
 
 
 class ReportError(RuntimeError):
@@ -384,8 +435,13 @@ def find_renders(ws: Path, board: str) -> tuple[list[str], list[str]]:
 # ---------------------------------------------------------------- builder
 
 class DocBuilder:
-    def __init__(self, ws: Path, st: dict, name: str):
+    def __init__(self, ws: Path, st: dict, name: str, kind: str = "design",
+                 render_history: bool = False, history_ref: str = "HEAD"):
         self.ws = ws
+        self.history_ref = history_ref
+        self.kind = kind
+        self.render_history = render_history
+        self.out_rel = "reports/" + KINDS[kind][0]
         self.st = st
         self.board = st.get("board") or boardreg.split_dir(ws.name)[1]
         self.name = name
@@ -399,6 +455,13 @@ class DocBuilder:
         self.unchanged = False   # a matching FILED_STAMP skipped the filing
         self.head: list[str] = []   # title block (before \tableofcontents)
         self.body: list[str] = []
+
+    @property
+    def commits(self) -> list[dict]:
+        """The workspace's git history, read once (only the full doc asks)."""
+        if not hasattr(self, "_commits"):
+            self._commits = dochistory.git_commits(self.ws, self.history_ref)
+        return self._commits
 
     # -- bookkeeping ------------------------------------------------------
     def due(self, phase: str | None) -> bool:
@@ -474,12 +537,15 @@ class DocBuilder:
             overall = f"{n_pass}/{len(gates)} gates pass (not passing: {', '.join(bad)})"
         self.head.append("\\begin{center}")
         self.head.append("{\\LARGE\\bfseries " + latex_escape(self.name)
-                         + " --- Design Document}\\\\[6pt]")
+                         + " --- " + KINDS[self.kind][2] + "}\\\\[6pt]")
         self.head.append("{\\Large\\bfseries " + latex_escape(self.pn_label())
                          + "}\\\\[6pt]")
         self.head.append("{\\large hwde v1 pipeline}\\\\[2pt]")
         self.head.append("generated " + latex_escape(time.strftime("%Y-%m-%d %H:%M:%S"))
                          + "\n\\end{center}")
+        if self.kind == "highlight":
+            self.sec_glance()
+            return
         self.start("Board and Run Metadata")
         rows = [
             ["board", latex_escape(self.board)],
@@ -884,6 +950,343 @@ class DocBuilder:
             [r"\textbf{File}", r"\textbf{Size}", r"\textbf{Note}"], rows))
         self.record("artifact_index", "included", "workspace scan")
 
+    # -- highlight + full-doc sections ------------------------------------
+    def board_size(self) -> str | None:
+        """The outline as last edited (state.json edits), else board_init's."""
+        for e in reversed(self.st.get("edits") or []):
+            m = re.search(r"outline\s*->\s*([\d.]+)\s*x\s*([\d.]+)\s*mm",
+                          str(e.get("note", "")))
+            if m:
+                return f"{float(m.group(1)):.1f} x {float(m.group(2)):.1f} mm"
+        bb = (read_json(self.ws, "reports/board_init.json") or {}).get("outline_bbox")
+        if isinstance(bb, list) and len(bb) == 4:
+            return f"{bb[2] - bb[0]:.1f} x {bb[3] - bb[1]:.1f} mm"
+        return None
+
+    def sec_glance(self) -> None:
+        """Highlight: what the board is (the brief's opening) and its facts."""
+        self.start("At a Glance")
+        used = ["state.json"]
+        brief = read_text(self.ws, "brief/brief.md")
+        if brief is not None:
+            paras = [b for b in re.split(r"\n\s*\n", brief)
+                     if b.strip() and not b.lstrip().startswith("#")]
+            self.body.append(md_to_latex("\n\n".join(paras[:2])))
+            used.append("brief/brief.md")
+        init = read_json(self.ws, "reports/board_init.json") or {}
+        bom = read_json(self.ws, "reports/bom_cpl.json") or {}
+        gates = self.st.get("gates") or {}
+        n_pass = sum(1 for g in gates.values() if g.get("status") == "pass")
+        rows = [["part number", self.pn_label()], ["board", self.board],
+                ["phase", f"{self.st.get('phase', '?')} "
+                          f"({dochistory.PHASE_NAMES.get(self.st.get('phase'), '')})"]]
+        if self.board_size():
+            rows.append(["size", self.board_size()])
+        if init.get("layers"):
+            rows.append(["layers", f"{init['layers']}, {init.get('copper_oz', '?')} oz"
+                         f" copper ({init.get('stackup', '?')})"])
+        if bom.get("n_parts"):
+            rows.append(["parts", f"{bom['n_parts']} placed parts, "
+                         f"{len(bom.get('bom_rows') or [])} BOM lines"])
+        if gates:
+            rows.append(["gates", f"{n_pass} of {len(gates)} recorded gates pass"])
+        self.body.append(longtable("lp{11cm}", [r"\textbf{Field}", r"\textbf{Value}"],
+                                   [[latex_escape(a), latex_escape(b)] for a, b in rows]))
+        self.record("title", "included", ", ".join(used))
+
+    def renders(self) -> list[str]:
+        main, extras = find_renders(self.ws, self.stem)
+        if not (main or extras) and self.stem != self.board:
+            main, extras = find_renders(self.ws, self.board)
+        return main + extras
+
+    def sec_hl_board(self) -> None:
+        self.start("The Board")
+        shots = [r for r in self.renders() if r.endswith(("_top.png", "_bottom.png",
+                                                          "/top.png", "/bottom.png"))]
+        if not shots:
+            self.body.append(r"\emph{No board render yet.}")
+            self.record("hl_board", "pending", "board renders")
+            return
+        self.body.append("\\begin{center}")
+        for rel in shots[:2]:
+            self.body.append(f"\\includegraphics[width=0.48\\textwidth]{{{rel}}}\\hfill")
+        self.body.append("\\\\{\\small top and bottom, as rendered from the board file}"
+                         "\n\\end{center}")
+        self.record("hl_board", "included", ", ".join(shots[:2]))
+
+    def sec_hl_parts(self) -> None:
+        """Highlight: the BOM lines and the schematic's first page."""
+        self.start("What Is On It")
+        used = []
+        rows = (read_json(self.ws, "reports/bom_cpl.json") or {}).get("bom_rows") or []
+        if rows:
+            self.body.append(longtable(
+                "p{3.6cm}p{5.4cm}p{3cm}l",
+                [r"\textbf{Refs}", r"\textbf{Part}", r"\textbf{Footprint}",
+                 r"\textbf{LCSC}"],
+                [[latex_escape(r.get("Designator", "")), latex_escape(r.get("Comment", "")),
+                  latex_escape(r.get("Footprint", "")), latex_escape(r.get("LCSC", ""))]
+                 for r in rows]))
+            used.append("reports/bom_cpl.json")
+        if (self.ws / "reports" / "schematic.pdf").is_file():
+            self.body.append(r"\includepdf[pages=1]{reports/schematic.pdf}")
+            used.append("reports/schematic.pdf")
+        if not used:
+            self.body.append(r"\emph{No BOM or schematic yet.}")
+        self.record("hl_parts", "included" if used else "pending",
+                    ", ".join(used) or "reports/bom_cpl.json")
+
+    def decision_rows(self, ds: list[dict], why_cap: int | None = None) -> list[list[str]]:
+        rows = []
+        for d in ds:
+            why = str(d.get("why", ""))
+            if why_cap and len(why) > why_cap:
+                why = why[:why_cap - 3].rstrip() + "..."
+            rows.append([latex_escape(d.get("phase", "")),
+                         latex_escape(str(d.get("ts", ""))[5:16].replace("T", " ")),
+                         latex_escape(d.get("what", "")), latex_escape(why)])
+        return rows
+
+    def sec_hl_decisions(self) -> None:
+        """Highlight: deviations, part picks and the decisions of each
+        backtrack, oldest first, at most ten."""
+        self.start("Key Decisions")
+        picked = {id(d) for d in dochistory.component_decisions(self.st)}
+        for bt in dochistory.backtracks(self.st):
+            picked.update(id(d) for d in bt["decisions"])
+        ds = [d for d in dochistory.decisions(self.st) if id(d) in picked
+              or re.search(r"\b(deviation|accept)", str(d.get("what", "")), re.I)]
+        if len(ds) > 10:
+            self.body.append(latex_escape(f"The ten that changed the board most, of "
+                                          f"{len(ds)}; the full design doc has every one."))
+            ds = ds[:10]
+        self.body.append(longtable(
+            "lp{1.6cm}p{6.2cm}p{6.2cm}",
+            [r"\textbf{Ph}", r"\textbf{When}", r"\textbf{Decision}", r"\textbf{Why}"],
+            self.decision_rows(ds, why_cap=260)))
+        self.record("hl_decisions", "included" if ds else "missing", "state.json decisions")
+
+    def sec_hl_run(self) -> None:
+        self.start("How the Run Went")
+        spans = dochistory.phase_spans(self.st)
+        bts = dochistory.backtracks(self.st)
+        n = sum(s["count"] for s in spans)
+        if spans:
+            self.body.append(latex_escape(
+                f"{n} recorded decisions from {spans[0]['phase']} to {spans[-1]['phase']}"
+                f", {str(spans[0]['first'])[:16]} to "
+                f"{max(s['last'] for s in spans)[:16]}. The run went back to an earlier"
+                f" phase {len(bts)} time{'s' if len(bts) != 1 else ''}."))
+        if bts:
+            self.body.append("\\begin{itemize}")
+            for bt in bts:
+                self.body.append("\\item " + latex_escape(
+                    f"{bt['from']} back to {bt['to']} ({str(bt['ts'])[11:16]}): "
+                    f"{dochistory.clean(bt['decisions'][0].get('what', ''))}"))
+            self.body.append("\\end{itemize}")
+        self.record("hl_run", "included" if spans else "missing", "state.json decisions")
+
+    def sec_hl_checks(self) -> None:
+        self.start("Checks and Cost")
+        rows = []
+        for _ph, gname in statemod.GATE_ORDER:
+            g = (self.st.get("gates") or {}).get(gname)
+            if g:
+                rows.append([latex_escape(gname), latex_escape(g.get("status", "?")),
+                             latex_escape(g.get("attempts", "?")),
+                             latex_escape((g.get("last") or {}).get("failing_count", "?"))])
+        self.body.append(longtable("llrr", [r"\textbf{Gate}", r"\textbf{Status}",
+                                            r"\textbf{Attempts}", r"\textbf{Failing}"], rows))
+        used = ["state.json"]
+        cheap = (read_json(self.ws, "fab/quote.json") or {}).get("cheapest") or {}
+        if isinstance(cheap.get("total"), (int, float)):
+            self.body.append(latex_escape(
+                f"Estimated JLCPCB cost for {cheap.get('qty')} assembled boards: "
+                f"${cheap['total']:,.2f} (${cheap.get('unit_cost', 0):,.2f} each). "
+                "It is an estimate from the price table, not a quote.") + "\n")
+            used.append("fab/quote.json")
+        total = (read_json(self.ws, "reports/cost.json") or {}).get("total_usd")
+        if isinstance(total, (int, float)):
+            self.body.append(latex_escape(
+                f"Model cost of generating this board: ${total:,.2f}.") + "\n")
+            used.append("reports/cost.json")
+        self.body.append(latex_escape(
+            f"The full design doc ({self.name}-design-full) has every decision, the "
+            "renders and the run's history.") + "\n")
+        self.record("hl_checks", "included", ", ".join(used))
+
+    def sec_renders(self) -> None:
+        """Full doc: one top render per routing snapshot the run left (routing/pre-*, post-*), in the order it made them."""
+        self.start("Routing Renders")
+        used = []
+        self.body.append(latex_escape(
+            "The finished board's renders are under Layout; this section shows how "
+            "it got there."))
+        snaps = dochistory.snapshots(self.ws, self.commits)
+        rdir = self.ws / self.out_rel / "renders"
+        if snaps and self.render_history:
+            self.render_snapshots(snaps, rdir)
+        shots = [(s, f"{self.out_rel}/renders/{Path(s).stem}_top.png") for s in snaps]
+        shots = [(s, png) for s, png in shots if (self.ws / png).is_file()]
+        if snaps:
+            self.body.append(r"\subsection*{Snapshots the run kept}")
+            self.body.append(latex_escape(
+                f"The run saved {len(snaps)} board snapshots before (pre-) or after "
+                "(post-) a step that changed the board; they are shown in the order "
+                "the run made them."))
+            if not shots:
+                self.body.append(latex_escape(
+                    " None is rendered yet: report_gen.py --kind full --render-history "
+                    "renders them."))
+                self.warn("routing snapshots not rendered - pass --render-history")
+            for s, png in shots:
+                self.body.append(r"\paragraph*{" + latex_escape(Path(s).stem) + "}")
+                self.body.append(image_block(png, "0.62"))
+                used.append(png)
+        if not snaps:
+            self.body.append(latex_escape(" The run kept no routing snapshots."))
+        self.record("renders", "included" if used else "missing",
+                    ", ".join(used[:4]) or "routing/ snapshots")
+
+    def render_snapshots(self, snaps: list[str], rdir: Path) -> None:
+        """Render each snapshot's top view through render.py, skipping one
+        whose PNG is newer than its board file."""
+        rdir.mkdir(parents=True, exist_ok=True)
+        for s in snaps:
+            pcb = self.ws / s
+            png = rdir / f"{pcb.stem}_top.png"
+            if png.is_file() and png.stat().st_mtime >= pcb.stat().st_mtime:
+                continue
+            try:
+                cp = subprocess.run(
+                    [sys.executable, str(SCRIPTS / "render.py"), str(pcb), "--views",
+                     "top", "--w", "1400", "--height", "900", "--quality", "basic",
+                     "--out-dir", str(rdir)],
+                    capture_output=True, text=True, timeout=RENDER_TIMEOUT)
+                ok = cp.returncode == 0 and png.is_file()
+            except (OSError, subprocess.TimeoutExpired):
+                ok = False
+            if not ok:
+                self.warn(f"render of {s} failed")
+
+    def sec_decisions(self) -> None:
+        self.start("Design Decisions")
+        ds = dochistory.decisions(self.st)
+        self.body.append(latex_escape(
+            f"Every decision the run recorded in state.json ({len(ds)}), oldest "
+            "first, with the reason given at the time."))
+        self.body.append(longtable(
+            "lp{1.6cm}p{6.2cm}p{6.2cm}",
+            [r"\textbf{Ph}", r"\textbf{When}", r"\textbf{Decision}", r"\textbf{Why}"],
+            self.decision_rows(ds)))
+        self.record("decisions", "included" if ds else "missing", "state.json decisions")
+
+    def sec_history(self) -> None:
+        """Full doc: phase timeline, backtracks, part changes, git activity,
+        then the run's own notes (COMPARISON, placement and route notes)."""
+        self.start("Design History")
+        used = ["state.json"]
+        spans = dochistory.phase_spans(self.st)
+        self.body.append(r"\subsection*{Phase timeline}")
+        self.body.append(longtable(
+            "llllr", [r"\textbf{Phase}", r"\textbf{Name}", r"\textbf{First decision}",
+                      r"\textbf{Last decision}", r"\textbf{Decisions}"],
+            [[latex_escape(s["phase"]),
+              latex_escape(dochistory.PHASE_NAMES.get(s["phase"], "")),
+              latex_escape(str(s["first"])[:16]), latex_escape(str(s["last"])[:16]),
+              latex_escape(s["count"])] for s in spans]))
+        human = self.st.get("human") or {}
+        hrows = [[latex_escape(cid), latex_escape(h.get("status", "")),
+                  latex_escape(str(h.get("ts", ""))[:16]), latex_escape(h.get("note", ""))]
+                 for cid, h in sorted(human.items()) if isinstance(h, dict)]
+        if hrows:
+            self.body.append(r"\subsection*{Human checkpoints}")
+            self.body.append(longtable("lllp{9cm}", [
+                r"\textbf{H}", r"\textbf{Status}", r"\textbf{When}", r"\textbf{Note}"], hrows))
+        self.body.append(r"\subsection*{Where the run went back}")
+        bts = dochistory.backtracks(self.st)
+        if not bts:
+            self.body.append(latex_escape("The run never returned to an earlier phase."))
+        for bt in bts:
+            self.body.append(r"\paragraph*{" + latex_escape(
+                f"{bt['from']} back to {bt['to']}, {str(bt['ts'])[:16]}") + "}")
+            self.body.append("\\begin{itemize}")
+            for d in bt["decisions"]:
+                self.body.append("\\item " + latex_escape(d.get("what", ""))
+                                 + " \\emph{Why:} " + latex_escape(d.get("why", "")))
+            self.body.append("\\end{itemize}")
+        self.body.append(r"\subsection*{Component choices and changes}")
+        comp = dochistory.component_decisions(self.st)
+        self.body.append(longtable(
+            "lp{1.6cm}p{6.2cm}p{6.2cm}",
+            [r"\textbf{Ph}", r"\textbf{When}", r"\textbf{Decision}", r"\textbf{Why}"],
+            self.decision_rows(comp)))
+        pch = dochistory.parts_changes(self.ws, self.commits)
+        if pch:
+            self.body.append(latex_escape(
+                "What kicad/parts.json actually changed between commits:"))
+            rows = []
+            for c in pch:
+                for ref, part in c["added"]:
+                    rows.append([c["ts"][:16], ref, "added", part])
+                for ref, part in c["removed"]:
+                    rows.append([c["ts"][:16], ref, "removed", part])
+                for ref, old, new in c["changed"]:
+                    rows.append([c["ts"][:16], ref, "changed", f"{old} -> {new}"])
+            self.body.append(longtable(
+                "lllp{8.4cm}", [r"\textbf{When}", r"\textbf{Ref}", r"\textbf{Change}",
+                                r"\textbf{Part (MPN LCSC)}"],
+                [[latex_escape(x) for x in r] for r in rows]))
+            used.append("git: kicad/parts.json")
+        acts = dochistory.activity(self.commits)
+        self.body.append(r"\subsection*{Git history}")
+        if acts:
+            self.body.append(latex_escape(
+                f"{len(self.commits)} commits touched the workspace, "
+                f"{self.commits[0]['ts'][:16]} to {self.commits[-1]['ts'][:16]}. "
+                "By hour, with the files each area had changed:"))
+            self.body.append(longtable("lrp{10cm}", [
+                r"\textbf{Hour}", r"\textbf{Commits}", r"\textbf{Areas (files)}"],
+                [[latex_escape(a["hour"].replace("T", " ") + ":00"),
+                  latex_escape(a["commits"]),
+                  latex_escape(", ".join(f"{k} {v}" for k, v in sorted(
+                      a["areas"].items(), key=lambda kv: -kv[1])))] for a in acts]))
+            used.append("git log")
+        else:
+            self.body.append(latex_escape("No git history found for the workspace."))
+        for rel, head in (("COMPARISON.md", "Comparison"),
+                          ("reports/placement-notes.md", "Placement notes"),
+                          ("routing/route-notes.md", "Routing notes")):
+            txt = read_text(self.ws, rel)
+            if txt is not None:
+                self.body.append(r"\subsection*{" + head + "}")
+                self.body.append(md_to_latex(txt))
+                used.append(rel)
+        self.record("history", "included", ", ".join(used))
+
+    def sec_flow(self) -> None:
+        """Full doc: the run as a diagram-maker flowchart, rendered to PDF."""
+        self.start("How the Design Process Went")
+        bts = dochistory.backtracks(self.st)
+        spec = dochistory.flow_spec(self.st, bts, f"How the {self.board} run went")
+        out = self.ws / self.out_rel
+        out.mkdir(parents=True, exist_ok=True)
+        spec_path = out / "flow.json"
+        spec_path.write_text(json.dumps(spec, indent=1), encoding="utf-8")
+        why = render_diagram(spec_path)
+        self.body.append(latex_escape(
+            "Each phase the run passed through, top to bottom; a red box is a point "
+            "where it went back to an earlier phase, with the first decision that "
+            "sent it there. The current phase has the red outline."))
+        if why is None:
+            self.body.append(image_block(f"{self.out_rel}/flow.pdf", "0.8"))
+            self.record("flow", "included", f"{self.out_rel}/flow.json")
+        else:
+            self.warn(f"flow diagram not rendered: {why}")
+            self.body.append(r"\emph{" + latex_escape(f"Figure not rendered: {why}") + "}")
+            self.record("flow", "missing", f"{self.out_rel}/flow.json")
+
     # -- assembly ---------------------------------------------------------
     BUILDERS = {
         "title": sec_title, "overview": sec_overview,
@@ -891,10 +1294,15 @@ class DocBuilder:
         "schematic": sec_schematic, "layout": sec_layout,
         "verification": sec_verification, "dfm_fab": sec_dfm_fab,
         "run_record": sec_run_record, "artifact_index": sec_artifact_index,
+        "hl_board": sec_hl_board, "hl_parts": sec_hl_parts,
+        "hl_decisions": sec_hl_decisions,
+        "hl_run": sec_hl_run, "hl_checks": sec_hl_checks,
+        "renders": sec_renders, "decisions": sec_decisions,
+        "history": sec_history, "flow": sec_flow,
     }
 
     def build(self) -> str:
-        for sid, heading, phase in SECTIONS:
+        for sid, heading, phase in KINDS[self.kind][4]:
             if not self.due(phase):
                 self.pending(sid, heading, phase)
                 continue
@@ -930,7 +1338,8 @@ class DocBuilder:
             r"\sloppy",
         ])
         tex = (preamble + "\n" + "\n".join(self.head) + "\n"
-               + r"\tableofcontents" + "\n\n"
+               + ("" if self.kind == "highlight" else r"\tableofcontents")
+               + "\n\n"
                + "\n".join(self.body)
                + "\n\\end{document}\n")
         bad = sorted({c for c in tex if ord(c) >= 128})
@@ -943,6 +1352,38 @@ class DocBuilder:
 
 # ---------------------------------------------------------------- compile
 
+def diagram_maker() -> tuple[Path | None, str]:
+    """The diagram-maker skill dir and its fonts arg: HWDE_DIAGRAM_MAKER, else
+    ~/.claude/skills/diagram-maker; fonts from pdf-material-builder beside it,
+    else "-" (the machine's fonts)."""
+    root = Path(os.environ.get("HWDE_DIAGRAM_MAKER")
+                or Path.home() / ".claude" / "skills" / "diagram-maker")
+    if not (root / "scripts" / "export.sh").is_file():
+        return None, "-"
+    fonts = root.parent / "pdf-material-builder" / "assets" / "fonts"
+    return root, str(fonts) if fonts.is_dir() else "-"
+
+
+def render_diagram(spec: Path) -> str | None:
+    """spec.json -> spec.pdf through diagram-maker's export.sh (never
+    hand-written TikZ). None on success, else the reason it did not render."""
+    root, fonts = diagram_maker()
+    if root is None:
+        return "diagram-maker skill not found (set HWDE_DIAGRAM_MAKER)"
+    if shutil.which("node") is None:
+        return "node is not on PATH"
+    try:
+        cp = subprocess.run(["bash", str(root / "scripts" / "export.sh"), str(spec),
+                             fonts], capture_output=True, text=True,
+                            timeout=DIAGRAM_TIMEOUT)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return f"export.sh {type(exc).__name__}"
+    if cp.returncode != 0 or not spec.with_suffix(".pdf").is_file():
+        return (f"export.sh rc={cp.returncode}: "
+                + ((cp.stderr or cp.stdout or "").strip().splitlines() or [""])[-1][:160])
+    return None
+
+
 def pdflatex_is_miktex(pdflatex: Path) -> bool:
     try:
         cp = subprocess.run([str(pdflatex), "--version"], capture_output=True,
@@ -953,12 +1394,13 @@ def pdflatex_is_miktex(pdflatex: Path) -> bool:
         return False
 
 
-def compile_pdf(pdflatex: Path, ws: Path, name: str) -> tuple[dict, Path | None]:
+def compile_pdf(pdflatex: Path, ws: Path, name: str,
+                subdir: str = "design_doc") -> tuple[dict, Path | None]:
     """Two pdflatex passes staged in a system temp dir; only the final PDF is
     moved into the workspace (no .aux/.log/.toc residue - boards/ is
     git-tracked and gate commits sweep the whole tree). Never raises on
     compile failure/timeout: returns a compile dict with latex_log_tail."""
-    tex_rel = f"reports/design_doc/{name}.tex"
+    tex_rel = f"reports/{subdir}/{name}.tex"
     comp: dict = {"engine": str(pdflatex).replace("\\", "/"), "rc": None,
                   "passes": 0, "seconds": 0.0}
     extra = ["--enable-installer"] if pdflatex_is_miktex(pdflatex) else []
@@ -995,7 +1437,7 @@ def compile_pdf(pdflatex: Path, ws: Path, name: str) -> tuple[dict, Path | None]
         staged = staging / f"{name}.pdf"
         ok = rc == 0 and staged.is_file() and staged.stat().st_size > 0
         if ok:
-            final_pdf = ws / "reports" / "design_doc" / f"{name}.pdf"
+            final_pdf = ws / "reports" / subdir / f"{name}.pdf"
             final_pdf.unlink(missing_ok=True)
             shutil.move(str(staged), str(final_pdf))
         else:
@@ -1048,12 +1490,13 @@ def load_state(ws: Path) -> dict:
 
 
 def cc_docs_args(ws: Path | None, board: str, pdf: Path,
-                 project: str = "Boards") -> list[str]:
-    """The `cc-docs file` arguments for this board's design doc: the part
+                 project: str = "Boards", kind: str = "design") -> list[str]:
+    """The `cc-docs file` arguments for this board's document of `kind`
+    (its title names the kind, so each kind is its own document): the part
     number it describes when the register has one, and one --cost per step
     of reports/cost.json that carries a number (neither without a ws)."""
     args = ["file", str(pdf), "--project", project, "--title",
-            f"{board} design doc", "--source", str(pdf)]
+            f"{board} {KINDS[kind][3]}", "--source", str(pdf)]
     if ws is None:
         return args
     pn, _ = boardreg.part_number(ws)
@@ -1084,7 +1527,8 @@ def content_hash(tex_text: str, ws: Path) -> str:
 
 
 def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
-                     digest: str | None = None, ws: Path | None = None) -> None:
+                     digest: str | None = None, ws: Path | None = None,
+                     kind: str = "design") -> None:
     """File the finished design doc under the Boards project with cc-docs.
 
     Only when asked (requested, or DOC_PROJECT in the environment) and cc-docs
@@ -1114,7 +1558,7 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
         return
     try:
         cp = subprocess.run(
-            [exe, *cc_docs_args(ws, board, pdf, project)],
+            [exe, *cc_docs_args(ws, board, pdf, project, kind)],
             capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired) as exc:
         builder.warn(f"cc-docs filing failed: {type(exc).__name__}: {exc}")
@@ -1129,15 +1573,19 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
 
 
 def run(workspace: str, name: str | None = None, tex_only: bool = False,
-        file_doc: bool = False) -> tuple[dict, int]:
+        file_doc: bool = False, kind: str = "design",
+        render_history: bool = False,
+        history_ref: str = "HEAD") -> tuple[dict, int]:
     ws = resolve_workspace(workspace)
     st = load_state(ws)
-    doc_name = f"{name or st['board']}-design-doc"
+    subdir, suffix = KINDS[kind][:2]
+    doc_name = f"{name or st['board']}-{suffix}"
 
-    builder = DocBuilder(ws, st, name or st["board"])
+    builder = DocBuilder(ws, st, name or st["board"], kind, render_history,
+                         history_ref)
     tex_text = builder.build()
 
-    out_dir = ws / "reports" / "design_doc"
+    out_dir = ws / "reports" / subdir
     out_dir.mkdir(parents=True, exist_ok=True)
     tex_path = out_dir / f"{doc_name}.tex"
     tex_path.write_text(tex_text, encoding="utf-8")
@@ -1155,7 +1603,7 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
     pdf_path: Path | None = None
     pages = None
     if pdflatex is not None:
-        comp, pdf_path = compile_pdf(pdflatex, ws, doc_name)
+        comp, pdf_path = compile_pdf(pdflatex, ws, doc_name, subdir)
         if pdf_path is None:
             if comp.get("timed_out"):
                 builder.warn(f"pdflatex timed out after {PDF_TIMEOUT}s - "
@@ -1168,7 +1616,7 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
             if pages is None:
                 builder.warn("pypdf could not read the produced PDF")
             file_in_register(pdf_path, name or st["board"], builder, file_doc,
-                             content_hash(tex_text, ws), ws)
+                             content_hash(tex_text, ws), ws, kind)
 
     degraded = (not tex_only) and pdf_path is None
     violations = bool(builder.missing) or degraded
@@ -1177,8 +1625,8 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
         "status": "violations" if violations else "pass",
         "board": name or st["board"],
         "workspace": str(ws).replace("\\", "/"),
-        "tex": f"reports/design_doc/{doc_name}.tex",
-        "pdf": f"reports/design_doc/{doc_name}.pdf" if pdf_path else None,
+        "tex": f"reports/{subdir}/{doc_name}.tex",
+        "pdf": f"reports/{subdir}/{doc_name}.pdf" if pdf_path else None,
         "pages": pages,
         "sections": builder.sections,
         "missing": builder.missing,
@@ -1186,6 +1634,7 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
         "compile": comp,
         "filed": builder.filed,
         "unchanged": builder.unchanged,
+        "kind": kind,
     }
     return payload, (1 if violations else 0)
 
@@ -1204,11 +1653,21 @@ def main(argv: list[str] | None = None) -> int:
                     help="file the finished PDF in the document register "
                          "(also: DOC_PROJECT set); default files nothing")
     ap.add_argument("--name", help="override the board name from state.json")
+    ap.add_argument("--kind", choices=sorted(KINDS), default="design",
+                    help="design (default), highlight (short) or full (design "
+                         "doc + renders, every decision, history, flow figure)")
+    ap.add_argument("--render-history", action="store_true",
+                    help="--kind full: render the routing/ snapshots first")
+    ap.add_argument("--history-ref", default="HEAD",
+                    help="--kind full: the git ref whose log is the run's history "
+                         "(the board's track branch once its PR squash-merged)")
     args = ap.parse_args(argv)
 
     try:
         payload, code = run(args.workspace, name=args.name,
-                            tex_only=args.tex_only, file_doc=args.file_doc)
+                            tex_only=args.tex_only, file_doc=args.file_doc,
+                            kind=args.kind, render_history=args.render_history,
+                            history_ref=args.history_ref)
     except Exception as exc:  # noqa: BLE001 (SPEC: any error -> exit 2)
         err = {"script": "report_gen", "status": "error",
                "error": f"{type(exc).__name__}: {exc}"}

@@ -11,7 +11,10 @@ content changed, so a second run files nothing (the board reports
 --library leaves the live run free to file.
 
     redoc_boards.py [BOARD...] [--root DIR] [--library DIR] [--dry-run]
-                    [--out FILE]
+                    [--kind design|highlight|full] [--out FILE]
+
+--kind picks which of report_gen's documents to rebuild and file (default
+the design doc); each kind is its own document in the library.
 
 BOARD is an old name, a PN or a directory (default: every register rev whose
 workspace exists). --library points cc-docs at a scratch library
@@ -69,12 +72,14 @@ def run(args) -> tuple[dict, str | None]:
             bad += 1
         elif args.dry_run:
             st = report_gen.load_state(ws)
+            subdir, suffix = report_gen.KINDS[args.kind][:2]
             row["cc_docs"] = report_gen.cc_docs_args(
-                ws, st["board"], ws / "reports" / "design_doc"
-                / f"{st['board']}-design-doc.pdf")
+                ws, st["board"], ws / "reports" / subdir
+                / f"{st['board']}-{suffix}.pdf", kind=args.kind)
         else:
             try:
-                payload, code = report_gen.run(str(ws), file_doc=True)
+                payload, code = report_gen.run(str(ws), file_doc=True,
+                                               kind=args.kind)
                 row.update(status=payload["status"], pdf=payload["pdf"],
                            filed=payload["filed"],
                            unchanged=payload["unchanged"],
@@ -100,6 +105,8 @@ def main(argv=None) -> int:
                                    "~/dev/boards)")
     ap.add_argument("--library", help="scratch cc-docs library (CC_DOCS_ROOT)")
     ap.add_argument("--dry-run", action="store_true", help="plan only")
+    ap.add_argument("--kind", choices=sorted(report_gen.KINDS), default="design",
+                    help="which document to rebuild (default: design)")
     ap.add_argument("--out", help="write the JSON report here")
     args = ap.parse_args(argv)
     return cli_wrap(SCRIPT, lambda: run(args))

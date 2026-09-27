@@ -188,7 +188,7 @@ def _redoc(capsys, monkeypatch, root, payload, cc_docs=True):
     else:
         monkeypatch.setattr(redoc_boards.shutil, "which", lambda _: None)
     monkeypatch.setattr(redoc_boards.report_gen, "run",
-                        lambda ws, file_doc: (dict(payload), 0))
+                        lambda ws, file_doc, kind: (dict(payload), 0))
     code = redoc_boards.main(["--root", str(root)])
     return code, json.loads(capsys.readouterr().out)
 
@@ -214,7 +214,7 @@ def test_redoc_keeps_report_when_one_board_fails(tmp_path, capsys, monkeypatch):
     (root / "other" / "state.json").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(redoc_boards.shutil, "which", lambda _: "/x/cc-docs")
 
-    def flaky(ws, file_doc):
+    def flaky(ws, file_doc, kind):
         if Path(ws).name == "other":
             raise RuntimeError("kicad-cli timed out")
         return ({"status": "pass", "pdf": "x.pdf", "warnings": [],
@@ -227,3 +227,16 @@ def test_redoc_keeps_report_when_one_board_fails(tmp_path, capsys, monkeypatch):
     assert "status" not in by_board["PCB-0002-A"]
     assert by_board["PCB-0001-A"]["status"] == "pass"
     assert code == 1
+
+
+def test_redoc_dry_run_kind_names_that_document(tmp_path, capsys):
+    root = scratch(tmp_path)
+    code = redoc_boards.main(["--root", str(root), "--dry-run", "--kind", "highlight"])
+    out = json.loads(capsys.readouterr().out)
+    assert code == 0, out
+    args = out["boards"][0]["cc_docs"]
+    assert args[args.index("--title") + 1] == "blinky2 highlight doc"
+    assert args[1].endswith("reports/highlight/blinky2-highlight.pdf")
+    code = redoc_boards.main(["--root", str(root), "--dry-run"])
+    args = json.loads(capsys.readouterr().out)["boards"][0]["cc_docs"]
+    assert args[args.index("--title") + 1] == "blinky2 design doc"
