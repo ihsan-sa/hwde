@@ -2,7 +2,10 @@
 
 Runs inside KiCad's bundled python (the only interpreter with pcbnew); invoked
 as `python route_swig.py job.json` by the venv drivers (route_edit.py,
-route_auto.py, planes_gen.py). stdlib only.
+route_auto.py, planes_gen.py). stdlib + lib/safelib (itself stdlib).
+Every job runs under safelib.board_locks(job): an OS writer lock on the
+"board" and "out" .kicad_pcb (<pcb>.lock), held from LoadBoard to Save;
+a second worker on the same board waits, then refuses (LockBusy).
 
 The RESULT is written to the file named by job["result"], never stdout: bulk
 track/via removal sprays C-level "memory leak of type 'PCB_TRACK *'" lines and
@@ -49,6 +52,8 @@ job JSON: {"verb": ..., "result": out.json, ...} with verbs:
 """
 import json
 import sys
+
+import safelib  # lib/ is sys.path[0]: the worker runs as lib/route_swig.py
 
 
 def _wx_quiet():
@@ -318,7 +323,8 @@ def main():
         if verb not in VERBS:
             raise ValueError("unknown verb: %r" % verb)
         payload = {"ok": True, "verb": verb}
-        payload.update(VERBS[verb](job))
+        with safelib.board_locks(job):  # LoadBoard -> Save under one hold
+            payload.update(VERBS[verb](job))
         rc = 0
     except Exception as e:  # noqa: BLE001
         import traceback

@@ -1,6 +1,7 @@
 """safelib.py - U12 pre-credential order/state safety primitives (codex C3+C5+C6).
 
-Pure stdlib, Windows + POSIX. Used by state.py (writer lock + base-digest
+Pure stdlib, Windows + POSIX. Used by the KiCad SWIG workers (board_locks),
+state.py (writer lock + base-digest
 compare-and-swap + contained snapshot/restore), order_submit.py (order
 latch: OS-exclusive lock across load->check->create->finalize, append-only
 attempt journal, fsync'd atomic writes), order_track.py / order_quote.py
@@ -9,6 +10,9 @@ attempt journal, fsync'd atomic writes), order_track.py / order_quote.py
   writer_lock(path)        OS-exclusive advisory lock on <path>.lock; process-
                            wide re-entrant per thread, blocks other threads and
                            other processes; bounded wait -> LockBusy.
+  board_locks(job)         writer_lock on a KiCad SWIG job's "board" and "out"
+                           .kicad_pcb, in sorted order; the four *_swig
+                           workers hold it from LoadBoard to Save.
   atomic_write_*(path, x)  unique temp in the SAME dir (mkstemp) -> fsync ->
                            os.replace -> dir fsync. Two writers never share a
                            temp name; a crash leaves old-or-new, never a torn
@@ -202,6 +206,22 @@ def writer_lock(target: Path | str, timeout: float | None = None,
             # a nested generator was abandoned mid-yield; never leave the OS
             # lock dangling in-process
             pass
+
+
+@contextmanager
+def board_locks(job: dict, timeout: float | None = None):
+    """writer_lock on every board a KiCad SWIG worker job names ("board"
+    read, "out" written), held from LoadBoard to Save so two workers never
+    interleave a load->save on one .kicad_pcb (V-U12-1). Distinct paths
+    are locked in sorted resolved order, so two jobs naming the same pair
+    the other way round cannot deadlock."""
+    from contextlib import ExitStack
+    paths = sorted({str(Path(job[k]).resolve()) for k in ("board", "out")
+                    if job.get(k)})
+    with ExitStack() as stack:
+        for p in paths:
+            stack.enter_context(writer_lock(p, timeout=timeout, what="board"))
+        yield [Path(p) for p in paths]
 
 
 # ----------------------------------------------------------- atomic writes

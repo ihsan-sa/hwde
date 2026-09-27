@@ -464,3 +464,154 @@ fixtures:
         sha256: ee55e31e831a3d2d76664c17c2c606ef9e4bd2afb0e489f30fd5ca8772515d43
     args:
       task: block-llc-1
+  # E2E (backlog item 1, reference/e2e-scoring.md): brief.md is what the design
+  # agent sees; bounds.yaml is HIDDEN from it.  Calibration briefs restate a
+  # shipped bb-* board's brief and score that board (args.calibration_board,
+  # from the boards repo); the rest are held out - no hwde run has seen them.
+  e2e_ldo_3v3:
+    stage: E2E
+    board: bb-ldo
+    provenance:
+      source: tests/fixtures/stages/e2e/ldo_3v3 (brief + hidden bounds) + ws copied from boards/PCB-0012-A_bb-ldo @73bf0471
+      method: copy
+      captured: '2026-09-27'
+      note: calibration twin of the shipped board; the check's cheap smoke case (frozen ws)
+    files:
+      brief:
+        path: tests/fixtures/stages/e2e/ldo_3v3/brief.md
+        sha256: 0b1f3a9cabecb0e436ebd765f0e5100dedc640480646a6309177b2b42917403a
+      bounds:
+        path: tests/fixtures/stages/e2e/ldo_3v3/bounds.yaml
+        sha256: 32f1068c650c46183419d1d0786b7ce809c48e5d6b5b7602d23f9153f4165568
+    dirs:
+      workspace:
+        path: tests/fixtures/stages/e2e/ldo_3v3/ws
+        sha256: 8726919a4c7b91adc0c57fd76354c424e49c99720af5a86940fb4220e2c2dbe6
+    args:
+      calibration_board: PCB-0012-A_bb-ldo
+  e2e_buck_5v:
+    stage: E2E
+    board: bb-buck
+    provenance:
+      source: tests/fixtures/stages/e2e/buck_5v (brief + hidden bounds)
+      method: copy
+      captured: '2026-09-27'
+      note: calibration twin of the shipped board
+    files:
+      brief:
+        path: tests/fixtures/stages/e2e/buck_5v/brief.md
+        sha256: bbdb5b462e7653f9bf42e62c50396c209987310c3532d7bc0116125cad2619c3
+      bounds:
+        path: tests/fixtures/stages/e2e/buck_5v/bounds.yaml
+        sha256: 90feafa1fe2a8896ce78edb928c479f89dda0ac7146d36debc9ece9036d90361
+    args:
+      calibration_board: PCB-0010-A_bb-buck
+  e2e_adc_12b:
+    stage: E2E
+    board: bb-adc
+    provenance:
+      source: tests/fixtures/stages/e2e/adc_12b (brief + hidden bounds)
+      method: copy
+      captured: '2026-09-27'
+      note: calibration twin of the shipped board
+    files:
+      brief:
+        path: tests/fixtures/stages/e2e/adc_12b/brief.md
+        sha256: 543ce521bea540fc3417f7e8d06f62882d2923afc0c6303fdad2b84ebdbc2baf
+      bounds:
+        path: tests/fixtures/stages/e2e/adc_12b/bounds.yaml
+        sha256: 086a610ae2b6a06f3c472d033eac9f6cd99b95a5b152dba0aff024e3753b2189
+    args:
+      calibration_board: PCB-0014-A_bb-adc
+  e2e_bridge_amp:
+    stage: E2E
+    board: bb-amp
+    provenance:
+      source: tests/fixtures/stages/e2e/bridge_amp (brief + hidden bounds)
+      method: copy
+      captured: '2026-09-27'
+      note: calibration twin of the shipped board
+    files:
+      brief:
+        path: tests/fixtures/stages/e2e/bridge_amp/brief.md
+        sha256: a904f2227c5d4d6e15c2327b9f87fd4d51ddb6f0a8f4250394785ff6eb195268
+      bounds:
+        path: tests/fixtures/stages/e2e/bridge_amp/bounds.yaml
+        sha256: 7fc0312725dc921cb0ace3d8321137e61edfc470e452fec4dc0e26fbcb5344f8
+    args:
+      calibration_board: PCB-0013-A_bb-amp
+  e2e_batt_monitor:
+    stage: E2E
+    board: held-out-batt-monitor
+    provenance:
+      source: tests/fixtures/stages/e2e/batt_monitor (brief + hidden bounds)
+      method: copy
+      captured: '2026-09-27'
+      note: held out; score a finished workspace with --artifact
+    files:
+      brief:
+        path: tests/fixtures/stages/e2e/batt_monitor/brief.md
+        sha256: 603186df3bcb08c06242359357a11ec058973ee2bf0667b2613cdd55ac220123
+      bounds:
+        path: tests/fixtures/stages/e2e/batt_monitor/bounds.yaml
+        sha256: f725cbf0070cc7732e97563b821dfb211ed4838926cb0c5b1e8e51e9132c6a4c
+  e2e_buck_3v3:
+    stage: E2E
+    board: held-out-buck-3v3
+    provenance:
+      source: tests/fixtures/stages/e2e/buck_3v3 (brief + hidden bounds)
+      method: copy
+      captured: '2026-09-27'
+      note: held out; score a finished workspace with --artifact
+    files:
+      brief:
+        path: tests/fixtures/stages/e2e/buck_3v3/brief.md
+        sha256: 001d783d2fd94a245fc993312fd84c93d60f12c5d69557eab1241cfc3611144a
+      bounds:
+        path: tests/fixtures/stages/e2e/buck_3v3/bounds.yaml
+        sha256: 97ef94ada2aede0272783c46c84f35218aca694341f9222212172842c843e466
+  e2e_usbc_ldo:
+    stage: E2E
+    board: held-out-usbc-ldo
+    provenance:
+      source: tests/fixtures/stages/e2e/usbc_ldo (brief + hidden bounds)
+      method: copy
+      captured: '2026-09-27'
+      note: held out; score a finished workspace with --artifact
+    files:
+      brief:
+        path: tests/fixtures/stages/e2e/usbc_ldo/brief.md
+        sha256: 81b2321259202b1709ffc83fab2cbfe7a3ab39e73b4abbcdd7ce9ee132c1a9ef
+      bounds:
+        path: tests/fixtures/stages/e2e/usbc_ldo/bounds.yaml
+        sha256: 48b4e4597d30cd8a624375bd49e752efe5c1bd3d62650e5635c20117e557a1ea
+  e2e_ntc_front:
+    stage: E2E
+    board: held-out-ntc-front
+    provenance:
+      source: tests/fixtures/stages/e2e/ntc_front (brief + hidden bounds)
+      method: copy
+      captured: '2026-09-27'
+      note: held out; score a finished workspace with --artifact
+    files:
+      brief:
+        path: tests/fixtures/stages/e2e/ntc_front/brief.md
+        sha256: d725c504b1b545847a457abd5d8605d9c55a1a6560fbbba5aa78a9e2b855e39d
+      bounds:
+        path: tests/fixtures/stages/e2e/ntc_front/bounds.yaml
+        sha256: ed820d02a1f1c6b88b6e14bcc50961391c357be3df54e03a2736f19420bbac2f
+  e2e_relay_driver:
+    stage: E2E
+    board: held-out-relay-driver
+    provenance:
+      source: tests/fixtures/stages/e2e/relay_driver (brief + hidden bounds)
+      method: copy
+      captured: '2026-09-27'
+      note: held out; score a finished workspace with --artifact
+    files:
+      brief:
+        path: tests/fixtures/stages/e2e/relay_driver/brief.md
+        sha256: 505c624a1dd175723a8553fa198dff29a28caba4872278dfeb7d7e36f6c49f14
+      bounds:
+        path: tests/fixtures/stages/e2e/relay_driver/bounds.yaml
+        sha256: bfe7a640f38e4dec84d709a3225beb3011e977712796d965ad55ad471cfdd91f

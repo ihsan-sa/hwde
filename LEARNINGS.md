@@ -5048,6 +5048,16 @@ temp copy relinked to the workspace's own `lib/*.3dshapes` when such a path no l
 resolves, and never writes the board. The stock KiCad 3D library is not unpacked on the
 no-container host, so the 1x02 pin header J2 (`${KICAD10_3DMODEL_DIR}`) renders as bare pads.
 
+## 2026-09-27 [sim][linux][ngspice] SPICE never ran on the no-container Linux host
+Every sim gate on this host failed with "undefined symbol: ngSpice_Init": off Windows,
+InSpice resolves the library through `ctypes.util.find_library`, which only sees the
+system linker cache, so KiCad's `~/.local/kicad10/.../libngspice.so.0` was never found
+and InSpice dlopen'd the python binary itself. simlib now points InSpice's `find_library`
+at the pinned `HWDE_NGSPICE_DLL` off Windows. Also: ngspice `.meas` cannot take another
+measure in `when v(x)=par('g0-3')` (the circuit is rejected), so a -3 dB point relative to
+a divider's DC gain is two decks (bench E2E `rc_lowpass`). And kicad-cli ERC/DRC write a
+`.kicad_prl` beside the file they open: score a copy, or a pinned fixture drifts.
+
 ## 2026-09-27 [impedance][stackup][jlcapi] JLC's impedance calculator is a public API
 - `POST https://jlcpcb.com/api/jlcTools/impedance/selectPageImpedanceDefaultTemplate` with `{"appointName": "JLC04161H-1080B"}` returns the template WITH `dielectricConstant` per layer (the order API's getImpedanceTemplateSettingList has none). No login.
 - `POST .../jlcTools/impedance/calc` takes `{accessId, impedance_calc_mark, impedance_calc_arg:{H1,Er1,W1,W2,[S1],T1,C1,C2,[C3],CEr,...}, uuid}` in MIL, but the answer comes back over `wss://tools.jlc.com/jlcTools/webSocket/{uuid}`, not in the POST response. Forward mode (width -> ohms) works; the solve-for-width mode returned status 6 for every argument set tried.

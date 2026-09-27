@@ -1,7 +1,10 @@
 """place_swig - BUNDLED-python SWIG worker for place_edit.py (S9).
 
 Runs inside KiCad's bundled python (the only interpreter with pcbnew); invoked
-as `python place_swig.py job.json` by the venv driver. stdlib only.
+as `python place_swig.py job.json` by the venv driver. stdlib + lib/safelib.
+Every job runs under safelib.board_locks(job): an OS writer lock on the
+"board" and "out" .kicad_pcb (<pcb>.lock), held from LoadBoard to Save;
+a second worker on the same board waits, then refuses (LockBusy).
 
 job JSON: {"board": in_path, "out": out_path, "ops": [op, ...]}
 ops are ABSOLUTE (idempotent by construction - re-applying is a no-op):
@@ -41,6 +44,8 @@ attempt fact, e.g. 32.3 mm -> 32299999 nm).
 """
 import json
 import sys
+
+import safelib  # lib/ is sys.path[0]: the worker runs as lib/place_swig.py
 
 import pcbnew
 
@@ -238,8 +243,17 @@ def apply_op(board, op: dict) -> dict:
 
 
 def main() -> int:
-    global EDGE_BOX
     job = json.loads(open(sys.argv[1], encoding="utf-8").read())
+    try:
+        with safelib.board_locks(job):  # LoadBoard -> Save under one hold
+            return _run(job)
+    except safelib.LockBusy as e:  # another writer holds the board
+        print(json.dumps({"ok": False, "index": None, "error": str(e)}))
+        return 3
+
+
+def _run(job) -> int:
+    global EDGE_BOX
     board = pcbnew.LoadBoard(job["board"])
     # GetBoardEdgesBoundingBox() SEGFAULTS once a footprint has had an item
     # removed (KiCad 10.0.5, measured) - and returning its BOX2I into a later

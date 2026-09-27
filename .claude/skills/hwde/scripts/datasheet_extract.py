@@ -25,6 +25,21 @@ reads the PDF pages); this script owns the deterministic half:
                     record per class-level rule, sources citing this PDF by
                     page), stores the PDF under reference/knowledge/sources/,
                     then lints with `knowledge.py --validate`.
+  --screen WS       U9 P3 layout screen (lib/layoutimpl.py): per part in
+                    WS/parts/parts.json, the layout implications computed from
+                    its extraction - thermal-via capacity of the exposed pad,
+                    wire-entry direction + the rotation per board edge,
+                    courtyard area vs the board budget (--board-mm, else the
+                    state's stated size), pad pitch vs the routing floor - and
+                    the CONFLICTS with architecture/constraints.json
+                    (thermal min_vias over capacity, an edge rot that points
+                    a wire entry inward, courtyards over budget). Writes
+                    WS/parts/layout_implications.json; exit 1 on a conflict.
+  --implications FILE [FILE ...]
+                    the same fields for candidate extractions (part-sourcer),
+                    ranked by layoutimpl.score against --needs JSON
+                    {min_thermal_vias, edge, max_courtyard_mm2,
+                    min_stub_width_mm}; exit 0.
 
 The extracted JSON is the ground truth the schematic agents wire against
 (SPEC P4: "never wire from model memory of a pinout") and the land pattern
@@ -100,6 +115,17 @@ DATASHEET_SCHEMA: dict = {
                 "drill_mm": {"type": "number", "exclusiveMinimum": 0},
                 "annulus_mm": {"type": "number", "exclusiveMinimum": 0},
                 "courtyard_excess_mm": {"type": "number", "minimum": 0},
+                # U9 layout-implication inputs
+                "courtyard_mm": {
+                    "type": "array", "items": {"type": "number",
+                                               "exclusiveMinimum": 0},
+                    "minItems": 2, "maxItems": 2,
+                },
+                "wire_entry_local": {"type": "string",
+                                     "enum": ["+X", "-X", "+Y", "-Y"],
+                                     "description": "connector wire/cable "
+                                     "entry direction in footprint-local "
+                                     "coords (KiCad y down)"},
                 "pin1": {"type": "string",
                          "description": "pad number that is pin 1 (default '1')"},
                 "notes": {"type": "string"},
@@ -112,6 +138,12 @@ DATASHEET_SCHEMA: dict = {
                 "present": {"type": "boolean"},
                 "connect_to": {"type": "string"},
                 "thermal_vias": {"type": "integer", "minimum": 0},
+                # U9: the recommended EP LAND (w x h) - via capacity needs it
+                "size_mm": {
+                    "type": "array", "items": {"type": "number",
+                                               "exclusiveMinimum": 0},
+                    "minItems": 2, "maxItems": 2,
+                },
             },
             "required": ["present"],
         },
@@ -130,6 +162,8 @@ DATASHEET_SCHEMA: dict = {
             },
         },
         "source_pdf": {"type": "string"},
+        # U9: computed by --screen/--implications, never hand-filled
+        "layout_implications": {"type": "object"},
     },
 }
 
@@ -283,6 +317,53 @@ def do_app_note(args) -> tuple[dict, int]:
     return payload, 0
 
 
+def _layoutimpl():
+    sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+    import layoutimpl
+    return layoutimpl
+
+
+def _board_mm(args, ws: Path) -> tuple[float, float] | None:
+    if args.board_mm:
+        w, h = args.board_mm.lower().split("x")
+        return float(w), float(h)
+    st = ws / "state.json"
+    if st.is_file():
+        size = (json.loads(st.read_text(encoding="utf-8")).get("mode")
+                or {}).get("stated_size")
+        if size:
+            return float(size[0]), float(size[1])
+    return None
+
+
+def do_screen(args) -> tuple[dict, int]:
+    li = _layoutimpl()
+    ws = Path(args.screen)
+    res = li.screen(ws, _board_mm(args, ws), args.cap_class)
+    out = (ws / "parts" if (ws / "parts").is_dir() else ws / "kicad") \
+        / "layout_implications.json"
+    out.write_text(json.dumps(res, indent=1, ensure_ascii=True),
+                   encoding="utf-8")
+    payload = {"script": "datasheet_extract", "mode": "screen",
+               "status": "violations" if res["conflicts"] else "pass",
+               "written": out.as_posix(), **res}
+    return payload, 1 if res["conflicts"] else 0
+
+
+def do_implications(args) -> tuple[dict, int]:
+    li = _layoutimpl()
+    needs = json.loads(args.needs) if args.needs else {}
+    cap = li.fab_row(args.cap_class)
+    ranked = []
+    for f in args.implications:
+        ext = json.loads(Path(f).read_text(encoding="utf-8"))
+        imp = li.implications(ext, None, cap)
+        ranked.append({"file": f, **imp, **li.score(imp, needs)})
+    ranked.sort(key=lambda r: -r["score"])
+    return {"script": "datasheet_extract", "mode": "implications",
+            "status": "pass", "needs": needs, "candidates": ranked}, 0
+
+
 def do_validate(args) -> tuple[dict, int]:
     import jsonschema
     path = Path(args.validate)
@@ -323,6 +404,16 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument("--schema", action="store_true", help="print the JSON schema")
     mode.add_argument("--app-note", help="extract text + emit a KNOWLEDGE "
                                          "RECORD grounding payload (U4)")
+    mode.add_argument("--screen", metavar="WS",
+                      help="U9 P3 layout screen over a workspace")
+    mode.add_argument("--implications", nargs="+", metavar="FILE",
+                      help="U9 layout implications of candidate "
+                           "extractions, ranked against --needs")
+    ap.add_argument("--board-mm", help="--screen: board WxH in mm, e.g. "
+                                       "50x40 (default: state mode size)")
+    ap.add_argument("--cap-class", default="2layer_1oz",
+                    help="jlc_capabilities design_rules row")
+    ap.add_argument("--needs", help="--implications: JSON needs object")
     ap.add_argument("--lcsc", help="tag the output with this LCSC id (--pdf)")
     ap.add_argument("--full-text", action="store_true",
                     help="--pdf: emit full text for EVERY page (no stubbing)")
@@ -337,6 +428,10 @@ def main(argv: list[str] | None = None) -> int:
             payload, code = do_pdf(args)
         elif args.app_note:
             payload, code = do_app_note(args)
+        elif args.screen:
+            payload, code = do_screen(args)
+        elif args.implications:
+            payload, code = do_implications(args)
         else:
             payload, code = do_validate(args)
     except Exception as exc:  # noqa: BLE001 - contract: any error -> exit 2

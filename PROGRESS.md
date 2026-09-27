@@ -66,7 +66,7 @@ U18; hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16 + U18 land.
 | U6 | Workspace learnings + promotion pass (H5; rf-de 66-entry queue) | **done** | 2026-08-14 |
 | U7 | Learning mode harness (learn verb + learner agent + graded fixtures) | **done** | 2026-08-14 |
 | U8 | Buck placement teaching cycle 1 (owner present) | pending | - |
-| U9 | Cross-stage rails (P3 layout implications + budgeted backward spawns) | pending | - |
+| U9 | Cross-stage rails (P3 layout implications + budgeted backward spawns) | **done** | 2026-09-27 |
 | U10 | xhp-driver brief + full run (first live validation) | pending | - |
 | U11 | P7 routing teaching cycle 2 (owner present) | pending | - |
 | U12 | Pre-credential order/state safety (C3+C5+C6) | **done** | 2026-09-01 |
@@ -144,6 +144,7 @@ kickoff prompt to allow multi-agent workflows (higher token spend - use where ma
 | V19 | schem_refdes symbol transform at 90/270 and mirrored instances | T3 | **RESOLVED T6**: rotmirror fixture (7 Device:R at 0/90/180/270, mirror x/y, rot90+mirror; every pin wired, ERC oracle) FALSIFIED the suspected stub_dir sign defect - the real bug was in ksa pin-position reads; fixed in schlib.pin_pos + save-time field placement (batch D, 3b10380). All branches now fixture-pinned. |
 | V21 | Distributor API request shapes (DigiKey Product Information v4 OAuth2 client-credentials + keyword/productdetails; Mouser Search API v1 partnumber/keyword) + the live auth flow | U15 | **OPEN - owner keys needed.** `lib/distributors.py` transcribes the public docs and tests pin the shapes through a fake transport; nothing has touched the live endpoints. `research.py parts --mpn X` exits 2 naming the exact missing env vars until `AIEE_DIGIKEY_CLIENT_ID`/`AIEE_DIGIKEY_CLIENT_SECRET` (`AIEE_DIGIKEY_SANDBOX=1` for sandbox keys) and/or `AIEE_MOUSER_API_KEY` exist; first live call = re-verify the response field names in normalize_digikey/normalize_mouser and close this row. |
 | V20 | T6 mechanisms awaiting first live-run validation | T6 | The T6-built mechanisms proven by tests/bench but not yet exercised on a live board run: route_cleanup root-cause fix (dry-run + inspect its first live run, then retire the SKILL caveat), silk_place solver at scale, corridor cost term on a PD-class board, KRT iteration-ladder/Coverage facts, HV DRU emission on a real >30V board, spawn-tier downgrades (watch the deterministic backstops), lib_pull paced batch on a 40+ part board. Also: lumina-carrier's shipped .kicad_dru fails the new check_dru (7 of 8 aiee_* floors missing - hand-edit erased them; board defect, fix at carrier resume). |
+| V22 | U9 cross-stage rails awaiting first live use | U9 | **OPEN.** The P3 layout screen (`datasheet_extract.py --screen`) and `state.py cross-spawn` are test-pinned on the sbuck fixture and the pd_trigger board_update round trip, not yet run on a live board. First live P3 (U10) should run the screen and record whether its conflicts were real; the first live backward spawn should confirm the 2-per-stage budget. |
 
 ## S0 - Repo bootstrap and environment (2026-07-06) - DONE
 
@@ -5446,7 +5447,11 @@ is the tooth. Board writer lock: the KiCad swig saves (`board_swig`/`place_swig`
 point and no KiCad on this host to verify - `safelib.writer_lock(pcb)` is the primitive;
 wiring the four dispatchers is a verify-later item (needs a KiCad host).
 
-**Verify-later:** V-U12-1 board writer lock wiring (above). V-U12-2 restore swap-phase
+**Verify-later:** V-U12-1 board writer lock wiring (above) - CLOSED 2026-09-27:
+`safelib.board_locks(job)` holds the writer lock on a job's "board" and "out"
+from LoadBoard to Save in all four workers; `tests/test_swig_writer_lock.py`
+proves each one waits on a held lock under real KiCad 10.0.6 (Linux host).
+V-U12-2 restore swap-phase
 window: a crash BETWEEN two `os.replace` calls leaves a partial restore (rename-only
 window, microseconds); a re-run of the same restore completes it.
 
@@ -5470,3 +5475,73 @@ for a while. What changed and why:
   showed (dry-run first, no blanket skip on 2L pour boards); the JLC API note records
   what live calls settled (copperWeight as a string works; no tracking number).
 - Router and tasks.yaml route the guide step; the model-tier table lists board-guide.
+
+## U9 - Cross-stage rails: P3 layout screens + budgeted backward spawns (2026-09-27) - DONE
+
+Run ahead of U8 (owner-present, not done) because U9's build needs none of
+U8's outputs; the spots where U8/U10 would change a default are listed below.
+Host toolchain (KiCad 10.0.6 user-space, no container).
+
+**Built:**
+- `scripts/lib/layoutimpl.py` (NEW) - deterministic P3 layout implications per
+  part: `thermal_vias` (EP via capacity: pitch floor = max(drill +
+  hole-to-hole, via land + clearance) from `jlc_capabilities.yaml`; nx x ny,
+  max square), `orientation` (wire-entry direction from a KF128/DB128L family
+  table or the extraction's `land_pattern.wire_entry_local`, and
+  `rot_for_edge`), `courtyard` (`land_pattern.courtyard_mm`, else an IPC chip
+  table), `routing` (pad pitch vs trace + 2 x clearance; `max_stub_width_mm`).
+  `screen(ws)` cross-checks `architecture/constraints.json`: `thermal[].min_vias`
+  over capacity, an edge `rot` pointing a wire entry inward, courtyard sum over
+  65 % of the board (45 % = `tight`, a warning). `score(imp, needs)` is the
+  part-sourcer ranking term.
+- `datasheet_extract.py --screen WS [--board-mm WxH]` writes
+  `parts/layout_implications.json`, exit 1 on a conflict; `--implications
+  FILE... --needs JSON` ranks candidates. Schema: `exposed_pad.size_mm`,
+  `land_pattern.courtyard_mm`, `land_pattern.wire_entry_local`, computed
+  `layout_implications`.
+- `state.py cross-spawn --stage --role --model --brief [--kinds]`: opens a
+  `cross_stage` issue, consumes `budgets.cross_stage_spawns.<stage>` (P4-P9,
+  default 2; installed on first touch for older states), records a ledger
+  spawn tagged `cross_stage: true, issue: N`. Only read-only roles
+  (`CROSS_SPAWN_ROLES`: part-sourcer, research-component-scout,
+  datasheet-extractor, researcher). Budget spent = no spawn, issue
+  `escalated`, decision + `cross_spawn_checkpoint` event, status
+  `checkpoint`, exit 1 (state.py's first exit-1 case).
+- Protocol prose: agents/placement.md "Backward spawn" (+ the screen as an
+  input), router.md, part-sourcer.md rule 6, datasheet-extractor.md fields,
+  recipes/full-run.md (P3-exit screen + backward-spawn step).
+- `tests/test_cross_stage.py` (14) + `tests/fixtures/u9_sbuck/` (4 parts of
+  sbuck-5v3a's P3 parts.json, the AP64350 extraction, its P3 thermal + edge
+  constraints). Triage rows 222/223 -> done L2; header recomputed.
+
+**Accept:** screen on the sbuck fixture emits the SO-8EP answer (16 wanted,
+4 x 3 = 12 max, no 4x4) and the DB128L one (J1 270, J2 90 - the P3 file had
+0/180); the corrected constraints screen clean. Round trip issue -> spawn ->
+`state.py edit --class` and -> `board_update --state` (pd_trigger fixture)
+marks exactly the mapped recorded gates; issue closes. Third P6 spawn
+checkpoints. `check.cmd`: see the U9 run below.
+
+**Deviations (with reasons):**
+1. The fixture adds `exposed_pad.size_mm` to the AP64350 extraction: the P3
+   extraction had no field for it, so the EP land lived only in notes prose.
+   On the REAL sbuck workspace the screen reports that as a gap (and still
+   catches the DB128L rotations). Boards repo untouched.
+2. Placement "templates consume them" is the agent + recipe reading
+   `layout_implications.json`, not place_seed code: mapping a P3 part to a
+   board ref needs the refs, which parts.json carries only as role prose
+   (`part_refs` parses leading refs, same-prefix only). An explicit
+   parts.json `refs` list is honoured when present.
+3. SKILL.md is at its 286-line cap (`test_skill_md_does_not_grow`) and
+   recipes/full-run.md at its 120 (`test_every_verb_has_a_loadable_recipe_doc`),
+   so full-run.md gained two one-clause pointers (P2 bullet re-wrapped to pay
+   for them) and the protocol itself lives in agents/placement.md.
+
+**Where U8/U10 may change a default:** the 2-per-stage spawn budget; the
+45/65 % courtyard thresholds (placement density a taught buck layout
+actually needs); whether a `tight` verdict should also block. The via
+screen uses the capability row's minimum via, not a thermal-via size U8
+might teach.
+
+**New verify-later items:** V22 - the screen's first live P3 (U10) and the
+first live backward spawn; both are test-pinned only.
+
