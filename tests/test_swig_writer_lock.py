@@ -110,7 +110,9 @@ def test_worker_waits_for_the_board_writer_lock(bundled_python, worker,
     held = _board(tmp_path / "held")
     job, last = _job(worker, held)
     before = held.read_bytes()
-    hold = 2 * baseline + 2.0  # well past the time a free run took
+    # well past the time a free run took, but under the worker's lock
+    # timeout: past it the worker rightly refuses (LockBusy) instead of waiting
+    hold = min(2 * baseline + 2.0, safelib.DEFAULT_LOCK_TIMEOUT / 2)
     with safelib.writer_lock(held, what="test holder"):
         proc = _start(bundled_python, worker, job, held.parent)
         time.sleep(hold)
