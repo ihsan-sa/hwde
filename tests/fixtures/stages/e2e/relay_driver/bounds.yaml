@@ -3,8 +3,8 @@ brief: e2e_relay_driver
 nets:
   - {id: v5, pattern: "(?i)^/?\\+?(5V|5V0|VIN|VCC)$"}
   - {id: gnd, pattern: "^GND$"}
-  - {id: ctrl, pattern: "(?i)IN|CTRL|GPIO|SIG|DRIVE"}
-  - {id: coil, pattern: "(?i)COIL|RLY|RELAY"}
+  - {id: ctrl, pattern: "(?i)(^|/)(IN|CTRL|GPIO|SIG|DRIVE)[0-9_]*$"}
+  - {id: coil, pattern: "(?i)(^|/)(COIL|RLY|RELAY)[0-9_+-]*$"}
 parts:
   - {id: flyback, value_pattern: "(?i)1N4148|1N400[1-7]|LL4148|BAV|SS1[0-9]|M7|flyback", min_count: 1}
 # the drive network depends on the transistor chosen: no SPICE

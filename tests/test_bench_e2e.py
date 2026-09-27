@@ -73,6 +73,27 @@ def test_bounds_refuse_a_hole_that_would_score_free(tmp_path, body, why):
         e2elib.load_bounds(_bounds(tmp_path, body))
 
 
+AUTO_NAMED = ["Net-(J2-Pin_1)", "unconnected-(J1-Pin_3-Pad3)", "Net-(Q1-B)",
+              "Net-(D1-K)"]
+
+
+@pytest.mark.parametrize("brief", sorted(p.name for p in E2E_DIR.iterdir()
+                                         if (p / "bounds.yaml").is_file()))
+def test_net_patterns_never_match_kicad_auto_names(brief):
+    """A pattern that finds KiCad's auto-named nets scores a missing net free."""
+    bounds = e2elib.load_bounds(E2E_DIR / brief / "bounds.yaml")
+    for net in bounds["nets"]:
+        hit, _ = e2elib.match_net(AUTO_NAMED, net["pattern"])
+        assert hit is None, f"{brief} net {net['id']} matches {hit}"
+
+
+def test_relay_ctrl_is_not_the_supply():
+    bounds = e2elib.load_bounds(E2E_DIR / "relay_driver" / "bounds.yaml")
+    ctrl = next(n for n in bounds["nets"] if n["id"] == "ctrl")["pattern"]
+    assert e2elib.match_net(["VIN", "/VIN", "Net-(J2-Pin_1)"], ctrl)[0] is None
+    assert e2elib.match_net(["/CTRL"], ctrl)[0] == "/CTRL"
+
+
 def test_good_bounds_load(tmp_path):
     assert e2elib.load_bounds(_bounds(tmp_path, GOOD))["nets"][0]["id"] == "v"
 
