@@ -382,6 +382,11 @@ def check_area(bounds: dict, bg) -> list:
     if bg is None:
         return [_check("layout:area", "layout", 0.0, bound=lim,
                        note="no board in the workspace")]
+    # geom returns an empty Polygon for a missing or open Edge.Cuts: that is
+    # no board, not a board of 0 mm2 under the bound
+    if bg.outline.is_empty or not bg.outline.area:
+        return [_check("layout:area", "layout", 0.0, bound=lim,
+                       note="no closed board outline")]
     area = checklib.rnd(bg.outline.area, 1)
     return [_check("layout:area", "layout", le_score(area, lim),
                    value=area, bound=lim)]
@@ -464,8 +469,12 @@ def check_cost(bounds: dict, parts_json: Path | None) -> tuple[list, dict]:
     if not priced:
         return [_check("cost:bom", "cost", 0.0, bound=target, qty=qty,
                        note="no priced BOM line in parts.json")], facts
-    return [_check("cost:bom", "cost", le_score(total, target), value=total,
-                   bound=target, qty=qty, unpriced=facts["unpriced"])], facts
+    # the agent writes parts.json, so an unpriced line must not lower the
+    # bill for free: the score is scaled by the priced fraction of lines
+    return [_check("cost:bom", "cost",
+                   le_score(total, target) * priced / lines, value=total,
+                   bound=target, qty=qty, priced_lines=priced,
+                   unpriced=facts["unpriced"])], facts
 
 
 # ------------------------------------------------------------- roll-up

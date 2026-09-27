@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
@@ -29,7 +30,15 @@ BASELINES = REPO / "tests" / "fixtures" / "stages" / "baselines"
 
 def test_every_brief_has_loadable_hidden_bounds():
     briefs = sorted(p.parent.name for p in E2E_DIR.glob("*/brief.md"))
-    assert 5 <= len(briefs) <= 10
+    # the brief asks for 5-10 HELD-OUT briefs; calibration twins of shipped
+    # boards (args.calibration_board) check the scorer and do not count
+    manifest = yaml.safe_load((E2E_DIR.parent / "manifest.yaml")
+                              .read_text(encoding="utf-8"))["fixtures"]
+    e2e = {f: e for f, e in manifest.items() if e["stage"] == "E2E"}
+    assert sorted(f"e2e_{b}" for b in briefs) == sorted(e2e)
+    held_out = [f for f, e in e2e.items()
+                if not (e.get("args") or {}).get("calibration_board")]
+    assert 5 <= len(held_out) <= 10, held_out
     for b in briefs:
         bounds = e2elib.load_bounds(E2E_DIR / b / "bounds.yaml")
         assert bounds["brief"] == f"e2e_{b}"
@@ -101,6 +110,40 @@ def test_cost_counts_refs_under_either_key_and_zero_priced_scores_zero(tmp_path)
                   encoding="utf-8")
     checks, facts = e2elib.check_cost(bounds, pj)
     assert checks[0]["score"] == 0.0 and facts["unpriced"] == ["X"]
+    # a cheap priced line beside an unpriced one must not score a full bill
+    pj.write_text(json.dumps({"parts": [
+        {"refs": ["R1"], "price": 0.01},
+        {"refs": ["U1"], "mpn": "REG"}]}), encoding="utf-8")
+    checks, facts = e2elib.check_cost(bounds, pj)
+    assert facts["bom_usd"] == pytest.approx(0.01)
+    assert checks[0]["score"] == pytest.approx(0.5)
+    assert checks[0]["priced_lines"] == 1 and facts["unpriced"] == ["REG"]
+
+
+@pytest.mark.parametrize("value,volts", [
+    ("TPS54302DDCR", 0.596), ("TPS5430DDAR", 1.221), ("TPS5450DDAR", 1.221),
+    ("TPS54360DDAR", 0.8), ("TPS54540DDAR", 0.8), ("TPS54331DR", 0.8),
+    ("LMR33630ADDAR", 1.0), ("TPS54202DDCR", None), ("TPS543620", None)])
+def test_vref_table_matches_whole_part_numbers(value, volts):
+    """An unanchored TPS543 prefix gave a TPS54302 (0.596 V) 1.221 V."""
+    for brief in ("buck_5v", "buck_3v3"):
+        spec = e2elib.load_bounds(E2E_DIR / brief / "bounds.yaml")["spice"][0]
+        got, _ = e2elib._vref(spec, {"components": {"U1": {"value": value}}})
+        assert got == volts, (brief, value)
+
+
+def test_board_without_an_outline_scores_no_area(tmp_path):
+    import geom
+    # the frozen bb-ldo board with its Edge.Cuts drawing moved to Dwgs.User
+    src = E2E_DIR / "ldo_3v3" / "ws" / "kicad" / "PCB-0012-A_bb-ldo.kicad_pcb"
+    text = src.read_text(encoding="utf-8")
+    assert '(layer "Edge.Cuts")' in text
+    pcb = tmp_path / "x.kicad_pcb"
+    pcb.write_text(text.replace('(layer "Edge.Cuts")', '(layer "Dwgs.User")'),
+                   encoding="utf-8")
+    got = e2elib.check_area({"layout": {"area_mm2_max": 100}},
+                            geom.BoardGeom.from_file(pcb))
+    assert got[0]["score"] == 0.0 and got[0]["note"] == "no closed board outline"
 
 
 def test_category_mean_skips_unscored_checks():

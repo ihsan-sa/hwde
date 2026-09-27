@@ -503,7 +503,7 @@ fixtures:
         sha256: bbdb5b462e7653f9bf42e62c50396c209987310c3532d7bc0116125cad2619c3
       bounds:
         path: tests/fixtures/stages/e2e/buck_5v/bounds.yaml
-        sha256: 4c41a1cc2ec5913555ff113ca2ac19031a9dad89829a5f338e372cf9c2288e34
+        sha256: 90feafa1fe2a8896ce78edb928c479f89dda0ac7146d36debc9ece9036d90361
     args:
       calibration_board: PCB-0010-A_bb-buck
   e2e_adc_12b:
@@ -569,7 +569,7 @@ fixtures:
         sha256: 001d783d2fd94a245fc993312fd84c93d60f12c5d69557eab1241cfc3611144a
       bounds:
         path: tests/fixtures/stages/e2e/buck_3v3/bounds.yaml
-        sha256: 3427ed1c24df75b8a7b5d5039dfcbb214fb9724e5f3a2f4baac9d3a46a70e307
+        sha256: 97ef94ada2aede0272783c46c84f35218aca694341f9222212172842c843e466
   e2e_usbc_ldo:
     stage: E2E
     board: held-out-usbc-ldo
@@ -600,3 +600,18 @@ fixtures:
       bounds:
         path: tests/fixtures/stages/e2e/ntc_front/bounds.yaml
         sha256: ed820d02a1f1c6b88b6e14bcc50961391c357be3df54e03a2736f19420bbac2f
+  e2e_relay_driver:
+    stage: E2E
+    board: held-out-relay-driver
+    provenance:
+      source: tests/fixtures/stages/e2e/relay_driver (brief + hidden bounds)
+      method: copy
+      captured: '2026-09-27'
+      note: held out; score a finished workspace with --artifact
+    files:
+      brief:
+        path: tests/fixtures/stages/e2e/relay_driver/brief.md
+        sha256: 505c624a1dd175723a8553fa198dff29a28caba4872278dfeb7d7e36f6c49f14
+      bounds:
+        path: tests/fixtures/stages/e2e/relay_driver/bounds.yaml
+        sha256: 9b61dc371565da7b307bfea6dc7c834b7fd426fbd58d8fe516964b3918ff714e

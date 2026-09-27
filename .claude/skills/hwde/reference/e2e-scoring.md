@@ -31,7 +31,8 @@ meaningless, so a driver that shows the agent `tests/` has spent the brief.
 Calibration briefs restate a shipped board's brief (bb-ldo, bb-buck, bb-adc,
 bb-amp) and, with no `--artifact`, score that board from the boards repo
 (`args.calibration_board`). hwde has seen them, so they check the scorer, not
-hwde. Held-out briefs have never been run; with no `--artifact` they score 0.
+hwde. The five held-out briefs have never been run; with no `--artifact` they
+score 0.
 
 `bounds.yaml` keys (`load_bounds` refuses anything else, and refuses a file
 missing `nets`, `layout.area_mm2_max` or `cost.target_usd`, because without
@@ -59,7 +60,9 @@ are open circuit.
 - `divider`: `top`, `mid`, `bottom` net ids, and 1 V on top gives the ratio
   V(mid)/V(top). With `vref` the value is `vref / ratio` (a regulator's
   output); `vref: {by_value: {regex: volts}}` takes the reference from the
-  first part whose value matches, and a design with no listed part is
+  first part whose value matches. Anchor each pattern to the whole part
+  number (`TPS5430(?![0-9])`), because a bare prefix also matches its
+  siblings with a different reference. A design with no listed part is
   unscored rather than failed. With `scale` the value is `scale * ratio` (a
   sense divider at full input).
 - `rc_lowpass`: `in`, `out`, `gnd`, and the -3 dB frequency of V(out)/V(in)
@@ -73,14 +76,15 @@ picks, or where `by_value` covers the plausible ICs.
 ## The score
 
 Every check scores 0 to 1, or `None` when this host or design cannot score
-it. A missing artefact scores 0, not `None`. A category is the mean of its
+it. A missing artefact scores 0, not `None`, and so does a board with no
+closed Edge.Cuts outline. A category is the mean of its
 scored checks.
 
 | category | checks |
 |---|---|
 | electrical | nets, parts, ERC errors (live), SPICE (live) |
 | layout | area, placement legality, signal crossings, decap distance (with a decoupling sidecar), DRC errors (live), routing completion (live) |
-| cost | BOM at `qty` |
+| cost | BOM at `qty`, scaled by the fraction of BOM lines that carry a price |
 
 A "less is better" value scores 1 at or under its bound and falls linearly to
 0 at twice the bound. A bound of 0 scores `1/(1+n)`.
