@@ -168,17 +168,21 @@ def volts_from_name(net: str) -> float | None:
     return None
 
 
+_78XX_DECIMAL = {"33": 3.3, "52": 5.2, "85": 8.5}
+
+
 def reg_out_volts(mpn: str) -> float | None:
     """Fixed output of a regulator MPN: AMS1117-3.3 -> 3.3, L78L33 -> 3.3,
     L7815 -> 15. A 78xx code counts only as the MPN's own prefix (L, LM,
-    MC, UA, KA, NCV, CJ) and reads as whole volts, bar 33 = 3.3; any other
+    MC, UA, KA, NCV, CJ) and reads as whole volts, bar the decimal codes
+    33 = 3.3, 52 = 5.2 and 85 = 8.5; any other
     MPN (HT7850, TPS78233) is unknown, never a guess."""
     m = re.search(r"[-_](\d{1,2}\.\d{1,2})(?![0-9])", mpn)
     if m:
         return float(m.group(1))
     m = re.match(r"(?:L|LM|MC|UA|KA|NCV|CJ)?78L?M?(\d{2})", mpn.upper())
     if m:
-        return 3.3 if m.group(1) == "33" else float(m.group(1))
+        return _78XX_DECIMAL.get(m.group(1), float(m.group(1)))
     return None
 
 
@@ -189,8 +193,9 @@ def cell_volts(cell: str) -> list[float]:
     s = cell.replace("\u2013", "-").replace("\u00b1", "+/-")
     s = re.sub(r"\+\s*/?\s*-\s*\d+(?:\.\d+)?\s*%?", " ", s)
     s = re.sub(r"\d+(?:\.\d+)?\s*%", " ", s)
-    s = re.sub(r"(\d+(?:\.\d+)?)\s*(?:-|to|\.\.)\s*(\d+(?:\.\d+)?)",
-               lambda m: str(max(float(m.group(1)), float(m.group(2)))), s)
+    s = re.sub(r"(\d+(?:\.\d+)?)\s*V?\s*(?:-|to|\.\.)\s*(\d+(?:\.\d+)?)",
+               lambda m: str(max(float(m.group(1)), float(m.group(2)))), s,
+               flags=re.I)
     return [float(x) for x in re.findall(r"(?<![\d.])-?\d+(?:\.\d+)?", s)]
 
 

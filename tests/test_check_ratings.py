@@ -118,12 +118,15 @@ def test_regulator_mpn_volts():
     assert cr.reg_out_volts("MC78M05CDTRKG") == 5.0
     assert cr.reg_out_volts("HT7850") is None
     assert cr.reg_out_volts("TPS78233DDCR") is None
+    assert cr.reg_out_volts("L7852CV") == 5.2
+    assert cr.reg_out_volts("L7885CV") == 8.5
 
 
 @pytest.mark.parametrize("cell,v", [
     ("3.3", [3.3]), ("5.0 / 4.7", [5.0, 4.7]), ("-5", [-5.0]),
     ("4.5-5.5", [5.5]), ("4.5 to 5.5 V", [5.5]), ("1.8 \u00b15%", [1.8]),
-    ("3.3 +/-0.1", [3.3]), ("12 (5%)", [12.0])])
+    ("3.3 +/-0.1", [3.3]), ("12 (5%)", [12.0]),
+    ("4.5V-5.5V", [5.5]), ("3.0V\u20133.6V", [3.6]), ("4.5v to 5.5v", [5.5])])
 def test_power_tree_cell_volts(cell, v):
     assert cr.cell_volts(cell) == v
 
