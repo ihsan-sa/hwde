@@ -6,6 +6,10 @@ launched as a subprocess by the venv driver. Consumes a JSON job on argv; the
 `verb` key selects the operation (absent = "build", board_init's original job
 shape).
 
+Every job runs under safelib.board_locks(job): an OS writer lock on the
+"board" and "out" .kicad_pcb (<pcb>.lock), held from LoadBoard to Save;
+a second worker on the same board waits, then refuses (LockBusy).
+
 verb "build" (board_init, SPEC P5): places every footprint from a netlist
 netmap onto a fresh board, assigns pad nets, spreads parts on a shelf grid (no
 courtyard overlaps), draws the outline and mounting holes, and saves an
@@ -44,6 +48,8 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+
+import safelib  # lib/ is sys.path[0]: the worker runs as lib/board_swig.py
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
@@ -439,7 +445,9 @@ def main() -> int:
         if verb not in VERBS:
             raise RuntimeError(f"unknown verb {verb!r} "
                                f"(have: {', '.join(sorted(VERBS))})")
-        print(json.dumps(VERBS[verb](job)))
+        with safelib.board_locks(job):
+            result = VERBS[verb](job)
+        print(json.dumps(result))
         return 0
     except Exception as exc:
         import traceback

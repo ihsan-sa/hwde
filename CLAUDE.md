@@ -71,6 +71,11 @@ Ubuntu 26.04 library debs, unpacked with `apt-get download` + `dpkg-deb -x` into
 `PYTHONPATH` (SWIG pcbnew for the host python 3.14). eeschema (ERC, netlist
 export) also needs the `libwebkit2gtk-4.1-0` closure unpacked the same way;
 chase `ldd usr/bin/_eeschema.kiface | grep "not found"` until it is empty. Before any hwde script:
-`. ~/.local/kicad10/hwde-env.sh`. The venv is host python 3.14 with
-`requirements.lock` minus `pywin32`; `tools/` holds Freerouting 2.2.4 and a
-Temurin 25 JRE. SWIG Specctra paths need a display: `Xvfb :99 &` first.
+`. ~/.local/kicad10/hwde-env.sh`, which also exports the tool pins
+(`HWDE_TOOLS_DIR`, `HWDE_JAVA`, `HWDE_FREEROUTING_JAR`, `HWDE_KRT_DIR`,
+`HWDE_NGSPICE_DLL`). The venv is `~/.local/hwde-venv` (host python 3.14,
+`requirements.lock` minus `pywin32`); link it into a checkout as `.venv`.
+`~/.local/hwde-tools` holds the Temurin 25 JRE, Freerouting 2.2.4 and
+KiCadRoutingTools 0.19.0, so a worktree's `tools/` is unused. SWIG workers
+need a display: start your own `Xvfb :<n> &` and set `DISPLAY=:<n>`, because
+a shared long-lived `:99` has aborted workers with "no display connection".

@@ -2,8 +2,11 @@
 
 Runs inside KiCad's bundled python (the only interpreter with pcbnew); invoked
 via routelib.run_worker(..., worker=UPDATE_WORKER) by the venv driver. stdlib
-only. Result travels by FILE (job["result"]), never stdout: bulk Remove()
++ lib/safelib. Result travels by FILE (job["result"]), never stdout: bulk Remove()
 sprays C-level noise that tears stdout mid-line (route_swig precedent).
+Every job runs under safelib.board_locks(job): an OS writer lock on the
+"board" and "out" .kicad_pcb (<pcb>.lock), held from LoadBoard to Save;
+a second worker on the same board waits, then refuses (LockBusy).
 
 One verb:
 
@@ -28,6 +31,8 @@ that no longer exists - removed with the footprint and reported.
 """
 import json
 import sys
+
+import safelib  # lib/ is sys.path[0]: the worker runs as lib/update_swig.py
 
 import pcbnew
 
@@ -225,7 +230,8 @@ def main():
         if verb not in VERBS:
             raise ValueError("unknown verb: %r" % verb)
         payload = {"ok": True, "verb": verb}
-        payload.update(VERBS[verb](job))
+        with safelib.board_locks(job):  # LoadBoard -> Save under one hold
+            payload.update(VERBS[verb](job))
         rc = 0
     except Exception as e:  # noqa: BLE001
         import traceback

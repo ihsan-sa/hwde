@@ -5446,7 +5446,11 @@ is the tooth. Board writer lock: the KiCad swig saves (`board_swig`/`place_swig`
 point and no KiCad on this host to verify - `safelib.writer_lock(pcb)` is the primitive;
 wiring the four dispatchers is a verify-later item (needs a KiCad host).
 
-**Verify-later:** V-U12-1 board writer lock wiring (above). V-U12-2 restore swap-phase
+**Verify-later:** V-U12-1 board writer lock wiring (above) - CLOSED 2026-09-27:
+`safelib.board_locks(job)` holds the writer lock on a job's "board" and "out"
+from LoadBoard to Save in all four workers; `tests/test_swig_writer_lock.py`
+proves each one waits on a held lock under real KiCad 10.0.6 (Linux host).
+V-U12-2 restore swap-phase
 window: a crash BETWEEN two `os.replace` calls leaves a partial restore (rename-only
 window, microseconds); a re-run of the same restore completes it.
 
