@@ -197,14 +197,14 @@ def diff_pair_rules(pairs: list[dict], stackup: dict) -> tuple[list[Rule], list[
         rules.append(Rule(
             f"aiee_diff_gap_{safe}", "diff_pair_gap", round(gap, 4),
             condition=(f"A.NetName == '{dp['p']}' || A.NetName == '{dp['n']}'")))
-        # V12 guard (T6 P5-4): impedance.py solves OUTER microstrip only -
-        # inner-layer geometry for a solved pair is silently wrong (1080B
-        # inner dielectrics are nothing like the microstrip model). Until a
-        # stripline solver exists, an inner-layer segment of the pair is a
-        # NAMED DRC violation instead of a silent impedance error. Layer
-        # transitions via vias remain legal (vias are not tracks). Waiver
-        # path: reference/remediations - delete the rule consciously only
-        # after a hand stripline solve against the fab's calculator.
+        # Inner-layer guard (T6 P5-4): the width/gap above is solved for the
+        # OUTER coated microstrip; the same pair on an inner layer (1080B's
+        # inner dielectrics are nothing like it) would be mis-sized, so an
+        # inner-layer segment of the pair is a NAMED DRC violation instead
+        # of a silent impedance error. Layer transitions via vias remain
+        # legal (vias are not tracks). Waiver path: reference/remediations -
+        # delete the rule consciously only after solving the inner geometry
+        # with impedance.field_stripline (check_diffpair reports the result).
         rules.append(Rule(
             f"aiee_diff_outer_only_{safe}", "disallow track", layer="inner",
             condition=(f"A.NetName == '{dp['p']}' || A.NetName == '{dp['n']}'")))

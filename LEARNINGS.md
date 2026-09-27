@@ -5047,3 +5047,9 @@ copies `paths.top_render` to `reports/guide/top.png` each time. Also seen: pd-tr
 temp copy relinked to the workspace's own `lib/*.3dshapes` when such a path no longer
 resolves, and never writes the board. The stock KiCad 3D library is not unpacked on the
 no-container host, so the 1x02 pin header J2 (`${KICAD10_3DMODEL_DIR}`) renders as bare pads.
+
+## 2026-09-27 [impedance][stackup][jlcapi] JLC's impedance calculator is a public API
+- `POST https://jlcpcb.com/api/jlcTools/impedance/selectPageImpedanceDefaultTemplate` with `{"appointName": "JLC04161H-1080B"}` returns the template WITH `dielectricConstant` per layer (the order API's getImpedanceTemplateSettingList has none). No login.
+- `POST .../jlcTools/impedance/calc` takes `{accessId, impedance_calc_mark, impedance_calc_arg:{H1,Er1,W1,W2,[S1],T1,C1,C2,[C3],CEr,...}, uuid}` in MIL, but the answer comes back over `wss://tools.jlc.com/jlcTools/webSocket/{uuid}`, not in the POST response. Forward mode (width -> ohms) works; the solve-for-width mode returned status 6 for every argument set tried.
+- SI9000 OffsetStripline1B1A: the trace sits on H1 and is embedded in H2 (eps_eff matched lib/impedance.py to 4 digits with that reading).
+- lib/impedance.py's field solver runs +0.6..0.9% above JLC on every case; treat that as the solver's known bias, well inside JLC's +/-10%.

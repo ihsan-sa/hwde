@@ -232,10 +232,12 @@ class _FakeBG:
 
 
 def test_pair_geometry_matches_rules_gen_math():
-    # same numbers as rules_gen/impedance on the S8 4-layer JLC stackup
+    # same numbers as rules_gen/impedance (field solver) on the S8 4-layer
+    # JLC stackup; the closed form gave 0.314 / 0.3669 here
     w, g = rc.pair_geometry(_FakeBG(), 90)
-    assert (w, g) == (0.314, 0.2104)
-    assert rc.rf_width(_FakeBG(), 50) == pytest.approx(0.3669, abs=1e-4)
+    assert (w, g) == (0.3132, 0.2104)
+    assert rc.rf_width(_FakeBG(), 50) == pytest.approx(
+        rc.imp.solve_width(50, 0.2104, 0.035, 4.05), abs=1e-4)
 
 
 def test_pair_geometry_fallback_without_stackup():

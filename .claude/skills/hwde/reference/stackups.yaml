@@ -30,18 +30,23 @@
 # finds out.
 #
 # ------------------------------------------------------------------ er / tanD
-# The API returns NO dielectric constant - only materials (1080 / 3313 / 7628
-# glass styles, core) and thicknesses. epsilon_r / loss_tangent below are
-# therefore ASSUMED FR4 values (flagged per stackup by `epsilon_r_assumed`),
-# NOT JLC data: resin-rich 1080 prepreg really has a lower er than 7628, and
-# that difference is not modelled. They are good enough to size DRU rules and
-# S5 targets, and they are exactly why V12 says: confirm against JLC's
-# impedance calculator before ordering a controlled-impedance board.
+# The order API returns NO dielectric constant - only materials and
+# thicknesses. JLC's impedance CALCULATOR does: its public template list
+# (POST https://jlcpcb.com/api/jlcTools/impedance/selectPageImpedanceDefaultTemplate
+# with {"appointName": "<template>"}) carries a dielectricConstant per layer,
+# read 2026-09-27 into tests/fixtures/jlc_impedance/<template>_template.json.
+# Entries using those values say `epsilon_r_assumed: false` and
+# `epsilon_r_source: jlc_calculator_template`; the rest keep ASSUMED FR4
+# values (`epsilon_r_assumed: true`). loss_tangent is assumed everywhere.
 #
 # CONTROLLED-IMPEDANCE geometry (width_mm / gap_mm) is COMPUTED from the
-# physical stackup by scripts/lib/impedance.py (IPC-2141A surface microstrip +
-# the published edge-coupled correction), NOT transcribed from JLC's
-# calculator. OUTER-layer microstrip only; inner-layer stripline is not solved.
+# physical stackup by scripts/lib/impedance.py's 2D field solver (coated
+# microstrip, JLC's C1/C2/CEr solder-mask coating), which lands within 1% of
+# JLC's own calculator on these stackups (tests/test_impedance.py). The
+# `closed_form` sub-entry is the IPC-2141A fallback for the same stack, kept
+# for a venv without scipy. OUTER-layer microstrip here; impedance.py also
+# solves inner stripline (check_diffpair uses it), but rules_gen still keeps
+# solved pairs off inner layers.
 #
 # Units: mm. `stack` is ordered top->bottom and lists copper + dielectric
 # layers using KiCad stackup layer names, so board_init can emit the block
@@ -143,29 +148,34 @@ stackups:
       live_verified: true
       verified: "2026-08-06"
       first_seen: "2026-07-30"
-      note: "Every thickness below is JLC's own number; epsilon_r is not."
+      note: "Every thickness and epsilon_r below is JLC's own number: the
+        thicknesses from the order API, epsilon_r from the impedance
+        calculator's template (PP 1080 RC67% 3.91, core 4.38)."
     layers: 4
     thickness_mm: 1.6            # ordered/nominal product thickness
     stack_total_mm: 1.6542       # what the lamination actually sums to
     copper_finish: HASL
     dielectric_constraints: true
-    epsilon_r_assumed: true
+    epsilon_r_assumed: false
+    epsilon_r_source: jlc_calculator_template
     stack:
       - {name: "F.Cu",         type: copper,   thickness_mm: 0.035,  copper_oz: 1.0}
-      - {name: "dielectric 1", type: prepreg,  thickness_mm: 0.2444, material: "FR4 1080x3", plies: "1080*1 0.084 + 1080*1 0.084 + 1080*1 0.0764", epsilon_r: 4.05, loss_tangent: 0.02}
+      - {name: "dielectric 1", type: prepreg,  thickness_mm: 0.2444, material: "FR4 1080x3", plies: "1080*1 0.084 + 1080*1 0.084 + 1080*1 0.0764", epsilon_r: 3.91, loss_tangent: 0.02}
       - {name: "In1.Cu",       type: copper,   thickness_mm: 0.0152, copper_oz: 0.5}
-      - {name: "dielectric 2", type: core,     thickness_mm: 1.065,  material: "FR4",        epsilon_r: 4.6,  loss_tangent: 0.02}
+      - {name: "dielectric 2", type: core,     thickness_mm: 1.065,  material: "FR4",        epsilon_r: 4.38,  loss_tangent: 0.02}
       - {name: "In2.Cu",       type: copper,   thickness_mm: 0.0152, copper_oz: 0.5}
-      - {name: "dielectric 3", type: prepreg,  thickness_mm: 0.2444, material: "FR4 1080x3", plies: "1080*1 0.0764 + 1080*1 0.084 + 1080*1 0.084", epsilon_r: 4.05, loss_tangent: 0.02}
+      - {name: "dielectric 3", type: prepreg,  thickness_mm: 0.2444, material: "FR4 1080x3", plies: "1080*1 0.0764 + 1080*1 0.084 + 1080*1 0.084", epsilon_r: 3.91, loss_tangent: 0.02}
       - {name: "B.Cu",         type: copper,   thickness_mm: 0.035,  copper_oz: 1.0}
-    # Outer-layer microstrip referenced to the nearest inner plane (In1/In2),
-    # dielectric h = 0.2444 mm, er = 4.05 (ASSUMED), 1 oz (t = 0.035).
-    # Computed by impedance.py; regenerate with
+    # Outer-layer coated microstrip referenced to the nearest inner plane
+    # (In1/In2), h = 0.2444 mm, er = 3.91 (JLC), 1 oz (t = 0.035). Computed by
+    # impedance.py; regenerate with
     # tests/test_board_setup.py::test_controlled_impedance_matches_stack.
+    # JLC's calculator cross-check: 0.45 mm SE = 49.97 ohm, 0.30/0.2444 mm
+    # diff = 100.02 ohm (tests/fixtures/jlc_impedance/).
     controlled_impedance:
-      - {profile: se_50,    kind: single, impedance_ohm: 50,  layer: outer, reference: nearest_plane, width_mm: 0.4332}
-      - {profile: diff_90,  kind: diff,   impedance_ohm: 90,  layer: outer, reference: nearest_plane, width_mm: 0.3718, gap_mm: 0.2444, note: "USB 2.0 / ULPI"}
-      - {profile: diff_100, kind: diff,   impedance_ohm: 100, layer: outer, reference: nearest_plane, width_mm: 0.3087, gap_mm: 0.2444, note: "Ethernet / LVDS / general 100R"}
+      - {profile: se_50,    kind: single, impedance_ohm: 50,  layer: outer, reference: nearest_plane, width_mm: 0.4544, closed_form: {width_mm: 0.4416}}
+      - {profile: diff_90,  kind: diff,   impedance_ohm: 90,  layer: outer, reference: nearest_plane, width_mm: 0.3888, gap_mm: 0.2444, closed_form: {width_mm: 0.3798, gap_mm: 0.2444}, note: "USB 2.0 / ULPI"}
+      - {profile: diff_100, kind: diff,   impedance_ohm: 100, layer: outer, reference: nearest_plane, width_mm: 0.3058, gap_mm: 0.2444, closed_form: {width_mm: 0.3163, gap_mm: 0.2444}, note: "Ethernet / LVDS / general 100R"}
 
   JLC04162H-7628A:
     description: "JLCPCB impedance-controlled 4-layer, 1.6 mm nominal, 2 oz
@@ -183,24 +193,29 @@ stackups:
       template_code: "202410110444432104"
       live_verified: true
       verified: "2026-08-06"
+      note: "epsilon_r from JLC's impedance calculator template (PP 7628
+        RC49% 4.4, core 4.41)."
     layers: 4
     thickness_mm: 1.6
     stack_total_mm: 1.5772
     copper_finish: HASL
     dielectric_constraints: true
-    epsilon_r_assumed: true
+    epsilon_r_assumed: false
+    epsilon_r_source: jlc_calculator_template
     stack:
       - {name: "F.Cu",         type: copper,   thickness_mm: 0.070,  copper_oz: 2.0}
-      - {name: "dielectric 1", type: prepreg,  thickness_mm: 0.4284, material: "FR4 7628x2", plies: "7628*1 0.218 + 7628*1 0.2104", epsilon_r: 4.05, loss_tangent: 0.02}
+      - {name: "dielectric 1", type: prepreg,  thickness_mm: 0.4284, material: "FR4 7628x2", plies: "7628*1 0.218 + 7628*1 0.2104", epsilon_r: 4.4, loss_tangent: 0.02}
       - {name: "In1.Cu",       type: copper,   thickness_mm: 0.0152, copper_oz: 0.5}
-      - {name: "dielectric 2", type: core,     thickness_mm: 0.550,  material: "FR4",        epsilon_r: 4.6,  loss_tangent: 0.02}
+      - {name: "dielectric 2", type: core,     thickness_mm: 0.550,  material: "FR4",        epsilon_r: 4.41,  loss_tangent: 0.02}
       - {name: "In2.Cu",       type: copper,   thickness_mm: 0.0152, copper_oz: 0.5}
-      - {name: "dielectric 3", type: prepreg,  thickness_mm: 0.4284, material: "FR4 7628x2", plies: "7628*1 0.2104 + 7628*1 0.218", epsilon_r: 4.05, loss_tangent: 0.02}
+      - {name: "dielectric 3", type: prepreg,  thickness_mm: 0.4284, material: "FR4 7628x2", plies: "7628*1 0.2104 + 7628*1 0.218", epsilon_r: 4.4, loss_tangent: 0.02}
       - {name: "B.Cu",         type: copper,   thickness_mm: 0.070,  copper_oz: 2.0}
+    # JLC's calculator cross-check: 0.75 mm SE = 49.25 ohm, 0.45/0.30 mm diff
+    # = 94.76 ohm (tests/fixtures/jlc_impedance/).
     controlled_impedance:
-      - {profile: se_50,    kind: single, impedance_ohm: 50,  layer: outer, reference: nearest_plane, width_mm: 0.7486}
-      - {profile: diff_90,  kind: diff,   impedance_ohm: 90,  layer: outer, reference: nearest_plane, width_mm: 0.5584, gap_mm: 0.3}
-      - {profile: diff_100, kind: diff,   impedance_ohm: 100, layer: outer, reference: nearest_plane, width_mm: 0.4531, gap_mm: 0.3}
+      - {profile: se_50,    kind: single, impedance_ohm: 50,  layer: outer, reference: nearest_plane, width_mm: 0.7377, closed_form: {width_mm: 0.7138}}
+      - {profile: diff_90,  kind: diff,   impedance_ohm: 90,  layer: outer, reference: nearest_plane, width_mm: 0.5256, gap_mm: 0.3, closed_form: {width_mm: 0.5266, gap_mm: 0.3}}
+      - {profile: diff_100, kind: diff,   impedance_ohm: 100, layer: outer, reference: nearest_plane, width_mm: 0.3966, gap_mm: 0.3, closed_form: {width_mm: 0.4236, gap_mm: 0.3}}
 
   # ------------------------------------------------------------- RETIRED
   # Kept so a board designed against them fails LOUDLY by name.
