@@ -11,7 +11,10 @@ interpreter:  .venv/Scripts/python .claude/skills/hwde/scripts/check_env.py
 
 Fast mode (default) checks presence/versions only. --full adds live probes:
 SWIG pcbnew roundtrip via KiCad's bundled python (needed for Specctra DSN/SES
-and KiCad-9 zone refill) and an IPC headless-connect attempt (kipy). Probe
+and KiCad-9 zone refill) and an IPC headless-connect attempt (kipy). Both
+modes run the impedance field solver (lib/impedance.py, pure numpy + scipy -
+nothing to install beyond the venv) on Cohn's exact stripline and fail if it
+is off by 1% or more. Probe
 failures are recorded as warnings with the working fallback named, because
 each has a sanctioned alternative path in SPEC.md.
 """
@@ -295,6 +298,22 @@ def check_ngspice(resolved: dict) -> dict:
                  NGSPICE_HELP, warn=True)
 
 
+def check_impedance_solver() -> dict:
+    """lib/impedance.py's 2D field solver: numpy + scipy only, so it lives in
+    the venv. A wrong answer here would mis-size every controlled-impedance
+    trace, so it is a fail, not a warn."""
+    try:
+        from lib import impedance
+        st = impedance.solver_status()
+    except Exception as e:  # a broken scipy install fails in many ways
+        return check("impedance-solver", False, f"{type(e).__name__}: {e}",
+                     f"{Path(sys.executable)} -m pip install -r requirements.lock")
+    detail = (f"stripline Z0 {st['z0']} vs exact {st['exact']} ohm "
+              f"({st['err_pct']}% off)" if "z0" in st else st.get("detail", ""))
+    return check("impedance-solver", bool(st["ok"]), detail,
+                 f"{Path(sys.executable)} -m pip install -r requirements.lock")
+
+
 def check_git() -> dict:
     import shutil
     g = shutil.which("git")
@@ -323,6 +342,7 @@ def main(argv: list[str] | None = None) -> int:
         checks.append(check_pdflatex(resolved))
         checks.append(check_ngspice(resolved))
         checks.append(check_git())
+        checks.append(check_impedance_solver())
         if args.full:
             checks.append(probe_ipc())
     except Exception:

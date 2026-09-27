@@ -331,3 +331,37 @@ def test_diffpair_term_window_override(tmp_path_factory):
              "term_pair_mm": 0.1})
     assert facts["branch_free"] is True
     assert facts["length_n_mm"] == pytest.approx(18.08, abs=0.01)
+
+
+# ============================================================ impedance as drawn
+
+def _straight_pair(tmp_path_factory, name, w=0.3, pitch=0.6):
+    body = (seg(2, 5, 18, 5, net="/D_P", w=w)
+            + seg(2, 5 + pitch, 18, 5 + pitch, net="/D_N", w=w))
+    return _board(tmp_path_factory, name, body)
+
+
+def test_diffpair_impedance_reported_and_on_target(tmp_path_factory):
+    bg = _straight_pair(tmp_path_factory, "zok")
+    _, facts = check_diffpair.check_pair(bg, {"p": "/D_P", "n": "/D_N"})
+    z = facts["impedance"]
+    assert z["signal_layer"] == "F.Cu" and z["model"] == "coated microstrip"
+    assert z["width_mm"] == 0.3 and z["gap_mm"] == pytest.approx(0.3, abs=1e-3)
+    # 2-layer 1.6 mm board: the plane is far, so Zdiff is well above 90
+    assert 100 < z["zdiff_ohm"] < 200
+    vs, _ = check_diffpair.check_pair(bg, {"p": "/D_P", "n": "/D_N",
+                                           "impedance_ohm": z["zdiff_ohm"] * 1.05})
+    assert "diffpair_impedance" not in {v["kind"] for v in vs}   # 5% < 10%
+
+
+def test_diffpair_impedance_miss_is_flagged(tmp_path_factory):
+    bg = _straight_pair(tmp_path_factory, "zmiss")
+    _, facts = check_diffpair.check_pair(bg, {"p": "/D_P", "n": "/D_N"})
+    zd = facts["impedance"]["zdiff_ohm"]
+    vs, _ = check_diffpair.check_pair(bg, {"p": "/D_P", "n": "/D_N",
+                                           "impedance_ohm": zd / 1.15})
+    hit = [v for v in vs if v["kind"] == "diffpair_impedance"]
+    assert len(hit) == 1 and hit[0]["severity"] == "warning"
+    vs, _ = check_diffpair.check_pair(bg, {"p": "/D_P", "n": "/D_N", "impedance_ohm": 90})
+    hit = [v for v in vs if v["kind"] == "diffpair_impedance"]
+    assert len(hit) == 1 and hit[0]["severity"] == "error"

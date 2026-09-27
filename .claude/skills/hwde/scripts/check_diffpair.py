@@ -8,7 +8,13 @@ Per pair (from constraints.json["diff_pairs"], else auto-discovered by name):
    (min / median / p90 / max), warned if it wanders beyond tolerance;
  - UNCOUPLED length: run of either trace whose partner has walked away farther
    than coupling_gap_max - the fingerprint of a one-sided meander/detour;
- - VIA symmetry: the two nets should transition layers together.
+ - VIA symmetry: the two nets should transition layers together;
+ - IMPEDANCE as drawn: the pair's dominant width and its median edge gap on
+   its main layer, solved by lib/impedance.py's 2D field solver against the
+   board's own stackup (coated microstrip outside, stripline inside). Always
+   reported as zdiff_ohm; when the spec carries impedance_ohm, a miss beyond
+   impedance_tol_pct (default 10, JLC's standard tolerance) warns and beyond
+   twice that is an error.
 
 Why not raw length? Adding a meander to the SHORTER trace (the corpus
 diffpair-skew mutant does exactly this) barely moves the length skew but is a
@@ -32,7 +38,9 @@ constraints.json["diff_pairs"] entries (all keys but the nets optional):
      "max_skew_mm": 5.0,               # length-match tolerance
      "max_uncoupled_mm": 5.0,          # allowed one-sided uncoupled run
      "coupling_factor": 3.0,           # coupled if gap <= factor * nominal
-     "term_pair_mm": 2.5}              # cross-ref terminal pairing window
+     "term_pair_mm": 2.5,              # cross-ref terminal pairing window
+     "impedance_ohm": 90,              # differential target
+     "impedance_tol_pct": 10}          # allowed miss, percent
 """
 from __future__ import annotations
 
@@ -47,6 +55,7 @@ from shapely.ops import unary_union
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 import checklib  # noqa: E402
 import geom  # noqa: E402
+import impedance  # noqa: E402
 import netconn  # noqa: E402
 from checklib import CheckError, violation  # noqa: E402
 
@@ -57,6 +66,7 @@ MAX_UNCOUPLED_MM = 5.0         # default one-sided uncoupled run
 COUPLING_FACTOR = 3.0          # coupled where gap <= factor * nominal pitch
 TERM_PAIR_MM = 2.5             # cross-ref matched-terminal window (same-ref: none)
 GAP_TOL_MM = 0.5              # coupled-region gap may wander this much (warn)
+IMPEDANCE_TOL_PCT = 10.0       # JLC's standard controlled-impedance tolerance
 SAMPLE_MM = 0.1               # centerline sampling step for gap / uncoupled
 
 # Suffix pairs used to auto-discover pairs: two nets sharing a stem whose final
@@ -289,14 +299,74 @@ def check_pair(bg: geom.BoardGeom, spec: dict):
             SCRIPT, **{**common, "kind": "diffpair_via_asymmetry",
                        "vias_p": vp, "vias_n": vn}))
 
+    zinfo = pair_impedance(bg, p, n, stats["gap_median_mm"])
+    target = spec.get("impedance_ohm")
+    if target and zinfo.get("zdiff_ohm"):
+        tol = float(spec.get("impedance_tol_pct", IMPEDANCE_TOL_PCT))
+        miss = (zinfo["zdiff_ohm"] - float(target)) / float(target) * 100
+        if abs(miss) > tol:
+            violations.append(violation(
+                SCRIPT, "error" if abs(miss) > 2 * tol else "warning", rep_pt, None,
+                p, [], f"diff pair {p}/{n} is {zinfo['zdiff_ohm']:.1f} ohm as drawn "
+                f"(width {zinfo['width_mm']} mm, gap {zinfo['gap_mm']} mm on "
+                f"{zinfo['signal_layer']}); target {float(target):g} ohm +/-{tol:g}%",
+                SCRIPT, **{**common, "kind": "diffpair_impedance",
+                           "target_ohm": float(target), "miss_pct": checklib.rnd(miss),
+                           **zinfo}))
+
     facts = {"pair": [p, n], "length_p_mm": checklib.rnd(lp),
              "length_n_mm": checklib.rnd(ln), "skew_mm": checklib.rnd(skew),
              "skew_ps": checklib.rnd(skew_ps), "branch_free": bool(okp and okn),
              "uncoupled_p_mm": checklib.rnd(unc_p),
              "uncoupled_n_mm": checklib.rnd(unc_n),
              "coupling_max_mm": checklib.rnd(coupling_max),
-             "vias_p": vp, "vias_n": vn, **stats}
+             "vias_p": vp, "vias_n": vn, **stats, "impedance": zinfo}
     return violations, facts
+
+
+def pair_impedance(bg, p, n, gap_c2c) -> dict:
+    """Zdiff of the pair as drawn on its main layer (the layer carrying most of
+    its length): the length-dominant track width and the median centre-to-
+    centre gap minus that width. An inner layer is solved as stripline with
+    the trace sitting on the THICKER neighbouring dielectric (the core, on
+    every JLC stackup) and embedded in the thinner (prepreg)."""
+    tracks = bg.tracks_of(p) + bg.tracks_of(n)
+    by_layer: dict[str, float] = {}
+    for t in tracks:
+        by_layer[t.layer] = by_layer.get(t.layer, 0.0) + t.length
+    sig = max(by_layer, key=by_layer.get)
+    by_w: dict[float, float] = {}
+    for t in tracks:
+        if t.layer == sig:
+            by_w[round(t.width, 4)] = by_w.get(round(t.width, 4), 0.0) + t.length
+    w = max(by_w, key=by_w.get)
+    out = {"signal_layer": sig, "width_mm": w}
+    if gap_c2c is None or gap_c2c - w <= 0.01:
+        return {**out, "note": "no measurable edge gap; impedance not solved"}
+    s = round(gap_c2c - w, 4)
+    out["gap_mm"] = s
+    if len(bg.copper_layers) < 2 or not bg.stackup.dielectrics:
+        return {**out, "note": "no reference plane in the stackup; impedance not solved"}
+    above, below = bg.stackup.adjacent(sig)
+    t = bg.stackup.copper_thickness.get(sig, 0.035)
+    try:
+        if above is None or below is None:
+            ref = below or above
+            z = impedance.field_microstrip(
+                w, bg.stackup.height_between(sig, ref), t,
+                bg.stackup.epsilon_between(sig, ref), s)["zdiff"]
+            model = "coated microstrip"
+        else:
+            sides = sorted(((bg.stackup.height_between(sig, r),
+                             bg.stackup.epsilon_between(sig, r)) for r in (above, below)),
+                           reverse=True)
+            (hb, eb), (hf, ef) = sides
+            z = impedance.field_stripline(w, hb, hf, t, eb, ef, s)["zdiff"]
+            model = "stripline"
+    except (ValueError, RuntimeError, ZeroDivisionError) as e:
+        return {**out, "note": f"impedance not solved: {e}"}
+    return {**out, "zdiff_ohm": checklib.rnd(z), "model": model,
+            "stackup_assumed": bool(bg.stackup.assumed)}
 
 
 DEFAULT_ER = 4.5              # FR4 fallback when no reference dielectric exists

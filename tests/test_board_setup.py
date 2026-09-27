@@ -108,23 +108,27 @@ def test_stackups_carry_verification_provenance():
 
 
 def test_controlled_impedance_matches_stack():
-    """The published width/gap are impedance.py's output for the stack's own
-    outer dielectric - regenerate this table whenever the stack changes."""
+    """The published width/gap are impedance.py's field-solver output for the
+    stack's own outer dielectric, and `closed_form` is the fallback's -
+    regenerate this table whenever the stack changes."""
     st = yaml.safe_load((REFERENCE / "stackups.yaml").read_text("utf-8"))
     for name, s in st["stackups"].items():
         rows = s.get("controlled_impedance") or []
-        if not rows:
+        if not rows or not s["available"]:
             continue
         h, er, oz = rules_gen.outer_microstrip_params(s)
         t = imp.CU_OZ_MM.get(oz, 0.035)
         for ci in rows:
-            if ci["kind"] == "single":
-                w = imp.solve_width(ci["impedance_ohm"], h, t, er)
-                assert abs(w - ci["width_mm"]) < 5e-4, f"{name}/{ci['profile']}"
-            else:
-                w, g = imp.diff_pair(float(ci["impedance_ohm"]), h, t, er)
-                assert abs(w - ci["width_mm"]) < 5e-4, f"{name}/{ci['profile']} width"
-                assert abs(g - ci["gap_mm"]) < 5e-4, f"{name}/{ci['profile']} gap"
+            for method, row in (("field", ci), ("closed_form", ci["closed_form"])):
+                tag = f"{name}/{ci['profile']}/{method}"
+                if ci["kind"] == "single":
+                    w = imp.solve_width(ci["impedance_ohm"], h, t, er, method=method)
+                    assert abs(w - row["width_mm"]) < 5e-4, tag
+                else:
+                    w, g = imp.diff_pair(float(ci["impedance_ohm"]), h, t, er,
+                                         method=method)
+                    assert abs(w - row["width_mm"]) < 5e-4, f"{tag} width"
+                    assert abs(g - row["gap_mm"]) < 5e-4, f"{tag} gap"
 
 
 def test_rotations_csv_valid():
@@ -169,9 +173,10 @@ def test_dru_templates_match_generator(tmp_path):
 
 def test_impedance_microstrip_reference():
     # classic: 50 ohm microstrip on 1.6 mm FR4 (er~4.2) ~ 2.9-3.1 mm
-    w = imp.solve_width(50, 1.6, 0.035, 4.2)
-    assert 2.8 < w < 3.2
-    assert abs(imp.microstrip_z0(w, 1.6, 0.035, 4.2) - 50) < 0.1
+    for method in ("field", "closed_form"):
+        w = imp.solve_width(50, 1.6, 0.035, 4.2, method=method)
+        assert 2.8 < w < 3.2
+        assert abs(imp.microstrip_z0(w, 1.6, 0.035, 4.2, method) - 50) < 0.1
 
 
 def test_impedance_monotonic():
@@ -184,6 +189,8 @@ def test_impedance_diff_roundtrip():
     for zt in (90, 100):
         w, s = imp.diff_pair(zt, h, t, er)
         assert 0.1 < w < 1.0 and 0.1 < s < 0.6
+        assert abs(imp.zdiff(w, s, h, t, er) - zt) < 0.5
+        w, s = imp.diff_pair(zt, h, t, er, method="closed_form")
         assert abs(imp._zdiff(w, s, h, t, er) - zt) < 0.5
 
 
