@@ -1079,12 +1079,14 @@ class Annealer:
         minx, miny, maxx, maxy = e.outline.bounds
         lo, hi = (miny, maxy) if axis == 1 else (minx, maxx)
         poly = e.polys[cid]
-        px0, py0, px1, py1 = poly.bounds
-        half = (py1 - py0) / 2 if axis == 1 else (px1 - px0) / 2
         c = list(e.centers[cid])
+        # the cluster's real reach each side of its center (a one-sided
+        # satellite makes it asymmetric), as place_seed's edge span uses
+        b_lo = poly.bounds[axis] - c[axis]
+        b_hi = poly.bounds[axis + 2] - c[axis]
         t = c[axis] + (rng.random() * 2 - 1) * max(self.p.grid, self.window)
-        t = min(hi - self.p.edge_margin - half,
-                max(lo + self.p.edge_margin + half, self._snap(t)))
+        t = min(hi - self.p.edge_margin - b_hi,
+                max(lo + self.p.edge_margin - b_lo, self._snap(t)))
         c[axis] = t
         return [(cid, tuple(c), e.angles[cid], e.sides[cid])]
 
@@ -1311,6 +1313,11 @@ def _spot_legal(engine: Engine, cid: int, center, angle) -> bool:
     b = engine.bodies[cid]
     side = engine.sides[cid]
     if b.kind == "free" and engine._outside_area(cid, poly) > 0:
+        return False
+    # an edge cluster may overhang only as far as the seed's designed
+    # overhang (out_base) - the same allowance the SA cost gives it
+    if b.kind != "free" and (engine._outside_area(cid, poly)
+                             > engine.out_base[cid] + EPS):
         return False
     x0, y0, x1, y1 = poly.bounds
     for j, other in enumerate(engine.bodies):
