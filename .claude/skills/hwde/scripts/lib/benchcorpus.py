@@ -147,6 +147,11 @@ def run_board(board_dir: Path, work: Path, *, scripts: Path, venv_py: str,
     def py(script, *a):
         return [venv_py, str(scripts / script), "--pcb", str(pcb), *a]
 
+    # each report is set only once its stage ran, so a later stage failing
+    # (a route timeout) keeps the seed and anneal results already recorded
+    seed: dict = {}
+    anneal: dict = {}
+    route: dict = {}
     try:
         stages["metrics_orig"], _ = _stage(
             runner, "metrics_orig",
@@ -186,7 +191,6 @@ def run_board(board_dir: Path, work: Path, *, scripts: Path, venv_py: str,
         route = _report(bdir / "route.json", out)
     except (CheckError, subprocess.TimeoutExpired) as e:
         res["error"] = str(e)
-        seed = anneal = route = {}
     load = sampler.stop()
     total_s = round(time.monotonic() - t0, 1)
 

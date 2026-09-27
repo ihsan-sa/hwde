@@ -133,6 +133,25 @@ def test_route_retried_on_wx_entry_start(tmp_path):
     assert r["stages"]["route"]["tries"] == 1
 
 
+class RouteTimeout(FakeRunner):
+    def __call__(self, argv, **kw):
+        if "route_auto.py" in " ".join(argv):
+            raise subprocess.TimeoutExpired(argv, benchcorpus.STAGE_TIMEOUT_S)
+        return super().__call__(argv, **kw)
+
+
+def test_route_timeout_keeps_seed_and_anneal(tmp_path):
+    r = _run_board(tmp_path, RouteTimeout())
+    assert "timed out" in r["error"]
+    # the stages that ran keep their results; only route is empty
+    assert r["seed"]["status"] == "pass"
+    assert r["anneal"]["error"] == "CheckError: no legal candidate"
+    assert r["route"]["status"] is None
+    # a board that fails before seeding has no seed or anneal result
+    r = _run_board(tmp_path / "left", FakeRunner(left=True))
+    assert r["seed"]["status"] is None and r["anneal"]["status"] is None
+
+
 def _fake_one(board, work, **kw):
     d = Path(work) / board.name
     d.mkdir(parents=True, exist_ok=True)
