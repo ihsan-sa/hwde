@@ -472,7 +472,9 @@ def dirty_board(cli, tmp_path_factory) -> dict:
     rc = board_init.main([
         "--netlist", str(S7 / "blinky2" / "kicad" / "blinky2.net"),
         "--name", "blinky2", "--out", str(d / "kicad"), "--layers", "2",
-        "--schematic", str(GOLDEN / "blinky2" / "blinky2.kicad_sch")])
+        "--schematic", str(GOLDEN / "blinky2" / "blinky2.kicad_sch"),
+        # the injected dirt runs along the edge, where default GND holes sit
+        "--mounting-holes", "0"])
     assert rc == 0
     pcb = d / "kicad" / "blinky2.kicad_pcb"
     for name in ("constraints.json", "decoupling.json"):
