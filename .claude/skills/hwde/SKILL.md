@@ -50,6 +50,11 @@ reviewer spawns. A mode relaxes geometry, cost and packaging only - never a
 gate, the coverage check, research, or a safety question - and every relaxed
 spec is a recorded decision shown at H1.
 
+**Other agents** reach the same answers through `scripts/mcp_server.py`, a
+local stdio MCP server (no port): `hwde_route`, `hwde_state`, `hwde_gate`,
+`hwde_dfm_check` and `hwde_review`. Every tool is read-only unless the call
+passes `write: true`. The README says how to register it in `.mcp.json`.
+
 ## Non-negotiable operating rules
 
 1. **Never open design files.** No .kicad_sch/.kicad_pcb/netlists/gerbers in

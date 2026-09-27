@@ -1,9 +1,9 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
-# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27)
+# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-344 2026-09-27)
 
-One row per `LEARNINGS.md` entry (342 of them; the last starts at
-line 5039), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (344 of them; the last starts at
+line 5061), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -35,17 +35,17 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-09-27 (U9 closed rows 222-223), all 342 rows
+Recomputed from the table on 2026-09-27 (U9 closed rows 222-223), all 344 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
 | L0 | 126 | 15 |
-| L1 | 20 | 17 |
+| L1 | 21 | 18 |
 | L2 | 64 | 126 |
-| L3 | 132 | 184 |
+| L3 | 133 | 185 |
 
-136 entries want to climb at least one level. Status: **done 172**,
+136 entries want to climb at least one level. Status: **done 174**,
 **open 146**, **n/a 8**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
@@ -461,3 +461,5 @@ the row's Now level and status in the same commit as the code.
 | 340 | 5015 | No-container host needs three more things than CLAUDE.md lists | [linux][kicad][freerouting] | L0 | L1 | scripts/check_env.py | open | check_env does not load _eeschema.kiface, look for stock symbols through KICAD_SYMBOL_DIR or try a flat tools/jre layout, so each of the three shows up only as a later script failure. A --full probe for each would make it a reported number. |
 | 341 | 5025 | JLC's public parts search cannot see idle stock - list every Extended  | [jlc][parts][bom][order] | L3 | L3 | scripts/bom_cpl.py | done | bom_cpl.py writes fab/prebuy.csv (every placed Extended part, LCSC, qty) and the guide lists it, so the pre-buy is on paper by construction. Residual: whether the credentialed Open API can tell idle stock apart is unchecked. |
 | 342 | 5039 | The guide reused a render made before renders showed parts | [render][guide][kicad-cli][3d] | L3 | L3 | scripts/guide_facts.py | done | guide_facts.py --render re-renders top and bottom on every guide build, and render_png relinks dead absolute model paths on a temp copy. Residual: the stock 3D library is absent on the no-container host. |
+| 343 | 5051 | SPICE never ran on the no-container Linux host | [sim][linux][ngspice] | L3 | L3 | scripts/lib/simlib.py | done | simlib points InSpice's find_library at the pinned HWDE_NGSPICE_DLL off Windows, so the library resolves by construction. Residual: the `.meas`-in-`when` limit and the `.kicad_prl` drift are prose only. |
+| 344 | 5061 | JLC's impedance calculator is a public API | [impedance][stackup][jlcapi] | L1 | L1 | tests/fixtures/jlc_impedance | done | JLC's answers are frozen as fixtures and the suite measures lib/impedance.py against them (the +0.6..0.9% bias). The live API itself is external-service behaviour and cannot climb. |

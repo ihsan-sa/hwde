@@ -5077,6 +5077,14 @@ reads for lib-table URIs, kind "env") - highest major first, first that names an
 and falling back to the old sys.executable path otherwise. `resolve_default_fp_root()` takes
 environ/executable so a test can monkeypatch both with no KiCad and no real board.
 
+## 2026-09-27 [mcp][gate][kicad-cli] a gate run leaves a .kicad_prl beside the board
+Every gate that loads a board through kicad-cli (drc, place, verify, dfm) creates
+`<project>.kicad_prl` next to the `.kicad_pcb` when none is there, even with
+`--no-record`. So "gate.py --no-record writes nothing" is false at the file level.
+`mcp_server.py` deletes the prl files its read-only calls created (ones that were
+already there stay), and `tests/test_mcp_server.py` asserts the whole workspace tree
+hashes the same afterwards.
+
 ## 2026-09-27 [routing][krt][drc] KRT power widths under-clear off-grid 45-degree tracks by up to half a diagonal grid phase
 usbbuck4's critical routing failed DRC with 3 or 6 `clearance` errors, VBUS (0.375 mm, on the
 0.05 grid) running 45-degree-parallel to the off-grid USB_DM pair track at 0.1854 mm against

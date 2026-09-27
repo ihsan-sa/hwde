@@ -61,6 +61,12 @@ FIXER_HINTS = {
     "silk_misattributed": "silk",
     "pdn_undecoupled": "schematic", "pdn_no_bulk": "schematic",
     "reg_input_no_hf": "schematic",
+    # check_ratings: a pin past its datasheet rating is a schematic fix (a
+    # divider, a clamp, a level shifter) or a different part; unrated is a
+    # missing extraction row
+    "rating_over_voltage": "schematic", "rating_reverse_polarity": "schematic",
+    "rating_outside_recommended": "schematic",
+    "rating_over_current": "parts", "rating_unrated": "parts",
     # sim gate (sim_run.py) - a failed bound is a schematic-value defect;
     # engine/measure trouble needs triage, not a copper fixer
     "sim_bound_fail": "schematic", "sim_measure_missing": "review",

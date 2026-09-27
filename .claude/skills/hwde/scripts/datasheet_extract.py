@@ -161,6 +161,30 @@ DATASHEET_SCHEMA: dict = {
                 },
             },
         },
+        # check_ratings: per-pin ratings, read before the free-text abs_max
+        # rows (which it parses heuristically). min/max: volts or amps, or
+        # "<PIN>+0.3" relative to that pin's net; ref: rated against that
+        # pin's net instead of ground (VGS: pins [G], ref S).
+        "pin_ratings": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["pins"],
+                "additionalProperties": False,
+                "properties": {
+                    "pins": {"type": "array", "items": {"type": "string"},
+                             "minItems": 1},
+                    "kind": {"type": "string",
+                             "enum": ["voltage", "current"]},
+                    "level": {"type": "string",
+                              "enum": ["abs_max", "recommended"]},
+                    "min": {"type": ["number", "string"]},
+                    "max": {"type": ["number", "string"]},
+                    "ref": {"type": "string"},
+                    "source": {"type": "string"},
+                },
+            },
+        },
         "source_pdf": {"type": "string"},
         # U9: computed by --screen/--implications, never hand-filled
         "layout_implications": {"type": "object"},
