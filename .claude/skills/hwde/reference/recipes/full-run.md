@@ -31,29 +31,29 @@ boards may use ONE schematic agent (record it).
   (per novel block), `research-interface-spec` (per standards-bound interface),
   `research-power-architect` (always, unless trivially powered). Summaries only.
 - **P2 Architecture**: spawn `architect`; record its decisions (`state.py
-  decision`). **P2 exit = coverage (U13)**:
-  `knowledge.py --coverage --workspace <ws> --phase P2 --out log/coverage-P2.json`
-  (blocks[] carry `operating_point`; an undeclared dim keeps a record
-  `provisional`). On a `mapping_request` spawn `coverage-mapper` (schema-forced
-  record->slot->class edges, no verdicts), re-run with `--mapping <its file>`
-  (sha logged in the report). Exit 1 = gap slots = research launches
-  AUTOMATICALLY (owner ruling; the `research` recipe carries the mechanics):
-  `research.py open --workspace <ws> --gaps log/coverage-P2.json --all --phase P2`
-  (one task per gap inside `budgets.research`; `status: checkpoint` = cap
-  spent - present the unopened slots at H1), per task `researcher` -> FRESH
-  `research-second-reader` -> `research.py close`, then re-run coverage
-  (verified records fold in as `provisional`). A slot still `gap` is a
-  `state.py decision` "designing under coverage gap: ...", never silence. **H1**
-  (blocking): blocks, stackup, cost ballpark, key parts, riskiest decision,
-  coverage (covered/provisional/gap per slot), cap state, and every spec the
-  mode relaxed (stated -> earned -> why).
+  decision`). **P2 exit = coverage (U13)**: `knowledge.py --coverage --workspace
+  <ws> --phase P2 --out log/coverage-P2.json` (blocks[] carry `operating_point`;
+  an undeclared dim keeps a record `provisional`). On a `mapping_request` spawn
+  `coverage-mapper` (schema-forced record->slot->class edges, no verdicts),
+  re-run with `--mapping <its file>` (sha logged in the report). Exit 1 = gap
+  slots = research launches AUTOMATICALLY (owner ruling; the `research` recipe
+  carries the mechanics): `research.py open --workspace <ws> --gaps
+  log/coverage-P2.json --all --phase P2` (one task per gap inside
+  `budgets.research`; `status: checkpoint` = cap spent - present the unopened
+  slots at H1), per task `researcher` -> FRESH `research-second-reader` ->
+  `research.py close`, then re-run coverage (verified records fold in as
+  `provisional`). A slot still `gap` is a `state.py decision` "designing under
+  coverage gap: ...", never silence. **H1** (blocking): blocks, stackup, cost
+  ballpark, key parts, riskiest decision, coverage (covered/provisional/gap per
+  slot), cap state, and every spec the mode relaxed (stated -> earned -> why).
 - **P3 Parts + Library**: spawn `part-sourcer`; `datasheet-extractor` per
   nontrivial IC (parallel) - reuse a prior board's `parts/<lcsc>.json` on LCSC
   match (re-run `--validate`); then `librarian`. Pad-geometry failures block P4.
   Per-part detail: the `make-footprint` recipe. **P3 exit = coverage again**
-  (`--phase P3`): part slots join - per IC, extraction `layout_notes`
-  thin/empty = gap; same mapper + auto-research protocol (part-level records
-  from the vendor's layout section / app note).
+  (`--phase P3`): part slots join - per IC, extraction `layout_notes` thin/empty
+  = gap; same mapper + auto-research protocol (part-level records from the
+  vendor's layout section / app note). Then `datasheet_extract.py --screen <ws>`
+  (U9); exit 1 = fix first.
 - **P4 Schematic**: one `schematic-block` per sheet from
   `architecture/sheets.md` (parallel where independent; the root-sheet agent
   stitches, runs ERC and `netlist_audit`). Gate `erc`. Then `schematic-reviewer`
@@ -74,7 +74,7 @@ boards may use ONE schematic agent (record it).
   prompt carries the verified 2L/4L orders). Gate `drc_routed`. A
   `placement_adjust_request` takes the SANCTIONED backward edge: snapshot,
   re-spawn `placement` scoped to the request's refs/region, re-run P7
-  (`freerouting_retries` guards the loop).
+  (`freerouting_retries` guards the loop). Dead end: `state.py cross-spawn`.
 - **P8 Verification**: run the `verify` gate (all 8 checks), then
   `verify-reviewer` (fresh context) with the summary + renders. Triage:
   script-check errors -> fix loop; reviewer errors -> fix loop or human;

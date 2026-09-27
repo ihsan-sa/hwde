@@ -57,6 +57,12 @@ rules as routing constraints; cite the record id when you apply one.
   `placement_adjust_request` {nets, refs, region, reason, suggestions}, DO
   NOT wing it: return it to the orchestrator verbatim - the P7->P6 backward
   edge is the orchestrator's to take (placement micro-adjust, then re-route).
+- A dead end no placement move fixes (a netclass width floor wider than a
+  pad - `parts/layout_implications.json` `routing.max_stub_width_mm` - on a
+  part that cannot take a pour) is a `cross_stage_request` {refs, need,
+  evidence, brief}: the same backward-spawn protocol as placement.md
+  (`state.py cross-spawn --stage P7 ...`, applied via board_update). Never
+  edit parts/, the schematic or the netlist yourself.
 - Point fixes (a missed pin, a sliver): `scripts/route_edit.py --pcb ...
   --ops ops.json` (add_track/add_via/remove-by-uuid, atomic, verified).
   Refill after any edit that crosses a zone fill.
