@@ -20,6 +20,13 @@ plus KiCad's default `min_hole_to_hole: 0.25` at *warning* let 189 unbuildable
 traces and two sub-fab drill pairs pass `drc_routed` 0/0 and only surface at
 the P9 DFM gate (LEARNINGS [board_init][rules_gen][dfm][gates]).
 
+A new board looks finished by default: corners rounded (AUTO_CORNER_RADIUS,
+capped at a tenth of the shorter side) and, once the shorter side reaches
+AUTO_HOLES_MIN_SIDE, four M3 mounting holes that are plated with an exposed
+copper ring and a ring of vias (MountingHole_3.2mm_M3_Pad_Via), joined to the
+ground net. A brief that wants none, a bare NPTH hole or another size says so
+with --mounting-holes 0 / --mounting-hole-fp / --corner-radius 0, and wins.
+
 The outline is PROVISIONAL, and under a build mode whose binding makes geometry
 an output (`state.py mode`, reference/build-modes.md) a fixed `--outline WxH` is
 REFUSED here: the size comes from the placement via `board_edit --outline fit`.
@@ -32,9 +39,9 @@ Emits the normalized DRC report alongside.
 Usage:
   board_init.py --netlist n.net --name board --out dir --layers 4
                 [--copper-oz 1] [--stackup NAME]
-                [--outline auto|WxH] [--mounting-holes N]
+                [--outline auto|WxH] [--mounting-holes auto|N]
                 [--mounting-hole-fp LIB:NAME]
-                [--corner-radius R] [--cutout X,Y,W,H ...]
+                [--corner-radius auto|R] [--cutout X,Y,W,H ...]
                 [--workspace DIR] [--allow-fixed-outline]
                 [--schematic s.kicad_sch]   # copy next to board -> enables parity
                 [--fp-lib DIR ...] [--out-report r.json]
@@ -67,6 +74,15 @@ import kc  # noqa: E402
 REFERENCE = SCRIPTS.parent / "reference"
 STACKUP_FILE = REFERENCE / "stackups.yaml"
 WORKER = SCRIPTS / "lib" / "board_swig.py"
+DEFAULT_HOLE_FP = "MountingHole:MountingHole_3.2mm_M3_Pad_Via"
+
+
+def board_swig_defaults() -> tuple[str, str]:
+    """(AUTO_CORNER_RADIUS, AUTO_HOLES_MIN_SIDE) as the worker defines them -
+    read from its source because it imports pcbnew, which this venv lacks."""
+    txt = WORKER.read_text(encoding="utf-8")
+    return tuple(re.search(rf"^{k} = ([\d.]+)", txt, re.M).group(1)
+                 for k in ("AUTO_CORNER_RADIUS", "AUTO_HOLES_MIN_SIDE"))
 
 
 # --------------------------------------------------------------- netlist parse
@@ -404,25 +420,31 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--outline", default="auto",
                     help="'auto' (bbox+margin) or 'WxH' in mm, e.g. 60x40")
     ap.add_argument("--margin", type=float, default=6.0)
-    ap.add_argument("--corner-radius", type=float, default=0.0,
-                    help="round the outline corners by this radius in mm "
-                         "(0 = square corners; clamped to half the shorter side)")
+    ap.add_argument("--corner-radius", default="auto",
+                    help="round the outline corners by this radius in mm; "
+                         "'auto' (default) = %s mm, capped at a tenth of the "
+                         "shorter side; 0 = square corners. Clamped to half the "
+                         "shorter side and to the mounting-hole inset"
+                         % board_swig_defaults()[0])
     ap.add_argument("--cutout", action="append", default=[], metavar="X,Y,W,H",
                     help="rectangular edge notch in mm, relative to the "
                          "outline's top-left corner; repeatable. MUST touch an "
                          "outline edge and must not overlap a corner radius. "
                          "Interior windows are rejected (they mis-parse as the "
                          "board outline downstream).")
-    ap.add_argument("--mounting-holes", type=int, default=0,
-                    help="corner mounting holes (0..4)")
-    ap.add_argument("--mounting-hole-fp",
-                    default="MountingHole:MountingHole_3.2mm_M3",
+    ap.add_argument("--mounting-holes", default="auto",
+                    help="corner mounting holes: 0..4, or 'auto' (default) = "
+                         "4 when the board's shorter side is at least %s mm, "
+                         "else none. A brief that asks for none passes 0"
+                         % board_swig_defaults()[1])
+    ap.add_argument("--mounting-hole-fp", default=DEFAULT_HOLE_FP,
                     help="footprint for --mounting-holes (LIB:NAME). Default is "
-                         "the M3 3.2 mm NPTH hole; a small board asked for M2 "
-                         "wants MountingHole:MountingHole_2.2mm_M2 (2.2 mm "
-                         "drill, 4.9 mm courtyard) - the hole SIZE is a "
-                         "mechanical requirement, so state it rather than "
-                         "inheriting M3.")
+                         "the M3 3.2 mm hole with a plated copper ring and a "
+                         "ring of vias, joined to GND. A bare NPTH hole is "
+                         "MountingHole:MountingHole_3.2mm_M3; a small board "
+                         "asked for M2 wants MountingHole:MountingHole_2.2mm_"
+                         "M2_Pad_Via - the hole SIZE is a mechanical "
+                         "requirement, so state it rather than inheriting M3.")
     ap.add_argument("--workspace", help="workspace holding state.json "
                     "(default: the first parent of --out that has one) - the "
                     "recorded build mode decides whether a fixed --outline is "
@@ -490,6 +512,17 @@ def main(argv: list[str] | None = None) -> int:
             outer_oz = float(coppers[0].get("copper_oz", 1.0)) if coppers else 1.0
         cap_class, cap = fabfloors.profile(args.layers, outer_oz)
 
+        holes_arg = str(args.mounting_holes).strip().lower()
+        if holes_arg != "auto":
+            if not holes_arg.isdigit() or int(holes_arg) > 4:
+                raise RuntimeError(f"bad --mounting-holes {args.mounting_holes!r}"
+                                   f" (use auto or 0..4)")
+            holes_arg = int(holes_arg)
+        radius_arg = str(args.corner_radius).strip().lower()
+        radius_arg = None if radius_arg == "auto" else float(radius_arg)
+        if radius_arg is not None and radius_arg < 0:
+            raise RuntimeError("--corner-radius must be >= 0")
+
         cutouts = []
         for spec in args.cutout:
             m = re.fullmatch(r"\s*([\d.]+),([\d.]+),([\d.]+),([\d.]+)\s*", spec)
@@ -504,11 +537,12 @@ def main(argv: list[str] | None = None) -> int:
             "out": str(pcb_path), "layers": args.layers,
             "components": components, "netmap": netmap,
             "fp_paths": args.fp_lib, "margin": args.margin, "outline": outline,
-            "corner_radius": args.corner_radius, "cutouts": cutouts,
-            "mounting_holes": ({"count": args.mounting_holes,
+            "corner_radius": radius_arg, "cutouts": cutouts,
+            "mounting_holes": ({"count": holes_arg,
                                 "inset": args.margin / 2.0,
+                                "cu_edge": float(cap["min_copper_to_edge_mm"]),
                                 "fp": args.mounting_hole_fp}
-                               if args.mounting_holes else None),
+                               if holes_arg else None),
         }
         import tempfile
 
@@ -561,8 +595,12 @@ def main(argv: list[str] | None = None) -> int:
             "fab_profile": cap_class, "copper_oz": outer_oz,
             "fab_floors": floors,
             "components": len(components), "nets": worker["nets"],
-            "outline_bbox": worker["bbox"], "mounting_holes": args.mounting_holes,
-            "mounting_hole_fp": args.mounting_hole_fp if args.mounting_holes else None,
+            "outline_bbox": worker["bbox"],
+            "mounting_holes": worker.get("mounting_holes", 0),
+            "mounting_hole_fp": (args.mounting_hole_fp
+                                 if worker.get("mounting_holes") else None),
+            "mounting_hole_net": worker.get("mounting_hole_net"),
+            "mounting_hole_inset": worker.get("mounting_hole_inset"),
             "corner_radius": worker.get("corner_radius", 0.0),
             "outline_origin": worker.get("outline_origin"),
             "cutouts": worker.get("cutouts", []),
