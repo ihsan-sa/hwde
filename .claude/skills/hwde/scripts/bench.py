@@ -11,7 +11,10 @@ ledger + records + quarantined sources - scored for research quality by
 researchlib.assess; the owner-graded extraction fixtures accumulate from
 teaching sessions), P2 architecture, P3 library sanitise (fpfix vs real
 DRC), P4 schematic, P5 board_init + rules_gen, P6 place, P7 route, P8
-verify, P9 dfm, P10 order-dryrun.
+verify, P9 dfm, P10 order-dryrun; E2E end to end (backlog item 1: a
+finished board workspace, --artifact WS, scored against a held-out brief's
+hidden bounds - electrical incl. SPICE at tolerance corners, layout, BOM
+cost; reference/e2e-scoring.md is its contract).
 
 score.json metric classes (the determinism contract, LEARNINGS 2026-08-06
 [tests][freerouting]):
@@ -59,6 +62,7 @@ CLI: bench.py --list
               [--file name=PATH ...] [--baseline] [--compare [PATH]]
               [--work-dir DIR] [--render] [--tokens N] [--cost-usd X]
               [--out score.json]
+     bench.py --stage E2E --fixture e2e_<brief> [--artifact <workspace>]
      bench.py --freeze --stage P6 --fixture <new_id> --board <b>
               --from name=PATH [--from-dir name=PATH] [--grade TEXT]
               [--note TEXT] [--freeze-args JSON]
@@ -102,7 +106,13 @@ STAGES = {
     "P8": {"title": "verify", "primary": "pcb", "live": "none"},
     "P9": {"title": "dfm", "primary": "pcb", "live": "none"},
     "P10": {"title": "order-dryrun", "primary": "pcb", "live": "none"},
+    "E2E": {"title": "end to end (finished workspace vs a brief's hidden bounds)", "primary": "workspace", "live": "optional"},
 }
+
+
+def _stage_key(s: str):
+    """P1..P10 in number order, then the E2E stage."""
+    return (0, int(s[1:])) if s[0] == "P" and s[1:].isdigit() else (1, 0)
 
 
 def _sev(violations: list[dict]) -> tuple[int, int]:
@@ -603,10 +613,91 @@ def score_p10(ctx):
     return metrics, None, penalties, []
 
 
+def score_e2e(ctx):
+    """E2E (backlog item 1, reference/e2e-scoring.md): a finished board
+    workspace against a held-out brief's hidden bounds.  The workspace is
+    --artifact; a calibration fixture (args.calibration_board) falls back to
+    that shipped board in the boards repo, and a fixture with neither scores
+    what an absent board earns."""
+    import e2elib
+    import env
+    import geom
+    bounds = e2elib.load_bounds(ctx["files"]["bounds"])
+    ws = ctx["files"].get("workspace")
+    cal = (ctx["args"] or {}).get("calibration_board")
+    if ws is None and cal:
+        ws = env.boards_root() / cal
+        if not ws.is_dir():
+            raise CheckError(f"calibration board {cal} not under "
+                             f"{env.boards_root()} (clone the boards repo "
+                             "or pass --artifact)")
+    art = e2elib.resolve_workspace(ws) if ws else \
+        dict.fromkeys(("netlist", "pcb", "sch", "decoupling", "parts"))
+    parsed = e2elib.simlib.parse_netlist(art["netlist"]) \
+        if art["netlist"] else None
+    bg = geom.BoardGeom.from_file(art["pcb"]) if art["pcb"] else None
+    nets, netmap = e2elib.check_nets(bounds, parsed)
+    cost, bom = e2elib.check_cost(bounds, art["parts"])
+    offline = (nets + e2elib.check_parts(bounds, parsed)
+               + e2elib.check_area(bounds, bg)
+               + e2elib.check_placement(bounds, art["pcb"], art["decoupling"])
+               + cost)
+    metrics = {"workspace": Path(ws).name if ws else None,
+               "artifacts": sorted(k for k, v in art.items() if v),
+               "net_map": netmap, "bom": bom, "checks": offline}
+    live = None
+    if ctx["cli"]:
+        import kc
+        import route_auto
+        # kicad-cli writes a .kicad_prl beside what it opens: the live legs
+        # run on a copy so a scored workspace (or a pinned one) never moves
+        for key in ("sch", "pcb"):
+            if art[key]:
+                live_dir = ctx["work"] / "e2e_live" / art[key].parent.name
+                shutil.copytree(art[key].parent, live_dir, dirs_exist_ok=True)
+                art[key] = live_dir / art[key].name
+        checks = []
+        if art["sch"]:
+            erc = kc.run_erc(ctx["cli"], art["sch"])
+            n = erc["counts"]["by_severity"].get("error", 0)
+            checks.append(e2elib._check("erc:errors", "electrical",
+                                        e2elib.le_score(n, 0), value=n, bound=0))
+        else:
+            checks.append(e2elib._check("erc:errors", "electrical", 0.0,
+                                        note="no schematic in the workspace"))
+        if art["pcb"]:
+            drc = kc.run_drc(ctx["cli"], art["pcb"], parity=False,
+                             all_track_errors=True)
+            n = drc["counts"]["by_severity"].get("error", 0)
+            routable = route_auto._routable_nets(bg)
+            unrouted = route_auto._drc_unrouted(drc)
+            done = 1.0 if not routable else 1 - len(unrouted) / len(routable)
+            checks += [e2elib._check("layout:drc", "layout",
+                                     e2elib.le_score(n, 0), value=n, bound=0),
+                       e2elib._check("layout:completion", "layout", done,
+                                     value=sorted(unrouted), bound=[])]
+            if ctx["render"]:
+                _render_pcb(ctx["cli"], art["pcb"], ctx["work"], ctx["renders"])
+        else:
+            checks += [e2elib._check(i, "layout", 0.0,
+                                     note="no board in the workspace")
+                       for i in ("layout:drc", "layout:completion")]
+        dll = env.find_ngspice_dll()
+        checks += e2elib.check_spice(bounds, parsed, netmap, ctx["work"], dll)
+        live = {"checks": checks, "ngspice": dll is not None,
+                "kicad_version": _cli_version(ctx["cli"])}
+    cats = e2elib.category_scores(offline + (live or {}).get("checks", []))
+    ctx["extra"] = {"categories": cats,
+                    "eebench_equiv": round(100 * (0.65 * cats["electrical"]
+                                                  + 0.35 * cats["cost"]), 2)}
+    penalties = {f"{c}_shortfall": round(1 - v, 4) for c, v in cats.items()}
+    return metrics, live, penalties, []
+
+
 SCORERS = {"P1": score_p1,
            "P2": score_p2, "P3": score_p3, "P4": score_p4, "P5": score_p5,
            "P6": score_p6, "P7": score_p7, "P8": score_p8, "P9": score_p9,
-           "P10": score_p10}
+           "P10": score_p10, "E2E": score_e2e}
 
 
 # ---------------------------------------------------------------- baselines
@@ -840,7 +931,7 @@ def run(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--list", action="store_true",
                     help="list stages and their fixtures")
-    ap.add_argument("--stage", choices=sorted(STAGES, key=lambda s: int(s[1:])))
+    ap.add_argument("--stage", choices=sorted(STAGES, key=_stage_key))
     ap.add_argument("--fixture")
     ap.add_argument("--manifest", help="override the stage-fixture manifest")
     ap.add_argument("--artifact", help="score this file as the stage's primary "
@@ -1008,6 +1099,7 @@ def run(argv=None):
             "penalties": {k: round(float(v), 4) for k, v in penalties.items()},
             "composite": composite, "composite_inputs": composite_inputs,
             "known_answer": ka,
+            "e2e": ctx.get("extra"),
             "informational": {"wall_s": wall_s, "tokens": args.tokens,
                               "cost_usd": args.cost_usd,
                               "renders": ctx["renders"]},
@@ -1032,7 +1124,7 @@ def run(argv=None):
             keep = {k: payload[k] for k in
                     ("script", "stage", "fixture", "board", "metrics",
                      "metrics_live", "penalties", "composite",
-                     "composite_inputs", "known_answer")}
+                     "composite_inputs", "known_answer", "e2e")}
             keep["_baseline"] = {"created": time.strftime("%Y-%m-%d"),
                                  "kicad_version":
                                      (live or {}).get("kicad_version")

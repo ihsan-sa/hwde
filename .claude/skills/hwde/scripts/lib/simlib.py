@@ -22,6 +22,9 @@ Three concerns, all deterministic and engine-agnostic except run_circuit():
        the DLL's directory prepended to PATH: InSpice's find_library splits
        the name at the FIRST "." so a full path containing "KiCad/10.0"
        truncates to garbage.
+     - Off Windows that name search is ctypes.util.find_library, which only
+       sees the linker cache: run_circuit points InSpice's find_library at
+       the pinned library itself (a user-space KiCad is never in the cache).
      - SPICE_LIB_DIR must be SET (any directory) or _load_library crashes on
        Path(None); the resulting "can't find spinit" warning is benign.
      - The circuit string MUST end with ".end" or ngspice silently reports
@@ -404,12 +407,17 @@ def engine_error(testbench: str, reason: str, **extras) -> dict:
 _NG = None  # extra module-level ref to the NgSpiceShared instance (thunks)
 
 
+_DLL: Path | None = None
+
+
 def setup_engine_env(dll: Path) -> None:
     """Point InSpice at the given ngspice shared library. MUST run before
     the first InSpice import in the process (its module import walks the
     library search path). See the module docstring for why the name must be
     bare and SPICE_LIB_DIR must exist."""
+    global _DLL
     dll = Path(dll)
+    _DLL = dll
     os.environ["NGSPICE_LIBRARY_PATH"] = dll.name
     os.environ["PATH"] = str(dll.parent) + os.pathsep + os.environ.get("PATH", "")
     os.environ.setdefault("SPICE_LIB_DIR", str(dll.parent))
@@ -479,6 +487,11 @@ def run_circuit(circuit: str) -> dict:
     global _NG
     try:
         from InSpice.Spice.NgSpice.Shared import NgSpiceShared
+        if os.name != "nt" and _DLL is not None:
+            # off Windows InSpice's find_library is ctypes.util.find_library,
+            # which only sees the system linker cache: a user-space KiCad's
+            # libngspice.so.0 is never found (LEARNINGS 2026-09-27 [sim])
+            NgSpiceShared.find_library = classmethod(lambda cls, n: str(_DLL))
         ng = NgSpiceShared.new_instance()
         _NG = ng
     except Exception as exc:  # DLL missing/unloadable

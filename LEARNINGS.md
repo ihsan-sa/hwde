@@ -5047,3 +5047,13 @@ copies `paths.top_render` to `reports/guide/top.png` each time. Also seen: pd-tr
 temp copy relinked to the workspace's own `lib/*.3dshapes` when such a path no longer
 resolves, and never writes the board. The stock KiCad 3D library is not unpacked on the
 no-container host, so the 1x02 pin header J2 (`${KICAD10_3DMODEL_DIR}`) renders as bare pads.
+
+## 2026-09-27 [sim][linux][ngspice] SPICE never ran on the no-container Linux host
+Every sim gate on this host failed with "undefined symbol: ngSpice_Init": off Windows,
+InSpice resolves the library through `ctypes.util.find_library`, which only sees the
+system linker cache, so KiCad's `~/.local/kicad10/.../libngspice.so.0` was never found
+and InSpice dlopen'd the python binary itself. simlib now points InSpice's `find_library`
+at the pinned `HWDE_NGSPICE_DLL` off Windows. Also: ngspice `.meas` cannot take another
+measure in `when v(x)=par('g0-3')` (the circuit is rejected), so a -3 dB point relative to
+a divider's DC gain is two decks (bench E2E `rc_lowpass`). And kicad-cli ERC/DRC write a
+`.kicad_prl` beside the file they open: score a copy, or a pinned fixture drifts.
