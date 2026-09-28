@@ -525,14 +525,21 @@ def _source_exists(file: str, roots=()) -> bool:
     A `boards/<ws>/...` source cites a board workspace, which lives in the
     boards repo (env.boards_root()), not in the skill: it resolves there, and
     when that repo is not cloned it cannot be checked, so it is not reported
-    missing."""
+    missing. <ws> may be a board's bare name from before its workspace was
+    renamed <PN>_<name>; boardreg.resolve finds it through the register."""
     if not file or file != file.strip():
         return False
     if file.startswith("boards/"):
         broot = _boards_root()
         if not broot.is_dir():
             return True
-        file_in_boards = broot / file[len("boards/"):]
+        ws, _, rest = file[len("boards/"):].partition("/")
+        try:
+            from lib import boardreg  # noqa: PLC0415
+        except ImportError:
+            import boardreg  # type: ignore  # noqa: PLC0415
+        ws_dir = boardreg.resolve(ws, broot) or broot / ws
+        file_in_boards = ws_dir / rest
         if file_in_boards.is_file() or file_in_boards.with_name(
                 file_in_boards.name + NOT_REDISTRIBUTED_SUFFIX).is_file():
             return True

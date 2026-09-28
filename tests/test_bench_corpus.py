@@ -152,6 +152,29 @@ def test_route_timeout_keeps_seed_and_anneal(tmp_path):
     assert r["seed"]["status"] is None and r["anneal"]["status"] is None
 
 
+def test_run_board_records_a_board_that_lost_its_pcb(tmp_path):
+    root = _corpus(tmp_path)
+    runner = FakeRunner()
+    r = benchcorpus.run_board(
+        root / "PCB-0003-A_nopcb", tmp_path / "work", scripts=SCRIPTS,
+        venv_py="py", bundled_py="kpy", env={}, runner=runner,
+        sampler=FixedLoad(3.0))
+    assert "no kicad/*.kicad_pcb" in r["error"] and runner.calls == []
+    saved = benchcorpus.result_path(tmp_path / "work", "PCB-0003-A_nopcb")
+    assert json.loads(saved.read_text())["error"] == r["error"]
+    # a board whose whole dir was renamed away is recorded the same way
+    gone = benchcorpus.run_board(
+        root / "PCB-0004-A_renamed", tmp_path / "work", scripts=SCRIPTS,
+        venv_py="py", bundled_py="kpy", env={}, runner=runner,
+        sampler=FixedLoad(3.0))
+    assert "no kicad/*.kicad_pcb" in gone["error"] and runner.calls == []
+    saved = benchcorpus.result_path(tmp_path / "work", "PCB-0004-A_renamed")
+    assert json.loads(saved.read_text())["error"] == gone["error"]
+    # a board that still has its pcb runs its stages
+    r = _run_board(tmp_path / "ok", runner)
+    assert r.get("error") is None and runner.calls
+
+
 def _fake_one(board, work, **kw):
     d = Path(work) / board.name
     d.mkdir(parents=True, exist_ok=True)

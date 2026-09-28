@@ -251,6 +251,55 @@ def kicad_cli_version(cli: Path) -> tuple[int, ...]:
         return ()
 
 
+_SYM_ENV_RE = re.compile(r"^KICAD(\d*)_SYMBOL_DIR$")
+
+
+def kicad_symbol_dir() -> Path | None:
+    """Stock symbol libraries of the pipeline's KiCad, or None.
+
+    KiCad's own KICAD<N>_SYMBOL_DIR wins, highest major first (the same rule
+    as board_swig's footprint root). Else the pinned kicad-cli's install:
+    <root>/share/kicad/symbols (container, Windows) or, for the no-container
+    Linux host's unpacked debs (bin/kicad-cli is a wrapper beside usr/),
+    <root>/usr/share/kicad/symbols.
+    """
+    hits = []
+    for k, v in os.environ.items():
+        m = _SYM_ENV_RE.match(k)
+        if m and v:
+            hits.append((int(m.group(1)) if m.group(1) else -1, v))
+    for _, v in sorted(hits, key=lambda kv: -kv[0]):
+        if Path(v).is_dir():
+            return Path(v)
+    try:
+        cli = find_kicad_cli()
+    except EnvError:
+        return None
+    if cli is None:
+        return None
+    root = cli.parents[1]
+    for cand in (root / "share" / "kicad" / "symbols",
+                 root / "usr" / "share" / "kicad" / "symbols"):
+        if cand.is_dir():
+            return cand
+    return None
+
+
+def export_kicad_symbol_dir() -> None:
+    """Point kicad-sch-api at the pinned KiCad's symbol libraries.
+
+    It reads only KICAD_SYMBOL_DIR and KICAD7-9_SYMBOL_DIR, then fixed system
+    paths, so on the no-container host (libs under ~/.local/kicad10/usr) it
+    finds none and every lib_id lookup fails. Call before its first
+    get_symbol_cache(); an existing KICAD_SYMBOL_DIR is left alone.
+    """
+    if os.environ.get("KICAD_SYMBOL_DIR"):
+        return
+    d = kicad_symbol_dir()
+    if d is not None:
+        os.environ["KICAD_SYMBOL_DIR"] = str(d)
+
+
 def find_kicad_python(cli: Path) -> Path | None:
     """KiCad's BUNDLED python (has the SWIG pcbnew module; the venv does not).
 

@@ -32,6 +32,7 @@ PYTHON = sys.executable
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 import check_creepage  # noqa: E402
+from _perf import assert_under  # noqa: E402
 import check_decoupling  # noqa: E402
 import check_diffpair  # noqa: E402
 import check_pdn  # noqa: E402
@@ -920,4 +921,4 @@ def test_verify_all_rf4_under_30s(tmp_path):
          "--decoupling", str(GOLDEN / "rf4" / "decoupling.json"),
          "--reports-dir", str(tmp_path)])
     elapsed = time.perf_counter() - t0
-    assert elapsed < 30.0, f"verify_all took {elapsed:.1f}s on rf4"
+    assert_under(elapsed, 30.0, "verify_all on rf4")

@@ -26,8 +26,17 @@ headless (LEARNINGS [swig]).
   fp_paths       [dir, ...] searched for "<Lib>.pretty/<Name>.kicad_mod"
   margin         gap between packed parts + border to outline (default 5.0)
   outline        {mode:"auto"} | {mode:"fixed", w, h}
-  corner_radius  mm; 0 or absent = square corners (historical default)
-  mounting_holes {count, fp:"Lib:Name", inset} | null
+  corner_radius  mm; 0 = square; null/absent = AUTO_CORNER_RADIUS, capped at
+                 a tenth of the shorter side so a tiny board keeps its area
+  mounting_holes {count: 0..4 | "auto", fp:"Lib:Name", inset, cu_edge} | null
+                 "auto" = 4 when the shorter side >= AUTO_HOLES_MIN_SIDE, else
+                 none. A hole with plated copper (the *_Pad_Via default) sits
+                 at least its copper radius + cu_edge in from each edge, the
+                 auto outline widens its border so corner parts clear the
+                 hole's courtyard (a fixed outline is not widened, so there
+                 "auto" gives none unless the parts already sit that border
+                 in from every edge), and its pads join the ground net
+                 (GND_NET_RE) so the ring is stitched, not floating.
 
 verb "set_outline" (board_edit, U17): REPLACES the Edge.Cuts graphics of an
 EXISTING board with a new rectangle (optionally rounded / notched), touching
@@ -46,6 +55,7 @@ Result JSON to stdout: {status, out, ...verb fields..., notes}. Exit 0 ok,
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import sys
@@ -92,6 +102,13 @@ def mm(x: float, y: float) -> "pcbnew.VECTOR2I":
 
 
 EDGE_W = 0.1  # mm, Edge.Cuts line width
+# Owner, #ai-ee 1790534754.490679: "it would be nice if PCBs got nice mounting
+# holes with exposed copper and vias in them and rounded edges" - so these are
+# the defaults for a new board, and an explicit caller value always wins.
+AUTO_CORNER_RADIUS = 2.0    # mm, a new board's corners unless the caller says
+AUTO_HOLES_MIN_SIDE = 30.0  # mm, shorter side from which "auto" gives 4 holes
+HOLE_COURTYARD_GAP = 0.25   # mm, corner part courtyard to hole courtyard
+GND_NET_RE = re.compile(r"(^|/)(GND|DGND|GNDD|PGND)$", re.IGNORECASE)
 _SQRT_HALF = 0.7071067811865476
 
 
@@ -245,6 +262,38 @@ def load_fp(fpid: str, fp_paths: list[Path]):
     return None
 
 
+def hole_geometry(fp) -> tuple[float, float]:
+    """(copper_r, courtyard_r) in mm about the footprint origin. copper_r
+    counts PLATED pads only, so a bare NPTH hole has 0.0 - its courtyard may
+    overhang the edge as it always has, but a copper ring may not."""
+    org = fp.GetPosition()
+    cu = 0.0
+    for pad in fp.Pads():
+        if pad.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH:
+            continue
+        bb = pad.GetBoundingBox()
+        d = pcbnew.ToMM((pad.GetPosition() - org).EuclideanNorm())
+        cu = max(cu, d + pcbnew.ToMM(max(bb.GetWidth(), bb.GetHeight())) / 2.0)
+    fp.BuildCourtyardCaches()
+    crt = fp.GetCourtyard(pcbnew.F_CrtYd)
+    cr = cu
+    if crt.OutlineCount():
+        cb = crt.BBox()
+        cr = pcbnew.ToMM(max(cb.GetWidth(), cb.GetHeight())) / 2.0
+    return cu, cr
+
+
+def ground_net(nets: dict):
+    """The board's ground net for mounting-hole copper: GND itself, else the
+    first name GND_NET_RE matches, else None (the ring stays netless)."""
+    if "GND" in nets:
+        return nets["GND"]
+    for name in sorted(nets):
+        if GND_NET_RE.search(name):
+            return nets[name]
+    return None
+
+
 def build(job: dict) -> dict:
     notes: list[str] = []
     fp_paths = [Path(p) for p in job.get("fp_paths", [])] + [DEFAULT_FP_ROOT]
@@ -349,6 +398,28 @@ def build(job: dict) -> dict:
     cx2 = pcbnew.ToMM(comp_bb.GetRight())
     cy2 = pcbnew.ToMM(comp_bb.GetBottom())
 
+    # ---- mounting-hole geometry (decides the inset and the border) -----
+    mh = job.get("mounting_holes")
+    mh_count = mh.get("count", 0) if mh else 0
+    hole_fpid = (mh or {}).get("fp", "MountingHole:MountingHole_3.2mm_M3")
+    hole_cu = hole_crt = 0.0
+    mh_inset = float((mh or {}).get("inset", margin / 2.0))
+    border = margin
+    if mh_count:
+        probe = load_fp(hole_fpid, fp_paths)
+        if probe is not None:
+            hole_cu, hole_crt = hole_geometry(probe)
+        if hole_cu > 0:
+            # the copper ring must clear the edge by the fab's copper-to-edge
+            # floor (+0.05 so it is not measured on the limit)
+            need = hole_cu + float(mh.get("cu_edge", 0.3)) + 0.05
+            if need > mh_inset:
+                mh_inset = round(need, 3)
+        # parts are packed `margin` in from the outline; the corner part's
+        # courtyard corner is (border - inset) * sqrt2 from the hole centre
+        border = max(margin, mh_inset
+                     + (hole_crt + HOLE_COURTYARD_GAP) * _SQRT_HALF)
+
     # ---- outline ------------------------------------------------------
     ol = job.get("outline", {"mode": "auto"})
     if ol.get("mode") == "fixed":
@@ -357,16 +428,33 @@ def build(job: dict) -> dict:
         ey1 = cy1 - (bh - (cy2 - cy1)) / 2.0
         ex2, ey2 = ex1 + bw, ey1 + bh
     else:
-        ex1, ey1 = cx1 - margin, cy1 - margin
-        ex2, ey2 = cx2 + margin, cy2 + margin
+        ex1, ey1 = cx1 - border, cy1 - border
+        ex2, ey2 = cx2 + border, cy2 + border
+    short_side = min(ex2 - ex1, ey2 - ey1)
+    if mh_count == "auto":
+        mh_count = 4 if short_side >= AUTO_HOLES_MIN_SIDE else 0
+        notes.append(f"mounting holes auto: {mh_count} (shorter side "
+                     f"{round(short_side, 1)} mm, 4 from "
+                     f"{AUTO_HOLES_MIN_SIDE} mm)")
+        # A fixed outline is not widened for the holes, so "auto" only adds
+        # them where the parts already sit `border` in from every edge;
+        # otherwise a corner hole would land on a corner part's courtyard.
+        gap = min(cx1 - ex1, cy1 - ey1, ex2 - cx2, ey2 - cy2)
+        if mh_count and ol.get("mode") == "fixed" and gap < border:
+            mh_count = 0
+            notes.append(f"mounting holes auto: 0 - the fixed outline leaves "
+                         f"{round(gap, 2)} mm between the parts and an edge, "
+                         f"and a corner hole needs {round(border, 2)} mm")
+    mh_count = int(mh_count)
     # A corner radius larger than the mounting-hole inset would leave the hole
     # inside the rounded-away quadrant. Shrink the radius rather than move the
     # hole: parts are already packed around the holes at this inset, so moving a
     # hole inward collides with the shelf grid (H1 into C1's courtyard).
-    req_r = float(job.get("corner_radius") or 0.0)
-    mh = job.get("mounting_holes")
-    if req_r > 0 and mh and int(mh.get("count", 0)) > 0:
-        mh_inset = float(mh.get("inset", margin / 2.0))
+    req_r = job.get("corner_radius")
+    if req_r is None:
+        req_r = min(AUTO_CORNER_RADIUS, round(short_side / 10.0, 2))
+    req_r = float(req_r)
+    if req_r > 0 and mh_count > 0:
         if req_r > mh_inset:
             notes.append(f"corner radius {req_r} clamped to the mounting-hole "
                          f"inset {mh_inset} mm - raise --margin for a larger "
@@ -381,17 +469,22 @@ def build(job: dict) -> dict:
                 round(ey1 + float(c["y"]) + float(c["h"]), 3)] for c in cutouts]
 
     # ---- mounting holes at outline corners ----------------------------
-    mh = job.get("mounting_holes")
-    if mh and int(mh.get("count", 0)) > 0:
-        inset = float(mh.get("inset", margin / 2.0))
-        fpid = mh.get("fp", "MountingHole:MountingHole_3.2mm_M3")
+    holes = 0
+    hole_net = ground_net(nets) if hole_cu > 0 else None
+    if mh_count > 0:
+        inset = mh_inset
+        fpid = hole_fpid
         corners = [(ex1 + inset, ey1 + inset), (ex2 - inset, ey1 + inset),
                    (ex2 - inset, ey2 - inset), (ex1 + inset, ey2 - inset)]
-        for i, (hx, hy) in enumerate(corners[:int(mh["count"])]):
-            if any(cx1 <= hx <= cx2 and cy1 <= hy <= cy2
+        for i, (hx, hy) in enumerate(corners[:mh_count]):
+            # a plated ring must also keep cu_edge off a notch's edges
+            keep = hole_cu + float(mh.get("cu_edge", 0.3)) if hole_cu else 0.0
+            if any(math.hypot(max(cx1 - hx, 0.0, hx - cx2),
+                              max(cy1 - hy, 0.0, hy - cy2)) <= keep
                    for cx1, cy1, cx2, cy2 in cut_abs):
                 notes.append(f"mounting hole {i + 1} at ({round(hx, 2)},"
-                             f"{round(hy, 2)}) falls inside a cutout - skipped")
+                             f"{round(hy, 2)}) falls in or against a cutout "
+                             f"- skipped")
                 continue
             hole = load_fp(fpid, fp_paths)
             if hole is None:
@@ -412,6 +505,14 @@ def build(job: dict) -> dict:
             hole.SetAttributes(attrs)
             board.Add(hole)
             hole.SetPosition(mm(hx, hy))
+            if hole_net is not None:
+                for pad in hole.Pads():
+                    if pad.GetAttribute() != pcbnew.PAD_ATTRIB_NPTH:
+                        pad.SetNet(hole_net)
+            holes += 1
+        if hole_cu > 0 and hole_net is None and holes:
+            notes.append(f"no ground net found for the {fpid} copper - "
+                         f"the mounting-hole rings are left netless")
 
     out = Path(job["out"])
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -424,6 +525,10 @@ def build(job: dict) -> dict:
         "corner_radius": round(corner_r, 3),
         "outline_origin": [round(ex1, 3), round(ey1, 3)],
         "cutouts": cut_abs,
+        "mounting_holes": holes,
+        "mounting_hole_inset": round(mh_inset, 3) if holes else None,
+        "mounting_hole_net": (hole_net.GetNetname()
+                              if hole_net is not None and holes else None),
         "notes": notes,
     }
 

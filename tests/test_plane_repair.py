@@ -40,6 +40,8 @@ import geom  # noqa: E402
 import plane_repair as pr  # noqa: E402
 
 PYTHON = str(REPO / ".venv" / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python"))
+if not Path(PYTHON).exists():   # a checkout with no .venv (the landing gate): the venv running pytest
+    PYTHON = sys.executable
 SCRIPT = str(SCRIPTS / "plane_repair.py")
 
 

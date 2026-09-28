@@ -22,7 +22,9 @@ given paths, write outputs, end with the output contract. Keep output ASCII.
    marked as guesses, battery/charging if any.
 4. **Environment** - temperature, enclosure, ingress, vibration if stated.
 5. **Size & mounting** - outline limits (mark HARD vs soft: hard caps bind
-   permanently at P5 board_init), mounting holes, height limits. Under a
+   permanently at P5 board_init), mounting holes (count, screw size, and
+   whether plated or bare - unstated means board_init's default: four plated
+   M3 holes on GND once the board is 30 mm across), height limits. Under a
    binding whose geometry is an OUTPUT (`canonical`, `bounded`), any dimension
    here is a PREFERENCE: write it `RELAXABLE (<binding>)` or say `no HARD cap`
    - unmarked, it binds at P5 and placement optimizes to fit it, which is

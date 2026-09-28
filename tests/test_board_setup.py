@@ -753,6 +753,7 @@ def test_board_init_corner_radius_clamped_to_hole_inset(cli, usbbuck4_net,
         "--netlist", str(usbbuck4_net), "--name", "usbbuck4",
         "--out", str(tmp_path / "kicad"), "--layers", "4",
         "--mounting-holes", "4", "--corner-radius", "4",
+        "--mounting-hole-fp", "MountingHole:MountingHole_3.2mm_M3",  # NPTH
         "--schematic", str(GOLDEN / "usbbuck4" / "usbbuck4.kicad_sch"),
         "--out-report", str(rep)])
     r = json.loads(rep.read_text("utf-8"))
@@ -761,21 +762,122 @@ def test_board_init_corner_radius_clamped_to_hole_inset(cli, usbbuck4_net,
     assert r["corner_radius"] == 3.0
     assert any("clamped to the mounting-hole inset" in n
                for n in r["worker_notes"])
+    # a bare NPTH hole has no copper, so nothing to put on a net
+    assert r["mounting_hole_net"] is None
 
 
 @pytest.mark.smoke
-def test_board_init_square_corners_by_default(cli, usbbuck4_net, tmp_path):
-    """Backward compat: without --corner-radius the outline stays one rect."""
+def test_board_init_square_corners_on_request(cli, usbbuck4_net, tmp_path):
+    """A brief that wants square corners and no holes still gets them:
+    --corner-radius 0 and --mounting-holes 0 beat the rounded default."""
     rep = tmp_path / "report.json"
     rc = board_init.main([
         "--netlist", str(usbbuck4_net), "--name", "usbbuck4",
         "--out", str(tmp_path / "kicad"), "--layers", "4",
+        "--corner-radius", "0", "--mounting-holes", "0",
         "--out-report", str(rep)])
     r = json.loads(rep.read_text("utf-8"))
     assert rc == 0 and r["corner_radius"] == 0.0
+    assert r["mounting_holes"] == 0 and r["mounting_hole_fp"] is None
     pcb = tmp_path / "kicad" / "usbbuck4.kicad_pcb"
     assert _edge_shapes(pcb, "gr_rect") == 1
     assert _edge_shapes(pcb, "gr_arc") == 0
+    assert "MountingHole" not in pcb.read_text(encoding="utf-8")
+
+
+@pytest.mark.smoke
+def test_board_init_defaults_round_corners_and_plated_holes(cli, usbbuck4_net,
+                                                           tmp_path):
+    """Owner, #ai-ee 1790534754.490679: "nice mounting holes with exposed
+    copper and vias in them and rounded edges". With no flags a board big
+    enough gets 2 mm corners and four M3 Pad_Via holes on GND, clear of the
+    edge by the fab's copper floor, off the BOM/CPL, and still DRC/parity
+    clean."""
+    rep = tmp_path / "report.json"
+    rc = board_init.main([
+        "--netlist", str(usbbuck4_net), "--name", "usbbuck4",
+        "--out", str(tmp_path / "kicad"), "--layers", "4",
+        "--schematic", str(GOLDEN / "usbbuck4" / "usbbuck4.kicad_sch"),
+        "--out-report", str(rep)])
+    r = json.loads(rep.read_text("utf-8"))
+    assert rc == 0 and r["status"] == "pass", r
+    assert r["self_check"]["setup_violations"] == []
+    assert r["self_check"]["parity_count"] == 0
+    assert r["corner_radius"] == 2.0
+    assert r["mounting_holes"] == 4 and r["mounting_hole_net"] == "GND"
+    assert r["mounting_hole_inset"] == 3.55     # 3.2 ring + 0.3 floor + 0.05
+    assert r["mounting_hole_fp"] == "MountingHole:MountingHole_3.2mm_M3_Pad_Via"
+    pcb = tmp_path / "kicad" / "usbbuck4.kicad_pcb"
+    assert (_edge_shapes(pcb, "gr_line"), _edge_shapes(pcb, "gr_arc")) == (4, 4)
+
+    sys.path.insert(0, str(SCRIPTS / "lib"))
+    import placelib
+    from shapely.geometry import Point
+    model = placelib.PlaceModel(pcb)
+    x1, y1, x2, y2 = r["outline_bbox"]
+    holes = [f for ref, f in model.footprints.items() if ref.startswith("H")]
+    assert len(holes) == 4
+    for h in holes:
+        assert h.is_mechanical and "board_only" in h.attrs
+        assert {p.net for p in h.pads} == {"GND"}
+        ring = Point(h.pos).buffer(3.2)          # the 6.4 mm exposed pad
+        rx1, ry1, rx2, ry2 = ring.bounds
+        assert min(rx1 - x1, ry1 - y1, x2 - rx2, y2 - ry2) >= 0.3 - 1e-6
+
+
+@pytest.mark.smoke
+def test_board_init_small_board_gets_no_default_holes(cli, usbbuck4_net,
+                                                      tmp_path):
+    """Below the 30 mm shorter side "auto" adds no holes (four M3 rings would
+    eat the board), and the default radius shrinks to a tenth of that side.
+    An explicit count still wins on the same board."""
+    rep = tmp_path / "report.json"
+    board_init.main([
+        "--netlist", str(usbbuck4_net), "--name", "usbbuck4",
+        "--out", str(tmp_path / "kicad"), "--layers", "4",
+        "--outline", "18x15", "--out-report", str(rep)])
+    r = json.loads(rep.read_text("utf-8"))    # parts overflow: status moot
+    assert r["mounting_holes"] == 0 and r["corner_radius"] == 1.5, r
+    assert any("mounting holes auto: 0" in n for n in r["worker_notes"])
+
+    board_init.main([
+        "--netlist", str(usbbuck4_net), "--name", "usbbuck4",
+        "--out", str(tmp_path / "kicad2"), "--layers", "4",
+        "--outline", "18x15", "--mounting-holes", "2",
+        "--out-report", str(rep)])
+    assert json.loads(rep.read_text("utf-8"))["mounting_holes"] == 2
+
+
+def test_board_init_fixed_outline_too_tight_gets_no_default_holes(cli,
+                                                                  tmp_path):
+    """A fixed outline is not widened for the holes, so "auto" adds none when
+    the parts sit closer to an edge than a corner hole needs (a hole there
+    would overlap a corner part's courtyard and fail the self-check)."""
+    net = REPO / "tests" / "s7_regen" / "blinky2" / "kicad" / "blinky2.net"
+    rep = tmp_path / "report.json"
+    # auto outline with holes off = parts bbox + the 5 mm margin each side
+    assert board_init.main([
+        "--netlist", str(net), "--name", "blinky2",
+        "--out", str(tmp_path / "k0"), "--layers", "2",
+        "--mounting-holes", "0", "--out-report", str(rep)]) == 0
+    x1, y1, x2, y2 = json.loads(rep.read_text("utf-8"))["outline_bbox"]
+    w, h = round(x2 - x1, 2), round(y2 - y1, 2)
+    assert min(w, h) >= 30, (w, h)     # big enough that size is not why
+    assert board_init.main([
+        "--netlist", str(net), "--name", "blinky2",
+        "--out", str(tmp_path / "k1"), "--layers", "2",
+        "--outline", f"{w}x{h}", "--out-report", str(rep)]) == 0
+    r = json.loads(rep.read_text("utf-8"))
+    assert r["status"] == "pass" and r["mounting_holes"] == 0, r
+    assert any("the fixed outline leaves" in n for n in r["worker_notes"])
+
+    # the kept case: the same parts in a roomier fixed outline get holes
+    assert board_init.main([
+        "--netlist", str(net), "--name", "blinky2",
+        "--out", str(tmp_path / "k2"), "--layers", "2",
+        "--outline", f"{w + 10}x{h + 10}", "--out-report", str(rep)]) == 0
+    r = json.loads(rep.read_text("utf-8"))
+    assert r["status"] == "pass" and r["mounting_holes"] == 4, r
 
 
 @pytest.mark.smoke
@@ -1019,6 +1121,102 @@ def test_voltage_rules_coating_selects_rows():
     them): 48 V -> max(B4 0.13, A6 0.40) = 0.40 mm."""
     assert rules_gen.hv_clearance_mm(48, "none") == pytest.approx(0.60)
     assert rules_gen.hv_clearance_mm(48, "soldermask") == pytest.approx(0.40)
+
+
+# ========== HV clearance reaches the .kicad_pro netclasses (PCB-0018, 2026-09-28)
+
+def test_hv_nets_get_their_own_netclass():
+    """The DSN export hands Freerouting netclasses only, so every net with
+    an aiee_hv_* rule must sit in a class carrying that clearance: a variant
+    of its power class for a wide HV rail, HV_<c>mm for a signal. A
+    sub-threshold net and a waived pair keep their plain class."""
+    cons = {"power": [{"net": "VM", "current_a": 5.0},
+                      {"net": "+3V3", "current_a": 0.1}],
+            "voltages": [{"net": "VM", "voltage": 48},
+                         {"net": "/SW", "voltage": 48},
+                         {"net": "+3V3", "voltage": 3.3}],
+            "voltage_pairs": [{"a": "/TAP_A", "b": "/TAP_B", "voltage": 114},
+                              {"a": "VM", "b": "/SNS", "voltage": 10}]}
+    cap = _cap("2layer_2oz")
+    _, report = rules_gen.build(cons, cap, _stackup("JLC2313_1.6_2oz"), False)
+    cls = {c["name"]: c for c in report["classes"]}
+    by_net = {p["pattern"]: p["netclass"] for p in report["patterns"]}
+    vm_width = next(f for f in report["power"] if f["net"] == "VM")["class_width_mm"]
+    vm_cls = cls[by_net["VM"]]
+    assert by_net["VM"] == rules_gen.power_class_name(vm_width) + "_HV_0p6mm"
+    assert vm_cls["clearance"] == pytest.approx(0.60)
+    assert vm_cls["track_width"] == pytest.approx(vm_width)
+    assert cls[by_net["/SW"]]["clearance"] == pytest.approx(0.60)
+    assert by_net["/SW"] == "HV_0p6mm"
+    # an explicit 114 V pair raises both nets (stricter than the DRU pair rule)
+    assert cls[by_net["/TAP_A"]]["clearance"] == pytest.approx(0.80)
+    assert by_net["/TAP_A"] == by_net["/TAP_B"]
+    # kept on their plain class: a 3.3 V rail and the waived /SNS
+    assert by_net["+3V3"] == "Default"
+    assert "/SNS" not in by_net
+    # the plain power class VM left is not emitted empty; the report follows
+    assert rules_gen.power_class_name(vm_width) not in cls
+    assert next(f for f in report["power"] if f["net"] == "VM")["netclass"] \
+        == by_net["VM"]
+
+
+def test_update_pro_floors_class_clearance_at_hole_clearance(tmp_path):
+    """4layer_1oz: 0.1016 clearance + a 0.45/0.2 via ring (0.125) sits a
+    track 0.2266 from the hole, inside KiCad's 0.25 hole clearance. Default
+    goes to 0.125; a Diff class stops at its pair gap; a pro whose own hole
+    clearance is small keeps the fab clearance."""
+    _, cap = fabfloors.profile(4, 1.0)
+    diff = {**rules_gen.default_class(cap), "name": "Diff90",
+            "diff_pair_gap": 0.11}
+    pro_path = tmp_path / "b.kicad_pro"
+    board_init.write_pro(pro_path, cap)
+    rules_gen.update_pro(pro_path, [diff], [], cap)
+    got = {c["name"]: c["clearance"] for c in
+           json.loads(pro_path.read_text("utf-8"))["net_settings"]["classes"]}
+    assert got == {"Default": pytest.approx(0.125), "Diff90": pytest.approx(0.11)}
+    assert diff["clearance"] == cap["min_clearance_mm"]   # input not mutated
+
+    pro = json.loads(pro_path.read_text("utf-8"))
+    pro["board"]["design_settings"]["rules"]["min_hole_clearance"] = 0.2
+    pro_path.write_text(json.dumps(pro), encoding="utf-8")
+    rules_gen.update_pro(pro_path, [], [], cap)
+    got = json.loads(pro_path.read_text("utf-8"))["net_settings"]["classes"][0]
+    assert got["clearance"] == pytest.approx(cap["min_clearance_mm"])
+
+
+@pytest.mark.smoke
+def test_hv_clearance_reaches_the_dsn(cli, tmp_path):
+    """Live proof on the route path: rules_gen --pro with VBUS at 48 V, then
+    the same export_dsn verb route_auto runs - the DSN class holding VBUS
+    carries the HV clearance and Default carries the hole floor."""
+    import routelib
+    bp = env.find_kicad_python(cli)
+    if bp is None:
+        pytest.skip("KiCad bundled python not found")
+    pcb = _prep_golden(tmp_path)
+    cons = tmp_path / "cons.json"
+    cons.write_text(json.dumps(
+        {"voltages": [{"net": "VBUS", "voltage": 48},
+                      {"net": "GND", "voltage": 0}]}), encoding="utf-8")
+    rc = rules_gen.main(["--constraints", str(cons), "--layers", "4",
+                         "--out-dru", str(pcb.with_suffix(".kicad_dru")),
+                         "--pro", str(pcb.with_suffix(".kicad_pro")),
+                         "--out", str(tmp_path / "r.json")])
+    assert rc == 0
+    dsn = tmp_path / "b.dsn"
+    stage = tmp_path / "stage"
+    stage.mkdir()
+    routelib.run_worker(bp, {"verb": "export_dsn", "board": str(pcb),
+                             "dsn": str(dsn)}, stage)
+    text = dsn.read_text(encoding="utf-8")
+    assert re.search(r"\(resolution\s+um\s+\d+\)", text)
+    classes = {}
+    for m in re.finditer(r"\(class\s+(\S+)(.*?)\(circuit.*?\(clearance\s+([\d.]+)\)",
+                         text, re.S):
+        for net in m.group(2).split():
+            classes[net.strip('"')] = (m.group(1), float(m.group(3)))
+    assert classes["VBUS"] == ("HV_0p6mm", pytest.approx(600))
+    assert classes["GND"][1] == pytest.approx(125)
 
 
 # ============================ T6 P5-4: V12 guard - inner disallow for pairs
