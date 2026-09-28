@@ -1123,6 +1123,102 @@ def test_voltage_rules_coating_selects_rows():
     assert rules_gen.hv_clearance_mm(48, "soldermask") == pytest.approx(0.40)
 
 
+# ========== HV clearance reaches the .kicad_pro netclasses (PCB-0018, 2026-09-28)
+
+def test_hv_nets_get_their_own_netclass():
+    """The DSN export hands Freerouting netclasses only, so every net with
+    an aiee_hv_* rule must sit in a class carrying that clearance: a variant
+    of its power class for a wide HV rail, HV_<c>mm for a signal. A
+    sub-threshold net and a waived pair keep their plain class."""
+    cons = {"power": [{"net": "VM", "current_a": 5.0},
+                      {"net": "+3V3", "current_a": 0.1}],
+            "voltages": [{"net": "VM", "voltage": 48},
+                         {"net": "/SW", "voltage": 48},
+                         {"net": "+3V3", "voltage": 3.3}],
+            "voltage_pairs": [{"a": "/TAP_A", "b": "/TAP_B", "voltage": 114},
+                              {"a": "VM", "b": "/SNS", "voltage": 10}]}
+    cap = _cap("2layer_2oz")
+    _, report = rules_gen.build(cons, cap, _stackup("JLC2313_1.6_2oz"), False)
+    cls = {c["name"]: c for c in report["classes"]}
+    by_net = {p["pattern"]: p["netclass"] for p in report["patterns"]}
+    vm_width = next(f for f in report["power"] if f["net"] == "VM")["class_width_mm"]
+    vm_cls = cls[by_net["VM"]]
+    assert by_net["VM"] == rules_gen.power_class_name(vm_width) + "_HV_0p6mm"
+    assert vm_cls["clearance"] == pytest.approx(0.60)
+    assert vm_cls["track_width"] == pytest.approx(vm_width)
+    assert cls[by_net["/SW"]]["clearance"] == pytest.approx(0.60)
+    assert by_net["/SW"] == "HV_0p6mm"
+    # an explicit 114 V pair raises both nets (stricter than the DRU pair rule)
+    assert cls[by_net["/TAP_A"]]["clearance"] == pytest.approx(0.80)
+    assert by_net["/TAP_A"] == by_net["/TAP_B"]
+    # kept on their plain class: a 3.3 V rail and the waived /SNS
+    assert by_net["+3V3"] == "Default"
+    assert "/SNS" not in by_net
+    # the plain power class VM left is not emitted empty; the report follows
+    assert rules_gen.power_class_name(vm_width) not in cls
+    assert next(f for f in report["power"] if f["net"] == "VM")["netclass"] \
+        == by_net["VM"]
+
+
+def test_update_pro_floors_class_clearance_at_hole_clearance(tmp_path):
+    """4layer_1oz: 0.1016 clearance + a 0.45/0.2 via ring (0.125) sits a
+    track 0.2266 from the hole, inside KiCad's 0.25 hole clearance. Default
+    goes to 0.125; a Diff class stops at its pair gap; a pro whose own hole
+    clearance is small keeps the fab clearance."""
+    _, cap = fabfloors.profile(4, 1.0)
+    diff = {**rules_gen.default_class(cap), "name": "Diff90",
+            "diff_pair_gap": 0.11}
+    pro_path = tmp_path / "b.kicad_pro"
+    board_init.write_pro(pro_path, cap)
+    rules_gen.update_pro(pro_path, [diff], [], cap)
+    got = {c["name"]: c["clearance"] for c in
+           json.loads(pro_path.read_text("utf-8"))["net_settings"]["classes"]}
+    assert got == {"Default": pytest.approx(0.125), "Diff90": pytest.approx(0.11)}
+    assert diff["clearance"] == cap["min_clearance_mm"]   # input not mutated
+
+    pro = json.loads(pro_path.read_text("utf-8"))
+    pro["board"]["design_settings"]["rules"]["min_hole_clearance"] = 0.2
+    pro_path.write_text(json.dumps(pro), encoding="utf-8")
+    rules_gen.update_pro(pro_path, [], [], cap)
+    got = json.loads(pro_path.read_text("utf-8"))["net_settings"]["classes"][0]
+    assert got["clearance"] == pytest.approx(cap["min_clearance_mm"])
+
+
+@pytest.mark.smoke
+def test_hv_clearance_reaches_the_dsn(cli, tmp_path):
+    """Live proof on the route path: rules_gen --pro with VBUS at 48 V, then
+    the same export_dsn verb route_auto runs - the DSN class holding VBUS
+    carries the HV clearance and Default carries the hole floor."""
+    import routelib
+    bp = env.find_kicad_python(cli)
+    if bp is None:
+        pytest.skip("KiCad bundled python not found")
+    pcb = _prep_golden(tmp_path)
+    cons = tmp_path / "cons.json"
+    cons.write_text(json.dumps(
+        {"voltages": [{"net": "VBUS", "voltage": 48},
+                      {"net": "GND", "voltage": 0}]}), encoding="utf-8")
+    rc = rules_gen.main(["--constraints", str(cons), "--layers", "4",
+                         "--out-dru", str(pcb.with_suffix(".kicad_dru")),
+                         "--pro", str(pcb.with_suffix(".kicad_pro")),
+                         "--out", str(tmp_path / "r.json")])
+    assert rc == 0
+    dsn = tmp_path / "b.dsn"
+    stage = tmp_path / "stage"
+    stage.mkdir()
+    routelib.run_worker(bp, {"verb": "export_dsn", "board": str(pcb),
+                             "dsn": str(dsn)}, stage)
+    text = dsn.read_text(encoding="utf-8")
+    assert re.search(r"\(resolution\s+um\s+\d+\)", text)
+    classes = {}
+    for m in re.finditer(r"\(class\s+(\S+)(.*?)\(circuit.*?\(clearance\s+([\d.]+)\)",
+                         text, re.S):
+        for net in m.group(2).split():
+            classes[net.strip('"')] = (m.group(1), float(m.group(3)))
+    assert classes["VBUS"] == ("HV_0p6mm", pytest.approx(600))
+    assert classes["GND"][1] == pytest.approx(125)
+
+
 # ============================ T6 P5-4: V12 guard - inner disallow for pairs
 
 def test_diff_outer_only_rule_emitted():
