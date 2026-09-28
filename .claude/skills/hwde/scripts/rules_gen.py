@@ -30,6 +30,11 @@ expressible as a rule becomes a named DRC violation, so the standard DRC gate
      minimums and the fab-floor severities from lib/fabfloors.py - the same single
      source board_init writes, so the two files cannot disagree. These drive the
      router (S11) and placement; DRU is the DRC enforcer.
+     Every net with an aiee_hv_* clearance rule is ALSO moved into a class carrying
+     that clearance (a `_HV_<c>mm` variant of its power/diff class, or `HV_<c>mm`),
+     and every class clearance is floored at the board's min_hole_clearance minus
+     the class's via ring: the DSN export hands Freerouting netclasses only, so a
+     DRU-only clearance cost PCB-0018 a 1 h route with 406 clearance errors.
 
 Conditions use `A.NetName == 'NET'` (NOT `A.Net`, which silently matches nothing -
 LEARNINGS [drc]). kicad-cli auto-loads the .kicad_dru sitting next to the board.
@@ -320,13 +325,20 @@ def outer_microstrip_params(stackup: dict) -> tuple[float, float, float]:
 
 # --------------------------------------------------------------- net classes
 
+def _mm_tag(mm: float) -> str:
+    """0.4 -> '0p4' (for class names)."""
+    return ("%g" % round(mm, 4)).replace(".", "p")
+
+
 def power_class_name(width_mm: float) -> str:
     """Class name for a power width: 1.75 -> 'Pwr_1p75mm'."""
-    return "Pwr_%smm" % ("%g" % round(width_mm, 4)).replace(".", "p")
+    return f"Pwr_{_mm_tag(width_mm)}mm"
 
 
 def net_classes(constraints: dict, power_facts: list[dict],
-                diff_facts: list[dict], cap: dict) -> tuple[list[dict], list[dict]]:
+                diff_facts: list[dict], cap: dict,
+                hv_facts: list[dict] | None = None
+                ) -> tuple[list[dict], list[dict]]:
     """Build net_settings classes + netclass_patterns for the .kicad_pro.
 
     Power nets are bucketed BY THEIR OWN required width (one class per
@@ -335,6 +347,13 @@ def net_classes(constraints: dict, power_facts: list[dict],
     class at the widest width is a routing defect, not a conservatism: the
     netclass width is what the DSN export hands Freerouting, so a 20 mA rail
     inherited the 5 A trunk's 1.75 mm and could not enter its own pads.
+
+    HV nets (voltage_rules facts) get the same treatment for clearance: each
+    moves into a variant of the class it would otherwise have, at
+    max(class clearance, its HV clearance). A pair-scoped HV rule raises both
+    nets against everything - stricter than the DRU, never looser - and a
+    waiver lowers nothing (a netclass cannot hold a per-pair value). The two
+    nets of a diff pair take the same value so they stay in one class.
     """
     classes: list[dict] = []
     patterns: list[dict] = []
@@ -374,7 +393,53 @@ def net_classes(constraints: dict, power_facts: list[dict],
                                       dpw=f["width_mm"], dpg=f["gap_mm"]))
         for n in f["pair"]:
             patterns.append({"netclass": cname, "pattern": n})
-    return classes, patterns
+
+    hv: dict[str, float] = {}
+    for f in hv_facts or []:
+        if f.get("waiver"):
+            continue
+        for n in ([f["net"]] if "net" in f else f["pair"]):
+            hv[n] = max(hv.get(n, 0.0), float(f["clearance_mm"]))
+    for f in diff_facts:
+        clr = max(hv.get(n, 0.0) for n in f["pair"])
+        if clr:
+            hv.update({n: clr for n in f["pair"]})
+    by_name = {c["name"]: c for c in classes}
+    by_name["Default"] = default_class(cap)
+    assigned = {p["pattern"]: p for p in patterns}
+    for net in sorted(hv):
+        p = assigned.get(net)
+        if p is None:
+            p = assigned[net] = {"netclass": "Default", "pattern": net}
+            patterns.append(p)
+        base = by_name[p["netclass"]]
+        clr = round(hv[net], 4)
+        if clr <= base["clearance"] + 1e-9:
+            continue
+        prefix = "HV" if base["name"] == "Default" else base["name"] + "_HV"
+        cname = f"{prefix}_{_mm_tag(clr)}mm"
+        if cname not in by_name:
+            by_name[cname] = {**base, "name": cname, "clearance": clr}
+            classes.append(by_name[cname])
+        p["netclass"] = cname
+    for f in power_facts:
+        f["netclass"] = assigned[f["net"]]["netclass"]
+    used = {p["netclass"] for p in patterns}
+    return [c for c in classes if c["name"] in used], patterns
+
+
+# KiCad's own board-setup min_hole_clearance, which a project file carries
+# unless someone sets it; hwde does not set it.
+KICAD_HOLE_CLEARANCE_MM = 0.25
+
+
+def hole_clearance_floor(cls: dict, hole_clearance: float) -> float:
+    """Least class clearance that keeps a track laid at it outside the
+    board's hole clearance of the class's own via: hole clearance minus the
+    via ring. On 4layer_1oz (0.1016 clearance, 0.45/0.2 via) that is 0.125,
+    not 0.1016, and Freerouting knows nothing of hole clearance."""
+    ring = (cls["via_diameter"] - cls["via_drill"]) / 2
+    return round(hole_clearance - ring, 4)
 
 
 def default_class(cap: dict) -> dict:
@@ -393,13 +458,25 @@ def update_pro(pro_path: Path, classes: list[dict], patterns: list[dict],
                cap: dict) -> None:
     """Read-modify-write the .kicad_pro: net_settings + design-rule minimums.
 
-    Keeps the rest of the (minimal, hand-rolled) pro intact - only touches
-    net_settings, board.design_settings.rules and the fab-floor severities
-    (LEARNINGS [kicad]: a minimal pro is the DRC authority; do not paste a
+    Every class clearance is raised to hole_clearance_floor (the pro's own
+    min_hole_clearance, else KiCad's 0.25 mm); a Diff class no higher than
+    its pair gap. Keeps the rest of the (minimal, hand-rolled) pro intact -
+    only touches net_settings, board.design_settings.rules and the fab-floor
+    severities (LEARNINGS [kicad]: a minimal pro is the DRC authority; do not paste a
     full default blob). Floors + severities come from lib/fabfloors.py, the
     same source board_init writes, and are asserted after the merge."""
     pro = json.loads(pro_path.read_text(encoding="utf-8")) if pro_path.exists() else {}
-    all_classes = [default_class(cap)] + classes
+    board = pro.setdefault("board", {})
+    ds = board.setdefault("design_settings", {})
+    hole_clr = float((ds.get("rules") or {}).get("min_hole_clearance",
+                                                 KICAD_HOLE_CLEARANCE_MM))
+    all_classes = []
+    for c in [default_class(cap)] + classes:
+        floor = hole_clearance_floor(c, hole_clr)
+        if c["name"].startswith("Diff"):
+            # the pair's own gap is a clearance between its two nets
+            floor = min(floor, c["diff_pair_gap"])
+        all_classes.append({**c, "clearance": max(c["clearance"], floor)})
     pro["net_settings"] = {
         "classes": all_classes,
         "meta": {"version": 3},
@@ -407,8 +484,6 @@ def update_pro(pro_path: Path, classes: list[dict], patterns: list[dict],
         "netclass_assignments": None,
         "netclass_patterns": patterns,
     }
-    board = pro.setdefault("board", {})
-    ds = board.setdefault("design_settings", {})
     ds["rules"] = {**(ds.get("rules") or {}), **fabfloors.pro_rules(cap)}
     ds["rule_severities"] = {**(ds.get("rule_severities") or {}),
                              **fabfloors.pro_rule_severities()}
@@ -443,7 +518,7 @@ def build(constraints: dict, cap: dict, stackup: dict, baseline_only: bool
         dr, df = diff_pair_rules(pairs, stackup)
         hr, hf = voltage_rules(constraints, cap)
         rules += pr + dr + hr
-        classes, patterns = net_classes(constraints, pf, df, cap)
+        classes, patterns = net_classes(constraints, pf, df, cap, hf)
         report["power"] = pf
         report["diff_pairs"] = df
         report["classes"] = classes
