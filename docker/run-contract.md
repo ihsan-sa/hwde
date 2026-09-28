@@ -13,7 +13,7 @@ read the result later. Nobody answers questions during the run.
 - KiCad 10.0.5: `kicad-cli` on PATH (`HWDE_KICAD_CLI=/usr/bin/kicad-cli`); the
   "bundled python" with SWIG `pcbnew` is `/usr/bin/python3` (env.py resolves it).
   Symbol/footprint libs: `/usr/share/kicad/{symbols,footprints}`.
-- Java 25 + Freerouting 2.2.4 + KiCadRoutingTools 0.19.0 + libngspice + pdflatex
+- Java 25 + Freerouting 2.2.4 + KiCadRoutingTools 0.19.0 + libngspice + TeX Live
   are installed and pinned through `HWDE_*` env vars; `tools/` is empty by design.
   `check_env.py --full` is green - if a tool is missing, that is a bug to report in
   the journal, not a reason to stop.
@@ -85,7 +85,8 @@ Environment/Linux gotchas also go to `LEARNINGS.md` (append-only, dated, tag
   (`attest.py build` + `verify`, disposition recorded).
 - `reports/` holds top/bottom renders, the schematic PDF, verify/dfm reports,
   waivers, and `reports/design_doc/` (report_gen; .tex-only is acceptable if
-  pdflatex fails - log `report_gen_degraded`).
+  lualatex or the pdf-material-builder house style is missing or the compile
+  fails - log `report_gen_degraded`).
 - `boards/<b>/LEARNINGS.md` written and `learnings.py compile` run.
 - Checkpoint packets `log/H1.md` .. `log/H4.md` and phase digests exist.
 Only then append the exact line `STATUS: DONE` to the journal. Use

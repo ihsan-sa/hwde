@@ -82,9 +82,10 @@ JAR_HELP = (
     "https://github.com/freerouting/freerouting/releases into "
     "tools/freerouting/, or set HWDE_FREEROUTING_JAR."
 )
-PDFLATEX_HELP = (
-    "Install MiKTeX (https://miktex.org/download) or TeX Live, or set "
-    "HWDE_PDFLATEX. Without it report_gen degrades to --tex-only (no PDF)."
+LUALATEX_HELP = (
+    "Install TeX Live (lualatex) or set HWDE_LUALATEX, and install the "
+    "pdf-material-builder skill (its house style) or set HWDE_HOUSE_STYLE. "
+    "Without both report_gen degrades to --tex-only (no PDF)."
 )
 NGSPICE_HELP = (
     "The SPICE sim gate (sim_run.py) drives a shared ngspice library. "
@@ -279,17 +280,30 @@ def check_java(resolved: dict) -> list[dict]:
     return out
 
 
-def check_pdflatex(resolved: dict) -> dict:
-    """pdflatex is optional (report_gen degrades to --tex-only), so absence is
-    a warning - but a set-but-invalid HWDE_PDFLATEX pin still fails loudly."""
+def check_lualatex(resolved: dict) -> dict:
+    """report_gen's engine (lualatex) and the house style it sets every doc
+    in are optional (report_gen degrades to --tex-only), so absence is a
+    warning - but a set-but-invalid HWDE_LUALATEX pin still fails loudly."""
+    try:  # the engine ladder lives with its only user, report_gen
+        import report_gen
+    except Exception as e:  # e.g. pyyaml missing: its own check reports that
+        return check("lualatex", False, f"cannot load report_gen: {e}",
+                     LUALATEX_HELP, warn=True)
     try:
-        p = env.find_pdflatex()
+        p = report_gen.find_lualatex()
     except env.EnvError as e:
-        return check("pdflatex", False, str(e), PDFLATEX_HELP)
-    resolved["pdflatex"] = str(p) if p else None
-    return check("pdflatex", p is not None,
-                 str(p) if p else "no pdflatex found (PATH or MiKTeX default)",
-                 PDFLATEX_HELP, warn=True)
+        return check("lualatex", False, str(e), LUALATEX_HELP)
+    style = report_gen.house_style_dir()
+    resolved["lualatex"] = str(p) if p else None
+    resolved["house_style"] = str(style) if style else None
+    if p is None:
+        detail = "no lualatex found (HWDE_LUALATEX or PATH)"
+    elif style is None:
+        detail = f"{p}; house style not found (HWDE_HOUSE_STYLE)"
+    else:
+        detail = f"{p}; house style {style}"
+    return check("lualatex", p is not None and style is not None, detail,
+                 LUALATEX_HELP, warn=True)
 
 
 def check_ngspice(resolved: dict) -> dict:
@@ -417,7 +431,7 @@ def main(argv: list[str] | None = None) -> int:
         checks.extend(check_packages())
         checks.extend(check_kicad(resolved, args.full))
         checks.extend(check_java(resolved))
-        checks.append(check_pdflatex(resolved))
+        checks.append(check_lualatex(resolved))
         checks.append(check_ngspice(resolved))
         checks.append(check_git())
         checks.append(check_impedance_solver())
