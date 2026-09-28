@@ -37,6 +37,7 @@ PYTHON = sys.executable
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 import check_irdrop  # noqa: E402
+from _perf import assert_under  # noqa: E402
 import check_pdn_z  # noqa: E402
 import geom  # noqa: E402
 
@@ -284,7 +285,7 @@ def test_pd_trigger_5a_maps_under_30s():
         t0 = time.time()
         _, facts = check_irdrop.check_net(bg, entry)
         elapsed = time.time() - t0
-        assert elapsed < 30.0, f"{entry['net']} map took {elapsed:.1f} s"
+        assert_under(elapsed, 30.0, f"{entry['net']} map")
         assert facts["resistance_mohm"] > 0
         assert facts["worst_drop_mv"] > 0
         assert facts["jmax"]["a_per_mm"] > 0
