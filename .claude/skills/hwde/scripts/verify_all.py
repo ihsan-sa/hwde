@@ -7,7 +7,8 @@ reads this summary; cluster_violations.py groups its violations for fixers.
 
 Default (exploratory) mode: a check is SKIPPED (not failed) when an input it
 requires is absent - e.g. no constraints.json means the constraint-driven
-checks do not run. check_silk and check_diffpair need only the board;
+checks do not run. check_silk, check_diffpair and check_route_style need only
+the board (check_route_style only ever warns: a style score, not a gate);
 check_ratings needs the workspace parts dir (--parts, default <ws>/parts
 beside the board's kicad/ dir).
 
@@ -80,6 +81,8 @@ CHECKS = [
     {"name": "check_thermal", "needs": ["constraints"],
      "args": lambda a: ["--constraints", a["constraints"]]},
     {"name": "check_silk", "needs": [],
+     "args": lambda a: []},
+    {"name": "check_route_style", "needs": [],
      "args": lambda a: []},
     {"name": "check_pdn", "needs": ["constraints", "decoupling"],
      "args": lambda a: ["--constraints", a["constraints"],

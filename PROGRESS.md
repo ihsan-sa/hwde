@@ -5581,3 +5581,28 @@ lists check_ratings as skipped_error (test_gate_strict updated).
 **Verify-later:** the free-text parser is tuned on 16 boards' extractions;
 a new extraction style can mis-rate a pin - the remediations say to fix the
 row or add `pin_ratings`, never to waive blind.
+
+## Backlog 9 - routing style as a scored review term (2026-09-27) - DONE
+
+**Built:** `scripts/check_route_style.py` scores the owner's routing preference
+(straight and 45-degree traces, no needless arcs) from the .kicad_pcb: every
+copper arc, every segment more than 1 degree and 0.01 mm off a 45 heading, and
+every jog (s1 and s3 on one heading through two bare joints, sidestep under
+max(width, 0.25 mm)). One warning per (net, layer, style), kind `route_style`,
+items carry the track uuids; `style` holds the counts and score = 1 - flagged
+tracks / tracks. Wired into verify_all (board only), FIXER_HINTS (router),
+gates.yaml verify text, `reference/remediations/route_style.md`.
+`render.py --views review` is the fixed review set (top, bottom, iso), and
+agents/verify-reviewer.md renders it and judges what geometry cannot see.
+
+**Accept:** tests/test_route_style.py (no KiCad): golden blinky2 scores 1.0;
+the frozen bb_adc fixture scores exactly 4 off-angle + 2 jogs (0.918); each
+style is caught on its own synthetic board beside the look-alike it must keep
+(45 and straight, a rounding stub, a real sidestep, a jog at a via, a split
+straight run stored backwards). The five P8 bench baselines were re-recorded:
++route_style warnings (pd_trigger 3, gndchoke 3, carrier 108 groups = 989
+KRT micro-jogs of 0.035-0.1 mm + 44 off-angle, score 0.68), and the
+check_ratings by_check key that landed without a re-record.
+
+**Deviations:** none. **Verify-later:** thresholds are mine, not the owner's;
+the U11 routing teaching cycle may set rules (or a gate) from them.

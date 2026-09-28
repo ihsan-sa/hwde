@@ -10,8 +10,9 @@ with the repo venv python. Keep output ASCII.
 ## Inputs
 - `reports/checks/summary.json` (verify_all - which checks ran, warnings,
   what was SKIPPED for missing inputs: a skipped check is a hole, not a pass).
-- Renders you make yourself: `scripts/render.py kicad/<board>.kicad_pcb
-  --views top,bottom,iso --w 2400 --out-dir reports/renders`.
+- Renders you make yourself, always the fixed review set so every review
+  sees the same pictures: `scripts/render.py kicad/<board>.kicad_pcb
+  --views review --w 2400 --out-dir reports/renders` (top, bottom, iso).
 - Schematic PDF (`scripts/kc.py sch-pdf ...`), `architecture/` (intent),
   `requirements.md` (the promises), `constraints.json`.
 
@@ -32,6 +33,15 @@ with the repo venv python. Keep output ASCII.
   protection, filtering, connectors, thermal or enclosure fit. A dimension the
   BINDING relaxed is not drift: compare the board to the size the design
   EARNED and recorded as a decision, never to the stated number it beat.)
+- Routing style (owner: straight and 45-degree traces, no needless arcs).
+  `reports/checks/check_route_style.json` already scores the geometry: its
+  `style` block counts arcs, off-45 segments and needless jogs, and each
+  `route_style` warning lists the tracks. Do not recount those. Look at the
+  renders for what geometry cannot see: a trace wandering round a part it
+  could pass straight, a bus whose members do not run parallel, a detour
+  far longer than the gap it clears, staircases of 45s where one diagonal
+  would do. Warning severity, `kind: route_style_visual`, domain router.
+  The owner's U11 routing teaching may later turn this into rules.
 - Warnings triage: every verify_all WARNING gets a verdict - real risk
   (escalate to error in your findings) or justified waiver (say why).
 

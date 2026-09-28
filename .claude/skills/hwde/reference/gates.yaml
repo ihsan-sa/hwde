@@ -101,7 +101,9 @@ gates:
       P8 verification suite (verify_all.py): return path, current, decoupling,
       diff pairs, creepage, thermal, silk, PDN, pin ratings (check_ratings:
       every pin's datasheet rating against its net's voltage; needs the
-      workspace parts dir, so it can run from P4 on). Fails on any error-severity
+      workspace parts dir, so it can run from P4 on), routing style
+      (check_route_style: arcs, off-45 segments and needless jogs, warnings
+      only - a score, not a gate, until U11 sets rules). Fails on any error-severity
       finding; warnings are surfaced for human review, not auto-failed.
       Human-approved residuals can be waived via the verify-waivers.json
       sidecar (gate.py --waivers; every entry needs reason + approved) so a

@@ -357,8 +357,9 @@ def test_verify_all_strict_with_declared_na_passes(tmp_path):
                                  "--reports-dir", str(tmp_path / "rep")])
     assert summary["status"] == "pass"
     cov = summary["coverage"]
-    assert sorted(cov["required"]) == sorted(["check_diffpair", "check_silk"])
-    assert sorted(cov["ran"]) == sorted(["check_diffpair", "check_silk"])
+    board_only = ["check_diffpair", "check_silk", "check_route_style"]
+    assert sorted(cov["required"]) == sorted(board_only)
+    assert sorted(cov["ran"]) == sorted(board_only)
     assert cov["skipped_error"] == {}
     assert set(cov["not_applicable"]) == set(CONSTRAINT_NEEDING)
     for e in cov["not_applicable"].values():
