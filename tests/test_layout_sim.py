@@ -37,6 +37,7 @@ PYTHON = sys.executable
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 import check_irdrop  # noqa: E402
+from _perf import assert_under  # noqa: E402
 import check_pdn_z  # noqa: E402
 import geom  # noqa: E402
 
@@ -279,15 +280,18 @@ def test_pd_trigger_5a_maps_under_30s():
     pcb = (REPO / "tests" / "fixtures" / "stages" / "pd_trigger" / "route"
            / "pd-trigger.kicad_pcb")
     bg = geom.load_board(pcb)
+    elapsed = {}
     for entry in ({"net": "VBUS", "current_a": 5.0},
                   {"net": "GND", "current_a": 5.0}):
         t0 = time.time()
         _, facts = check_irdrop.check_net(bg, entry)
-        elapsed = time.time() - t0
-        assert elapsed < 30.0, f"{entry['net']} map took {elapsed:.1f} s"
+        elapsed[entry["net"]] = time.time() - t0
         assert facts["resistance_mohm"] > 0
         assert facts["worst_drop_mv"] > 0
         assert facts["jmax"]["a_per_mm"] > 0
+    # timing last: a busy-box skip drops only the time check, not the maps
+    net, worst = max(elapsed.items(), key=lambda kv: kv[1])
+    assert_under(worst, 30.0, f"{net} map")
 
 
 # ============================================================ pure: cavity

@@ -32,6 +32,8 @@ SCRIPTS = SKILL / "scripts"
 RECIPES = SKILL / "reference" / "recipes"
 FIXTURES = ROOT / "tests" / "fixtures" / "stages" / "pd_trigger"
 PY = ROOT / ".venv" / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
+if not PY.exists():   # a checkout with no .venv (the landing gate): the venv running pytest
+    PY = Path(sys.executable)
 
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))

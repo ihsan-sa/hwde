@@ -19,20 +19,22 @@ SCRIPTS = Path(__file__).resolve().parents[1] / ".claude" / "skills" / "hwde" / 
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from lib import env  # noqa: E402
+from lib import boardreg, env  # noqa: E402
 
 BOARDS = env.boards_root()
 
 
 def board_path(name: str) -> Path:
     """Where board `name` lives in the boards repo (may not exist); safe at
-    import time. Pair it with need_board() inside the test."""
-    return BOARDS / name
+    import time. Pair it with need_board() inside the test. `name` is the
+    board's bare name: a workspace renamed to <PN>_<name> is found through
+    the register (boardreg.resolve)."""
+    return boardreg.resolve(name, BOARDS) or BOARDS / name
 
 
 def need_board(*names: str) -> None:
     """Skip the calling test unless every named board is in the boards repo."""
-    gone = [n for n in names if not (BOARDS / n).is_dir()]
+    gone = [n for n in names if not board_path(n).is_dir()]
     if gone:
         pytest.skip(f"needs the real board(s) {', '.join(gone)} from the "
                     f"boards repo ({BOARDS}; set HWDE_BOARDS_ROOT)")
@@ -41,7 +43,7 @@ def need_board(*names: str) -> None:
 def real_board(name: str) -> Path:
     """The board's workspace, skipping the test when it is not there."""
     need_board(name)
-    return BOARDS / name
+    return board_path(name)
 
 
 def copy_board(name: str, dst: Path, *, skip: tuple[str, ...] = ()) -> Path:

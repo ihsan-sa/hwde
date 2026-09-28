@@ -36,6 +36,7 @@ import check_decoupling  # noqa: E402
 import check_return_path  # noqa: E402
 import checklib  # noqa: E402
 import geom  # noqa: E402
+from _perf import assert_under  # noqa: E402
 
 MANIFEST = yaml.safe_load((GOLDEN / "manifest.yaml").read_text(encoding="utf-8"))
 BOARDS = list(MANIFEST["golden_boards"])
@@ -700,4 +701,4 @@ def test_performance_rf4_under_30s():
         geom._CACHE.clear()        # cold parse each time, like a fresh CLI run
         run_check(script, board_path("rf4"), "rf4")
     elapsed = time.perf_counter() - t0
-    assert elapsed < 30.0, f"S4 checks took {elapsed:.1f}s on rf4"
+    assert_under(elapsed, 30.0, "S4 checks on rf4")

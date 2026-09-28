@@ -360,9 +360,10 @@ def test_sweep_reports_every_workspace_that_captures_learnings(capsys):
                          capsys)
     assert code == 0
     boards = {b["board"]: b for b in payload["boards"]}
-    assert "rf-de-20m" in boards
-    assert boards["rf-de-20m"]["entries"] == boards["rf-de-20m"]["queued"] == 66
-    assert boards["rf-de-20m"]["uncompiled"] == 0
+    rf = board_path("rf-de-20m").name   # the workspace dir, <PN>_rf-de-20m
+    assert rf in boards
+    assert boards[rf]["entries"] == boards[rf]["queued"] == 66
+    assert boards[rf]["uncompiled"] == 0
 
 
 def test_queue_filters_by_stage_for_the_learner_operator_mode(tmp_path, capsys):

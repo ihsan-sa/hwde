@@ -387,9 +387,10 @@ def _courtyard_poly(fp_node, layer_name: str) -> Polygon | None:
 def class_sets(constraints: dict | None, decoupling: dict | None):
     """(gnd_nets, power_nets) from constraints.power + decoupling associations.
 
-    Single source for the net-class partition (T6 P6A-1): the annealer's MST
-    objective excludes gnd-class nets (they ride planes), so every consumer
-    that measures crossings/congestion "signal" must use the same partition.
+    Single source for the net-class partition (T6 P6A-1): the annealer's
+    crossing term excludes gnd-class nets (a pour crosses anything), so every
+    consumer that measures crossings "signal" must use the same partition.
+    (Its congestion demand charges every non-plane net its track pitch.)
     """
     power = {p.get("net") for p in (constraints or {}).get("power", [])}
     power |= {a.get("rail") for a in (decoupling or {}).get("associations", [])}

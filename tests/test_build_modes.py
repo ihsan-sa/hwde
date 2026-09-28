@@ -590,7 +590,7 @@ def test_canonical_and_constrained_diverge_on_the_same_board(tmp_path):
     con = stage("constrained")
     state_cli.run(["mode", "--workspace", str(con), "--token",
                    "learning fit-check:", "--stated", "35x25"])
-    before = outline(con / "kicad" / "bb-buck.kicad_pcb")
+    before = outline(con / "kicad" / f"{BB.name}.kicad_pcb")
     assert before == (35.0, 25.0)
     con_state = json.loads((con / "state.json").read_text(encoding="utf-8"))
     assert con_state["mode"]["board_init_outline"] == "35x25"
@@ -600,7 +600,7 @@ def test_canonical_and_constrained_diverge_on_the_same_board(tmp_path):
     can = stage("canonical")
     state_cli.run(["mode", "--workspace", str(can), "--token",
                    "learning stage-placement:", "--stated", "35x25"])
-    pcb = can / "kicad" / "bb-buck.kicad_pcb"
+    pcb = can / "kicad" / f"{BB.name}.kicad_pcb"
     cp = subprocess.run(
         [sys.executable, str(SCRIPTS / "board_edit.py"), "--pcb", str(pcb),
          "--outline", "fit", "--margin", "0.5", "--workspace", str(can)],

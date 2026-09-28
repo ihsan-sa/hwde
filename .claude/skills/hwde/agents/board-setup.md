@@ -16,13 +16,24 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
 ## Steps
 1. `scripts/board_init.py --netlist kicad/<top>.net --name <project>
    --out kicad --layers <2|4> [--copper-oz 1|2] [--stackup <NAME>]
-   [--outline auto|WxH] [--mounting-holes N]
+   [--outline auto|WxH] [--mounting-holes auto|N]
+   [--mounting-hole-fp LIB:NAME] [--corner-radius auto|R]
    [--schematic kicad/<top>.kicad_sch] [--fp-lib <workspace>/lib]`
    (`<project>` is the workspace directory name - `<PN>_<name>` on a
    numbered board, so never assume it equals `state.json`'s board)
    - creates `kicad/<project>.kicad_pcb` + `.kicad_pro`: parts loaded, pad
    nets assigned, shelf-packed, outline + corner mounting holes
    (board_only), stackup block injected from `reference/stackups.yaml`.
+   - Holes and corners come from `requirements.md` "Size & mounting". When it
+   says nothing, pass nothing: the defaults round the corners (2 mm, less on a
+   tiny board) and, once the shorter side is 30 mm, put four M3 holes with a
+   plated ring and a ring of vias on GND
+   (`MountingHole:MountingHole_3.2mm_M3_Pad_Via`). What the brief asks for
+   wins: no holes -> `--mounting-holes 0`; a count -> `--mounting-holes N`;
+   another size -> the matching `MountingHole_<size>_Pad_Via`; bare or
+   non-plated holes -> the name without `_Pad_Via`; square corners ->
+   `--corner-radius 0`. Report `mounting_holes`, `mounting_hole_net` and
+   `corner_radius` from the JSON.
    Its SELF-CHECK is the phase gate: schematic parity == 0 AND zero
    non-unconnected violations (unrouted boards always have
    unconnected_items - those are P7's).
