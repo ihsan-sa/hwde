@@ -124,7 +124,9 @@ inputs into `brief/`. A numbered board's dir and KiCad project are `<PN>_<name>`
 `<board>` in a KiCad/fab file name means that (`{project}`); see `lib/boardreg.py`.
 
 **Existing workspace** (`/hwde --resume <ws>`, or any verb with `--workspace`):
-`state.py resume` is the only source of truth for where the run is. Re-run the
+run `check_env.py` first, as at run start (exit 0 required: among other things
+it fails when this skill is a vendored copy behind ai-ee main - fix with
+`bin/sync-skill`). `state.py resume` is the only source of truth for where the run is. Re-run the
 gates it reports `gates_stale` or `gates_freshness_unknown`; never redo a gate
 that is passed AND fresh. Log the seam (`state.py log --event resumed`) and
 re-enter at the next unmet gate or checkpoint. Open issues in status `fixing`
