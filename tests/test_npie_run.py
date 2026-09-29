@@ -213,24 +213,36 @@ def test_sim_console_answers_a_hook_with_its_expected_reply(tmp_path):
 
 
 def test_out_of_limit_value_turns_the_supply_off(tmp_path):
-    rc, out = _run("start", "--workspace", str(_ws(tmp_path)), "--dry-run", "--hold")
-    run = out["run"]
-    steps = {s["id"]: s for st in json.loads((Path(run) / "procedure.json").read_text())
-             ["stages"] for s in st["steps"]}
-    # walk to the first human step that asks for a number, confirming the rest
-    while not (steps[out["awaiting"]["step"]].get("value")
-               and steps[out["awaiting"]["step"]].get("expect")):
-        _run("confirm", "--run", run, "--step", out["awaiting"]["step"], "--by", "ihsan")
-        rc, out = _run("resume", "--run", run)
-        assert out["status"] == "awaiting_human", out
-    s = steps[out["awaiting"]["step"]]
-    e = s["expect"]
-    bad = (e["max"] + abs(e["max"]) + 1) if e.get("max") is not None else (e["min"] - abs(e["min"]) - 1)
-    rc, out = _run("confirm", "--run", run, "--step", s["id"], "--by", "ihsan",
-                   "--value", str(bad))
-    assert rc == 1 and out["status"] == "failed" and out["failed"]["id"] == s["id"]
+    # the generator writes no human step with numeric limits yet, so this case gives
+    # the first held step a value + expect of its own (confirm reads run.steps)
+    sys.path.insert(0, str(NPIE))
+    from npielib import runner
+    run = runner.create(_ws(tmp_path), bench="sim", bench_cfg=None, label=None, faults=[],
+                        hold=True, seed=1)
+    run.open_bench()
+    runner.advance(run)
+    assert run.rec["status"] == "awaiting_human"
+    s = run.steps[run.index(run.rec["cursor"])]
+    s.update(value={"unit": "V"}, expect={"min": 4.9, "max": 5.1, "unit": "V"})
+    runner.confirm(run, s["id"], "ihsan", "12", None)
+    assert run.rec["status"] == "failed" and runner.exit_code(run) == 1
+    assert run.rec["steps"][-1]["verdict"] == "fail" and run.rec["steps"][-1]["value"] == 12.0
     # no --fail given, yet the supply still goes off (the sim bench is reachable)
-    assert out["safe_state"].startswith("supply outputs off")
+    assert run.rec["safe_state"].startswith("supply outputs off")
+
+
+def test_in_limit_value_passes_and_keeps_waiting_for_resume(tmp_path):
+    sys.path.insert(0, str(NPIE))
+    from npielib import runner
+    run = runner.create(_ws(tmp_path), bench="sim", bench_cfg=None, label=None, faults=[],
+                        hold=True, seed=1)
+    run.open_bench()
+    runner.advance(run)
+    s = run.steps[run.index(run.rec["cursor"])]
+    s.update(value={"unit": "V"}, expect={"min": 4.9, "max": 5.1, "unit": "V"})
+    runner.confirm(run, s["id"], "ihsan", "5.0", None)
+    assert run.rec["status"] == "awaiting_human" and run.rec["steps"][-1]["verdict"] == "pass"
+    assert not run.rec.get("safe_state")
 
 
 def test_a_driver_exception_aborts_with_the_supply_off(tmp_path, monkeypatch):

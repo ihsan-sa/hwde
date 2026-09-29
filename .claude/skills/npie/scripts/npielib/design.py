@@ -129,12 +129,6 @@ class Design:
         return [{"net": n, "pin": x["pin"], "func": x["func"]}
                 for n, nodes in self.nets.items() for x in nodes if x["ref"] == ref]
 
-    def net_of(self, ref: str, pin: str) -> str | None:
-        for p in self.pins_of(ref):
-            if p["pin"] == pin:
-                return p["net"]
-        return None
-
     def refs(self, prefix: str) -> list[str]:
         pat = re.compile(rf"^{prefix}\d+$")
         return sorted((r for r in self.components if pat.match(r)), key=_refkey)
