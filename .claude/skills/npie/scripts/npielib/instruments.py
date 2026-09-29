@@ -365,12 +365,18 @@ class SigrokLogic:
         with tempfile.TemporaryDirectory() as td:
             out = Path(td) / "cap.csv"
             subprocess.run(["sigrok-cli", "-d", self.dev, "-c", f"samplerate={samplerate}",
+                            "-C", ",".join(channels),
                             "--time", f"{int(duration_s * 1000)}ms", "-O", "csv",
                             "-o", str(out)], check=True, timeout=duration_s + 30)
-            rows = [r.split(",") for r in out.read_text().splitlines()
+            rows = [[x.strip() for x in r.split(",")] for r in out.read_text().splitlines()
                     if r and not r.startswith(";")]
+        # columns follow the device's channel order, so find each by its header name
+        head = rows[0] if rows else []
         edges = {c: 0 for c in channels}
-        for i, c in enumerate(channels):
+        for c in channels:
+            if c not in head:
+                raise BenchError(f"sigrok capture has no column {c} (got {head})")
+            i = head.index(c)
             col = [r[i] for r in rows[1:] if len(r) > i]
             edges[c] = sum(1 for a, b in zip(col, col[1:]) if a != b)
         return edges
@@ -449,5 +455,5 @@ class Bench:
         try:
             self.role("psu").off()
             return True
-        except BenchError:
+        except Exception:       # the supply itself failed; the record says so
             return False

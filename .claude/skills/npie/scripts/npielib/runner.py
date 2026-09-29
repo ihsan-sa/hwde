@@ -304,8 +304,8 @@ def advance(run: Run) -> Run:
         run.finish("failed" if missing else "passed",
                    "unconfirmed human steps" if missing else None)
         return run
-    except (instruments.BenchError, RunError, OSError) as exc:
-        run.rec["error"] = f"{run.rec['cursor']}: {exc}"
+    except Exception as exc:     # any driver error (VISA, bad reply, sigrok, flash) aborts safely
+        run.rec["error"] = f"{run.rec['cursor']}: {type(exc).__name__}: {exc}"
         run.finish("aborted", "error")
         return run
     finally:

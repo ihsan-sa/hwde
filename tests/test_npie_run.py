@@ -164,7 +164,10 @@ def test_live_bench_needs_the_bench_host_flag(tmp_path):
     assert rc == 1 and out["status"] == "awaiting_human" and out["bench"] == "t"
     run = out["run"]
     while out["status"] == "awaiting_human":
-        _run("confirm", "--run", run, "--step", out["awaiting"]["step"], "--by", "ihsan")
+        step = out["awaiting"]["step"]
+        rc, refused = _run("confirm", "--run", run, "--step", step, "--by", "ihsan")
+        assert rc == 2 and "NPIE_BENCH_HOST" in refused["error"]
+        _run("confirm", "--run", run, "--step", step, "--by", "ihsan", env=host)
         rc, refused = _run("resume", "--run", run)
         assert rc == 2 and "NPIE_BENCH_HOST" in refused["error"]
         rc, out = _run("resume", "--run", run, env=host)
@@ -207,3 +210,42 @@ def test_sim_console_answers_a_hook_with_its_expected_reply(tmp_path):
     assert rc == 0 and out["status"] == "passed", out
     got = [s for s in _record(out)["steps"] if s.get("value", "") and "MINI-1" in str(s["value"])]
     assert got and got[0]["value"].startswith('OK {"board":"MINI-1"')
+
+
+def test_out_of_limit_value_turns_the_supply_off(tmp_path):
+    rc, out = _run("start", "--workspace", str(_ws(tmp_path)), "--dry-run", "--hold")
+    run = out["run"]
+    steps = {s["id"]: s for st in json.loads((Path(run) / "procedure.json").read_text())
+             ["stages"] for s in st["steps"]}
+    # walk to the first human step that asks for a number, confirming the rest
+    while not (steps[out["awaiting"]["step"]].get("value")
+               and steps[out["awaiting"]["step"]].get("expect")):
+        _run("confirm", "--run", run, "--step", out["awaiting"]["step"], "--by", "ihsan")
+        rc, out = _run("resume", "--run", run)
+        assert out["status"] == "awaiting_human", out
+    s = steps[out["awaiting"]["step"]]
+    e = s["expect"]
+    bad = (e["max"] + abs(e["max"]) + 1) if e.get("max") is not None else (e["min"] - abs(e["min"]) - 1)
+    rc, out = _run("confirm", "--run", run, "--step", s["id"], "--by", "ihsan",
+                   "--value", str(bad))
+    assert rc == 1 and out["status"] == "failed" and out["failed"]["id"] == s["id"]
+    # no --fail given, yet the supply still goes off (the sim bench is reachable)
+    assert out["safe_state"].startswith("supply outputs off")
+
+
+def test_a_driver_exception_aborts_with_the_supply_off(tmp_path, monkeypatch):
+    sys.path.insert(0, str(NPIE))
+    from npielib import instruments, runner
+    ws = _ws(tmp_path)
+
+    def boom(self, *a, **k):
+        raise ValueError("could not convert string to float: 'ERR'")
+    monkeypatch.setattr(instruments.SimDmm, "measure", boom)
+    run = runner.create(ws, bench="sim", bench_cfg=None, label=None, faults=[],
+                        hold=False, seed=1)
+    run.open_bench()
+    runner.advance(run)
+    assert run.rec["status"] == "aborted" and runner.exit_code(run) == 2
+    assert "ValueError" in run.rec["error"]
+    assert run.rec["safe_state"].startswith("supply outputs off")
+    assert json.loads((run.dir / "run.json").read_text())["status"] == "aborted"

@@ -86,13 +86,14 @@ def main(argv=None) -> int:
             runner.advance(run)
         else:
             run = runner.Run(Path(a.run))
+            if not run.sim and os.environ.get("NPIE_BENCH_HOST") != "1":
+                raise runner.RunError("live bench refused: NPIE_BENCH_HOST=1 is not set")
             if a.cmd == "confirm":
-                if a.fail:
-                    run.open_bench()        # a failed confirmation turns the supply off
+                # any failed confirmation (--fail or a value out of limits) turns
+                # the supply off; the bench is lazy, so opening it here is free
+                run.open_bench()
                 runner.confirm(run, a.step, a.by, a.value, a.fail)
             elif a.cmd == "resume":
-                if not run.sim and os.environ.get("NPIE_BENCH_HOST") != "1":
-                    raise runner.RunError("live bench refused: NPIE_BENCH_HOST=1 is not set")
                 runner.advance(run)
     except (runner.RunError, design.DesignError, OSError, yaml.YAMLError) as exc:
         return _out({"ok": False, "error": str(exc)}, 2)
