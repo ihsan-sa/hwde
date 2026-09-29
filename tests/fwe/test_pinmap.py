@@ -147,3 +147,28 @@ def test_motor_driver_board():
         assert m["analog"][f"VSENSE_{phase}"]["ratio"] == 16.0
     assert m["analog"]["VBUS_SENSE"]["source"] == "VM"
     assert {pins[n]["role"] for n in ("LED_STATUS", "LED_FAULT")} == {"led"}
+
+
+def test_c_float_literals_are_valid_c():
+    assert pinmap._f(16) == "16.0f"
+    assert pinmap._f(0.003) == "0.003f"
+    assert pinmap._f(1.65) == "1.65f"
+    assert pinmap._f(1e-9) == "1e-09f"
+
+
+def test_generated_header_compiles(tmp_path):
+    import shutil
+    import subprocess
+    cc = shutil.which("cc") or shutil.which("gcc")
+    if not cc:
+        pytest.skip("no host C compiler")
+    ws = motor_fixture(tmp_path)
+    assert pinmap.main(["--workspace", str(ws), "--out", str(tmp_path / "r.json")]) == 0
+    src = tmp_path / "use.c"
+    src.write_text('#include "board_pins.h"\n'
+                   "float k(void) { return VBUS_SENSE_RATIO * ISENSE_A_GAIN * ISENSE_A_SHUNT_OHM"
+                   " + ISENSE_A_REF_V + RAIL__3V3_V; }\n")
+    p = subprocess.run([cc, "-std=c11", "-Wall", "-Wextra", "-Werror", "-c", str(src),
+                        "-I", str(ws / "firmware" / "gen"), "-o", str(tmp_path / "use.o")],
+                       capture_output=True, text=True)
+    assert p.returncode == 0, p.stderr

@@ -59,3 +59,18 @@ def source(name: str) -> Path:
 
 def boards_root() -> Path:
     return hwde_env.boards_root()
+
+
+def workspace(arg: str) -> Path:
+    """A board workspace from a path, or a name under the boards root."""
+    ws = Path(arg).expanduser()
+    return ws if ws.is_dir() else boards_root() / arg
+
+
+def emit(res: dict, out: str | None) -> None:
+    """The SPEC contract's output: JSON to --out when given, else stdout."""
+    text = json.dumps(res, indent=2)
+    if out:
+        Path(out).write_text(text + "\n", encoding="utf-8")
+    else:
+        print(text)

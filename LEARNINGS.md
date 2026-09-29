@@ -5118,3 +5118,4 @@ obstacle net's clearance). Raising the routed power nets instead also fixed the 
 - The same board puts ISENSE_A and ISENSE_C on ADC1 and ISENSE_B on ADC2, so the three phase currents can't be sampled in one simultaneous ADC1/ADC2 pair; sample two and reconstruct the third.
 - Renode 1.17.0 ships no STM32G4 platform (G0, F4, L5, H7 yes); a G431 sim needs its own .repl. xPack QEMU 9.2.4 has no G4 machine either.
 - The ST cmsis-device-g4 repo (v1.2.6) has a gcc startup file for the G431 but no gcc linker script; /fwe writes its own.
+- (2026-09-29) A generated C header must print floats as C float literals: Python's `f"{16:g}f"` gives `16f`, which gcc rejects ("invalid suffix f on integer constant"); pinmap's `_f()` gives `16.0f`. Compile the generated header in a test.
