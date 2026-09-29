@@ -3,7 +3,16 @@
 /fwe writes `firmware/fwe-manifest.json` next to every build; /npie reads it
 to flash the board and drive the firmware. It is the whole interface: /npie
 never reads firmware sources, and /fwe never assumes a bench.
-`scripts/fw_manifest.py --check` validates one.
+`scripts/fw_manifest.py` derives it and `--check` says whether one is stale.
+
+Where each part comes from: connectors and pins from the board's netlist (the
+J* part on the MCU's SWD and UART nets, through one series resistor), the
+command list from the dispatch in `src/console.c`, `safety` from
+`config/fw_config.h`, `stage`/`version` from the build's CMake cache, and the
+sha256s from `build/`. `verified` records evidence, not a derivation:
+`host_tests` is whether fw_test.py passed when the manifest was written, `sim`
+the simulator a smoke test passed in (null when none ran), and `hardware` is
+always false because /fwe never touches a bench.
 
 ```json
 {
@@ -24,12 +33,13 @@ never reads firmware sources, and /fwe never assumes a bench.
   },
   "uart": {"connector": "J701", "tx_pin": "3", "rx_pin": "4", "baud": 115200,
            "format": "8N1", "levels": "3V3", "banner_regex": "^fwe PCB-0018-A "},
-  "commands": [{"name": "status", "args": "", "reply": "OK {json}", "safe": true}],
+  "commands": [{"name": "status", "args": "", "reply": "OK {json} | ERR <code> <text>",
+                "safe": true}],
   "test_hooks": [{"name": "selftest", "send": "selftest", "expect": "^OK ",
-                  "timeout_s": 5, "needs": ["3V3"]}],
-  "safety": {"pwm_at_reset": "off", "i_trip_a": 20.0, "vbus_ov_v": 30.0,
-             "vbus_uv_v": 9.0, "fault_clear": "clear"},
-  "verified": {"build": true, "host_tests": true, "sim": "renode", "hardware": false}
+                  "timeout_s": 5, "needs": ["+3V3"]}],
+  "safety": {"pwm_at_reset": "off", "fault_clear": "clear", "i_trip_a": 20.0,
+             "i_limit_a": 15.0, "vbus_ov_v": 30.0, "vbus_uv_v": 9.0, "max_duty": 0.95},
+  "verified": {"build": true, "host_tests": true, "sim": null, "hardware": false}
 }
 ```
 

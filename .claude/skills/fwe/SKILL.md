@@ -27,7 +27,7 @@ hwde's netlist parser. `<board>` is a path or a name under the boards repo
   ask which board.
 - **exit 2**: error; the payload says what.
 
-Verbs: `setup` `pinmap` `scaffold` `build` `test` `stage` `review` `full-run`.
+Verbs: `setup` `pinmap` `scaffold` `build` `test` `sim` `manifest` `stage` `review` `full-run`.
 
 ## Rules
 

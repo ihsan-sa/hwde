@@ -57,6 +57,16 @@ VERBS = {
         "summary": "compile and run the host unit tests of the control math",
         "steps": ["fw_test.py --workspace {ws}"],
     },
+    "sim": {
+        "match": [r"\b(sim|simulat\w*|renode|qemu|smoke)\b"],
+        "summary": "boot the built ELF in Renode and check the console answers (a smoke test, not hardware)",
+        "steps": ["fw_sim.py --workspace {ws}"],
+    },
+    "manifest": {
+        "match": [r"\bmanifest\b", r"\b(npie|hand ?off|flash command)\b"],
+        "summary": "write or check firmware/fwe-manifest.json, the interface /npie flashes and drives",
+        "steps": ["fw_manifest.py --workspace {ws}"],
+    },
     "stage": {
         "match": [r"\b(stage|six.?step|foc|commutat\w*|bring.?up firmware|add (a )?command)\b"],
         "summary": "write or extend a firmware stage (bringup, motor), then build + test",
@@ -67,14 +77,16 @@ VERBS = {
         "match": [r"\b(review|audit|check the firmware)\b"],
         "summary": "review firmware against the board, the safety defaults and the manifest",
         "steps": ["pinmap.py --workspace {ws} --check", "fw_build.py --workspace {ws}",
-                  "fw_test.py --workspace {ws}", "agent: read the diff against the recipe's list"],
+                  "fw_test.py --workspace {ws}", "fw_manifest.py --workspace {ws} --check",
+                  "agent: read the diff against the recipe's list"],
     },
     "full-run": {
         "match": [r"\b(full.?run|end to end|from scratch|firmware for)\b", r"^run (on|for)\b"],
         "summary": "the whole path for a board: setup, scaffold, build, host tests",
         "steps": ["fwe_setup.py", "fw_scaffold.py --workspace {ws}",
                   "agent: fill the bringup stage per recipes/stage.md",
-                  "fw_build.py --workspace {ws}", "fw_test.py --workspace {ws}"],
+                  "fw_build.py --workspace {ws}", "fw_test.py --workspace {ws}",
+                  "fw_sim.py --workspace {ws}", "fw_manifest.py --workspace {ws} --sim renode"],
     },
 }
 

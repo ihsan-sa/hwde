@@ -38,7 +38,8 @@ def tail(text: str, n: int = 30) -> str:
 
 
 def run_tests(fw: Path, only: list[str], timeout: float) -> tuple[int, dict]:
-    cc = os.environ.get("CC") or shutil.which("cc") or shutil.which("gcc")
+    # gcc before cc: on the box ~/bin/cc is the session launcher, not a compiler
+    cc = os.environ.get("CC") or shutil.which("gcc") or shutil.which("clang") or shutil.which("cc")
     tests = sorted((fw / "tests").glob("test_*.c"))
     if only:
         tests = [t for t in tests if t.stem.removeprefix("test_") in only]

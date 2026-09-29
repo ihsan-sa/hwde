@@ -2,7 +2,7 @@
 
 The whole path for one board, as separate verbs in order: setup, scaffold
 (then set `config/fw_config.h` from requirements), stage bringup, build,
-test. Journal the size, the test count and what is unverified after each
+test, sim, manifest (`--sim renode` when the sim passed). Journal the size, the test count and what is unverified after each
 step. The firmware lands in the boards repo through its own PR, never in
 this repo.
 

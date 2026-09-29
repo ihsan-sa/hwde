@@ -1,8 +1,8 @@
-"""/fwe router, scaffold, host-test runner and cross build.
+"""/fwe router, scaffold, host-test runner, cross build, manifest and sim.
 
 Each case builds its own workspace under tmp_path. The cross build runs on
 the real motor-driver board and skips when the boards repo or the pinned
-toolchain is absent.
+toolchain is absent; the sim case also skips without the pinned Renode.
 """
 from __future__ import annotations
 
@@ -20,7 +20,9 @@ sys.path.insert(0, str(ROOT / "tests"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import fw_build  # noqa: E402
+import fw_manifest  # noqa: E402
 import fw_scaffold  # noqa: E402
+import fw_sim  # noqa: E402
 import fw_test  # noqa: E402
 import task_router  # noqa: E402
 from _boards import board_path, need_board  # noqa: E402
@@ -46,6 +48,8 @@ def test_router_table_is_complete():
     ("scaffold the firmware", "scaffold"),
     ("write sensored six-step", "stage"),
     ("install the toolchain", "setup"),
+    ("run the renode smoke test", "sim"),
+    ("write the manifest for npie", "manifest"),
 ])
 def test_router_picks_one_verb(task, verb):
     assert task_router.match(task) == [verb]
@@ -128,3 +132,54 @@ def test_motor_driver_scaffolds_builds_and_passes_host_tests(tmp_path):
     net.write_text(net.read_text().replace('LED_STATUS"', 'LED_STAT2"', 1))
     rc, res = run(fw_build, ["--workspace", str(ws)], tmp_path)
     assert (rc, res["step"]) == (1, "pinmap")
+
+
+def test_manifest_and_sim_refuse_a_project_that_was_never_built(tmp_path):
+    ws = motor_fixture(tmp_path)
+    assert run(fw_scaffold, ["--workspace", str(ws)], tmp_path)[0] == 0
+    rc, res = run(fw_manifest, ["--workspace", str(ws)], tmp_path)
+    assert rc == 1 and "fw_build" in res["error"]
+    assert not (ws / "firmware" / "fwe-manifest.json").exists()
+    rc, res = run(fw_sim, ["--workspace", str(ws)], tmp_path)
+    assert rc == 2 and not res["ok"]
+
+
+def _built_motor(tmp_path) -> Path:
+    need_board(BOARD)
+    _toolchain_or_skip()
+    ws = tmp_path / board_path(BOARD).name
+    shutil.copytree(board_path(BOARD) / "kicad", ws / "kicad")
+    assert run(fw_scaffold, ["--workspace", str(ws)], tmp_path)[0] == 0
+    rc, res = run(fw_build, ["--workspace", str(ws)], tmp_path)
+    assert rc == 0, res.get("log_tail") or res
+    return ws
+
+
+def test_motor_driver_manifest_is_derived_and_goes_stale(tmp_path):
+    ws = _built_motor(tmp_path)
+    rc, res = run(fw_manifest, ["--workspace", str(ws)], tmp_path)
+    assert rc == 0, res
+    m = res["manifest"]
+    assert (m["board"], m["stage"], m["flash"]["connector"]) == ("PCB-0018-A", "bringup", "J601")
+    # UART reaches J701 through the series resistors R701/R702
+    assert (m["uart"]["connector"], m["uart"]["tx_pin"], m["uart"]["rx_pin"]) == ("J701", "3", "4")
+    unsafe = {c["name"] for c in m["commands"] if not c["safe"]}
+    assert unsafe == {"arm", "duty"}
+    assert m["safety"]["pwm_at_reset"] == "off" and m["safety"]["vbus_ov_v"] > m["safety"]["vbus_uv_v"]
+    assert m["verified"] == {"build": True, "host_tests": True, "sim": None, "hardware": False}
+    assert run(fw_manifest, ["--workspace", str(ws), "--check"], tmp_path)[0] == 0
+    cfg = ws / "firmware" / "config" / "fw_config.h"
+    cfg.write_text(cfg.read_text().replace("VBUS_OV_V        30.0f", "VBUS_OV_V        32.0f"))
+    rc, res = run(fw_manifest, ["--workspace", str(ws), "--check"], tmp_path)
+    assert (rc, res["stale"]) == (1, ["safety"])
+
+
+def test_motor_driver_boots_in_renode_and_answers(tmp_path):
+    if not fw_sim.renode():
+        pytest.skip("pinned Renode not installed (fwe_setup.py)")
+    ws = _built_motor(tmp_path)
+    rc, res = run(fw_sim, ["--workspace", str(ws), "--send", "version", "--send", "nonsense"], tmp_path)
+    assert rc == 0, res
+    assert res["banner"].startswith("fwe PCB-0018-A ") and res["boot_evt"]
+    assert res["replies"][0]["reply"].startswith('OK {"board":"PCB-0018-A"')
+    assert res["replies"][1]["reply"].startswith("ERR ")
