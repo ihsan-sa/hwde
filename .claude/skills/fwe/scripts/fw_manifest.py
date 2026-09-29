@@ -3,7 +3,8 @@
 
 The manifest (reference/manifest.md, schema fwe-manifest/1) is derived, never
 hand-written: connectors from the board's netlist, the command list from the
-console's dispatch in src/console.c, the safety limits from config/fw_config.h,
+console's dispatch in src/console.c (with each reply's top-level keys),
+the safety limits from config/fw_config.h,
 the version and stage from the last build's CMake cache, and the artifacts'
 sha256 from firmware/build/. Run it after fw_build.py.
 
@@ -41,14 +42,15 @@ NAME = "fwe-manifest.json"
 # A command the table does not know is listed as unsafe until someone says so.
 KNOWN = {
     "version": ("", True), "status": ("", True), "selftest": ("", True),
-    "adc": ("", True), "offsets": ("", True), "led": ("<status|fault> <on|off>", True),
+    "adc": ("", True), "offsets": ("", True), "led": ("<status|fault> <on|off|auto>", True),
     "arm": ("", False), "disarm": ("", True), "duty": ("<a> <b> <c>", False),
     "clear": ("", True), "reset": ("", True),
 }
 HOOKS = [("version", r'^OK \{"board":"{board}"'), ("status", "^OK "),
          ("selftest", "^OK "), ("adc", "^OK ")]
 LIMITS = {"i_trip_a": "I_TRIP_A", "i_limit_a": "I_LIMIT_A", "vbus_ov_v": "VBUS_OV_V",
-          "vbus_uv_v": "VBUS_UV_V", "max_duty": "MAX_DUTY", "baud": "UART_BAUD"}
+          "vbus_uv_v": "VBUS_UV_V", "max_duty": "MAX_DUTY", "pwm_hz": "PWM_FREQ_HZ",
+          "baud": "UART_BAUD"}
 
 
 class Missing(Exception):
@@ -66,18 +68,37 @@ def config(fw: Path) -> dict:
         m = re.search(rf"^#define\s+{macro}\s+([0-9.]+)[uf]?\b", text, re.M)
         if not m:
             raise Missing(f"config/fw_config.h has no {macro}")
-        out[key] = int(m.group(1)) if key == "baud" else float(m.group(1))
+        out[key] = int(m.group(1)) if key in ("baud", "pwm_hz") else float(m.group(1))
     return out
+
+
+def reply_fields(src: str, func: str) -> list[str]:
+    """Top-level keys of a command's OK object: the o_k*/o_obj keys in its
+    handler, skipping those nested inside an o_obj(...) .. o_close() block."""
+    m = re.search(rf"^static void {func}\([^)]*\)\s*\{{(.*?)^\}}", src, re.M | re.S)
+    if not m:
+        return []
+    keys, depth = [], 0
+    for call, key in re.findall(r'\b(o_obj|o_close|o_k\w*)\(\s*"?([a-z_0-9]*)', m.group(1)):
+        if call == "o_close":
+            depth -= 1
+            continue
+        if depth == 0 and key not in keys:
+            keys.append(key)
+        if call == "o_obj":
+            depth += 1
+    return keys
 
 
 def commands(fw: Path) -> list[dict]:
     src = (fw / "src" / "console.c").read_text(encoding="utf-8")
-    names = re.findall(r'streq\(c,\s*"([a-z_]+)"\)', src)
-    if not names:
+    pairs = re.findall(r'streq\(c,\s*"([a-z_]+)"\)\)\s*(\w+)\(', src)
+    if not pairs:
         raise Missing("src/console.c has no streq(c, \"...\") dispatch")
     return [{"name": n, "args": KNOWN.get(n, ("?", False))[0],
-             "reply": "OK {json} | ERR <code> <text>", "safe": KNOWN.get(n, ("?", False))[1]}
-            for n in names]
+             "reply": "OK {json} | ERR <code> <text>",
+             "reply_fields": reply_fields(src, f), "safe": KNOWN.get(n, ("?", False))[1]}
+            for n, f in pairs]
 
 
 def cache(build: Path) -> dict:

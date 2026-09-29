@@ -6,6 +6,7 @@ toolchain is absent; the sim case also skips without the pinned Renode.
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import shutil
 import sys
@@ -24,9 +25,14 @@ import fw_manifest  # noqa: E402
 import fw_scaffold  # noqa: E402
 import fw_sim  # noqa: E402
 import fw_test  # noqa: E402
-import task_router  # noqa: E402
 from _boards import board_path, need_board  # noqa: E402
 from test_pinmap import motor_fixture  # noqa: E402
+
+# hwde has its own task_router; load ours under another name so neither
+# test module gets the other's from sys.modules.
+_spec = importlib.util.spec_from_file_location("fwe_task_router", SCRIPTS / "task_router.py")
+task_router = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(task_router)
 
 BOARD = "bldc-motor-driver"
 
@@ -165,6 +171,13 @@ def test_motor_driver_manifest_is_derived_and_goes_stale(tmp_path):
     assert (m["uart"]["connector"], m["uart"]["tx_pin"], m["uart"]["rx_pin"]) == ("J701", "3", "4")
     unsafe = {c["name"] for c in m["commands"] if not c["safe"]}
     assert unsafe == {"arm", "duty"}
+    # /npie's asks: every console command listed, each with its reply's
+    # top-level keys (nested o_obj keys are not), and the PWM frequency
+    cmds = {c["name"]: c for c in m["commands"]}
+    assert {"arm", "disarm", "duty", "clear", "status"} <= set(cmds)
+    assert cmds["duty"]["reply_fields"] == ["duty", "max_duty"]
+    assert "vbus" not in cmds["adc"]["reply_fields"] and "raw" in cmds["adc"]["reply_fields"]
+    assert m["safety"]["pwm_hz"] == 20000
     assert m["safety"]["pwm_at_reset"] == "off" and m["safety"]["vbus_ov_v"] > m["safety"]["vbus_uv_v"]
     assert m["verified"] == {"build": True, "host_tests": True, "sim": None, "hardware": False}
     assert run(fw_manifest, ["--workspace", str(ws), "--check"], tmp_path)[0] == 0
