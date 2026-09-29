@@ -3,7 +3,9 @@
 
 The manifest (reference/manifest.md, schema fwe-manifest/1) is derived, never
 hand-written: connectors from the board's netlist, the command list from the
-console's dispatch in src/console.c (with each reply's top-level keys),
+console's dispatch in src/console.c (with each reply's top-level keys; a
+command's args and safe flag come from a `/* fwe-cmd args="..." safe=yes|no */`
+comment on its dispatch line, else from the KNOWN table, else "?" and unsafe),
 the safety limits from config/fw_config.h,
 the version and stage from the last build's CMake cache, and the artifacts'
 sha256 from firmware/build/. Run it after fw_build.py.
@@ -39,7 +41,8 @@ SCHEMA = "fwe-manifest/1"
 NAME = "fwe-manifest.json"
 # manifest.md: a command is `safe: false` when it can energise the bridge.
 # `arm` turns every low side on (bootstrap charge), `duty` drives the phases.
-# A command the table does not know is listed as unsafe until someone says so.
+# A command neither declared (fwe-cmd, below) nor in this table is listed as
+# unsafe until someone says so.
 KNOWN = {
     "version": ("", True), "status": ("", True), "selftest": ("", True),
     "adc": ("", True), "offsets": ("", True), "led": ("<status|fault> <on|off|auto>", True),
@@ -90,15 +93,24 @@ def reply_fields(src: str, func: str) -> list[str]:
     return keys
 
 
+# A stage declares a command it adds on its dispatch line, and the declaration
+# wins over KNOWN:
+#   else if (streq(c, "six")) cmd_six(argc, argv);  /* fwe-cmd args="<duty 0..1> <fwd|rev> | stop" safe=no */
+DISPATCH = re.compile(r'streq\(c,\s*"([a-z_]+)"\)\)\s*(\w+)\([^\n]*?'
+                      r'(?:/\*\s*fwe-cmd\s+args="([^"]*)"\s+safe=(yes|no)\s*\*/)?[ \t]*$', re.M)
+
+
 def commands(fw: Path) -> list[dict]:
     src = (fw / "src" / "console.c").read_text(encoding="utf-8")
-    pairs = re.findall(r'streq\(c,\s*"([a-z_]+)"\)\)\s*(\w+)\(', src)
-    if not pairs:
+    found = DISPATCH.findall(src)
+    if not found:
         raise Missing("src/console.c has no streq(c, \"...\") dispatch")
-    return [{"name": n, "args": KNOWN.get(n, ("?", False))[0],
-             "reply": "OK {json} | ERR <code> <text>",
-             "reply_fields": reply_fields(src, f), "safe": KNOWN.get(n, ("?", False))[1]}
-            for n, f in pairs]
+    out = []
+    for n, f, args, safe in found:
+        known = (args, safe == "yes") if safe else KNOWN.get(n, ("?", False))
+        out.append({"name": n, "args": known[0], "reply": "OK {json} | ERR <code> <text>",
+                    "reply_fields": reply_fields(src, f), "safe": known[1]})
+    return out
 
 
 def cache(build: Path) -> dict:

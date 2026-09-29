@@ -1,9 +1,9 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
-# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28)
+# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29)
 
-One row per `LEARNINGS.md` entry (350 of them; the last starts at
-line 5110), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (351 of them; the last starts at
+line 5115), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -35,7 +35,7 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-09-28 (row 350 added), all 350 rows
+Recomputed from the table on 2026-09-29 (row 351 added), all 351 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
@@ -43,9 +43,9 @@ Recomputed from the table on 2026-09-28 (row 350 added), all 350 rows
 | L0 | 126 | 15 |
 | L1 | 21 | 18 |
 | L2 | 64 | 126 |
-| L3 | 139 | 191 |
+| L3 | 140 | 192 |
 
-136 entries want to climb at least one level. Status: **done 180**,
+136 entries want to climb at least one level. Status: **done 181**,
 **open 146**, **n/a 8**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
@@ -469,3 +469,4 @@ the row's Now level and status in the same commit as the code.
 | 348 | 5100 | Edge snap goes by the pads when the courtyard is a designed overhang | [placement][place_seed][place_anneal] | L3 | L3 | scripts/place_seed.py | done | place_seed snaps a declared-edge part by its pads when its courtyard overhangs and starts satellite slots at the anchor courtyard; placelib.ON_BOARD_MIN floors the on-board part. The `pos` question left open here is answered by row 349. |
 | 349 | 5105 | Three M3 holes on rf-term: pos, edge margin and the DSN's missing per- | [place_seed][place_anneal][route_auto][mounting-holes][dsn] | L3 | L3 | scripts/lib/routelib.py | done | `routelib.dsn_apply_net_rules` gives a net with .kicad_dru width/clearance its own DSN class, and `placelib.Footprint.edge_keep` bounds free courtyards by copper-to-edge clearance. `pos` is read as the origin's fraction of the edge (schema). |
 | 350 | 5110 | HV clearance and hole clearance now live in the .kicad_pro netclasses | [rules_gen][route_auto][dsn][freerouting][hole-clearance] | L3 | L3 | scripts/rules_gen.py | done | rules_gen.net_classes gives every aiee_hv_* net a netclass carrying its DRU clearance and update_pro floors class clearance at hole clearance minus the via ring, so the DSN export hands Freerouting what DRC checks; tests/test_board_setup.py proves it on a live DSN. |
+| 351 | 5115 | /fwe's first facts | [fwe][pinmap][toolchain] | L3 | L3 | .claude/skills/fwe/scripts/pinmap.py | done | Each fact is in the fwe code that needs it: the fwelib package name, pinmap._f() float literals (compiled in a test), fw_test picks gcc before cc, the G431 .repl + RCC/ADC stubs in templates/stm32g4/sim, the own linker script, and the test loading fwe's router by path. The DRV8300/ADC-split board facts live in the PCB-0018-A fw_config and bring-up code. |

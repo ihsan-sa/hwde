@@ -181,10 +181,41 @@ def test_motor_driver_manifest_is_derived_and_goes_stale(tmp_path):
     assert m["safety"]["pwm_at_reset"] == "off" and m["safety"]["vbus_ov_v"] > m["safety"]["vbus_uv_v"]
     assert m["verified"] == {"build": True, "host_tests": True, "sim": None, "hardware": False}
     assert run(fw_manifest, ["--workspace", str(ws), "--check"], tmp_path)[0] == 0
+    # a stage's own command, declared on its dispatch line, reaches the
+    # manifest with its args and safe flag, and --check accepts the rewrite
+    con = ws / "firmware" / "src" / "console.c"
+    src = con.read_text()
+    line = '    else if (streq(c, "clear")) cmd_clear();'
+    assert line in src
+    con.write_text(src.replace(line, '    else if (streq(c, "hall")) cmd_clear();  /* fwe-cmd args="" safe=yes */\n' + line))
+    assert run(fw_manifest, ["--workspace", str(ws), "--check"], tmp_path)[0] == 1
+    rc, res = run(fw_manifest, ["--workspace", str(ws)], tmp_path)
+    assert rc == 0 and {c["name"]: c for c in res["manifest"]["commands"]}["hall"]["safe"] is True
+    assert run(fw_manifest, ["--workspace", str(ws), "--check"], tmp_path)[0] == 0
     cfg = ws / "firmware" / "config" / "fw_config.h"
     cfg.write_text(cfg.read_text().replace("VBUS_OV_V        30.0f", "VBUS_OV_V        32.0f"))
     rc, res = run(fw_manifest, ["--workspace", str(ws), "--check"], tmp_path)
     assert (rc, res["stale"]) == (1, ["safety"])
+
+
+def test_manifest_commands_take_a_stage_declaration_over_the_table(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "console.c").write_text(
+        '    if (streq(c, "status")) cmd_status();\n'
+        '    else if (streq(c, "six")) cmd_six(argc, argv);  '
+        '/* fwe-cmd args="<duty 0..1> <fwd|rev> | stop" safe=no */\n'
+        '    else if (streq(c, "hall")) cmd_hall();  /* fwe-cmd args="" safe=yes */\n'
+        '    else if (streq(c, "led")) cmd_led(argc, argv);  /* fwe-cmd args="<x>" safe=no */\n'
+        '    else if (streq(c, "spin")) cmd_spin(argc, argv);\n')
+    got = {c["name"]: (c["args"], c["safe"]) for c in fw_manifest.commands(tmp_path)}
+    assert got == {
+        "status": ("", True),                                 # table, undeclared
+        "six": ("<duty 0..1> <fwd|rev> | stop", False),       # declared unsafe
+        "hall": ("", True),                                   # declared read-only
+        "led": ("<x>", False),                                # declaration beats the table
+        "spin": ("?", False),                                 # neither: unknown, unsafe
+    }
 
 
 def test_motor_driver_boots_in_renode_and_answers(tmp_path):

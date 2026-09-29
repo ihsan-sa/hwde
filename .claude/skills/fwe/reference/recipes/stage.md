@@ -16,6 +16,7 @@ Rules for any stage:
 - The safety defaults in `reference/design.md` stay true: PWM off at reset,
   hardware and software current limits, OV/UV trip, watchdog, a latched fault
   refuses `arm`/`duty` until `clear`.
-- Any new console command is added to the manifest's `commands` with
-  `safe: false` if it can energise the bridge.
+- Declare any new console command on its dispatch line in `src/console.c`,
+  `/* fwe-cmd args="..." safe=yes|no */`, with `safe=no` if it can energise the
+  bridge; fw_manifest.py carries both into the manifest's `commands`.
 - Bump `--stage` in the build and the manifest's `stage`.

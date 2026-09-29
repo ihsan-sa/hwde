@@ -8,9 +8,10 @@ is `reference/manifest.md`.
 - Run it after every build that is meant for /npie, and commit the manifest
   with the firmware it describes: its sha256s pin the exact binary.
 - Everything in it is derived. To change a limit, edit `config/fw_config.h`;
-  to add a command, add it to the dispatch in `src/console.c` and, when it is
-  safe to send unattended, to `KNOWN` in the script. An unknown command is
-  listed `safe: false` until then.
+  to add a command, add it to the dispatch in `src/console.c` and declare it on
+  that line: `/* fwe-cmd args="<duty 0..1> <fwd|rev> | stop" safe=no */`.
+  Never hand-edit the manifest; --check rejects it. An undeclared command the
+  script's `KNOWN` table doesn't list goes in as args `"?"`, `safe: false`.
 - exit 1 `no firmware/build/...` -> run the build verb first.
 - `verified.sim` stays null unless a simulator smoke test passed; never
   claim one you did not run.
