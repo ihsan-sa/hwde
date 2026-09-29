@@ -238,7 +238,9 @@ def execute(run: Run, s: dict) -> dict:
         if man is None:
             raise RunError("flash step but no firmware/fwe-manifest.json")
         ok, log = b.role("probe").flash(man, run.ws)
-        return run.record(s, verdict="pass" if ok else "fail", log=log)
+        return run.record(s, verdict="pass" if ok else "fail", log=log,
+                          artifact_sha256=((man.get("artifact") or {}).get("sha256") or {})
+                          .get(s.get("artifact", "elf")))
     if t == "console":
         con = b.role("console")
         if s.get("send"):

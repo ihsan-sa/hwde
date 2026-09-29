@@ -213,7 +213,19 @@ house style the way hwde's report_gen does (lualatex, housestyle.sty by
 path, ASCII-only .tex): board and procedure identity (input hashes), a
 summary table per stage, every measured step with expect/actual/verdict,
 the human confirmations with who and when, and the scope captures as
-figures. A failed or incomplete run still gets a report, marked so.
+figures. A failed or incomplete run still gets a report, marked so on its
+first page with the failed step and the safe state it left. lualatex comes
+from `NPIE_LUALATEX` else PATH and the style from `NPIE_HOUSE_STYLE` else
+pdf-material-builder's skill dir; without either (or `--tex-only`) the
+script writes `report.tex` only and exits 1.
+
+`shopping.py` reads the procedure, not the design: each instrument role the
+steps use, with the least spec those steps ask of it (supply volts, and amps
+with 20 % headroom, meter functions, scope bandwidth 10x the fastest
+measured frequency and never under 50 MHz, analyser channels and rate, the
+USB-UART's levels, the probe the manifest's flash tool drives), then the
+parts, a motor only when the full-function stage is in. Every line names
+the steps that need it.
 
 ## 7. Firmware contract
 
@@ -221,6 +233,6 @@ npie reads only `firmware/fwe-manifest.json` (schema `fwe-manifest/1`,
 owned by /fwe; see its reference/manifest.md). It uses: `flash.commands`,
 `flash.connector`, `uart` (connector, pins, baud, banner_regex),
 `commands` (names, `safe`), `test_hooks` (send, expect, timeout_s, needs),
-`safety` (vbus_uv_v, vbus_ov_v, i_trip_a), `artifact.sha256` (recorded in
+`safety` (vbus_uv_v, vbus_ov_v, i_trip_a), `artifact.sha256[<kind>]` (recorded in
 the run). A board with no manifest gets a procedure whose programming and
 firmware-driven block stages are listed as skipped with that reason.

@@ -56,7 +56,9 @@ step with `expect`). Type-specific keys:
     {"id": "rails.04", "verdict": "pass | fail | skip | pending",
      "value": 3.301, "unit": "V", "expect": {...},
      "confirmed_by": "ihsan", "confirmed_at": "...", "note": "...",
-     "captures": ["captures/rails.07.png"], "t": "..."}
+     "captures": ["captures/rails.07.png"], "t": "..."},
+    {"id": "programming.02", "verdict": "pass", "log": "...",
+     "artifact_sha256": "<manifest artifact.sha256 of the flashed kind>"}
   ],
   "safe_state": "supply outputs off at ... (rails.04 out of limits)",
   "error": "rails.04: ... (only when aborted)",

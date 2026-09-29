@@ -19,3 +19,15 @@ operating range comes from requirements.md ("10-28 V operating").
 ## 2026-09-29 [netlist] hwde's `lib` package name collides
 hwde's scripts import `lib`; npie's package is `npielib` so a pytest session that
 imports both never gets the wrong one.
+
+## 2026-09-29 [sim][fwe] a hook's reply is more than "OK"
+fwe's `version` hook on PCB-0018 expects `^OK {"board":"PCB-0018-A"`; the sim
+console's generic `OK {"sim":true}` failed it and stopped the dry run at the
+first block. SimBoard now answers a console step with a literal built from the
+step's own expect_re when the generic reply does not match. A dry run against
+the fixture manifest alone would not have found this: dry-run against the
+board's real, built manifest.
+
+## 2026-09-29 [fwe] the manifest's artifact.sha256 is a dict
+`artifact.sha256` is keyed by artifact kind (`{"elf": ...}`), not one hash;
+the flash step records `sha256[<step artifact>]`.

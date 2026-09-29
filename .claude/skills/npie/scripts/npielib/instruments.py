@@ -58,6 +58,10 @@ class SimBoard:
         self.follows = {
             s["points"]["plus"]["net"] for st in proc["stages"] for s in st["steps"]
             if s.get("quantity") == "voltage" and "follows the input" in s.get("derived_from", "")}
+        # the reply each console step waits for, so a hook that expects more
+        # than "OK" (version -> ^OK {"board":...) gets a line that fits
+        self.hooks = {s["send"].split()[0]: s["expect_re"] for st in proc["stages"]
+                      for s in st["steps"] if s["type"] == "console" and s.get("send")}
         self.faults = faults or []
         self.shorts = {f.split(":", 1)[1] for f in self.faults if f.startswith("short:")}
         self.rail_over = {}
@@ -159,6 +163,11 @@ class SimBoard:
         elif word == "status":
             return 'OK {"sim":true,"armed":%s,"vbus_v":%.3f}' % (
                 "true" if self.armed else "false", self.v * self.rng.uniform(0.99, 1.01))
+        want = self.hooks.get(word)
+        if want and not re.search(want, 'OK {"sim":true}'):
+            lit = _example_for(want)
+            if re.search(want, lit):
+                return lit + ("}" if lit.count("{") > lit.count("}") else "")
         return 'OK {"sim":true}'
 
 

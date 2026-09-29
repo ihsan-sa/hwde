@@ -189,3 +189,21 @@ def test_console_fields_are_checked_against_limits():
     assert runner._check_fields('OK {"vbus_v": 12.0}', lim)[0] is False
     assert runner._check_fields('OK {"armed": true}', lim) == (False, {"vbus_v": None})
     assert runner._check_fields("OK not-json", lim)[0] is False
+
+
+def test_sim_console_answers_a_hook_with_its_expected_reply(tmp_path):
+    # a hook that expects more than "OK " (PCB-0018's version hook) still passes
+    ws = tmp_path / "mini-bldc"
+    shutil.copytree(FIX, ws)
+    mf = ws / "firmware" / "fwe-manifest.json"
+    m = json.loads(mf.read_text())
+    m["test_hooks"].append({"name": "version", "send": "version", "timeout_s": 5,
+                            "expect": '^OK \\{"board":"MINI-1"', "needs": []})
+    mf.write_text(json.dumps(m))
+    r = subprocess.run([sys.executable, str(NPIE / "procedure_gen.py"), "--workspace", str(ws)],
+                       capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout
+    rc, out = _run("start", "--workspace", str(ws), "--dry-run")
+    assert rc == 0 and out["status"] == "passed", out
+    got = [s for s in _record(out)["steps"] if s.get("value", "") and "MINI-1" in str(s["value"])]
+    assert got and got[0]["value"].startswith('OK {"board":"MINI-1"')
