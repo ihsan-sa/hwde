@@ -60,6 +60,11 @@ def procedure_md(proc: dict) -> str:
         L += ["Not in this procedure:", ""]
         L += [f"- {s['stage']}: {s['reason']}" for s in proc["skipped"]]
         L.append("")
+    if proc.get("overrides"):
+        L += ["Limits a person set in bringup/overrides.yaml:", ""]
+        L += [f"- {o['step']}: {limit_text(o['generated'])} -> "
+              f"{limit_text({**o['generated'], **o['override']})}" for o in proc["overrides"]]
+        L.append("")
     for st in proc["stages"]:
         L += [f"## {st['title']}", "", "| Step | Action | Limit | From |", "|---|---|---|---|"]
         for s in st["steps"]:

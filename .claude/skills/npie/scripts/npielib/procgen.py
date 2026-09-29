@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 
-from .design import Design
+from .design import Design, DesignError
 
 SCHEMA = "npie-procedure/1"
 
@@ -306,6 +306,15 @@ class _Builder:
                       timeout_s=h.get("timeout_s", 5),
                       derived_from=f"manifest test_hooks[{h['name']}]",
                       text=f"firmware test hook {h['name']}")
+        st = {c["name"]: c for c in (m or {}).get("commands", [])}.get("status")
+        if st and "vbus_v" in st.get("reply_fields", []) and hasattr(self, "v_first"):
+            v = self.v_first
+            self.step("console", role="console", send="status", expect_re="^OK ",
+                      timeout_s=2, fields={"vbus_v": {"nominal": v, "min": round(v * 0.95, 3),
+                                                      "max": round(v * 1.05, 3), "unit": "V"}},
+                      derived_from="manifest commands[status].reply_fields vbus_v "
+                                   "vs the supply setting +/-5%",
+                      text="firmware reads the input voltage")
         for u in d.refs("U"):
             f = {p["func"]: p["net"] for p in d.pins_of(u)}
             if "OUT" in f and "REF1" in f and "REF2" in f:
@@ -371,6 +380,14 @@ class _Builder:
                           expect={"nominal": 0.5, "min": 0.45, "max": 0.55, "unit": ""},
                           derived_from="commanded duty 0.5 +/-0.05",
                           text=f"{_short(b['phase'])} switches ({b['hs']}/{b['ls']})")
+                hz = (m.get("safety") or {}).get("pwm_hz")
+                if hz:
+                    self.step("scope", role="scope", channel=1, quantity="freq",
+                              points={"plus": p, "minus": g},
+                              expect={"nominal": float(hz), "min": hz * 0.98,
+                                      "max": hz * 1.02, "unit": "Hz"},
+                              derived_from="manifest safety.pwm_hz +/-2%",
+                              text=f"{_short(b['phase'])} PWM frequency")
             self.step("console", role="console", send="disarm", expect_re="^OK ",
                       timeout_s=2, derived_from="manifest commands[disarm]")
         elif self.bridges:
@@ -463,6 +480,7 @@ def generate(d: Design, now: datetime | None = None) -> dict:
     b.full_function()
     b.limits()
     stages = [s for s in b.stages if s["steps"]]
+    applied = _apply_overrides(stages, d.overrides)
     return {
         "schema": SCHEMA,
         "board": d.board,
@@ -474,5 +492,29 @@ def generate(d: Design, now: datetime | None = None) -> dict:
                    "vin_range": list(d.vin_range) if d.vin_range else None},
         "roles": sorted(b.roles),
         "skipped": b.skipped,
+        "overrides": applied,
         "stages": stages,
     }
+
+
+def _apply_overrides(stages: list[dict], overrides: dict) -> list[dict]:
+    """bringup/overrides.yaml: a person's limit wins over the generated one.
+
+    Only `expect` fields are overridden, and each one is recorded (step, the
+    generated value, the new one) so the report shows what a person changed.
+    A step id the procedure does not have is an error, not a silent no-op.
+    """
+    by_id = {s["id"]: s for st in stages for s in st["steps"]}
+    unknown = sorted(set(overrides) - set(by_id))
+    if unknown:
+        raise DesignError(f"bringup/overrides.yaml names steps the procedure "
+                          f"does not have: {', '.join(unknown)}")
+    applied = []
+    for sid, fields in sorted(overrides.items()):
+        s = by_id[sid]
+        if "expect" not in s:
+            raise DesignError(f"bringup/overrides.yaml: step {sid} has no limits to override")
+        applied.append({"step": sid, "generated": dict(s["expect"]), "override": dict(fields)})
+        s["expect"].update(fields)
+        s["derived_from"] = s.get("derived_from", "") + " (overridden in bringup/overrides.yaml)"
+    return applied

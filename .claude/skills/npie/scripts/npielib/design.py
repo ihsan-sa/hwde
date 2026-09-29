@@ -7,7 +7,8 @@ procedure records which design it was generated from.
 
 Inputs (reference/design.md section 1): kicad/<board>.net (kicadsexpr netlist),
 kicad/constraints.json (voltages[], power[]), fab/BOM.csv, requirements.md
-(operating range) and firmware/fwe-manifest.json (optional).
+(operating range), firmware/fwe-manifest.json (optional) and
+bringup/overrides.yaml (optional: step id -> expect fields a person set).
 """
 from __future__ import annotations
 
@@ -20,6 +21,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import sexpdata
+import yaml
 
 
 class DesignError(Exception):
@@ -117,6 +119,7 @@ class Design:
     power: list                       # constraints power[] entries
     vin_range: tuple | None           # (min, max) operating input, from requirements
     manifest: dict | None
+    overrides: dict = field(default_factory=dict)  # step id -> expect fields
     inputs: dict = field(default_factory=dict)   # name -> {path, sha256}
 
     # ---- netlist queries
@@ -207,11 +210,23 @@ def load(ws: str | Path) -> Design:
             raise DesignError(f"{man_path}: schema {manifest.get('schema')!r}, "
                               "npie reads fwe-manifest/1")
 
+    overrides = {}
+    ov_path = root / "bringup" / "overrides.yaml"
+    if ov_path.is_file():
+        inputs["overrides"] = ov_path
+        try:
+            overrides = yaml.safe_load(ov_path.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError as exc:
+            raise DesignError(f"{ov_path}: {exc}") from exc
+        if not isinstance(overrides, dict) or not all(
+                isinstance(v, dict) for v in overrides.values()):
+            raise DesignError(f"{ov_path}: expected a mapping of step id -> expect fields")
+
     return Design(
         workspace=root, board=board,
         components=parsed["components"], nets=parsed["nets"],
         voltages=voltages, power=power, vin_range=_vin_range(req),
-        manifest=manifest,
+        manifest=manifest, overrides=overrides,
         inputs={k: {"path": str(p.relative_to(root)), "sha256": sha256(p)}
                 for k, p in inputs.items()},
     )

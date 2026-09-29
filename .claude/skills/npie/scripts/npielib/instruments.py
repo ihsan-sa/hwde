@@ -156,6 +156,9 @@ class SimBoard:
             self.fault_latched = None
         elif word == "reset":
             self.boot()
+        elif word == "status":
+            return 'OK {"sim":true,"armed":%s,"vbus_v":%.3f}' % (
+                "true" if self.armed else "false", self.v * self.rng.uniform(0.99, 1.01))
         return 'OK {"sim":true}'
 
 
@@ -195,9 +198,12 @@ class SimScope:
 
     def measure(self, channel, quantity, points):
         net = points["plus"]["net"]
+        switching = self.b.armed and self.b.powered() and max(self.b.duty) > 0
         if quantity == "duty":
-            val = max(self.b.duty) if self.b.armed and self.b.powered() else 0.0
+            val = max(self.b.duty) if switching else 0.0
             val += self.b.rng.uniform(-0.01, 0.01) if val else 0.0
+        elif quantity == "freq" and not switching:
+            val = 0.0
         else:
             val = self.b.reading(quantity, net, points["minus"]["net"]) \
                 if self.b.powered() else 0.0

@@ -124,21 +124,36 @@ stops with status `awaiting_human` and names the step. The person (or a
 session relaying them over Slack) answers, and the run resumes:
 
 ```
-npie_run.py start   --workspace W --bench bench.yaml [--label L]     -> run dir, runs to the first human step
+npie_run.py start   --workspace W (--bench bench.yaml | --dry-run [--hold] [--fault F]) [--label L]
 npie_run.py confirm --run R --step S --by NAME [--value V] [--fail "why"]
 npie_run.py resume  --run R
 npie_run.py status  --run R
 ```
 
-`--by` is required and recorded with the time: the record says who
-confirmed each human step. A `--fail` confirmation fails that step like a
-measurement would. Exit codes: 0 run passed, 1 a step failed or the run is
-waiting on a person (the payload's `status` says which), 2 error.
+`start` refuses a procedure whose design inputs (sha256 of each, an input
+that appeared or vanished included) differ from the ones it was generated
+from, then copies procedure.json into the run directory; the run executes
+that snapshot and refuses to go on if it is edited. Only the step the run
+waits on can be confirmed. `--by` is required and recorded with the time:
+the record says who confirmed each human step. A `--fail` confirmation fails
+that step, turns the supply off and ends the run at once. Exit codes: 0 run
+passed, 1 a step failed or the run is waiting on a person (the payload's
+`status` says which), 2 error or refusal (the run is `aborted` when an
+instrument call failed mid-run).
 
-Safety in the runner, independent of the procedure: on any failed step in
-or after power-up, and on any error, it turns the supply outputs off before
-it stops. A `--dry-run` executes against the simulated bench whatever
-`bench.yaml` says.
+Safety in the runner, independent of the procedure: on any failed step and
+on any error it turns the supply outputs off before it stops, and records
+that in `safe_state`. A live bench (`--bench`) is refused unless the host
+sets `NPIE_BENCH_HOST=1`; only the bench host does (bench-hosts.md), so the
+box cannot open an instrument by accident.
+
+`--dry-run` runs against the simulated bench (`SimBoard`, section 4) and
+confirms human steps itself as `sim`, so one call runs the whole procedure.
+`--hold` makes it stop at human steps like a real bench, for exercising the
+confirm path; the simulated board's state is kept in the run directory
+(`sim-board.pickle`) between calls and removed when the run ends.
+`--fault` injects `short:<net>`, `rail:<net>=<V>`, `no-banner` or
+`no-flash`, and must name a net some step probes.
 
 ## 4. Instruments: one driver layer
 

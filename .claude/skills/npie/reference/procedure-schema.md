@@ -11,6 +11,7 @@
              "constraints": {...}, "bom": {...}, "manifest": {...} | null},
   "roles": ["psu", "dmm", "scope", "console", "probe"],
   "skipped": [{"stage": "programming", "reason": "no firmware/fwe-manifest.json"}],
+  "overrides": [{"step": "rails.02", "generated": {...}, "override": {"max": 5.1}}],
   "stages": [
     {"id": "power-up", "title": "Current-limited power-up", "steps": [
       {"id": "power-up.01", "type": "human",
@@ -57,9 +58,14 @@ step with `expect`). Type-specific keys:
      "confirmed_by": "ihsan", "confirmed_at": "...", "note": "...",
      "captures": ["captures/rails.07.png"], "t": "..."}
   ],
-  "safe_state": "outputs off at 12:04:11"
+  "safe_state": "supply outputs off at ... (rails.04 out of limits)",
+  "error": "rails.04: ... (only when aborted)",
+  "faults": ["short:+5V"], "seed": 1, "hold": false
 }
 ```
+
+`faults`, `seed` and `hold` are present only on a simulated run (`bench:
+"sim"`); a live run records the `bench_config` it used instead.
 
 A human step's record always has `confirmed_by` and `confirmed_at`; a run
 cannot pass with one missing.

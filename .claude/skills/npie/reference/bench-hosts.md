@@ -19,6 +19,7 @@ git clone <ai-ee> && git clone <boards>
 python -m venv .venv && .venv/bin/pip install pyvisa pyvisa-py pyserial pyyaml
 # optional: sigrok-cli, probe-rs or openocd on PATH
 cp <board>/bringup/bench.example.yaml <board>/bringup/bench.yaml   # fill in resources
+export NPIE_BENCH_HOST=1      # this host may open instruments; the box never sets it
 npie_run.py start --workspace <board> --bench <board>/bringup/bench.yaml
 ```
 

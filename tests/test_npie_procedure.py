@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 NPIE = ROOT / ".claude" / "skills" / "npie" / "scripts"
@@ -95,6 +96,9 @@ def test_every_probed_measure_is_preceded_by_a_placement(tmp_path):
     for st in proc["stages"]:
         for prev, s in zip(st["steps"], st["steps"][1:]):
             if s["type"] in ("measure", "scope") and s.get("points"):
+                # consecutive readings on the same points share one placement
+                if prev["type"] == s["type"] and prev.get("points") == s["points"]:
+                    continue
                 assert prev["type"] == "human", s["id"]
                 assert s["points"]["plus"]["label"] in prev["text"], s["id"]
 
@@ -161,6 +165,11 @@ def test_cli_writes_json_and_ascii_markdown(tmp_path):
     md = (ws / "bringup" / "procedure.md").read_bytes()
     md.decode("ascii")
     assert b"rails.02" in md
+    # the bench example binds exactly the roles the procedure uses, and parses
+    bench = yaml.safe_load((ws / "bringup" / "bench.example.yaml").read_text())
+    assert out["bench_example"].endswith("bench.example.yaml")
+    assert sorted(bench["roles"]) == proc["roles"]
+    assert bench["roles"]["psu"]["driver"] == "scpi-psu"
 
 
 def test_real_bldc_board():
@@ -170,3 +179,50 @@ def test_real_bldc_board():
     assert proc["design"]["input"] == "/power_in/VM_IN"
     assert {"+5V", "+3V3", "+12V", "VM"} <= set(proc["design"]["rails"])
     assert len(proc["design"]["half_bridges"]) == 3
+
+
+def test_overrides_replace_a_generated_limit(tmp_path):
+    ws = _ws(tmp_path)
+    base = procgen.generate(design.load(ws))
+    (ws / "bringup").mkdir()
+    (ws / "bringup" / "overrides.yaml").write_text("rails.02: {min: 4.9, max: 5.1}\n")
+    proc = procgen.generate(design.load(ws))
+    got = {s["id"]: s for s in _steps(proc)}
+    was = {s["id"]: s for s in _steps(base)}
+    assert got["rails.02"]["expect"]["min"] == 4.9 and got["rails.02"]["expect"]["max"] == 5.1
+    assert "overrides.yaml" in got["rails.02"]["derived_from"]
+    assert proc["overrides"] == [{"step": "rails.02", "generated": was["rails.02"]["expect"],
+                                  "override": {"min": 4.9, "max": 5.1}}]
+    # every other step is untouched
+    assert got["rails.04"] == was["rails.04"]
+    assert "overrides" in proc["inputs"] and "overrides" not in base["inputs"]
+
+
+@pytest.mark.parametrize("text", ["nosuch.01: {max: 1}\n", "visual.01: {max: 1}\n", "- 1\n"])
+def test_bad_overrides_are_exit_2(tmp_path, text):
+    ws = _ws(tmp_path)
+    (ws / "bringup").mkdir()
+    (ws / "bringup" / "overrides.yaml").write_text(text)
+    r = subprocess.run([sys.executable, str(NPIE / "procedure_gen.py"), "--workspace", str(ws)],
+                       capture_output=True, text=True)
+    assert r.returncode == 2, r.stdout
+    assert "overrides.yaml" in json.loads(r.stdout)["error"]
+
+
+def test_manifest_status_and_pwm_hz_add_checks(tmp_path):
+    ws = _ws(tmp_path)
+    proc = procgen.generate(design.load(ws))
+    st = _by_text(proc, "firmware reads the input voltage")
+    assert st["send"] == "status" and st["fields"]["vbus_v"]["min"] == 9.5
+    hz = _by_text(proc, "PHASE_A PWM frequency")
+    assert (hz["quantity"], hz["expect"]["min"], hz["expect"]["max"]) == ("freq", 19600, 20400)
+    # without the fields fwe added, neither check is generated
+    man = ws / "firmware" / "fwe-manifest.json"
+    m = json.loads(man.read_text())
+    del m["safety"]["pwm_hz"]
+    for c in m["commands"]:
+        c.pop("reply_fields", None)
+    man.write_text(json.dumps(m))
+    texts = {s.get("text") for s in _steps(procgen.generate(design.load(ws)))}
+    assert "firmware reads the input voltage" not in texts
+    assert "PHASE_A PWM frequency" not in texts

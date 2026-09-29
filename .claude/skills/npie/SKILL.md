@@ -17,9 +17,11 @@ written by you: when a limit looks wrong, fix the rule (or the board's
 |---|---|
 | "write / update the bring-up procedure for <board>" | `scripts/procedure_gen.py --workspace <board>` -> `bringup/procedure.{json,md}` |
 | "what do I need to buy / have on the bench" | `scripts/shopping.py --workspace <board>` -> `bringup/shopping.md` |
-| "dry-run it", "check the procedure" | `scripts/npie_run.py start --workspace <board> --dry-run` (simulated bench; runs anywhere) |
-| "bring the board up", "run the tests" | on the bench host only: `npie_run.py start --workspace <board> --bench bringup/bench.yaml` |
+| "dry-run it", "check the procedure" | `scripts/npie_run.py start --workspace <board> --dry-run` (simulated bench; runs anywhere; `--fault short:<net>` to see a failure stop it, `--hold` to stop at human steps) |
+| "bring the board up", "run the tests" | on the bench host only (`NPIE_BENCH_HOST=1`): `npie_run.py start --workspace <board> --bench bringup/bench.yaml` |
 | a person answers a human step | `npie_run.py confirm --run <dir> --step <id> --by <name> [--value V] [--fail "why"]`, then `resume` |
+| "where is the run", "what is it waiting on" | `npie_run.py status --run <dir>` |
+| "this limit is wrong" | a person adds `<step id>: {min: .., max: ..}` to `bringup/overrides.yaml`, then regenerate |
 | "report", "write up the run" | `scripts/npie_report.py --run <dir>` -> `report.pdf` |
 
 Every script follows the repo contract: argparse, JSON on stdout, exit 0

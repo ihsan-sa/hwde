@@ -42,7 +42,14 @@
    "name": "status",
    "args": "",
    "reply": "OK {json}",
-   "safe": true
+   "safe": true,
+   "reply_fields": [
+    "armed",
+    "faults",
+    "vbus_v",
+    "i_a",
+    "duty"
+   ]
   },
   {
    "name": "selftest",
@@ -91,7 +98,8 @@
   "i_trip_a": 10.0,
   "vbus_ov_v": 30.0,
   "vbus_uv_v": 7.0,
-  "fault_clear": "clear"
+  "fault_clear": "clear",
+  "pwm_hz": 20000
  },
  "verified": {
   "build": true,
