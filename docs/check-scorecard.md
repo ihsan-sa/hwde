@@ -23,6 +23,21 @@ test `tests/test_check_scorecard.py` fails when a check's false positives or
 misses on the golden or mutant corpus rise above the last recorded line.
 
 <!-- SCORECARD:BEGIN (score_checks.py --record writes this) -->
+Last run 2026-09-29.
+Corpora: boards scored, golden scored, mutants scored.
+
+| check | fp | misses | caught | precision | recall | change |
+|---|---|---|---|---|---|---|
+| check_creepage | 36 | 0 | 1 | 0.32 | 1.00 |  |
+| check_current | 362 | 0 | 1 | 0.01 | 1.00 |  |
+| check_decoupling | 0 | 0 | 1 | 1.00 | 1.00 |  |
+| check_diffpair | 7 | 0 | 1 | 0.12 | 1.00 |  |
+| check_pdn | 1 | 0 | 1 | 0.67 | 1.00 |  |
+| check_ratings | 0 | 0 | 1 | 1.00 | 1.00 |  |
+| check_return_path | 1 | 0 | 2 | 0.89 | 1.00 |  |
+| check_route_style | 0 | 0 | 1 | 1.00 | 1.00 |  |
+| check_silk | 5 | 0 | 1 | 0.38 | 1.00 |  |
+| check_thermal | 6 | 0 | 1 | 0.14 | 1.00 |  |
 <!-- SCORECARD:END -->
 
 ## Open findings
