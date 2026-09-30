@@ -56,18 +56,28 @@ def mutant_path(mutant: str) -> Path:
     return GOLDEN / "mutants" / mutant / f"{board}.kicad_pcb"
 
 
+def sidecar(pcb: Path, board: str, name: str) -> Path:
+    """A mutant's own constraints.json / decoupling.json when its dir holds
+    one (see tests/golden/mutations/mutlib.py), else the golden's."""
+    own = pcb.parent / name
+    if pcb.parent.parent.name == "mutants" and own.exists():
+        return own
+    return GOLDEN / board / name
+
+
 def run_check(script: str, pcb: Path, board: str) -> dict:
-    """Run a check module in-process against a board + its golden fixtures."""
+    """Run a check module in-process against a board + its fixtures (the
+    mutant's sidecar when it has one, else the golden's)."""
     if script == "check_decoupling":
         payload, _ = check_decoupling.run(
             ["--pcb", str(pcb),
-             "--metadata", str(GOLDEN / board / "decoupling.json")])
+             "--metadata", str(sidecar(pcb, board, "decoupling.json"))])
         return payload
     mod = {"check_return_path": check_return_path,
            "check_current": check_current}[script]
     payload, _ = mod.run(
         ["--pcb", str(pcb),
-         "--constraints", str(GOLDEN / board / "constraints.json")])
+         "--constraints", str(sidecar(pcb, board, "constraints.json"))])
     return payload
 
 

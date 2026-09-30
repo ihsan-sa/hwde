@@ -102,6 +102,83 @@ mutants:
       no longer match the netlist); plain DRC stays quiet. dfm_check /
       bom_cpl polarity validation is the designated catcher (S12).
 
+  hv-rail-spacing:
+    board: blinky2
+    script: mutations/hv_rail_spacing.py
+    check: check_creepage
+    defect: >-
+      SIDECAR fault (copper unchanged): constraints.json declares the +5V
+      input a 100 V net; the golden's 0.50 mm +5V-to-GND spacing at J1 pad 1
+      is under the IPC-2221 0.60 mm for 100 V
+    expect:
+      kind: creepage
+      net: "+5V"
+      ref: J1
+      pos: [103.9, 102.65]
+      layer: B.Cu
+
+  ldo-thermal-starved:
+    board: blinky2
+    script: mutations/ldo_thermal_starved.py
+    check: check_thermal
+    defect: >-
+      SIDECAR fault (copper unchanged): constraints.json adds a thermal entry
+      for U2 (AMS1117, 0.68 W at the 0.4 A budget, 40 C allowed); the
+      golden gives its +3V3 tab ~27 mm2 of copper and no vias (~112 C rise)
+    expect:
+      kind: thermal_area
+      net: "+3V3"
+      ref: U2
+      pos: [110.025, 106.0]
+      layer: F.Cu
+
+  swdio-off-grid:
+    board: blinky2
+    script: mutations/swdio_off_grid.py
+    check: check_route_style
+    defect: >-
+      GEOMETRY fault: the straight /SWDIO run is replaced by a two-leg dogleg
+      whose legs are ~15 deg off the 45-degree grid
+    expect:
+      kind: route_style
+      net: /SWDIO
+      pos: [136.04, 119.5]    # midpoint of the first off-grid leg
+      layer: F.Cu
+
+  rail-cap-missing:
+    board: blinky2
+    script: mutations/rail_cap_missing.py
+    check: check_pdn
+    defect: >-
+      GEOMETRY + SIDECAR fault: C6, the only cap on the +5V input rail, is
+      deleted from the board and from decoupling.json - the rail is left with
+      no decoupling
+    expect:
+      kind: pdn_undecoupled
+      net: "+5V"
+
+  cap-undervoltage:
+    board: blinky2
+    script: mutations/cap_undervoltage.py
+    check: check_ratings
+    defect: >-
+      SIDECAR fault (+ an LCSC property on C6 so the parts dir finds it):
+      parts/parts.json rates C6 (10 uF on +5V) at 4 V, below the 5 V rail
+    expect:
+      kind: rating_over_voltage
+      net: "+5V"
+      ref: C6
+
 # Checks referenced above and the step that builds them:
 #   check_return_path  S4    check_decoupling  S4    check_current  S4
 #   check_diffpair     S5    check_silk        S5    dfm_check      S12
+#   check_creepage     S5    check_thermal     S5    check_route_style
+#   check_pdn          S5    check_ratings
+# Every check in verify_all.CHECKS has a mutant above (scorecard).
+#
+# Sidecar convention: a mutant dir tests/golden/mutants/<name>/ holds
+# <board>.kicad_pcb and MAY hold constraints.json, decoupling.json and a
+# parts/ dir (check_ratings' --parts input) that override the golden's for
+# that mutant only. A script emits them via detail["sidecars"] (mutlib).
+# expect.kind is the violation kind; net/ref/pos(+-1 mm)/layer, when given,
+# must all match ONE violation of the target check (a "catch").

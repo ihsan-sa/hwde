@@ -8,6 +8,12 @@ validates that KiCad still parses the file and refreshes zone fills.
 
 Every mutation script:
   mutate.py [--out DIR]   -> writes <out>/<board>.kicad_pcb (+ .kicad_pro)
+Sidecar convention: a mutant dir may also hold `constraints.json`,
+`decoupling.json` and a `parts/` dir that override the golden's for THAT mutant
+only (a fault that lives in an input the check reads, not in copper). A script
+returns them from `surgery` as detail["sidecars"] = {relpath: text}; they are
+written next to the board, and the board is copied even when unchanged so every
+mutant dir is self-contained.
   JSON summary to stdout; exit 0 on success, 2 on error.
 """
 from __future__ import annotations
@@ -179,11 +185,25 @@ def keepout_zone_sexpr(layer, rect, name, uuid) -> str:
             f"\t)\n")
 
 
+def golden_json(board: str, name: str) -> dict:
+    """The golden's sidecar (constraints.json / decoupling.json) as a dict."""
+    return json.loads((GOLDEN / board / name).read_text(encoding="utf-8"))
+
+
+def dump_json(doc: dict) -> str:
+    return json.dumps(doc, indent=2) + "\n"
+
+
 def finalize(mutant: str, board: str, text: str, out_dir: Path | None,
              detail: dict) -> dict:
     """Write mutant board + project, refill zones, return summary dict."""
     out = out_dir or (GOLDEN / "mutants" / mutant)
     out.mkdir(parents=True, exist_ok=True)
+    sidecars = detail.pop("sidecars", None) or {}
+    for rel, body in sidecars.items():
+        dest = out / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(body, encoding="utf-8")
     pcb = out / f"{board}.kicad_pcb"
     pcb.write_text(text, encoding="utf-8")
     shutil.copyfile(GOLDEN / board / f"{board}.kicad_pro",
@@ -205,7 +225,7 @@ def finalize(mutant: str, board: str, text: str, out_dir: Path | None,
         raise SurgeryError(
             f"refill/parse failed: {cp.stdout.strip()} {cp.stderr.strip()}")
     return {"script": mutant, "status": "pass", "board": board,
-            "out": str(pcb), **detail}
+            "out": str(pcb), "sidecars": sorted(sidecars), **detail}
 
 
 def run(mutant: str, board: str, surgery, argv=None) -> int:

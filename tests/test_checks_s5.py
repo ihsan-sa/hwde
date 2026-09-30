@@ -36,6 +36,8 @@ from _perf import assert_under  # noqa: E402
 import check_decoupling  # noqa: E402
 import check_diffpair  # noqa: E402
 import check_pdn  # noqa: E402
+import check_ratings  # noqa: E402
+import check_route_style  # noqa: E402
 import check_silk  # noqa: E402
 import check_thermal  # noqa: E402
 import checklib  # noqa: E402
@@ -49,7 +51,9 @@ S5_CHECKS = ["check_diffpair", "check_silk", "check_creepage",
              "check_thermal", "check_pdn"]
 # checks that exist by end of S5 (dfm_check is S12)
 BUILT_CHECKS = {"check_return_path", "check_current", "check_decoupling",
-                "check_diffpair", "check_silk"}
+                "check_diffpair", "check_silk", "check_creepage",
+                "check_thermal", "check_route_style", "check_pdn",
+                "check_ratings"}
 
 
 def board_path(name: str) -> Path:
@@ -59,6 +63,15 @@ def board_path(name: str) -> Path:
 def mutant_path(mutant: str) -> Path:
     board = MANIFEST["mutants"][mutant]["board"]
     return GOLDEN / "mutants" / mutant / f"{board}.kicad_pcb"
+
+
+def mutant_input(mutant: str, name: str) -> Path:
+    """The mutant's own sidecar (constraints.json, decoupling.json, parts/)
+    when its dir holds one, else the golden's."""
+    own = GOLDEN / "mutants" / mutant / name
+    if own.exists():
+        return own
+    return GOLDEN / golden_of(mutant) / name
 
 
 def golden_of(mutant: str) -> str:
@@ -486,7 +499,8 @@ def test_mutant_diffpair_skew_caught():
     board = m["board"]
     payload, _ = check_diffpair.run(
         ["--pcb", str(mutant_path("diffpair-skew")),
-         "--constraints", str(GOLDEN / board / "constraints.json")])
+         "--constraints", str(mutant_input("diffpair-skew",
+                                           "constraints.json"))])
     assert payload["status"] == "violations"
     exp = m["expect"]
     hits = [v for v in payload["violations"]
@@ -510,6 +524,78 @@ def test_mutant_silk_over_pad_caught():
                       v["pos"][1] - exp["pos"][1]) < 0.5
 
 
+def _catch(mutant: str, violations: list[dict]) -> list[dict]:
+    """Violations matching EVERY key of the mutant's manifest `expect`
+    (kind, net == v.net, ref in v.refs, pos within 1 mm, layer)."""
+    exp = MANIFEST["mutants"][mutant]["expect"]
+    hits = []
+    for v in violations:
+        if v.get("kind") != exp["kind"]:
+            continue
+        if "net" in exp and v.get("net") != exp["net"]:
+            continue
+        if "ref" in exp and exp["ref"] not in v.get("refs", []):
+            continue
+        if "layer" in exp and v.get("layer") != exp["layer"]:
+            continue
+        if "pos" in exp and (v.get("pos") is None or math.hypot(
+                v["pos"][0] - exp["pos"][0], v["pos"][1] - exp["pos"][1]) > 1.0):
+            continue
+        hits.append(v)
+    return hits
+
+
+def test_mutant_hv_rail_spacing_caught():
+    payload, _ = check_creepage.run(
+        ["--pcb", str(mutant_path("hv-rail-spacing")),
+         "--constraints", str(mutant_input("hv-rail-spacing",
+                                           "constraints.json"))])
+    assert payload["status"] == "violations"
+    hits = _catch("hv-rail-spacing", payload["violations"])
+    assert len(hits) == 1, json.dumps(payload["violations"])
+    assert hits[0]["spacing_mm"] < hits[0]["required_mm"]
+
+
+def test_mutant_ldo_thermal_starved_caught():
+    payload, _ = check_thermal.run(
+        ["--pcb", str(mutant_path("ldo-thermal-starved")),
+         "--constraints", str(mutant_input("ldo-thermal-starved",
+                                           "constraints.json"))])
+    hits = _catch("ldo-thermal-starved", payload["violations"])
+    assert len(hits) == 1, json.dumps(payload["violations"])
+    assert hits[0]["rise_c"] > hits[0]["dt_allowed_c"]
+
+
+def test_mutant_swdio_off_grid_caught():
+    payload, _ = check_route_style.run(
+        ["--pcb", str(mutant_path("swdio-off-grid"))])
+    hits = _catch("swdio-off-grid", payload["violations"])
+    assert len(hits) == 1, json.dumps(payload["violations"])
+    assert hits[0]["style"] == "angle"
+    assert len(hits[0]["items"]) == 2          # both dogleg legs
+
+
+def test_mutant_rail_cap_missing_caught():
+    payload, _ = check_pdn.run(
+        ["--pcb", str(mutant_path("rail-cap-missing")),
+         "--constraints", str(mutant_input("rail-cap-missing",
+                                           "constraints.json")),
+         "--decoupling", str(mutant_input("rail-cap-missing",
+                                          "decoupling.json"))])
+    hits = _catch("rail-cap-missing", payload["violations"])
+    assert len(hits) == 1, json.dumps(payload["violations"])
+    assert hits[0]["severity"] == "error" and hits[0]["cap_count"] == 0
+
+
+def test_mutant_cap_undervoltage_caught():
+    payload, _ = check_ratings.run(
+        ["--pcb", str(mutant_path("cap-undervoltage")),
+         "--parts", str(mutant_input("cap-undervoltage", "parts"))])
+    hits = _catch("cap-undervoltage", payload["violations"])
+    assert len(hits) == 1, json.dumps(payload["violations"])
+    assert hits[0]["severity"] == "error" and hits[0]["limit_v"] == 4
+
+
 @pytest.mark.parametrize("mutant", sorted(MANIFEST["mutants"]))
 def test_non_target_mutants_stay_clean(mutant):
     """Each S5 check must not fire on mutants it does not own (no cross-talk)."""
@@ -518,14 +604,20 @@ def test_non_target_mutants_stay_clean(mutant):
     for script, mod in (("check_diffpair", check_diffpair),
                         ("check_silk", check_silk),
                         ("check_creepage", check_creepage),
-                        ("check_thermal", check_thermal)):
+                        ("check_thermal", check_thermal),
+                        ("check_route_style", check_route_style),
+                        ("check_pdn", check_pdn)):
         if script == target:
             continue
         argv = ["--pcb", str(mutant_path(mutant))]
-        if script in ("check_creepage",):
-            argv += ["--constraints", str(GOLDEN / board / "constraints.json")]
-        elif script == "check_thermal":
-            argv += ["--constraints", str(GOLDEN / board / "constraints.json")]
+        if script in ("check_creepage", "check_thermal"):
+            argv += ["--constraints",
+                     str(mutant_input(mutant, "constraints.json"))]
+        elif script == "check_pdn":
+            argv += ["--constraints",
+                     str(mutant_input(mutant, "constraints.json")),
+                     "--decoupling",
+                     str(mutant_input(mutant, "decoupling.json"))]
         payload, _ = mod.run(argv)
         if script == "check_silk" and board == "rf4":
             # rf4-derived mutants inherit the golden's one known C14
@@ -548,11 +640,14 @@ def test_full_manifest_coverage(tmp_path):
         if target not in BUILT_CHECKS:
             continue
         board = m["board"]
-        summary, _ = verify_all.run(
-            ["--pcb", str(mutant_path(mutant)),
-             "--constraints", str(GOLDEN / board / "constraints.json"),
-             "--decoupling", str(GOLDEN / board / "decoupling.json"),
-             "--reports-dir", str(tmp_path / mutant)])
+        argv = ["--pcb", str(mutant_path(mutant)),
+                "--constraints", str(mutant_input(mutant, "constraints.json")),
+                "--decoupling", str(mutant_input(mutant, "decoupling.json")),
+                "--reports-dir", str(tmp_path / mutant)]
+        parts = GOLDEN / "mutants" / mutant / "parts"
+        if parts.is_dir():          # check_ratings' input (goldens have none)
+            argv += ["--parts", str(parts)]
+        summary, _ = verify_all.run(argv)
         assert summary["checks"][target]["status"] == "violations", \
             f"{mutant}: {target} did not catch it"
         assert any(v.get("source") == target for v in summary["violations"])
