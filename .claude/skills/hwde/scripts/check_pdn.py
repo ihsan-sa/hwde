@@ -13,6 +13,9 @@ legitimately carries only bulk capacitance, and flagging it would false-positive
 on real supplies (the corpus +5V / VBUS rails are exactly this). Plane-connection
 width is left to check_current (pour neckdown) - the same geometry, one owner.
 
+A ground/return net in the power list (there for its current budget) is
+skipped: caps decouple a rail TO it, so it cannot itself be undecoupled.
+
 The corpus rails all carry bulk + caps, so this check is clean on all goldens.
 
 CLI: --pcb board.kicad_pcb --constraints constraints.json --decoupling dec.json
@@ -29,6 +32,7 @@ import checklib  # noqa: E402
 import geom  # noqa: E402
 from checklib import violation  # noqa: E402
 import check_decoupling  # noqa: E402  (reuse the farad parser)
+from check_ratings import is_ground  # noqa: E402  (one ground-name rule)
 
 SCRIPT = "check_pdn"
 BULK_MIN_F = 1e-6              # a bulk reservoir cap is >= 1 uF
@@ -100,6 +104,14 @@ def run(argv=None):
         if entry.get("pdn") is False:
             checked.append({"rail": rail, "current_a": entry.get("current_a"),
                             "skipped": "pdn:false (width-only power entry)"})
+            continue
+        # A return net listed under `power` only so rules_gen sizes it for the
+        # return current is not a rail: decoupling is measured TO it, never on
+        # it (scorecard 2026-09-29: bb-buck, sbuck-5v3a and bldc-motor-driver
+        # each waived this same GND finding).
+        if is_ground(rail):
+            checked.append({"rail": rail, "current_a": entry.get("current_a"),
+                            "skipped": "return net: decoupled to, not on"})
             continue
         vs, facts = check_rail(bg, rail, entry.get("current_a"), assocs)
         violations.extend(vs)

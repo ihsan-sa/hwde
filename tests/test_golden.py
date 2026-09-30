@@ -34,6 +34,11 @@ MUTATIONS = {
     "diffpair-skew": "diffpair_skew.py",
     "silk-over-pad": "silk_over_pad.py",
     "cpl-rotation": "cpl_rotation.py",
+    "hv-rail-spacing": "hv_rail_spacing.py",
+    "ldo-thermal-starved": "ldo_thermal_starved.py",
+    "swdio-off-grid": "swdio_off_grid.py",
+    "rail-cap-missing": "rail_cap_missing.py",
+    "cap-undervoltage": "cap_undervoltage.py",
 }
 
 
@@ -129,8 +134,10 @@ def test_mutation_deterministic_and_effective(name, tmp_path):
         digests.append(hashlib.sha256(pcb.read_bytes()).hexdigest())
     assert digests[0] == digests[1], f"{name} is not deterministic"
     golden = GOLDEN / boards[0].stem / boards[0].name
-    assert boards[0].read_bytes() != golden.read_bytes(), (
-        f"{name} did not change the board")
+    # a sidecar-only mutant (fault in constraints/decoupling/parts) leaves the
+    # copper alone: it must then have written its sidecar
+    assert (boards[0].read_bytes() != golden.read_bytes()
+            or summary["sidecars"]), f"{name} changed neither board nor inputs"
 
 
 @pytest.mark.parametrize("name", list(MUTATIONS))
@@ -149,7 +156,8 @@ def test_manifest_complete(manifest):
     assert set(manifest["mutants"]) == set(MUTATIONS)
     known_checks = {"check_return_path", "check_decoupling", "check_current",
                     "check_diffpair", "check_creepage", "check_thermal",
-                    "check_silk", "check_pdn", "dfm_check"}
+                    "check_silk", "check_pdn", "dfm_check",
+                    "check_route_style", "check_ratings"}
     for name, m in manifest["mutants"].items():
         assert m["board"] in BOARDS, f"{name}: unknown board {m['board']}"
         assert m["check"] in known_checks, f"{name}: unknown check {m['check']}"
