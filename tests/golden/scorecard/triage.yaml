@@ -686,3 +686,25 @@ entries:
     pos: [74.685, 69.285]
     verdict: fp
     reason: "INA240 sense pair: pin spacing and shunt Kelvin taps set ~9 mm of uncoupled run by the packages, and ISNS is a low-frequency signal so limits sized for high-speed pairs do not apply. fp (check model does not fit)."
+  - board: PCB-0007-A_rf-de-20m
+    check: check_creepage
+    kind: creepage
+    net: "/SW"
+    verdict: fp
+    reason: "The ten /SW creepage errors with empty refs (pad-to-escape-track pairs, 0.350-0.389 mm) are the same intra-EPC2019 die pitch as the Q201/Q202 entry; gate-verify.json waived all 21 at the same positions and verify-waivers.md s3 confirms 21 of 21 lie inside the two land patterns. fp (board rule applied inside a qualified footprint)."
+  - board: PCB-0007-A_rf-de-20m
+    check: check_decoupling
+    kind: decoupler_distance
+    verdict: real
+    reason: "verify-waivers.md (decoupling rows): C201/C202 cannot sit closer to U201.A1 than the OUTL wrap allows, C106/C213 are bulk parts under a tighter 3.0 mm sidecar limit; placement-derived, inside the approved P6 floorplan and left to the named P6 backward edge (re-place U201). real (accepted, fix deferred)."
+  - board: PCB-0007-A_rf-de-20m
+    check: check_decoupling
+    kind: decoupler_loop
+    verdict: real
+    reason: "verify-waivers.md: C201 ~6.1 nH and C202 ~3.1 nH against the 0.3 nH VDD-loop budget share the distance root cause (estimator 0.7 nH/mm + 1 nH/via counts the In2 hop's vias); the real mitigation is the P6 re-place, not a P8 edit. real (fix deferred)."
+  - board: PCB-0013-A_bb-amp
+    check: check_diffpair
+    kind: diffpair_impedance
+    net: "/IN_P"
+    verdict: fp
+    reason: "bb-amp LEARNINGS.md 2026-08-17: /IN_P//IN_N is a low-frequency precision DC pair that needs equality, not coupling or a controlled impedance, and there is no controlled impedance anywhere on the board; the same entry records check_diffpair failing the verify gate on the same pair. gate-verify.json (P8) passes with check_diffpair 0. fp (impedance target does not apply)."
