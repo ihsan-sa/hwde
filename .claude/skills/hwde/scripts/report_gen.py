@@ -22,10 +22,15 @@ The Run Record carries the model cost of generating the board from
 reports/cost.json (gen_cost.py): the total, the split by step or the reason
 there is none. A missing cost.json is a warning and a "not recorded" line.
 
-A finished PDF is filed under the Boards project ("<board> design doc") with
-`cc-docs file` only when asked: `--file` (the command a person or session runs
-to finish a report) or DOC_PROJECT set in the environment (its value is the
-project). With neither, the PDF is built and nothing is filed, so test runs and
+A finished PDF is filed in the board's own folder of the library's Boards
+group ("<PN> <board> design doc", or "<board> design doc" with no part
+number) with `cc-docs file` only when asked: `--file` (the
+command a person or session runs to finish a report) or DOC_PROJECT set in the
+environment (its value is the project, overriding the board's folder). The
+folder is the project "Boards/<PN> <name>" (e.g. "Boards/PCB-0018-A
+bldc-motor-driver": the workspace directory's name without the underscore)
+when the boards register gives the part number, else "Boards/Unregistered".
+With neither, the PDF is built and nothing is filed, so test runs and
 scratch builds never reach the register. A filing that succeeds leaves
 reports/design_doc/.filed.json (a hash of the .tex, its "generated" time
 left out, and of the images it includes, plus the project and the cc-docs
@@ -54,7 +59,7 @@ by hour, COMPARISON.md and the placement and routing notes - and a figure of
 how the run went, drawn by the diagram-maker skill from reports/design_full/
 flow.json; lib/dochistory.py reads all of it). Each kind writes its own
 reports/<design_doc|highlight|design_full>/ and files as its own document
-("<board> design doc", "... highlight doc", "... full design doc").
+("<PN> <board> design doc", "... highlight doc", "... full design doc").
 --render-history renders the snapshots first (render.py, top view; a PNG
 newer than its board is kept); without it only PNGs already there are shown
 and a warning says so. The full doc also gets Board Layers - one page per
@@ -1621,17 +1626,43 @@ def load_state(ws: Path) -> dict:
     return d
 
 
+BOARDS_GROUP = "Boards"
+UNREGISTERED = f"{BOARDS_GROUP}/Unregistered"
+
+
+def board_project(ws: Path | None) -> str:
+    """The library project a board's documents file into: DOC_PROJECT when
+    set, else "Boards/<PN> <name>" when the register gives the workspace a
+    part number (name: the directory's name past "<PN>_", or the whole bare
+    name), else "Boards/Unregistered". Never the bare group "Boards", which
+    cc-docs refuses as a project."""
+    override = os.environ.get("DOC_PROJECT", "").strip()
+    if override:
+        return override
+    pn, _ = boardreg.part_number(ws) if ws is not None else (None, "")
+    if not pn:
+        return UNREGISTERED
+    return f"{BOARDS_GROUP}/{pn['pn']} {boardreg.split_dir(Path(ws).resolve().name)[1]}"
+
+
 def cc_docs_args(ws: Path | None, board: str, pdf: Path,
-                 project: str = "Boards", kind: str = "design") -> list[str]:
+                 project: str | None = None, kind: str = "design") -> list[str]:
     """The `cc-docs file` arguments for this board's document of `kind`
-    (its title names the kind, so each kind is its own document): the part
-    number it describes when the register has one, and one --cost per step
-    of reports/cost.json that carries a number (neither without a ws)."""
-    args = ["file", str(pdf), "--project", project, "--title",
-            f"{board} {KINDS[kind][3]}", "--source", str(pdf)]
+    (its title names the kind, so each kind is its own document) into
+    `project` (default board_project(ws)): the part number it describes
+    when the register has one, and one --cost per step of reports/cost.json
+    that carries a number (neither without a ws). The title leads with the
+    part number when there is one ("PCB-0022-B nfc-card design doc"), so a
+    second revision of a board never matches the first one's documents."""
+    project = project or board_project(ws)
+    pn = boardreg.part_number(ws)[0] if ws is not None else None
+    title = f"{board} {KINDS[kind][3]}"
+    if pn and not board.startswith(pn["pn"]):
+        title = f"{pn['pn']} {title}"
+    args = ["file", str(pdf), "--project", project, "--title", title,
+            "--source", str(pdf)]
     if ws is None:
         return args
-    pn, _ = boardreg.part_number(ws)
     if pn:
         args += ["--describes", pn["pn"]]
     for s in (read_json(ws, "reports/cost.json") or {}).get("by_step") or []:
@@ -1661,7 +1692,7 @@ def content_hash(tex_text: str, ws: Path) -> str:
 def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
                      digest: str | None = None, ws: Path | None = None,
                      kind: str = "design") -> None:
-    """File the finished design doc under the Boards project with cc-docs.
+    """File the finished design doc into board_project(ws) with cc-docs.
 
     Only when asked (requested, or DOC_PROJECT in the environment) and cc-docs
     is on PATH; a failed filing warns and never fails the
@@ -1673,7 +1704,7 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
     project = os.environ.get("DOC_PROJECT", "").strip()
     if not (requested or project):
         return
-    project = project or "Boards"
+    project = board_project(ws)
     stamp = pdf.parent / FILED_STAMP
     want = {"digest": digest, "project": project,
             "library": os.environ.get("CC_DOCS_ROOT", "")}
