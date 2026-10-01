@@ -14,7 +14,11 @@ the qty for `--build-qty` boards, default 5 - JLC's BOM review may hold one as
 idle stock that must be bought into inventory first) and `CPL.csv`, applying the
 per-package rotation corrections from `reference/jlc_rotations.csv` - the
 catcher for a polarized part mounted backwards, which net-level schematic parity
-is blind to by construction.
+is blind to by construction. For a self-assembled build it also writes
+`<ws>_BOM_digikey.csv` and `<ws>_BOM_mouser.csv` from the BOM of record
+(`distributor_bom.py`; quantities x `--boards`, default 1), with distributor
+part numbers, stock, prices and `<ws>_BOM_cost.json` when the DigiKey/Mouser
+API keys are set. Without keys it says so on stderr and carries on.
 
 Who is in which file is decided by `assembly_class` in canonical parts data,
 never by what the position export happened to contain: `smt_placed` parts go in
