@@ -57,7 +57,10 @@ reports/<design_doc|highlight|design_full>/ and files as its own document
 ("<board> design doc", "... highlight doc", "... full design doc").
 --render-history renders the snapshots first (render.py, top view; a PNG
 newer than its board is kept); without it only PNGs already there are shown
-and a warning says so. The full doc also gets Board Layers - one page per
+and a warning says so. The metadata table (the highlight's facts table too)
+has a design spend row, 'USD <actual> of a USD <cap> cap', from the optional
+reports/design_spend.json (actual_usd, cap_usd, source, as_of) that the
+boards repo writes; without it the row says 'not recorded'. The full doc also gets Board Layers - one page per
 copper layer, front to back, drawn as KiCad shows it with the net names on
 its pads, tracks and zones, then the top, bottom and iso 3D views - and the
 highlight gets the outer two layers and the iso view. layer_views.py draws
@@ -426,6 +429,29 @@ def read_json(ws: Path, rel: str) -> dict | None:
         return None
 
 
+SPEND_REL = "reports/design_spend.json"
+
+
+def design_spend(ws: Path) -> str:
+    """The 'Design spend' row: 'USD <actual> of a USD <cap> cap' from the
+    optional reports/design_spend.json (actual_usd, cap_usd, source, as_of),
+    which something outside hwde writes - hwde never reads the box's own run
+    records. Absent or unreadable it is 'not recorded'."""
+    d = read_json(ws, SPEND_REL) or {}
+    try:
+        actual = float(d["actual_usd"])
+    except (KeyError, TypeError, ValueError):
+        return "not recorded"
+    text = f"USD {actual:.2f}"
+    try:
+        text += f" of a USD {float(d['cap_usd']):.2f} cap"
+    except (KeyError, TypeError, ValueError):
+        text += " (no cap recorded)"
+    if d.get("as_of"):
+        text += f", as of {d['as_of']}"
+    return text
+
+
 def phase_idx(phase: str) -> int:
     return PHASE_INDEX.get(phase, 0)
 
@@ -576,6 +602,7 @@ class DocBuilder:
             ["gate status", latex_escape(overall)],
             ["state created", latex_escape(st.get("created", "?"))],
             ["state updated", latex_escape(st.get("updated", "?"))],
+            ["design spend", latex_escape(design_spend(self.ws))],
         ]
         self.body.append(longtable("lp{11cm}", [r"\textbf{Field}", r"\textbf{Value}"], rows))
         self.record("title", "included", "state.json")
@@ -1010,6 +1037,7 @@ class DocBuilder:
                          f"{len(bom.get('bom_rows') or [])} BOM lines"])
         if gates:
             rows.append(["gates", f"{n_pass} of {len(gates)} recorded gates pass"])
+        rows.append(["design spend", design_spend(self.ws)])
         self.body.append(longtable("lp{11cm}", [r"\textbf{Field}", r"\textbf{Value}"],
                                    [[latex_escape(a), latex_escape(b)] for a, b in rows]))
         self.record("title", "included", ", ".join(used))
