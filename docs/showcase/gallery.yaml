@@ -1,0 +1,287 @@
+# The board gallery of the hwde showcase: the one source that gallery.py turns
+# into gallery.tex (\input by hwde-showcase.tex) and the gallery part of the
+# top-level README.md. Edit this file, never the generated copies.
+#
+# Facts (layers, size, footprints, where a board stopped) are never written
+# here: gallery.py reads them from each board's .kicad_pcb and state.json in
+# the boards repo. A board the register lists and this file does not is still
+# shown, in the "New boards" section, with its blurb taken from its own
+# requirements.md and, failing that, its register title. So a new board needs
+# nothing written here; an entry below only gives it a better place and words.
+#
+# Prose is plain text with Unicode symbols (×, Ω, µ, ±, –, ², "quotes"); the
+# generator sets them for LaTeX and leaves them as they are for Markdown.
+#
+#   hero      the board the hand-written opening shows; it counts as shown
+#   boards    per board: what (the table's short phrase), blurb (the caption)
+#   sections  in order; each has blocks, and each block is one of
+#               board: <name>          a full-width plate
+#               pair: [<name>, <name>] two half-width plates (one is fine)
+#               view: {image, name, facts, caption}   an extra picture
+#               text: <paragraph>
+#               newpage: true          a page break in the PDF only
+#             height: <cm> on a board or view block caps its picture
+#             (default 9 cm; a pair is always 5.2 cm). A section may also
+#             have label: a LaTeX label the hand-written part refers to.
+
+hero: lumina-carrier
+
+lead: >-
+  They run from a linear regulator with five parts to a three-phase motor
+  driver.
+
+boards:
+  lumina-carrier:
+    what: lighting carrier, PoE-powered
+  pd-trigger:
+    what: USB-C PD bench trigger
+    blurb: >-
+      A USB-C Power Delivery sink asks a charger for 5, 9, 12, 15 or 20 V, and
+      you pick which on the board. The rail comes out on a screw terminal rated
+      for 5 A. The board converts nothing and just passes the rail through.
+  bldc-motor-driver:
+    what: three-phase motor driver
+    blurb: >-
+      A three-phase driver for brushless motors, running from 10 to 28 V. Six
+      N-channel MOSFETs make three half-bridges, a DRV8300 drives their gates,
+      and an STM32G431 runs the motor control. Each low-side leg has a 3 mΩ
+      shunt read by an INA240 current amplifier. The brief was a general spec
+      and one frame of a video showing someone else's demo board, so hwde wrote
+      down every gap it had to fill as a numbered assumption.
+  stereo-class-d-amp:
+    what: stereo class-D amplifier
+    blurb: >-
+      A stereo class-D amplifier that runs from a single 12 V supply and drives
+      4 to 8 Ω speakers. Each output has a 10 µH LC filter. The brief asked
+      hwde to reproduce a published reference design, so the two can be
+      compared.
+  pd-trigger-lite:
+    what: small USB-C PD trigger
+    blurb: >-
+      Plug in a USB-C charger and the board asks it for 9, 12, 15 or 20 V, at
+      up to 3 A, and passes it to two output holes. One solder link picks the
+      voltage. hwde chose the CH224A over the CH224K the brief named, because
+      its sense pin takes the bus voltage directly. That removes a dropper
+      resistor, a sense resistor and the pull-ups.
+  pd-trigger-lite-dip:
+    what: the same, set by DIP switch
+    blurb: >-
+      The same board with a five-way DIP switch instead of the solder links,
+      which adds 5 V to the choices. You set exactly one switch before you plug
+      it in. The board grew from 15 to 21 mm to make room for the switch.
+  nfc-card:
+    what: NFC business card
+    blurb: >-
+      A business card you tap with a phone. The phone reads a web address from
+      the NFC tag and opens it, and while the phone is near, the tag takes
+      power from its field and lights a pattern of LEDs. There is no battery
+      and no microcontroller. The antenna is a coil printed around the edge of
+      a 0.8 mm board, thin enough to carry in a wallet.
+  esp32c3-node:
+    what: WiFi/BLE sensor node, LiPo
+    blurb: >-
+      A small WiFi and Bluetooth sensor node built around an ESP32-C3 module.
+      USB-C powers it and also flashes it, through the chip's own USB, so there
+      is no USB-serial bridge. It charges a single LiPo cell and keeps running
+      with or without one, and a BME280 and a Qwiic connector share one I²C
+      bus.
+  lipo-boost:
+    what: LiPo charger and 5 V boost
+    blurb: >-
+      It charges a single LiPo cell from USB and makes 5 V at 1 A on a USB-A
+      socket from the cell. While USB is plugged in, the output keeps running
+      from USB as the cell charges. The brief asked for a board in the class
+      of the PowerBoost 1000C, designed from the datasheets rather than copied.
+  lumina-par:
+    what: RGBW PAR daughter board
+    blurb: >-
+      The RGBW PAR daughter board that stacks on lumina-carrier. It takes the
+      carrier's frozen connector as given. Its power budget depends on the
+      power-over-Ethernet class the fixture is granted, so hwde worked it out
+      again here. The silkscreen warns that the board floats at the
+      power-over-Ethernet potential, because an earthed probe breaks the
+      fixture's power negotiation.
+  rf-de-20m:
+    what: 20 MHz Class E GaN stage
+    blurb: >-
+      A 20 MHz Class E RF power stage that puts 200 W into 50 Ω from a 40 V
+      bus. A GaN gate driver buffers the PWM drive from an SMA input, and one
+      eGaN FET switches. A resonant tank and an L-match turn the 4.6 Ω load
+      line into 50 Ω at the output SMA. The owner fixed the topology and the
+      two core parts after a costed trade study, and hwde did the rest.
+  sbuck-5v3a:
+    what: 5 V / 3 A synchronous buck
+    blurb: >-
+      A synchronous buck that takes 7–18 V in and holds 5.0 V ±2% at 3 A out.
+      It is an open-frame power module.
+  usb-buck:
+    what: USB device dev board
+    blurb: >-
+      An STM32F103 board that talks USB at full speed. The Micro-B socket
+      carries both power and data, and there is an LED, a button and an SWD
+      header.
+  g0-sense:
+    what: USB-C sensor node
+    blurb: >-
+      A temperature and humidity node that runs off USB-C. An LDO makes 3.3 V
+      from the 5 V supply, and an STM32G030 reads a Sensirion SHT4x over I²C.
+      The same bus comes out on a Qwiic connector, the readings go out on a
+      UART header, and you program it over SWD. hwde designed this one from
+      end to end in a single unattended run.
+  stm32-blinky:
+    what: minimal STM32 dev board
+    blurb: >-
+      The simplest useful board here: an STM32F103, an 8 MHz crystal, one LED,
+      an LDO and an SWD header.
+  rf-term-150w:
+    what: 150 W RF dummy load head
+    blurb: >-
+      A 50 Ω, 150 W dummy load head for DC to 25 MHz. The element bolts to a
+      heatsink you supply, so the board is only the RF launch and the
+      mounting. It looks almost bare because none of its six footprints has a
+      3D model, so the connector and the element are not drawn.
+  bb-adc:
+    what: single-channel ADC
+    blurb: >-
+      0–5 V in on a screw terminal and 12 bits at up to 10 kSa/s out on a
+      header. It gives up speed for DC accuracy.
+  bb-amp:
+    what: sensor amplifier chain
+    blurb: >-
+      A 0–20 mV bridge signal in and 0–3.3 V out, from DC to 1 kHz.
+  bb-buck:
+    what: bare buck converter
+    blurb: >-
+      18–30 V in and 5 V at 2 A out, on a screw terminal. It carries the
+      converter and exactly what its datasheet requires.
+  bb-ldo:
+    what: bare linear regulator
+    blurb: >-
+      5 V in and 3.3 V at 500 mA out. It stays in regulation in still air on
+      the board's own copper.
+  bb-mcu:
+    what: bare microcontroller board
+    blurb: >-
+      One MCU with a 3.3 V rail coming in, its debug header and four GPIO.
+      There is no regulator and no second rail.
+
+sections:
+  - title: The motor driver
+    label: pg:bldc
+    blocks:
+      - board: bldc-motor-driver
+      - text: >-
+          The FETs are rated 60 V although the board runs at 28 V at most. The
+          input TVS diode clamps a surge at about 45 V, and every part on the
+          motor supply is chosen to survive that clamp, not just the working
+          voltage. There is no fuse on the board, and the notes call for a 20 A
+          slow fuse in the supply lead.
+      - newpage: true
+      - view:
+          image: bldc-motor-driver-fcu
+          name: bldc-motor-driver, top copper
+          facts: F.Cu with net names
+          caption: >-
+            The three half-bridges sit along the bottom edge, with phase A, B
+            and C left to right, each with its current amplifier below it. The
+            board passes its checks with 390 written waivers, and the board's
+            notes ask you to read them before you trust it. Most cover
+            stitching vias and the thin Kelvin and gate-return taps, which the
+            current-capacity check counts as power copper.
+      - text: >-
+          This is the one board that /fwe and /npie have worked on. /fwe wrote
+          the first stage of its firmware, which spins the motor with six-step
+          commutation. It builds with warnings treated as errors, its unit
+          tests pass on the host, and it runs on an emulated STM32G431 in
+          Renode. /npie wrote a bring-up procedure for the board and ran it once
+          against a simulated bench, where it passed. Neither result says
+          anything about real hardware, because the board has not been made.
+
+  - title: The amplifier
+    blocks:
+      - board: stereo-class-d-amp
+      - text: >-
+          The brief named the TPA3116D2, but hwde used the TPA3118D2 instead.
+          The 3116 only comes with its thermal pad on top, which needs a
+          heatsink bolted on. The 3118 has the pad underneath and sheds its heat
+          into the board, so hwde kept a 25 by 25 mm ground area clear around it
+          on both layers. That area is why the board is bigger than the 44 by
+          34 mm reference.
+      - view:
+          image: stereo-class-d-amp-fcu
+          name: stereo-class-d-amp, top copper
+          facts: F.Cu with net names
+          caption: >-
+            The amplifier sits in the middle of a solid ground pour, with the
+            left channel's filter below it and the right channel's above. The
+            input connector is on the left edge and the speaker pads are on the
+            right.
+
+  - title: A card, a sensor node and a battery board
+    blocks:
+      - text: >-
+          These three were designed unattended on the same morning. The owner
+          told hwde to decide for itself, so hwde signed off its own stages and
+          wrote down each call it made, with the reason.
+      - board: nfc-card
+        height: 6
+      - pair: [esp32c3-node, lipo-boost]
+
+  - title: The small PD triggers
+    blocks:
+      - pair: [pd-trigger-lite, pd-trigger-lite-dip]
+      - text: >-
+          Both are smaller versions of pd-trigger, the bench tool that was
+          ordered and made.
+
+  - title: Ordered and fabricated
+    blocks:
+      - text: >-
+          lumina-carrier, the board at the start, is the carrier for a
+          stage-lighting fixture. It takes power over Ethernet through a PD
+          controller and a 100 V buck, and it has an expansion connector that a
+          fixture-specific daughter board plugs into. The connector's pinout is
+          frozen, because another board depends on it. The other board that was
+          ordered is a bench tool.
+      - board: pd-trigger
+
+  - title: Power and RF
+    blocks:
+      - pair: [sbuck-5v3a, rf-term-150w]
+      - newpage: true
+      - board: rf-de-20m
+
+  - title: Lighting
+    blocks:
+      - board: lumina-par
+        height: 6
+      - pair:
+          - view:
+              image: lumina-par-flat
+              name: lumina-par, straight down
+              facts: top-down view
+              caption: The same board from straight above, so the routing shows.
+          - view:
+              image: lumina-carrier-bottom
+              name: lumina-carrier, underneath
+              facts: bottom view
+              caption: >-
+                Every part on the carrier is on the top side, so the back
+                carries routing and vias and nothing else.
+
+  - title: Microcontroller boards
+    blocks:
+      - board: g0-sense
+        height: 6
+      - pair: [usb-buck, stm32-blinky]
+
+  - title: Building blocks
+    blocks:
+      - text: >-
+          These five boards each carry a single block and nothing else. They are
+          meant to be studied and measured on a bench, so they leave out
+          protection, filtering, indicators and spare rails on purpose.
+      - pair: [bb-buck, bb-ldo]
+      - pair: [bb-mcu, bb-adc]
+      - newpage: true
+      - pair: [bb-amp]
