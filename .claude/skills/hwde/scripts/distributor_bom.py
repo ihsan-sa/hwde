@@ -213,9 +213,9 @@ def price_lines(provider: str, lines: list[dict], transport=None
                 ) -> tuple[dict[int, dict] | None, list[str]]:
     """index -> {pn, stock, unit, buy_qty, ext} for one provider, or None when
     its keys are missing or the lookup fails. Never raises."""
-    msg = distributors.credential_message(provider)
-    if msg:
-        return None, [f"{provider}: prices not looked up ({msg})"]
+    missing = distributors.missing_credentials(provider)
+    if missing:
+        return None, [f"{provider}: prices not looked up (no {', '.join(missing)})"]
     warns: list[str] = []
     out: dict[int, dict] = {}
     try:

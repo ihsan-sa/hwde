@@ -754,6 +754,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="skip the DigiKey/Mouser APIs even with keys set")
     ap.add_argument("--out", help="write JSON report here instead of stdout")
     args = ap.parse_args(argv)
+    if args.boards < 1:
+        ap.error(f"--boards must be >= 1, got {args.boards}")
 
     try:
         rep = run(Path(args.pcb), Path(args.out_dir),
