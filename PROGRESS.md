@@ -2,6 +2,9 @@
 
 > **Renamed 2026-09-04:** the skill is `/hwde`, its tree is `.claude/skills/hwde/`, and its env vars are `HWDE_*` (the old `AIEE_*` spelling still works). This file is a log and keeps its original `ai-ee` wording below.
 
+> **Moved out 2026-10-01:** `/fwe` and `/npie`, with their tests, now live in their own repos,
+> [ihsan-sa/fwe](https://github.com/ihsan-sa/fwe) and [ihsan-sa/npie](https://github.com/ihsan-sa/npie).
+
 Build state for the ai-ee skill. One entry per plan step (`ai-ee-implementation-plan.md`).
 Session protocol: repo `CLAUDE.md` ("run step N"). Update this file + commit at every session end.
 
