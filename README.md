@@ -1,149 +1,312 @@
 # hwde
 
-An AI PCB engineer for KiCad + JLCPCB, packaged as a Claude Code skill
-(`.claude/skills/hwde/`) and invoked as `/hwde <task>` or
-`/hwde --resume <workspace>`. It takes a task in any project state - review
-this board, fix these findings, move a part, re-route a net, make a footprint,
-DFM, order, resume - and the full brief-to-order pipeline is one of those tasks.
+**An AI PCB engineer for KiCad and JLCPCB.** Printed circuit boards, designed
+from a written brief.
 
-Everything it produces lives in a per-board workspace under `~/dev/boards/<name>`
-(brief, research, architecture, parts, lib, kicad, routing, reports, fab, log,
-`state.json`), in the separate boards repo (set by `HWDE_BOARDS_ROOT`, default
-`~/dev/boards`) - this repo holds no boards. Part numbers (`PCB-NNNN-R`) come
-from `~/dev/boards/register.yaml`, read-only from here; a board not in it
-carries no number. The design work is done by subagents; the deterministic
-work is done by 57 scripts (plus 24 library modules) under
-`.claude/skills/hwde/scripts/`, each with the same CLI contract (argparse,
-JSON out, exit 0/1/2, no interactivity).
+This page is also a PDF with bigger pictures, revision B of the hwde showcase:
+[hwde-showcase.pdf](docs/showcase/hwde-showcase.pdf). To install and run hwde,
+see [Using hwde](docs/using-hwde.md).
 
-Pictures of the boards it has designed, and how it works:
-[docs/showcase/](docs/showcase/).
+You describe a board in plain words. hwde researches the parts, draws the
+schematic, lays out and routes the board, checks it, and hands you the files a
+factory needs to make it. A person reads the work and signs it off at each
+stage before the next one starts.
 
-## Maturity: supervised engineering assistant, not an unattended release system
+![lumina-carrier, a 4-layer lighting carrier board](docs/showcase/renders/lumina-carrier.png)
 
-Boards have been designed, fabricated and ordered with it, and the checker
-corpus is real. It is still a system a human engineer drives and signs off:
+*__lumina-carrier__ · 4 layers · 100 × 80 mm · 116 footprints · ordered,
+fabricated. A carrier board for a stage-lighting fixture. hwde designed it, and
+it was ordered from JLCPCB and made.*
 
-- A green gate proves the checks that RAN, not the checks it lists. Coverage is
-  being made explicit (v3 step U2); until then read the per-check report, not
-  just the gate verdict.
-- Workflow phase (`P9`, `P10`) is **not** a release certificate. Release
-  attestation is v3 step U5; today the human decides what is releasable.
-- Ordering is deliberately hard to do by accident. There is no public JLCPCB
-  DFM API, so that review stays a human browser step. The credentialed API is
-  wired but split: `order_submit --api` is quote-only, and `--api-create` - the
-  only code path that spends money - refuses 4+ layer boards outright, refuses
-  any board whose `fab/order.json` already records an order, refuses after an
-  ambiguous create attempt until a human clears it, and requires a fresh quote,
-  a matching normalized design hash, and a typed confirmation token.
-- Known limits per stage are listed in the skill playbook and in `LEARNINGS.md`;
-  the maturity of each piece of knowledge is tracked in
-  `design/ladder-triage.md`.
+## How a board is made
 
-## Authority map
+A board goes through five stages, and each stage ends with checks and a
+person's sign-off.
 
-One current authority per question. Where two documents disagree, the one named
-here wins.
+![Brief, design, layout, checks, package](docs/showcase/diagrams/pipeline.png)
 
-| Question | Authority |
+*Figure 1. Each box is a stage, and each one writes a file the next one reads.*
+
+A run starts from a brief, which can be a paragraph or a page. hwde first
+researches the parts and picks an architecture, then chooses the real parts
+and draws the schematic. Layout places the parts and routes the copper. The
+checks run the electrical rules, the design rules and the circuit simulations,
+and then the factory's own manufacturing rules on the exported Gerbers. What
+comes out is the package: Gerbers, a bill of materials and a placement file
+that JLCPCB can build and assemble from.
+
+The work is split two ways. Subagents make the judgement calls, such as which
+topology to use, how big a part must be, or whether a schematic is right, and
+each one has a written contract that says what it may decide. Scripts do the
+mechanical work, and they do it the same way every time. They drive KiCad, run
+the routers and export the Gerbers. A script never makes a judgement, and an
+agent never edits a board file by hand. Everything either of them makes is a
+file in the board's own folder, so you can read it without hwde.
+
+### What happens at the end of each stage
+
+![Stage, checks, sign-off, next stage, with a fix loop](docs/showcase/diagrams/gate.png)
+
+*Figure 2. A failed check or a refused sign-off goes to the fix loop, which
+reworks the file and sends it round again.*
+
+The checks that run depend on the stage, and each one writes its own report. A
+pass only proves the checks that actually ran, which is why the reports are
+kept one per check and not folded into a single verdict. When a check fails,
+the fix loop reworks the file the stage made and the checks run again. When
+they pass, a person still has to read the work and agree before the next stage
+starts.
+
+Every run also writes down what went wrong and why, with a date and a tag. The
+next board reads those notes before it starts, so a mistake that cost one
+board some time is not paid for again on the next.
+
+## After the package
+
+Three things can follow a finished package. A person can order the board,
+/fwe can write its firmware, and /npie can plan how to bring it up.
+
+![Package leads to an order, firmware and a bring-up plan](docs/showcase/diagrams/after.png)
+
+*Figure 3. An order needs a person. Firmware and the bring-up plan have so far
+run only in simulation.*
+
+Ordering is deliberately hard to do by accident. JLCPCB has no public API for
+its manufacturability review, so a person does that step in a browser. One
+code path can place an order, and it takes 2-layer boards only. It refuses a
+board whose files already record an order, and it will not run without a fresh
+quote and a design that matches the one quoted. A person then has to type a
+confirmation that names the board, the quantity and the total.
+
+/fwe and /npie are two newer skills that take over where hwde stops. /fwe
+writes firmware for a board, working from the board's own netlist to get the
+pin map. /npie reads the same design and writes a staged bring-up procedure,
+with pass and fail limits taken from the design, then runs it through one
+driver layer that talks either to real instruments or to a simulated bench. So
+far both have worked on one board, [the motor driver](#the-motor-driver), and
+neither has touched hardware. The firmware builds, its unit tests pass on the
+host, and it runs in the Renode emulator. The bring-up procedure has been run
+once, against the simulated bench.
+
+## The boards
+
+Eighteen boards have reached a routed layout. They run from a linear regulator
+with five parts to a three-phase motor driver.
+
+| Board | What it is | Layers | Size (mm) | Where it stopped |
+|---|---|--:|--:|---|
+| lumina-carrier | lighting carrier, PoE-powered | 4 | 100 × 80 | ordered, fabricated |
+| pd-trigger | USB-C PD bench trigger | 2 | 48 × 30 | ordered, fabricated |
+| bldc-motor-driver | three-phase motor driver | 4 | 78 × 78 | package ready |
+| stereo-class-d-amp | stereo class-D amplifier | 2 | 53.6 × 36.8 | verification |
+| pd-trigger-lite | small USB-C PD trigger | 2 | 25 × 15 | package ready |
+| pd-trigger-lite-dip | the same, set by DIP switch | 2 | 25 × 21 | package ready |
+| lumina-par | RGBW PAR daughter board | 4 | 100 × 80 | verification |
+| rf-de-20m | 20 MHz Class E GaN stage | 4 | 120 × 80 | manufacturability |
+| sbuck-5v3a | 5 V / 3 A synchronous buck | 4 | 50 × 40 | package ready |
+| usb-buck | USB device dev board | 4 | 50 × 40 | package ready |
+| g0-sense | USB-C sensor node | 2 | 35.8 × 28.3 | package ready |
+| stm32-blinky | minimal STM32 dev board | 2 | 50 × 40 | package ready |
+| rf-term-150w | 150 W RF dummy load head | 2 | 26 × 20 | manufacturability |
+| bb-adc | single-channel ADC | 2 | 54.8 × 34.9 | manufacturability |
+| bb-amp | sensor amplifier chain | 2 | 48 × 28.3 | manufacturability |
+| bb-buck | bare buck converter | 2 | 35 × 25 | manufacturability |
+| bb-ldo | bare linear regulator | 2 | 34.7 × 34.7 | manufacturability |
+| bb-mcu | bare microcontroller board | 2 | 34.8 × 22.3 | manufacturability |
+
+"Where it stopped" is the last stage the board reached, and it does not mean
+the board is fit to release. Two boards were ordered, and their files record
+the JLCPCB order numbers. "Package ready" means every check passed and the
+manufacturing package is built. The amplifier has its package too, but its
+last verification left findings that a person has to rule on. Each size is the
+bounding box of the board outline, and not every outline is a rectangle.
+
+### The motor driver
+
+![bldc-motor-driver from above](docs/showcase/renders/bldc-motor-driver.png)
+
+*__bldc-motor-driver__ · 4 layers · 78 × 78 mm · 175 footprints · package
+ready. A three-phase driver for brushless motors, running from 10 to 28 V. Six
+N-channel MOSFETs make three half-bridges, a DRV8300 drives their gates, and an
+STM32G431 runs the motor control. Each low-side leg has a 3 mΩ shunt read by an
+INA240 current amplifier. The brief was a general spec and one frame of a video
+showing someone else's demo board, so hwde wrote down every gap it had to fill
+as a numbered assumption.*
+
+The FETs are rated 60 V although the board runs at 28 V at most. The input TVS
+diode clamps a surge at about 45 V, and every part on the motor supply is
+chosen to survive that clamp, not just the working voltage. There is no fuse
+on the board, and the notes call for a 20 A slow fuse in the supply lead.
+
+![bldc-motor-driver top copper with net names](docs/showcase/renders/bldc-motor-driver-fcu.png)
+
+*__Top copper__, F.Cu with net names. The three half-bridges sit along the
+bottom edge, with phase A, B and C left to right, each with its current
+amplifier below it. The board passes its checks with 390 written waivers, and
+the board's notes ask you to read them before you trust it. Most cover
+stitching vias and the thin Kelvin and gate-return taps, which the
+current-capacity check counts as power copper.*
+
+This is the one board that /fwe and /npie have worked on. /fwe wrote the first
+stage of its firmware, which spins the motor with six-step commutation. It
+builds with warnings treated as errors, its unit tests pass on the host, and
+it runs on an emulated STM32G431 in Renode. /npie wrote a bring-up procedure
+for the board and ran it once against a simulated bench, where it passed.
+Neither result says anything about real hardware, because the board has not
+been made.
+
+### The amplifier
+
+![stereo-class-d-amp](docs/showcase/renders/stereo-class-d-amp.png)
+
+*__stereo-class-d-amp__ · 2 layers · 53.6 × 36.8 mm · 44 footprints ·
+verification, findings open. A stereo class-D amplifier that runs from a single
+12 V supply and drives 4 to 8 Ω speakers. Each output has a 10 µH LC filter.
+The brief asked hwde to reproduce a published reference design, so the two can
+be compared.*
+
+The brief named the TPA3116D2, but hwde used the TPA3118D2 instead. The 3116
+only comes with its thermal pad on top, which needs a heatsink bolted on. The
+3118 has the pad underneath and sheds its heat into the board, so hwde kept a
+25 by 25 mm ground area clear around it on both layers. That area is why the
+board is bigger than the 44 by 34 mm reference.
+
+![stereo-class-d-amp top copper with net names](docs/showcase/renders/stereo-class-d-amp-fcu.png)
+
+*__Top copper__, F.Cu with net names. The amplifier sits in the middle of a
+solid ground pour, with the left channel's filter below it and the right
+channel's above. The input connector is on the left edge and the speaker pads
+are on the right.*
+
+### The small PD triggers
+
+| | |
 |---|---|
-| Environment, toolchain pins, host facts, session protocol | `CLAUDE.md` |
-| How the skill operates (verbs, stages, gates, agent contracts) | `.claude/skills/hwde/SKILL.md` + `reference/tasks.yaml` |
-| Task recipes and their exact commands | `.claude/skills/hwde/reference/recipes/` |
-| Gate definitions and pass criteria | `.claude/skills/hwde/reference/gates.yaml` |
-| What goes stale when something changes | `.claude/skills/hwde/reference/invalidation.yaml` |
-| Per-board truth (phase, gates, decisions, holds, artifacts) | `~/dev/boards/<name>/state.json` |
-| Fab capability, stackups, pricing assumptions | `.claude/skills/hwde/reference/jlc_capabilities.yaml`, `stackups.yaml`, `jlc_pricing.yaml` |
-| Non-obvious gotchas, dated and tagged | `LEARNINGS.md` (index: `design/ladder-triage.md`) |
-| Build state of the skill itself | `PROGRESS.md` |
-| Original architecture and rationale | `SPEC.md` - **historical**, not normative |
+| ![pd-trigger-lite](docs/showcase/renders/pd-trigger-lite.png) | ![pd-trigger-lite-dip](docs/showcase/renders/pd-trigger-lite-dip.png) |
+| __pd-trigger-lite__ · 2 layers · 25 × 15 mm · 15 footprints · package ready. Plug in a USB-C charger and the board asks it for 9, 12, 15 or 20 V, at up to 3 A, and passes it to two output holes. One solder link picks the voltage. hwde chose the CH224A over the CH224K the brief named, because its sense pin takes the bus voltage directly. That removes a dropper resistor, a sense resistor and the pull-ups. | __pd-trigger-lite-dip__ · 2 layers · 25 × 21 mm · 13 footprints · package ready. The same board with a five-way DIP switch instead of the solder links, which adds 5 V to the choices. You set exactly one switch before you plug it in. The board grew from 15 to 21 mm to make room for the switch. |
 
-`SPEC.md` is design evidence from the v1 build and is knowingly out of date on
-platform, toolchain and API details (its kipy/api-server assumption never
-materialised; see the verify-later register in `PROGRESS.md`). Read it for
-intent; take facts from `CLAUDE.md` and `SKILL.md`.
+Both are smaller versions of pd-trigger, the bench tool below, which was
+ordered and made.
 
-Plans are historical once their steps are done: `ai-ee-implementation-plan.md`
-(v1, frozen), `ai-ee-v2-plan.md` (v2), `hwde-v3-plan.md` (v3, in progress).
+### Ordered and fabricated
 
-## Safety boundary
+lumina-carrier, at the top of this page, is the carrier for a stage-lighting
+fixture. It takes power over Ethernet through a PD controller and a 100 V
+buck, and it has an expansion connector that a fixture-specific daughter board
+plugs into. The connector's pinout is frozen, because another board depends on
+it. The other board that was ordered is a bench tool.
 
-- The skill never spends money on its own. Exactly one code path can place an
-  order (`order_submit --api-create`), it is 2-layer only, and it will not run
-  without a human-typed confirmation naming the board, the quantity and the
-  all-in total from the real quote. Everything else - including the 4-layer
-  route - stops with the package and the checklist in hand.
-- Anything irreversible (order submission, board file surgery on a fabricated
-  design, credential use) is gated on an explicit human decision recorded in
-  `state.json`.
-- Fabricated boards are treated as frozen: a shipped design is reviewed and
-  reworked, not silently re-edited.
-- Electrical and thermal checks are engineering SCREENS with stated accuracy,
-  not certification. Nothing here substitutes for a design review by the
-  responsible engineer, and no output is safety-certified for mains, medical,
-  automotive or aerospace use.
+![pd-trigger](docs/showcase/renders/pd-trigger.png)
 
-Board workspaces are not in this repo - they live in the separate boards repo,
-`~/dev/boards/<name>` (`HWDE_BOARDS_ROOT`).
+*__pd-trigger__ · 2 layers · 48 × 30 mm · 30 footprints · ordered from
+JLCPCB, tracked to shipped. A USB-C Power Delivery sink asks a charger for 5,
+9, 12, 15 or 20 V, and you pick which on the board. The rail comes out on a
+screw terminal rated for 5 A. The board converts nothing and just passes the
+rail through.*
 
-## Repo layout
+### Power and RF
 
-    .claude/skills/hwde/  the skill: SKILL.md, agents/, scripts/, reference/, templates/
-    tests/                pytest suite incl. the golden corpus + mutants
-    design/               knowledge-ladder triage and stage evaluations
-    docker/               Linux container image + the unattended run loop
-    tools/                gitignored: portable JRE + Freerouting jar
+| | |
+|---|---|
+| ![sbuck-5v3a](docs/showcase/renders/sbuck-5v3a.png) | ![rf-term-150w](docs/showcase/renders/rf-term-150w.png) |
+| __sbuck-5v3a__ · 4 layers · 50 × 40 mm · 44 footprints · package ready. A synchronous buck that takes 7–18 V in and holds 5.0 V ±2% at 3 A out. It is an open-frame power module. | __rf-term-150w__ · 2 layers · 26 × 20 mm · 6 footprints · manufacturability. A 50 Ω, 150 W dummy load head for DC to 25 MHz. The element bolts to a heatsink you supply, so the board is only the RF launch and the mounting. It looks almost bare because none of its six footprints has a 3D model, so the connector and the element are not drawn. |
 
-Run the suite with `check.cmd` (the `make check` equivalent on this host).
+![rf-de-20m](docs/showcase/renders/rf-de-20m.png)
 
-Every push, and every pull request from a fork, runs the same suite on GitHub
-Actions (the `checks` workflow, split into 8 `pytest` jobs inside the KiCad 10
-image; the live-API `net` tests are left out). A run takes about 4 minutes of wall
-time (about 27 runner-minutes across the 8 jobs). A red run names its failing job: open that job's `pytest` step for the failures,
-or download its `junit-N` file. The image carries KiCad 10.0.5, so the tests
-marked `kicad_recorded` (numbers recorded on 10.0.3) are skipped there, with
-the reason in the skip line.
+*__rf-de-20m__ · 4 layers · 120 × 80 mm · 80 footprints · stopped at
+manufacturability checks. A 20 MHz Class E RF power stage that puts 200 W into
+50 Ω from a 40 V bus. A GaN gate driver buffers the PWM drive from an SMA
+input, and one eGaN FET switches. A resonant tank and an L-match turn the
+4.6 Ω load line into 50 Ω at the output SMA. The owner fixed the topology and
+the two core parts after a costed trade study, and hwde did the rest.*
 
-## Calling hwde from another agent (MCP)
+### Lighting
 
-`scripts/mcp_server.py` is a local MCP server over stdio. It opens no port;
-anything that listens on one needs the owner first. It gives another agent
-five tools and returns hwde's own JSON from each:
+![lumina-par](docs/showcase/renders/lumina-par.png)
 
-- `hwde_route` routes a task to a verb and returns the bound plan. It never runs it.
-- `hwde_state` reads a workspace's state (`show`, `resume` or `freshness`).
-- `hwde_gate` runs one named gate on a workspace. With no name, it lists the gates.
-- `hwde_dfm_check` runs the JLCPCB dfm gate. The fab files go to scratch.
-- `hwde_review` reviews an existing workspace: state, then the erc,
-  drc_routed, verify and dfm gates. Importing a new board stays with `/hwde`.
+*__lumina-par__ · 4 layers · 100 × 80 mm · 158 footprints · stopped at
+verification. The RGBW PAR daughter board that stacks on lumina-carrier. It
+takes the carrier's frozen connector as given. Its power budget depends on the
+power-over-Ethernet class the fixture is granted, so hwde worked it out again
+here. The silkscreen warns that the board floats at the power-over-Ethernet
+potential, because an earthed probe breaks the fixture's power negotiation.*
 
-Every call is read-only unless it passes `"write": true`. That records gate
-results in `state.json`, and a gate's `"commit"` message is refused without
-it. A read-only call leaves the workspace byte-identical, because it also
-deletes the `.kicad_prl` file kicad-cli creates beside a board it loads.
+| | |
+|---|---|
+| ![lumina-par from straight above](docs/showcase/renders/lumina-par-flat.png) | ![lumina-carrier from underneath](docs/showcase/renders/lumina-carrier-bottom.png) |
+| __lumina-par, straight down.__ The same board from straight above, so the routing shows. | __lumina-carrier, underneath.__ Every part on the carrier is on the top side, so the back carries routing and vias and nothing else. |
 
-To register it with Claude Code, add this to the project's `.mcp.json`, with
-your own absolute paths. The server needs the same environment as any hwde
-script, so on the Linux host without the container it sources
-`hwde-env.sh` first (see `CLAUDE.md`); inside the container, `command` is
-just `.venv/bin/python` with the script as its one argument.
+### Microcontroller boards
 
-```json
-{
-  "mcpServers": {
-    "hwde": {
-      "command": "bash",
-      "args": ["-c", ". ~/.local/kicad10/hwde-env.sh && exec ~/.local/hwde-venv/bin/python ~/dev/ai-ee/.claude/skills/hwde/scripts/mcp_server.py"],
-      "env": {"HWDE_BOARDS_ROOT": "/home/you/dev/boards"}
-    }
-  }
-}
-```
+![g0-sense](docs/showcase/renders/g0-sense.png)
 
-`mcp_server.py --tools` prints the tool table. `tests/test_mcp_server.py`
-drives the server over stdio against a frozen fixture workspace.
+*__g0-sense__ · 2 layers · 35.8 × 28.3 mm · 30 footprints · package ready,
+release attestation built. A temperature and humidity node that runs off
+USB-C. An LDO makes 3.3 V from the 5 V supply, and an STM32G030 reads a
+Sensirion SHT4x over I²C. The same bus comes out on a Qwiic connector, the
+readings go out on a UART header, and you program it over SWD. hwde designed
+this one from end to end in a single unattended run.*
+
+| | |
+|---|---|
+| ![usb-buck](docs/showcase/renders/usb-buck.png) | ![stm32-blinky](docs/showcase/renders/stm32-blinky.png) |
+| __usb-buck__ · 4 layers · 50 × 40 mm · 28 footprints · package ready. An STM32F103 board that talks USB at full speed. The Micro-B socket carries both power and data, and there is an LED, a button and an SWD header. | __stm32-blinky__ · 2 layers · 50 × 40 mm · 20 footprints · package ready. The simplest useful board here: an STM32F103, an 8 MHz crystal, one LED, an LDO and an SWD header. |
+
+### Building blocks
+
+These five boards each carry a single block and nothing else. They are meant
+to be studied and measured on a bench, so they leave out protection,
+filtering, indicators and spare rails on purpose. All five stopped at the
+manufacturability checks.
+
+| | |
+|---|---|
+| ![bb-buck](docs/showcase/renders/bb-buck.png) | ![bb-ldo](docs/showcase/renders/bb-ldo.png) |
+| __bb-buck__ · 2 layers · 35 × 25 mm · 20 footprints. 18–30 V in and 5 V at 2 A out, on a screw terminal. It carries the converter and exactly what its datasheet requires. | __bb-ldo__ · 2 layers · 34.7 × 34.7 mm · 5 footprints. 5 V in and 3.3 V at 500 mA out. It stays in regulation in still air on the board's own copper. |
+| ![bb-mcu](docs/showcase/renders/bb-mcu.png) | ![bb-adc](docs/showcase/renders/bb-adc.png) |
+| __bb-mcu__ · 2 layers · 34.8 × 22.3 mm · 14 footprints. One MCU with a 3.3 V rail coming in, its debug header and four GPIO. There is no regulator and no second rail. | __bb-adc__ · 2 layers · 54.8 × 34.9 mm · 25 footprints. 0–5 V in on a screw terminal and 12 bits at up to 10 kSa/s out on a header. It gives up speed for DC accuracy. |
+| ![bb-amp](docs/showcase/renders/bb-amp.png) | |
+| __bb-amp__ · 2 layers · 48 × 28.3 mm · 14 footprints. A 0–20 mV bridge signal in and 0–3.3 V out, from DC to 1 kHz. | Two more boards stopped before layout and have no PCB to show, a 5 V/3 A buck and a strobe daughter board. Both are in the boards repository at the stage they reached. |
+
+## What it can and cannot do yet
+
+hwde is an engineering assistant. It does not release a board on its own, and
+a person signs off at every stage.
+
+**What holds**
+
+- Eighteen boards went from a written brief to a routed layout. They include a
+  4-layer 200 W RF stage and a 4-layer motor driver.
+- Two of them were ordered from JLCPCB and made, and their files record the
+  order numbers.
+- Every check is a script, and the findings are kept per check rather than as
+  a single verdict.
+- Everything a run produces is a file in that board's folder, and you can read
+  it without hwde.
+
+**What does not**
+
+- JLCPCB's manufacturability review has no public API, so a person still does
+  that step in a browser.
+- The electrical and thermal checks are engineering screens, and each states
+  its own accuracy. None of them is a certification, and nothing here is
+  certified for mains, medical, automotive or aerospace use.
+- The firmware and the bring-up procedure have only run in simulation. No board
+  hwde designed has been brought up with them on a real bench yet.
+
+---
+
+Board facts come from each board's own files in the boards repository
+(`.kicad_pcb`, `state.json` and its notes), read on 23 September 2026 for the
+first fourteen and on 1 October 2026 for the four added since. How the
+pictures are made, and how to rebuild them and the PDF, is in
+[docs/showcase](docs/showcase/README.md).
+
+To install and run hwde, call it from another agent, or find which document
+answers which question, see [Using hwde](docs/using-hwde.md).
 
 ## License
 
-MIT - see [LICENSE](LICENSE). Vendor datasheets, component 3D models and footprints
-pulled from LCSC/EasyEDA are third-party material, not under MIT - see [NOTICE](NOTICE).
+MIT - see [LICENSE](LICENSE). Vendor datasheets, component 3D models and
+footprints pulled from LCSC/EasyEDA are third-party material, not under MIT -
+see [NOTICE](NOTICE).
