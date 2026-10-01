@@ -916,6 +916,36 @@ def test_part_number_row_in_metadata(tmp_path, capsys):
     assert "\\hsslug{PCB-0007-C \\textperiodcentered" in text
 
 
+def test_design_spend_row_in_metadata(tmp_path, capsys):
+    """Owner, edit m1 on the esp32c3-node full doc: 'how much did it cost to
+    design this board' - the metadata table answers from design_spend.json."""
+    ws = make_workspace(tmp_path)
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="nospend")
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    assert "design spend & not recorded" in text
+
+    (ws / "reports" / "design_spend.json").write_text(json.dumps({
+        "actual_usd": 27.1934, "cap_usd": 48, "source": "loop runs",
+        "as_of": "2026-10-01"}), encoding="utf-8")
+    code, payload = run_main(["--workspace", str(ws), "--tex-only"],
+                             tmp_path, capsys, name="spend")
+    text = (ws / payload["tex"]).read_text(encoding="utf-8")
+    assert "design spend & USD 27.19 of a USD 48.00 cap, as of 2026-10-01" in text
+    assert "not recorded" not in text
+
+
+def test_design_spend_text_edges(tmp_path):
+    ws = make_workspace(tmp_path)
+    f = ws / "reports" / "design_spend.json"
+    f.write_text("{broken", encoding="utf-8")
+    assert report_gen.design_spend(ws) == "not recorded"
+    f.write_text(json.dumps({"cap_usd": 48}), encoding="utf-8")
+    assert report_gen.design_spend(ws) == "not recorded"
+    f.write_text(json.dumps({"actual_usd": 3}), encoding="utf-8")
+    assert report_gen.design_spend(ws) == "USD 3.00 (no cap recorded)"
+
+
 # ------------------------------------------------------------- filing opt-in
 
 class _Builder:

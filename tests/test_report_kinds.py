@@ -183,6 +183,7 @@ def test_highlight_kind_tex_only(tmp_path, capsys):
     assert "Highlights" in text and r"\tableofcontents" not in text
     assert "went back to an earlier phase 3 times" in text
     assert "swap C13" in text and "Q1 pads" not in text   # key decisions only
+    assert "design spend & not recorded" in text
     assert not (ws / "reports" / "design_doc").exists()    # the design doc is untouched
 
 
