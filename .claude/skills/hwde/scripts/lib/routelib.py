@@ -28,6 +28,10 @@ Three concerns, used by route_edit.py / route_auto.py / planes_gen.py:
    at the default 0.2 mm (rf-term's /RF: 4 track_width + 3 HV clearance DRC
    errors). Each such net is moved into its own DSN class carrying the
    floor.
+
+5. dsn_merge_wires(): KiCad exports pre-routed copper as many short wires,
+   which overflow Freerouting's stack in PolylineTrace.combine; each chain
+   of same-net/layer/width/type wires is joined into one path.
 """
 from __future__ import annotations
 
@@ -296,3 +300,184 @@ def dsn_apply_net_rules(dsn_text: str, widths: dict[str, float],
         pos = end
     out.append(dsn_text[pos:])
     return "".join(out), moved
+
+
+_DSN_SEXP_TOKEN_RE = re.compile(r'"[^"]*"|[()]|[^\s()"]+')
+_DSN_HEAD_RE = re.compile(r"\(\s*([^\s()]+)")
+
+
+def _child_spans(text: str, start: int, end: int) -> list[tuple[int, int]]:
+    """(start, end) of every direct child of the s-expression at
+    text[start:end]."""
+    masked = _quote_mask(text[start:end])
+    spans, j = [], 1                      # skip the parent's own "("
+    while j < len(masked) - 1:
+        if masked[j] == "(":
+            e = _sexp_end(text, start + j) - start
+            spans.append((start + j, start + e))
+            j = e
+        else:
+            j += 1
+    return spans
+
+
+def _sexp_head(text: str, s: int, e: int) -> str:
+    m = _DSN_HEAD_RE.match(_quote_mask(text[s:e]))
+    return m.group(1) if m else ""
+
+
+def _parse_dsn_wire(text: str, s: int, e: int) -> dict | None:
+    """One `(wire (path LAYER WIDTH x y x y ...) attrs...)`; None for any
+    other shape (polygon, qarc, a nested paren in the path, an odd or
+    non-numeric coordinate list)."""
+    kids = _child_spans(text, s, e)
+    if not kids or _quote_mask(text[s:kids[0][0]]).split() != ["(wire"]:
+        return None
+    ps, pe = kids[0]
+    inner = text[ps + 1:pe - 1]
+    if "(" in _quote_mask(inner):
+        return None
+    toks = _DSN_TOKEN_RE.findall(inner)
+    if len(toks) < 7 or toks[0] != "path" or (len(toks) - 3) % 2:
+        return None
+    pts = [(toks[k], toks[k + 1]) for k in range(3, len(toks), 2)]
+    try:
+        fpts = [(float(x), float(y)) for x, y in pts]
+    except ValueError:
+        return None
+    # attrs = everything after the path ((net ..)(type protect)...), as a
+    # token tuple: two wires join only when they agree on all of it
+    attrs = tuple(_DSN_SEXP_TOKEN_RE.findall(text[pe:e - 1]))
+    return {"span": (s, e), "path": (ps, pe), "layer": toks[1],
+            "width": toks[2], "key": (toks[1], toks[2], attrs),
+            "pts": pts, "fpts": fpts}
+
+
+def _cut_span(text: str, s: int, e: int) -> tuple[int, int]:
+    """Widen a span to its whole line when nothing else shares that line."""
+    ls, le = s, e
+    while ls > 0 and text[ls - 1] in " \t":
+        ls -= 1
+    while le < len(text) and text[le] in " \t\r":
+        le += 1
+    if (ls == 0 or text[ls - 1] == "\n") and le < len(text) \
+            and text[le] == "\n":
+        return ls, le + 1
+    return s, e
+
+
+def dsn_merge_wires(dsn_text: str) -> tuple[str, int]:
+    """Join each net's pre-routed wire chains into one `(path ...)` per chain.
+
+    KiCad's DSN export writes hand-routed copper as many short wires, and
+    Freerouting 2.2.4 overflows its stack in PolylineTrace.combine reading
+    them (PCB-0019 USB D+). Two wires join at an endpoint only when exactly
+    those two wires on that layer end there, no via sits on it, and they
+    agree on layer, width and every attribute (net, type protect/fix, ...).
+    A branch point, a via, a cycle or a chain that closes on itself stays
+    as exported; coordinates keep their original strings. Returns (text,
+    input wires folded into a longer one); unparseable or unbalanced input
+    comes back unchanged with 0."""
+    # KiCad's parser header declares `(string_quote ")`: that lone quote
+    # would flip every quote-aware scan after it. Parse a same-length copy
+    # with it blanked; edits go back onto the original by index.
+    scan = re.sub(r'\(string_quote\s+"\s*\)',
+                  lambda q: q.group(0).replace('"', " "), dsn_text)
+    m = re.search(r"\(wiring[\s)]", _quote_mask(scan))
+    if not m:
+        return dsn_text, 0
+    wires, vias = [], set()
+    try:
+        top = scan.index("(")
+        if scan[_sexp_end(scan, top):].strip():
+            return dsn_text, 0                  # trailing junk / 2nd tree
+        wend = _sexp_end(scan, m.start())
+        for s, e in _child_spans(scan, m.start(), wend):
+            head = _sexp_head(scan, s, e)
+            if head == "wire":
+                w = _parse_dsn_wire(scan, s, e)
+                if w:
+                    wires.append(w)
+            elif head == "via":
+                # (via PADSTACK x y (net ..)...) - a via ends any chain
+                cut = _quote_mask(scan[s + 1:e]).find("(")
+                stop = s + 1 + cut if cut >= 0 else e - 1
+                toks = _DSN_TOKEN_RE.findall(scan[s + 1:stop])
+                try:
+                    vias.add((float(toks[2]), float(toks[3])))
+                except (IndexError, ValueError):
+                    pass
+    except CheckError:
+        return dsn_text, 0
+
+    # every parsed endpoint counts toward its node's degree; only wires
+    # with distinct ends are chain material
+    deg: dict = {}
+    at: dict = {}
+    for i, w in enumerate(wires):
+        for end in (w["fpts"][0], w["fpts"][-1]):
+            node = (w["layer"], end)
+            deg[node] = deg.get(node, 0) + 1
+            if w["fpts"][0] != w["fpts"][-1]:
+                at.setdefault(node, []).append(i)
+
+    def through(i: int, pt) -> int | None:
+        """The wire a chain continues into from wire i at pt, if any."""
+        node = (wires[i]["layer"], pt)
+        ws = at.get(node, [])
+        if deg[node] != 2 or len(ws) != 2 or pt in vias or ws[0] == ws[1]:
+            return None
+        j = ws[1] if ws[0] == i else ws[0]
+        return j if wires[j]["key"] == wires[i]["key"] else None
+
+    used: set[int] = set()
+    chains = []
+    for i, w in enumerate(wires):
+        if i in used or w["fpts"][0] == w["fpts"][-1]:
+            continue
+        used.add(i)
+        chain = [(i, False)]                    # (wire, reversed?)
+        cyclic = False
+        for forward in (True, False):
+            prev, cur = i, w["fpts"][-1 if forward else 0]
+            while not cyclic and (j := through(prev, cur)) is not None:
+                if j in used:                   # walked back round to i
+                    cyclic = True
+                    break
+                used.add(j)
+                f = wires[j]["fpts"]
+                starts_here = f[0] == cur
+                # forward: j must start at cur; backward: j must end there
+                rev = not starts_here if forward else starts_here
+                chain.insert(len(chain) if forward else 0, (j, rev))
+                prev, cur = j, f[-1] if starts_here else f[0]
+        if cyclic or len(chain) < 2:
+            continue
+        pts: list = []
+        for j, rev in chain:
+            seq = wires[j]["pts"][::-1] if rev else wires[j]["pts"]
+            pts.extend(seq[1:] if pts else seq)
+        if tuple(map(float, pts[0])) == tuple(map(float, pts[-1])):
+            continue                            # closes on itself
+        chains.append(([j for j, _ in chain], pts))
+
+    edits = []                                  # (start, end, replacement)
+    merged = 0
+    for members, pts in chains:
+        members.sort(key=lambda j: wires[j]["span"][0])
+        keep = wires[members[0]]
+        path = "(path %s %s  %s)" % (keep["layer"], keep["width"],
+                                     "  ".join(f"{x} {y}" for x, y in pts))
+        edits.append((*keep["path"], path))
+        for j in members[1:]:
+            edits.append((*_cut_span(dsn_text, *wires[j]["span"]), ""))
+        merged += len(members)
+    if not merged:
+        return dsn_text, 0
+    out, pos = [], 0
+    for s, e, rep in sorted(edits):
+        out.append(dsn_text[pos:s])
+        out.append(rep)
+        pos = e
+    out.append(dsn_text[pos:])
+    return "".join(out), merged

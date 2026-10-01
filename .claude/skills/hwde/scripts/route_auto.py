@@ -5,7 +5,8 @@ success): refill zones (a stale/unfilled pour exports wrong) -> Specctra DSN
 export via the SWIG worker (wx-suppressed; plane layers marked LT_POWER so the
 DSN carries "(type power)") -> Freerouting CLI over an escalation ladder
 (the DSN first carries each net's .kicad_dru width/clearance floor as its own
-class, routelib.dsn_apply_net_rules;
+class, routelib.dsn_apply_net_rules, and each pre-routed wire chain as one
+path, routelib.dsn_merge_wires, as split wires overflow Freerouting's stack;
 routelib.DEFAULT_LADDER; deterministic flags, per-rung process timeout, score
 logging) -> import the best rung's SES -> refill (imported tracks stale every
 pour they cross - S11-verified: 33 clearance violations before refill, 0
@@ -94,6 +95,15 @@ def _dsn_net_rules(staged: Path, dsn: Path) -> list[str]:
     if moved:
         dsn.write_text(text, encoding="utf-8")
     return moved
+
+
+def _dsn_merge_wires(dsn: Path) -> int:
+    """Join the exported DSN's split pre-routed wires (Freerouting 2.2.4
+    overflows its stack on them); returns the wires folded together."""
+    text, merged = routelib.dsn_merge_wires(dsn.read_text(encoding="utf-8"))
+    if merged:
+        dsn.write_text(text, encoding="utf-8")
+    return merged
 
 
 def _auto_power_layers(bg: geom.BoardGeom) -> list[str]:
@@ -280,10 +290,12 @@ def route_probe(pcb: Path, *, passes: int = 4, timeout_s: int = 180,
         "verb": "export_dsn", "board": str(staged), "dsn": str(dsn),
         "layer_types": {ly: "power" for ly in _auto_power_layers(bg)}}, work)
     _dsn_net_rules(staged, dsn)
+    merged = _dsn_merge_wires(dsn)
     facts = routelib.run_freerouting(
         java, jar, dsn, ses, rung={"mp": passes}, timeout=timeout_s,
         log_file=work / "probe.log")
     facts["completion"] = routelib.completion_fraction(facts)
+    facts["dsn_wires_merged"] = merged
     return facts
 
 
@@ -348,6 +360,7 @@ def run(argv: list[str] | None = None):
         "verb": "export_dsn", "board": str(staged), "dsn": str(dsn),
         "layer_types": {ly: "power" for ly in power_layers}}, work)
     dsn_net_rules = _dsn_net_rules(staged, dsn)
+    dsn_wires_merged = _dsn_merge_wires(dsn)
 
     # 3. Freerouting escalation ladder
     ladder = routelib.DEFAULT_LADDER[:max(1, args.max_rungs)]
@@ -469,6 +482,7 @@ def run(argv: list[str] | None = None):
             if fr_ok else None,
             "power_layers": power_layers,
             "dsn_net_rules": dsn_net_rules,
+            "dsn_wires_merged": dsn_wires_merged,
             "krt_finish": finish_facts,
             "ses_echo_dups_removed": dedup_facts.get("removed", 0),
             "work_dir": str(work),
