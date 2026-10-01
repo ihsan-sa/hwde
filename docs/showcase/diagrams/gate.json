@@ -1,0 +1,16 @@
+{
+ "type": "gate",
+ "canvas": 553,
+ "alt": "Every stage ends at its checks and a person's sign-off",
+ "nodes": [
+  {"id": "stage", "title": "Stage", "sub": "writes a file", "role": "work"},
+  {"id": "checks", "title": "Checks", "sub": "run on it", "role": "gate"},
+  {"id": "you", "title": "Sign-off", "sub": "by a person", "role": "actor"},
+  {"id": "next", "title": "Next stage"}
+ ],
+ "fail": {
+  "from": ["checks", "you"],
+  "into": {"title": "Fix loop", "sub": "reworks the file"},
+  "back": "stage"
+ }
+}

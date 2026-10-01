@@ -1,0 +1,18 @@
+{
+ "type": "grid",
+ "canvas": 553,
+ "alt": "A written brief becomes a checked factory package, one stage at a time",
+ "nodes": [
+  {"id": "brief", "title": "Brief", "sub": "in plain words", "role": "io", "col": 0, "row": 0},
+  {"id": "design", "title": "Design", "sub": ["research, parts,", "schematic"], "role": "work", "col": 1, "row": 0},
+  {"id": "layout", "title": "Layout", "sub": ["placement,", "routing"], "role": "work", "col": 2, "row": 0},
+  {"id": "checks", "title": "Checks", "sub": ["electrical, sims,", "manufacturing"], "role": "gate", "col": 2, "row": 1},
+  {"id": "pkg", "title": "Package", "sub": ["Gerbers, BOM,", "placement file"], "role": "io", "col": 1, "row": 1}
+ ],
+ "edges": [
+  {"from": "brief", "to": "design"},
+  {"from": "design", "to": "layout"},
+  {"from": "layout", "to": "checks"},
+  {"from": "checks", "to": "pkg"}
+ ]
+}
