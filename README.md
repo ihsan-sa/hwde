@@ -101,10 +101,10 @@ regulator with five parts to a three-phase motor driver.
 | pd-trigger | USB-C PD bench trigger | 2 | 48 × 30 | ordered and made |
 | lumina-carrier | lighting carrier, PoE-powered | 4 | 100 × 80 | ordered and made |
 | esp32c3-node | WiFi/BLE sensor node, LiPo | 2 | 26 × 38 | package ready |
-| lipo-boost | LiPo charger and 5 V boost | 2 | 53.9 × 38.8 | package ready |
-| nfc-card | NFC business card | 2 | 85.6 × 54 | package ready |
+| lipo-boost | LiPo charger and 5 V boost | 2 | 53.9 × 38.8 | verification, findings open |
+| nfc-card | NFC business card | 2 | 88.9 × 50.8 | package ready |
 | stereo-class-d-amp | stereo class-D amplifier | 2 | 53.6 × 36.8 | verification, findings open |
-| bldc-motor-driver | three-phase motor driver | 4 | 78 × 78 | package ready |
+| bldc-motor-driver | three-phase motor driver | 4 | 78 × 78 | placement, findings open |
 | pd-trigger-lite | small USB-C PD trigger | 2 | 25 × 15 | package ready |
 | pd-trigger-lite-dip | the same, set by DIP switch | 2 | 25 × 21 | package ready |
 | g0-sense | USB-C sensor node | 2 | 35.8 × 28.3 | package ready |
@@ -131,13 +131,13 @@ board outline, and not every outline is a rectangle.
 
 ![bldc-motor-driver](docs/showcase/renders/bldc-motor-driver.png)
 
-*__bldc-motor-driver__ · 4 layers · 78 × 78 mm · 175 footprints · package
-ready. A three-phase driver for brushless motors, running from 10 to 28 V. Six
-N-channel MOSFETs make three half-bridges, a DRV8300 drives their gates, and an
-STM32G431 runs the motor control. Each low-side leg has a 3 mΩ shunt read by an
-INA240 current amplifier. The brief was a general spec and one frame of a video
-showing someone else's demo board, so hwde wrote down every gap it had to fill
-as a numbered assumption.*
+*__bldc-motor-driver__ · 4 layers · 78 × 78 mm · 175 footprints · placement,
+findings open. A three-phase driver for brushless motors, running from 10 to 28
+V. Six N-channel MOSFETs make three half-bridges, a DRV8300 drives their gates,
+and an STM32G431 runs the motor control. Each low-side leg has a 3 mΩ shunt
+read by an INA240 current amplifier. The brief was a general spec and one frame
+of a video showing someone else's demo board, so hwde wrote down every gap it
+had to fill as a numbered assumption.*
 
 The FETs are rated 60 V although the board runs at 28 V at most. The input TVS
 diode clamps a surge at about 45 V, and every part on the motor supply is
@@ -191,7 +191,7 @@ call it made, with the reason.
 
 ![nfc-card](docs/showcase/renders/nfc-card.png)
 
-*__nfc-card__ · 2 layers · 85.6 × 54 mm · 13 footprints · package ready. A
+*__nfc-card__ · 2 layers · 88.9 × 50.8 mm · 19 footprints · package ready. A
 business card you tap with a phone. The phone reads a web address from the NFC
 tag and opens it, and while the phone is near, the tag takes power from its
 field and lights a pattern of LEDs. There is no battery and no microcontroller.
@@ -201,7 +201,7 @@ carry in a wallet.*
 | | |
 |---|---|
 | ![esp32c3-node](docs/showcase/renders/esp32c3-node.png) | ![lipo-boost](docs/showcase/renders/lipo-boost.png) |
-| __esp32c3-node__ · 2 layers · 26 × 38 mm · 41 footprints · package ready. A small WiFi and Bluetooth sensor node built around an ESP32-C3 module. USB-C powers it and also flashes it, through the chip's own USB, so there is no USB-serial bridge. It charges a single LiPo cell and keeps running with or without one, and a BME280 and a Qwiic connector share one I²C bus. | __lipo-boost__ · 2 layers · 53.9 × 38.8 mm · 33 footprints · package ready. It charges a single LiPo cell from USB and makes 5 V at 1 A on a USB-A socket from the cell. While USB is plugged in, the output keeps running from USB as the cell charges. The brief asked for a board in the class of the PowerBoost 1000C, designed from the datasheets rather than copied. |
+| __esp32c3-node__ · 2 layers · 26 × 38 mm · 41 footprints · package ready. A small WiFi and Bluetooth sensor node built around an ESP32-C3 module. USB-C powers it and also flashes it, through the chip's own USB, so there is no USB-serial bridge. It charges a single LiPo cell and keeps running with or without one, and a BME280 and a Qwiic connector share one I²C bus. | __lipo-boost__ · 2 layers · 53.9 × 38.8 mm · 33 footprints · verification, findings open. It charges a single LiPo cell from USB and makes 5 V at 1 A on a USB-A socket from the cell. While USB is plugged in, the output keeps running from USB as the cell charges. The brief asked for a board in the class of the PowerBoost 1000C, designed from the datasheets rather than copied. |
 
 ### The small PD triggers
 

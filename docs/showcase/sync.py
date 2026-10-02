@@ -8,7 +8,7 @@
 2. When anything the PDF is built from changed since the last filing (the
    hash of hwde-showcase.tex, gallery.tex and every picture and figure, kept in
    filed.json), builds the PDF with build_docs.sh pdf and files it in the
-   library: cc-docs file --project 003 --title 'hwde showcase' --source
+   library: cc-docs file --project 003 --title 'PCB flow (hwde) showcase' --source
    SHOWCASE_SOURCE (default ~/dev/ai-ee/docs/showcase/hwde-showcase.tex, the
    name the document is filed under wherever this runs). Nothing changed
    means nothing is built and nothing filed. cc-docs files nothing either
@@ -107,7 +107,7 @@ def main(argv=None) -> int:
         f"the boards repo." if res["added"] else
         "The board gallery was regenerated from the boards repo.")
     f = subprocess.run(["cc-docs", "file", str(pdf), "--project", "003",
-                        "--title", "hwde showcase", "--source", str(SOURCE),
+                        "--title", "PCB flow (hwde) showcase", "--source", str(SOURCE),
                         "--latex", str(MAIN), "--note", note],
                        capture_output=True, text=True)
     text = (f.stdout + f.stderr).strip()
