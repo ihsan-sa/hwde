@@ -53,7 +53,7 @@ S5_CHECKS = ["check_diffpair", "check_silk", "check_creepage",
 BUILT_CHECKS = {"check_return_path", "check_current", "check_decoupling",
                 "check_diffpair", "check_silk", "check_creepage",
                 "check_thermal", "check_route_style", "check_pdn",
-                "check_ratings"}
+                "check_ratings", "check_mating"}
 
 
 def board_path(name: str) -> Path:

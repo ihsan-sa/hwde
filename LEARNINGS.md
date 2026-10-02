@@ -5139,3 +5139,6 @@ Quantity 1) was read off a BOM Manager screenshot in a Georgia Tech capstone han
 WebFetch called binary and the Read tool rendered (the 2026-08-08 entry again); today's myLists
 upload was not checked. First real upload to either tool: confirm the auto-map, and whether a
 long designator list fits the Customer Reference field, then fix the headers in one place.
+
+## 2026-10-02 [placement][connector][verify] A connector facing into the board passed every gate; the place and verify gates now check mating
+PCB-0021-A J4 (USB-A) and PCB-0018-A J701/J702 (JST GH) sat with their backs at the edge and their mouths into the board, and passed place, DRC, verify, DFM and the render review. lib/matinglib.py now fails that at P6 and P8. Gotchas hit building it: "SMA" is also the DO-214AC diode package (`SMA_L4.3-W2.6...`), so a bare SMA match calls a diode a coax connector; the mouth reads reliably from the pad layout (contact row at the back, body toward the mouth) on every connector in the boards corpus, which EasyEDA footprints give no rotation convention for; and `checklib.violation` sorts `refs`, so a check that needs to say which ref is the subject puts it in its own field. The same sweep found PCB-0021-A J1 (micro-USB) with its contact row parallel to the edge it sits at, so its mouth points along the edge.
