@@ -2,7 +2,9 @@
 
 Read-only. Emits the S2 normalized-violation schema for placement LEGALITY
 (courtyard overlaps, outline containment, declared-edge compliance, keepouts,
-missing courtyards) plus decoupler DISTANCE violations (reusing S4
+missing courtyards, connector mating - lib/matinglib.py: a mating connector's
+mouth must face and reach a board edge with its insertion zone clear, and a
+vertical one needs finger room) plus decoupler DISTANCE violations (reusing S4
 check_decoupling's association logic, filtered to kind=decoupler_distance -
 loop/via inductance stays P8's job because it needs routing), and a `metrics`
 facts block for the annealer/agent:
@@ -15,6 +17,7 @@ facts block for the annealer/agent:
     congestion: {cell_mm, cols, rows, max, mean_nonzero, hotspots[:10]},
     congestion_signal_max: int,                      # gnd-class nets excluded
     decoupling: [check_association facts...],        # distances pre-route
+    mating: [matinglib facts...],                    # per mating connector
     utilization: {component_mm2, board_mm2, ratio},
   }
 
@@ -30,7 +33,8 @@ on error-severity violations; the fast-route-completion gate term arrives with
 S10/S11 route feedback.
 
 U2 (codex C7): the payload carries a `coverage` matrix over the legality
-families {courtyard, outline, edges, keepouts, decoupler_distance}. A missing
+families {courtyard, outline, edges, keepouts, decoupler_distance, mating}
+(mating needs only the board, so it always runs). A missing
 sidecar lands its families in coverage.skipped_error in BOTH modes (visible
 coverage hole); --strict additionally makes that a status "error" (exit 2) -
 release contexts must not read "pass" when the edge/keepout/decoupler legs
@@ -49,6 +53,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 import checklib  # noqa: E402
 import geom  # noqa: E402
+import matinglib  # noqa: E402
 import placelib  # noqa: E402
 
 
@@ -66,6 +71,7 @@ PLACE_FAMILIES = {
     "edges": ("edge_violation",),
     "keepouts": ("keepout_violation",),
     "decoupler_distance": ("decoupler_distance",),
+    "mating": matinglib.KINDS,
 }
 
 
@@ -102,6 +108,8 @@ def collect(pcb: Path, constraints_path: Path | None,
             if decoupling_path else {})
 
     violations = placelib.legality_violations(model, placement)
+    mating_v, mating_facts = matinglib.violations(model, pcb)
+    violations.extend(mating_v)
     decoupling_facts: list[dict] = []
     if decoupling_path:
         import check_decoupling
@@ -127,6 +135,7 @@ def collect(pcb: Path, constraints_path: Path | None,
         "congestion_signal_max": placelib.congestion(model, cell_mm,
                                                      exclude=gnd)["max"],
         "decoupling": decoupling_facts,
+        "mating": mating_facts,
         "utilization": {"component_mm2": checklib.rnd(comp),
                         "board_mm2": checklib.rnd(model.outline.area),
                         "ratio": checklib.rnd(

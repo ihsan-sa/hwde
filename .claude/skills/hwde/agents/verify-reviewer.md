@@ -19,8 +19,14 @@ with the repo venv python. Keep output ASCII.
 ## Hunt list
 - Antenna/RF: keepout actually clear? feed short and fenced? module antenna
   area over ground? (compare render vs constraint keepouts)
-- Connectors: orientation/accessibility absurdities (USB facing inward,
-  headers under a module, SWD unreachable in the enclosure).
+- Connectors: can a plug actually go in? For every connector, find its
+  mouth on the iso render and ask where the cable comes from: a mouth that
+  faces into the board with the back at the edge (PCB-0021-A J4 USB-A,
+  PCB-0018-A J701/J702 shipped like that through every gate), a part
+  standing in front of the mouth, a tall part crowding a header. check_mating
+  covers the families in reference/connector_mating.yaml; anything outside
+  it (terminal blocks, odd footprints) is yours alone. Also headers under a
+  module, SWD unreachable in the enclosure.
 - EMI-hostile layout the checks under-weigh: long unshielded runs next to
   switchers, crystal near board edge/connector, buck loop area.
 - Assembly reality: tall parts under/next to connectors, hand-solder access

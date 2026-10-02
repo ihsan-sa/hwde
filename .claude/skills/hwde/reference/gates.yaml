@@ -90,7 +90,9 @@ gates:
     description: >-
       Placement legality (place_metrics.py): no courtyard overlaps, declared
       connectors on their edges, keepouts respected, decoupler distances in
-      class limits. Warnings (missing courtyards) surface without failing.
+      class limits, every mating connector matable (lib/matinglib.py: mouth
+      facing and reaching a board edge, insertion zone clear, finger room
+      round vertical ones). Warnings (missing courtyards) surface without failing.
 
   verify:
     phase: P8
@@ -103,7 +105,9 @@ gates:
       every pin's datasheet rating against its net's voltage; needs the
       workspace parts dir, so it can run from P4 on), routing style
       (check_route_style: arcs, off-45 segments and needless jogs, warnings
-      only - a score, not a gate, until U11 sets rules). Fails on any error-severity
+      only - a score, not a gate, until U11 sets rules), connector mating
+      (check_mating: the place gate's mating rules again, so a later edit
+      cannot turn a connector round unnoticed). Fails on any error-severity
       finding; warnings are surfaced for human review, not auto-failed.
       Human-approved residuals can be waived via the verify-waivers.json
       sidecar (gate.py --waivers; every entry needs reason + approved) so a

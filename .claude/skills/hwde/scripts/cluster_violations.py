@@ -75,6 +75,9 @@ FIXER_HINTS = {
     "courtyard_overlap": "placement", "outside_outline": "placement",
     "edge_violation": "placement", "keepout_violation": "placement",
     "courtyard_missing": "placement", "seed_unplaced": "placement",
+    "mating_faces_inward": "placement", "mating_mouth_inset": "placement",
+    "mating_zone_blocked": "placement",
+    "mating_direction_unknown": "placement",
     # S11 routing pipeline
     "critical_route_failed": "router", "critical_missing_net": "schematic",
     "zone_unfilled": "plane", "stitch_impossible": "router",

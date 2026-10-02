@@ -357,7 +357,8 @@ def test_verify_all_strict_with_declared_na_passes(tmp_path):
                                  "--reports-dir", str(tmp_path / "rep")])
     assert summary["status"] == "pass"
     cov = summary["coverage"]
-    board_only = ["check_diffpair", "check_silk", "check_route_style"]
+    board_only = ["check_diffpair", "check_silk", "check_route_style",
+                  "check_mating"]
     assert sorted(cov["required"]) == sorted(board_only)
     assert sorted(cov["ran"]) == sorted(board_only)
     assert cov["skipped_error"] == {}

@@ -67,7 +67,10 @@ returns `status: checkpoint` (exit 1): the dead end goes to the owner.
 2. Judge what the cost cannot: connector mating direction - PROVE it with
    an orthographic side render (`--views left,right`) or a below-board WRL
    pin fit (the WRL bbox is a coincidence trap); never take the seed
-   rotation on faith. Silk is repairable, structure is not: repair the BEST
+   rotation on faith. The place gate's `mating_*` findings name a
+   connector whose mouth faces into the board, sits back from its edge, or
+   has a part in front of it: turn or move the connector, or clear the
+   zone - never move the board edge to it. Silk is repairable, structure is not: repair the BEST
    candidate, never prefer the seed on silk counts (S14-proven: repaired
    cand1 beat repaired seed on every metric). Probe access, heat spreading.
 3. Apply the winner via place_edit; targeted fixes as absolute ops
