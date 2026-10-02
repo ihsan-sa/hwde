@@ -31,7 +31,7 @@ PYTHON = sys.executable
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 import constraints_lint  # noqa: E402
-from _boards import BOARDS  # noqa: E402
+from _boards import BOARDS, SHIPPED_CHECKS, need_shipped_checks  # noqa: E402
 
 
 def lint_doc(tmp_path: Path, doc, name: str = "frag.json"):
@@ -195,16 +195,18 @@ def test_explicit_empty_diff_pairs_is_clean(tmp_path):
 
 # ================================================== shipped artifacts
 
+# Opt-in (_boards.SHIPPED_CHECKS): nothing globs BOARDS unless asked.
 SHIPPED = sorted(
     list(BOARDS.glob("*/research/*.json"))
     + list(BOARDS.glob("*/architecture/constraints.json"))
-    + list(BOARDS.glob("*/kicad/constraints.json")))
+    + list(BOARDS.glob("*/kicad/constraints.json"))) if SHIPPED_CHECKS else []
 
 
 @pytest.mark.parametrize("path", SHIPPED or [None], ids=lambda p: (
-    "no-boards-repo" if p is None
+    "not-opted-in" if p is None
     else "boards/" + p.relative_to(BOARDS).as_posix()))
 def test_shipped_artifacts_have_no_errors(path):
+    need_shipped_checks()
     if path is None:
         pytest.skip(f"needs the boards repo ({BOARDS}; set HWDE_BOARDS_ROOT)"
                     " - no shipped constraints found there")

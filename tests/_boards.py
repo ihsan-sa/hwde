@@ -9,6 +9,7 @@ small fixture under tests/ can stand in for uses the fixture instead.
 """
 from __future__ import annotations
 
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -22,6 +23,19 @@ if str(SCRIPTS) not in sys.path:
 from lib import boardreg, env  # noqa: E402
 
 BOARDS = env.boards_root()
+
+# A check over every board's content (not one named board) belongs to the
+# boards repo's own suite. hwde runs it only when asked, so a note added on a
+# boards branch never turns hwde's check red.
+SHIPPED_CHECKS = os.environ.get("HWDE_LINT_SHIPPED") == "1"
+
+
+def need_shipped_checks() -> None:
+    """Skip the calling test unless HWDE_LINT_SHIPPED=1 asks for checks
+    over every board in the boards repo."""
+    if not SHIPPED_CHECKS:
+        pytest.skip("opt-in: set HWDE_LINT_SHIPPED=1 to check every board in"
+                    " the boards repo; the boards repo checks its own content")
 
 
 def board_path(name: str) -> Path:

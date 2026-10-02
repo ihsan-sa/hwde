@@ -33,7 +33,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 import bom_cpl  # noqa: E402
 import checklib  # noqa: E402
 import dfm_check  # noqa: E402
-from _boards import BOARDS, board_path, need_board  # noqa: E402
+from _boards import BOARDS, SHIPPED_CHECKS, board_path, need_board  # noqa: E402
 
 RF_DE = board_path("rf-de-20m")
 RF_TERM = board_path("rf-term-150w")
@@ -337,7 +337,8 @@ def test_no_board_local_dnp_filter_survives():
     thing U3 replaces, and it must not creep back into any workspace."""
     need_board("rf-de-20m")
     assert not (RF_DE / "fab" / "filter_dnp.py").exists()
-    assert not list(BOARDS.glob("*/fab/filter_dnp.py"))
+    if SHIPPED_CHECKS:
+        assert not list(BOARDS.glob("*/fab/filter_dnp.py"))
 
 
 def test_dfm_fails_a_package_that_ships_a_dnp_site(tmp_path):
