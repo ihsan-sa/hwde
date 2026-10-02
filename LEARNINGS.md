@@ -5127,3 +5127,15 @@ obstacle net's clearance). Raising the routed power nets instead also fixed the 
 - KiCad's DSN export writes hand-routed copper as one `(wire (path ...))` per track segment. On PCB-0019 (rp2040-mini, hand-routed USB D+) Freerouting 2.2.4 threw `java.lang.StackOverflowError` in `PolylineTrace.combine` while reading them, so route_auto fell back and Freerouting routed nothing. Same frame as the 2026-07-23 KRT guide-wire wedge.
 - `routelib.dsn_merge_wires` joins each chain of wires with the same net, layer, width and attributes (`(type route|protect|fix)` included) into one path with the full point list; route_auto runs it after `dsn_apply_net_rules` on the main and probe paths and reports `dsn_wires_merged`. A branch point (3+ wires on one endpoint), a via on the joint, a cycle or a chain that closes on itself stays split. On the boards repo's saved DSNs it cut the wire count by up to 6x (2093 to 566 on lumina-par) with every segment kept, and Freerouting read a merged lipo-boost DSN cleanly.
 - KiCad's DSN parser header carries `(string_quote ")`: a lone quote that flips every quote-aware s-expression scan after it, so `_sexp_end` from the top of the file raises "unbalanced". Blank it in a same-length copy before scanning.
+
+## 2026-10-01 [bom][fab][research][tools] Distributor BOM upload headers could not be read live - DigiKey's come from an old template, Mouser's are a guess
+For `<ws>_BOM_digikey.csv` / `<ws>_BOM_mouser.csv` (distributor_bom.py). mouser.com answers
+both WebFetch (60 s timeout) and curl ("Access to this page has been denied") on its BOM Tool
+help pages, so the Mouser field names were never read; the tool maps columns by hand at upload
+and remembers the map, so plain names were chosen ("Mouser Part Number", "Manufacturer Part
+Number", "Manufacturer", "Quantity", "Customer Part Number"). DigiKey's own upload template
+(Digi-Key Part Number, Manufacturer Name, Manufacturer Part Number, Customer Reference,
+Quantity 1) was read off a BOM Manager screenshot in a Georgia Tech capstone handout PDF, which
+WebFetch called binary and the Read tool rendered (the 2026-08-08 entry again); today's myLists
+upload was not checked. First real upload to either tool: confirm the auto-map, and whether a
+long designator list fits the Customer Reference field, then fix the headers in one place.

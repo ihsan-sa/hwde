@@ -3,7 +3,7 @@
 
 The P9 assembly-format step (SPEC 6.4). Membership is decided by an
 ASSEMBLY CLASS per refdes - never by "whatever the position export happened to
-contain" (codex H1). Four files come out of one run:
+contain" (codex H1). These files come out of one run:
 
   BOM-full.csv  the BOM OF RECORD. EVERY intended part, whatever its class:
                 machine-placed, hand-installed, off-board, do-not-populate,
@@ -38,6 +38,14 @@ contain" (codex H1). Four files come out of one run:
                 fit and cost - this list records the pre-buy, it does not avoid
                 idle-stock parts. Written (header only) even when empty.
 
+  <ws>_BOM_digikey.csv, <ws>_BOM_mouser.csv (and <ws>_BOM_cost.json when
+                distributor API keys are set) - the same BOM of record in each
+                distributor's upload format, for a self-assembled build.
+                distributor_bom.py writes them; <ws> is the workspace dir name
+                (out-dir's parent when out-dir is fab/, else --ws-name / the
+                board stem). Quantities are per board x --boards (default 1,
+                separate from --build-qty). Missing keys only warn on stderr.
+
 Assembly classes (`assembly_class`, canonical parts.json - NOT a board-local
 filter script, which is how rf-de-20m's nine DNP sites used to be handled):
 
@@ -65,7 +73,8 @@ dfm_check.py's job, which also consumes these classes: a missing LCSC on an
 CLI:
   bom_cpl.py --pcb board.kicad_pcb --out-dir fab/ [--pos pos.csv]
              [--parts parts.json] [--rotations jlc_rotations.csv]
-             [--name NAME] [--build-qty N] [--out report.json]
+             [--name NAME] [--build-qty N] [--ws-name WS] [--boards N]
+             [--no-price-lookup] [--out report.json]
 Exit 0 ok / 1 assembly violations (incomplete BOM, unplaced smt_placed part,
 declared-quantity mismatch) / 2 error.
 """
@@ -587,7 +596,9 @@ def check_declared_quantities(records: list[dict],
 def run(pcb: Path, out_dir: Path, pos: Path | None = None,
         parts_json: Path | None = None, rotations: Path | None = None,
         name: str | None = None,
-        build_qty: int = DEFAULT_BUILD_QTY) -> dict:
+        build_qty: int = DEFAULT_BUILD_QTY, ws_name: str | None = None,
+        boards: int = 1, lookup_prices: bool = False,
+        transport=None) -> dict:
     if build_qty < 1:
         raise ValueError(f"build_qty must be >= 1, got {build_qty}")
     name = name or pcb.stem
@@ -634,6 +645,15 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
     _write_csv(cpl_path, ["Designator", "Mid X", "Mid Y", "Layer", "Rotation"],
                cpl_rows)
     _write_csv(prebuy_path, PREBUY_FIELDS, prebuy_rows)
+    # Distributor BOMs for a self-assembled build. Prices are looked up only
+    # when the caller asks (the CLI does; dfm_check's scratch run does not).
+    import distributor_bom
+    dist = distributor_bom.write(
+        bom_full_rows, out_dir,
+        ws_name or distributor_bom.default_ws_name(out_dir, name),
+        parts_dir=Path(parts_json).parent if parts_json
+        else out_dir.resolve().parent / "parts",
+        boards=boards, lookup_prices=lookup_prices, transport=transport)
 
     # A BOM line is COMPLETE when the part can actually be bought: an LCSC
     # number, or a manufacturer part number with a named distributor line. A
@@ -691,6 +711,7 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
         "cpl": str(cpl_path),
         "prebuy": str(prebuy_path),
         "build_qty": build_qty,
+        "distributor_boms": dist,
         "bom_rows": bom_rows,
         "prebuy_rows": prebuy_rows,
         "bom_full_rows": bom_full_rows,
@@ -725,15 +746,25 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--build-qty", type=int, default=DEFAULT_BUILD_QTY,
                     help="boards in the build, for the pre-buy list "
                          f"(default {DEFAULT_BUILD_QTY})")
+    ap.add_argument("--ws-name", help="prefix of the distributor BOMs "
+                    "(default: the workspace dir when --out-dir is its fab/)")
+    ap.add_argument("--boards", type=int, default=1,
+                    help="boards to buy for in the distributor BOMs (default 1)")
+    ap.add_argument("--no-price-lookup", action="store_true",
+                    help="skip the DigiKey/Mouser APIs even with keys set")
     ap.add_argument("--out", help="write JSON report here instead of stdout")
     args = ap.parse_args(argv)
+    if args.boards < 1:
+        ap.error(f"--boards must be >= 1, got {args.boards}")
 
     try:
         rep = run(Path(args.pcb), Path(args.out_dir),
                   pos=Path(args.pos) if args.pos else None,
                   parts_json=Path(args.parts) if args.parts else None,
                   rotations=Path(args.rotations) if args.rotations else None,
-                  name=args.name, build_qty=args.build_qty)
+                  name=args.name, build_qty=args.build_qty,
+                  ws_name=args.ws_name, boards=args.boards,
+                  lookup_prices=not args.no_price_lookup)
     except Exception as exc:  # noqa: BLE001 (SPEC: any error -> exit 2)
         err = {"script": "bom_cpl", "status": "error",
                "error": f"{type(exc).__name__}: {exc}"}
@@ -742,6 +773,8 @@ def main(argv: list[str] | None = None) -> int:
          else print(text))
         return 2
 
+    for w in rep["distributor_boms"]["warnings"]:
+        print(f"bom_cpl: {w}", file=sys.stderr)
     text = json.dumps(rep, indent=1)
     (Path(args.out).write_text(text, encoding="utf-8") if args.out
      else print(text))

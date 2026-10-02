@@ -1,9 +1,9 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
-# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01)
+# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01)
 
-One row per `LEARNINGS.md` entry (352 of them; the last starts at
-line 5126), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (353 of them; the last starts at
+line 5131), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -35,18 +35,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-10-01 (row 352 added), all 352 rows
+Recomputed from the table on 2026-10-01 (row 353 added), all 353 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 126 | 15 |
+| L0 | 127 | 16 |
 | L1 | 21 | 18 |
 | L2 | 64 | 126 |
 | L3 | 141 | 193 |
 
 136 entries want to climb at least one level. Status: **done 182**,
-**open 146**, **n/a 8**, planned 16
+**open 146**, **n/a 9**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
 
@@ -471,3 +471,4 @@ the row's Now level and status in the same commit as the code.
 | 350 | 5110 | HV clearance and hole clearance now live in the .kicad_pro netclasses | [rules_gen][route_auto][dsn][freerouting][hole-clearance] | L3 | L3 | scripts/rules_gen.py | done | rules_gen.net_classes gives every aiee_hv_* net a netclass carrying its DRU clearance and update_pro floors class clearance at hole clearance minus the via ring, so the DSN export hands Freerouting what DRC checks; tests/test_board_setup.py proves it on a live DSN. |
 | 351 | 5115 | /fwe's first facts | [fwe][pinmap][toolchain] | L3 | L3 | .claude/skills/fwe/scripts/pinmap.py | done | Each fact is in the fwe code that needs it: the fwelib package name, pinmap._f() float literals (compiled in a test), fw_test picks gcc before cc, the G431 .repl + RCC/ADC stubs in templates/stm32g4/sim, the own linker script, and the test loading fwe's router by path. The DRV8300/ADC-split board facts live in the PCB-0018-A fw_config and bring-up code. |
 | 352 | 5126 | Split pre-routed wires overflow Freerouting's stack; route_auto now jo | [freerouting][route_auto][dsn] | L3 | L3 | scripts/lib/routelib.py | done | `routelib.dsn_merge_wires` joins each net's split pre-routed wires into maximal chains before route_auto hands the DSN to Freerouting (main and probe paths), so the StackOverflowError in PolylineTrace.combine cannot recur from KiCad's split export. |
+| 353 | 5131 | Distributor BOM upload headers could not be read live - DigiKey's come | [bom][fab][research][tools] | L0 | L0 | scripts/distributor_bom.py | n/a | External-service behaviour: whether DigiKey myLists and Mouser's BOM Tool auto-map these headers can only be learned from a real upload. The headers live in one place (DIGIKEY_FIELDS / MOUSER_FIELDS) and tests/test_distributor_bom.py pins them; fix them there after the first upload. |
