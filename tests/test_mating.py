@@ -5,7 +5,9 @@ Each synthetic case builds its own board and asserts both the connector or
 part that is flagged and the one that is not. The two real-board cases are
 the owner's: PCB-0021-A lipo-boost J4 (USB-A, mouth into the board toward L1)
 and PCB-0018-A bldc-motor-driver J701/J702 (mouths into the board, backs at
-the edge); they skip when the boards repo is absent.
+the edge), read from trimmed copies frozen before and after each fix under
+tests/fixtures/mating/ (README there), never from the live boards repo. The
+golden corpus's planted fault (usb-faces-inward) is checked here too.
 """
 from __future__ import annotations
 
@@ -20,8 +22,10 @@ import check_mating  # noqa: E402
 import matinglib  # noqa: E402
 import place_metrics  # noqa: E402
 import placelib  # noqa: E402
+import yaml  # noqa: E402
 
-from _boards import real_board  # noqa: E402
+FIXTURES = REPO / "tests" / "fixtures" / "mating"
+GOLDEN = REPO / "tests" / "golden"
 
 
 def _pad(num, x, y, w, h, kind="smd rect", layers='"F.Cu"'):
@@ -168,26 +172,62 @@ def test_place_gate_and_verify_check_carry_it(tmp_path):
 
 # ---------------------------------------------------- the owner's two boards
 
-def _real(name):
-    ws = real_board(name)
-    pcb = next((ws / "kicad").glob("PCB-*.kicad_pcb"))
-    return _run(pcb)
+def _frozen(name):
+    return _run(FIXTURES / f"{name}.kicad_pcb")
 
 
-def test_lipo_boost_fails_on_j4():
-    vs, _ = _real("lipo-boost")
+def test_lipo_boost_fails_on_j4_before_its_fix():
+    vs, _ = _frozen("lipo_boost_before")
     j4 = {v["kind"]: v for v in vs if v["connector"] == "J4"}
+    assert set(j4) == {"mating_faces_inward", "mating_zone_blocked"}
     assert j4["mating_faces_inward"]["nearest_edge"] == "+x"
     assert j4["mating_faces_inward"]["mouth"] == "-x"
-    assert "L1" in j4["mating_zone_blocked"]["blocked_by"]
+    assert j4["mating_zone_blocked"]["blocked_by"] == ["L1"]
+    # J2, the battery plug at the bottom edge, mates fine
+    assert {v["connector"] for v in vs} == {"J4"}
 
 
-def test_bldc_motor_driver_fails_on_j701_and_j702():
-    vs, _ = _real("bldc-motor-driver")
+def test_lipo_boost_passes_once_j4_faces_the_edge():
+    vs, facts = _frozen("lipo_boost_after")
+    assert vs == []
+    j4 = next(f for f in facts if f["ref"] == "J4")
+    assert j4["mouth"] == j4["nearest_edge"] == "+x"
+
+
+def test_bldc_motor_driver_fails_on_j701_and_j702_before_their_fix():
+    vs, _ = _frozen("bldc_motor_driver_before")
     inward = {v["connector"]: v for v in vs
               if v["kind"] == "mating_faces_inward"}
     assert set(inward) == {"J701", "J702"}
     for v in inward.values():
         assert v["nearest_edge"] == "-y" and v["mouth"] == "+y"
+    blocked = {v["connector"]: v["blocked_by"] for v in vs
+               if v["kind"] == "mating_zone_blocked"}
+    assert blocked == {"J701": ["F701"], "J702": ["U301"]}
     # J601, the vertical box header beside them, mates fine
     assert not [v for v in vs if v["connector"] == "J601"]
+
+
+def test_bldc_motor_driver_passes_once_j701_and_j702_face_the_edge():
+    vs, facts = _frozen("bldc_motor_driver_after")
+    assert vs == []
+    for f in facts:
+        if f["ref"] in ("J701", "J702"):
+            assert f["mouth"] == f["nearest_edge"] == "-y"
+
+
+# ------------------------------------------------ the golden corpus mutant
+
+def test_golden_usb_faces_inward_mutant_caught():
+    m = yaml.safe_load((GOLDEN / "manifest.yaml").read_text(
+        encoding="utf-8"))["mutants"]["usb-faces-inward"]
+    assert m["check"] == "check_mating"
+    rep, _ = check_mating.run(["--pcb", str(
+        GOLDEN / "mutants" / "usb-faces-inward" / f"{m['board']}.kicad_pcb")])
+    inward = [v for v in rep["violations"] if v["kind"] == m["expect"]["kind"]]
+    assert [v["refs"] for v in inward] == [[m["expect"]["ref"]]]
+    assert inward[0]["mouth"] == "+x" and inward[0]["nearest_edge"] == "-x"
+    # the golden it was made from mates fine
+    gold, _ = check_mating.run(["--pcb", str(
+        GOLDEN / m["board"] / f"{m['board']}.kicad_pcb")])
+    assert gold["status"] == "pass"

@@ -169,11 +169,25 @@ mutants:
       net: "+5V"
       ref: C6
 
+  usb-faces-inward:
+    board: usbbuck4
+    script: mutations/usb_faces_inward.py
+    check: check_mating
+    defect: >-
+      PLACEMENT fault: the micro-USB receptacle J1 on the left edge is turned
+      180 degrees and slid 2.8 mm inward so its contacts stay on their tracks
+      (pad nets swapped to follow); its mouth now faces into the board (+x)
+      and no cable can reach it
+    expect:
+      kind: mating_faces_inward
+      ref: J1
+      pos: [106.885, 131.5]   # where check_mating reports J1
+
 # Checks referenced above and the step that builds them:
 #   check_return_path  S4    check_decoupling  S4    check_current  S4
 #   check_diffpair     S5    check_silk        S5    dfm_check      S12
 #   check_creepage     S5    check_thermal     S5    check_route_style
-#   check_pdn          S5    check_ratings
+#   check_pdn          S5    check_ratings     check_mating
 # Every check in verify_all.CHECKS has a mutant above (scorecard).
 #
 # Sidecar convention: a mutant dir tests/golden/mutants/<name>/ holds

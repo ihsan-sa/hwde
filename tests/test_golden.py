@@ -39,6 +39,7 @@ MUTATIONS = {
     "swdio-off-grid": "swdio_off_grid.py",
     "rail-cap-missing": "rail_cap_missing.py",
     "cap-undervoltage": "cap_undervoltage.py",
+    "usb-faces-inward": "usb_faces_inward.py",
 }
 
 
@@ -157,7 +158,8 @@ def test_manifest_complete(manifest):
     known_checks = {"check_return_path", "check_decoupling", "check_current",
                     "check_diffpair", "check_creepage", "check_thermal",
                     "check_silk", "check_pdn", "dfm_check",
-                    "check_route_style", "check_ratings"}
+                    "check_route_style", "check_ratings",
+                    "check_mating"}
     for name, m in manifest["mutants"].items():
         assert m["board"] in BOARDS, f"{name}: unknown board {m['board']}"
         assert m["check"] in known_checks, f"{name}: unknown check {m['check']}"
