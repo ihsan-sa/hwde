@@ -14,7 +14,22 @@
 # Rows are matched top-to-bottom; the FIRST matching regex wins, so more
 # specific patterns must precede broader ones.
 regex,rotation
-# --- SOT / SOD small-outline transistors & diodes ---
+# The table is now only the FALLBACK: bom_cpl.py takes each part's rotation
+# from its own LCSC footprint model (cpl_verify.py) and comes here only when
+# no model is cached or fetchable - dfm_check then fails that part as
+# unverified (cpl_no_model), so a table guess never ships unchecked.
+#
+# --- Footprints pulled by easyeda2kicad (lib_pull.py) ---
+# Their names carry EasyEDA's dimensions (SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BL,
+# LQFP-48_L7.0-W7.0-...). They ARE the LCSC model's geometry, so JLC needs no
+# correction at all. This row must come first: '^SOT-23,180' used to catch
+# the owner's imported SOT-23-5/6 parts and ship them 180 deg off
+# (#ai-ee 2026-10-02), and '^LQFP-' etc. would turn imported ICs 270.
+_L[0-9.]+-W[0-9.]+,0
+# --- SOT / SOD small-outline transistors & diodes (KiCad library names) ---
+# ^SOT-23 also covers KiCad's SOT-23-5 / SOT-23-6, which need 180 against
+# the common LCSC models (TPS563201 C116592: pin 1 bottom-right) - checked
+# per part by cpl_verify.py, so a model drawn the other way is still caught.
 ^SOT-23,180
 ^SOT-323,180
 ^SOT-353,180

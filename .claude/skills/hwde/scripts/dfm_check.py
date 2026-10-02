@@ -26,6 +26,17 @@ Checks (all thresholds from reference/jlc_capabilities.yaml, keyed
            --schematic-parity is net-level and does NOT catch a polarized part
            mounted backwards (LEARNINGS/V9); comparing per PAD NUMBER does, and
            the pad geometry gives the apparent rotation delta.
+  placement CPL rotation per part vs its OWN LCSC footprint model
+           (cpl_verify.py): pin 1 must land on pad 1 and a diode/LED/polar
+           cap's cathode/+ on the board's, with the shipped CPL (fab dir's
+           CPL.csv, else this run's). A wrong part, and a part with no model
+           or no fit, is an ERROR (cpl_rotation / cpl_no_model); a model
+           centre off the board's by > 0.5 mm is a warning (cpl_offset).
+           Runs with --parts. The fab step's image pass (cpl_render.py + a
+           vision agent -> cpl_visual.json beside the CPL, or --visual) sits
+           beside it: a part the two disagree on, or one the image pass left
+           out, is an ERROR (cpl_visual_disagree); no image pass at all is a
+           coverage hole (family placement_visual) that --strict refuses.
   release  gerber layer completeness (against the BOARD's declared layer set,
            never the files being audited - a package that dropped a layer must
            read as incomplete, not as a smaller board), drill validity,
@@ -51,10 +62,13 @@ CLI:
   dfm_check.py --pcb board.kicad_pcb [--fab-dir DIR] [--copper-oz N]
                [--schematic s.kicad_sch | --netlist b.net | --no-polarity]
                [--parts parts.json] [--capabilities cap.yaml] [--out r.json]
+               [--cpl CPL.csv] [--visual cpl_visual.json]
+               [--easyeda-cache DIR] [--offline]
 """
 from __future__ import annotations
 
 import argparse
+import json
 import csv
 import math
 import re
@@ -574,6 +588,60 @@ def check_polarity(bg, netlist: dict, vios: list) -> dict:
     return {"refs_checked": checked}
 
 
+# ------------------------------------------------------------ placement
+
+def _shipped_file(fab_dir: Path | None, name: str) -> Path | None:
+    """`name` in the fab dir (or its parent when --fab-dir is gerbers/)."""
+    if fab_dir is None:
+        return None
+    for d in (fab_dir, fab_dir.parent):
+        if (d / name).is_file():
+            return d / name
+    return None
+
+
+def check_placement(pcb: Path, cpl: Path, parts: Path | None,
+                    visual: Path | None, cache: Path | None, fetch: bool,
+                    vios: list) -> dict:
+    import cpl_verify
+    rep = cpl_verify.verify(
+        pcb, cpl_verify.read_cpl(cpl), cpl_verify.lcsc_map(pcb, parts),
+        cache or cpl_verify.default_cache(parts), fetch=fetch)
+    vis = (json.loads(visual.read_text(encoding="utf-8"))
+           if visual is not None else None)
+    rows = cpl_verify.merge_visual(rep["parts"], vis)
+    for r in rows:
+        where = None
+        if r["verdict"] in cpl_verify.FAIL_VERDICTS:
+            kind = ("cpl_no_model" if r["verdict"] in
+                    ("no_model", "no_fit", "bottom_unverified")
+                    else "cpl_rotation")
+            vios.append(checklib.violation(
+                CHECK, "error", where, None, None, [r["ref"]],
+                f"{r['ref']} {r['verdict']}: {r.get('why', '')}", SOURCE,
+                kind=kind, verdict=r["verdict"], lcsc=r.get("lcsc"),
+                cpl_rot=r.get("cpl_rot"), expected_rot=r.get("expected_rot")))
+        elif r.get("offset_mm", 0) > cpl_verify.OFFSET_WARN_MM:
+            vios.append(checklib.violation(
+                CHECK, "warning", where, None, None, [r["ref"]],
+                f"{r['ref']}: the LCSC model's pad centre sits "
+                f"{r['offset_mm']} mm from the board's at the CPL position",
+                SOURCE, kind="cpl_offset", offset_mm=r["offset_mm"]))
+        if r["agreement"] in ("disagree", "missing", "unclear"):
+            sev = "warning" if r["agreement"] == "unclear" else "error"
+            vios.append(checklib.violation(
+                CHECK, sev, where, None, None, [r["ref"]],
+                f"{r['ref']}: script says {r['verdict']}, image pass says "
+                f"{r['visual'] or 'nothing'} ({r['agreement']})", SOURCE,
+                kind="cpl_visual_disagree", agreement=r["agreement"]))
+    return {"cpl": str(cpl), "visual": str(visual) if visual else None,
+            "n_checked": rep["n_checked"], "failed": rep["failed"],
+            "parts": [{k: r.get(k) for k in
+                       ("ref", "lcsc", "verdict", "basis", "board_rot",
+                        "cpl_rot", "expected_rot", "offset_mm", "why",
+                        "visual", "agreement")} for r in rows]}
+
+
 # ------------------------------------------------------------ release gate
 
 def check_outline(fab, vios: list) -> None:
@@ -728,6 +796,8 @@ DFM_FAMILIES = {
     "silk": ("dfm_silk_width", "dfm_silk_over_pad", "dfm_mask_dam",
              "dfm_pad_tented"),
     "polarity": ("cpl_polarity",),
+    "placement": ("cpl_rotation", "cpl_no_model", "cpl_offset"),
+    "placement_visual": ("cpl_visual_disagree",),
     "bom": ("dfm_bom_incomplete", "dfm_assembly_unplaced_smt",
             "dfm_assembly_qty_mismatch", "dfm_unplaced_in_package"),
     "release": ("dfm_open_outline", "dfm_missing_layer", "dfm_no_drill"),
@@ -758,7 +828,9 @@ def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float | None = None,
         capabilities: Path | None = None, schematic: Path | None = None,
         netlist: Path | None = None, polarity: bool = True,
         parts: Path | None = None, skip: tuple[str, ...] = (),
-        strict: bool = False) -> dict:
+        strict: bool = False, cpl: Path | None = None,
+        visual: Path | None = None, easyeda_cache: Path | None = None,
+        fetch_models: bool | None = None) -> dict:
     if not pcb.exists():
         raise CheckError(f"board not found: {pcb}")
     caps = load_capabilities(capabilities or CAPABILITIES)
@@ -815,6 +887,17 @@ def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float | None = None,
         facts.update(check_release(fab, expected_cu, vios, parts_report,
                                    fab_dir=Path(fab_dir) if fab_dir else None))
 
+        if parts_report is not None and "placement" not in skip:
+            import cpl_verify
+            fd = Path(fab_dir) if fab_dir else None
+            cpl_path = (cpl or _shipped_file(fd, "CPL.csv")
+                        or Path(parts_report["cpl"]))
+            vis = visual or _shipped_file(fd, "cpl_visual.json")
+            facts["placement"] = check_placement(
+                pcb, Path(cpl_path), parts, vis, easyeda_cache,
+                (not cpl_verify.offline()) if fetch_models is None
+                else fetch_models, vios)
+
         if polarity:
             nl, reason = _resolve_netlist(pcb, schematic, netlist, tmp)
             if nl is None:
@@ -856,6 +939,12 @@ def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float | None = None,
                                        or facts["polarity"]["status"])
         if parts_report is None:
             skipped_cov["bom"] = "no parts.json"
+        if "placement" not in facts:
+            skipped_cov["placement"] = ("skipped via --skip" if parts_report
+                                        else "no parts.json")
+        if not (facts.get("placement") or {}).get("visual"):
+            skipped_cov["placement_visual"] = (
+                "no cpl_visual.json - the fab step's image pass has not run")
 
     payload = checklib.report("dfm_check", pcb, vios, **facts)
     # Warnings alone do not fail the gate (netlist_audit / fp_verify precedent):
@@ -900,8 +989,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-polarity", action="store_true",
                     help="skip the CPL polarity check")
     ap.add_argument("--parts", help="parts.json (BOM completeness)")
+    ap.add_argument("--cpl", help="CPL.csv to verify (default: the fab dir's, "
+                    "else this run's)")
+    ap.add_argument("--visual", help="cpl_visual.json from the image pass "
+                    "(default: beside the CPL in the fab dir)")
+    ap.add_argument("--easyeda-cache", help="LCSC footprint model cache")
+    ap.add_argument("--offline", action="store_true",
+                    help="never fetch LCSC models (uncached = cpl_no_model)")
     ap.add_argument("--skip", default="",
-                    help="comma list of groups to skip: copper,drill,silk")
+                    help="comma list of groups to skip: "
+                         "copper,drill,silk,placement")
     ap.add_argument("--strict", action="store_true",
                     help="release mode (codex C7): any sub-check family that "
                          "could not run (open outline, no netlist, no "
@@ -924,7 +1021,12 @@ def main(argv: list[str] | None = None) -> int:
                       polarity=not args.no_polarity,
                       parts=Path(args.parts) if args.parts else None,
                       skip=tuple(s for s in args.skip.split(",") if s),
-                      strict=args.strict)
+                      strict=args.strict,
+                      cpl=Path(args.cpl) if args.cpl else None,
+                      visual=Path(args.visual) if args.visual else None,
+                      easyeda_cache=Path(args.easyeda_cache)
+                      if args.easyeda_cache else None,
+                      fetch_models=False if args.offline else None)
         return rep, args.out
 
     return checklib.cli_wrap("dfm_check", _go)

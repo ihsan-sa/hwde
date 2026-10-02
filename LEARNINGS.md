@@ -5139,3 +5139,17 @@ Quantity 1) was read off a BOM Manager screenshot in a Georgia Tech capstone han
 WebFetch called binary and the Read tool rendered (the 2026-08-08 entry again); today's myLists
 upload was not checked. First real upload to either tool: confirm the auto-map, and whether a
 long designator list fits the Customer Reference field, then fix the headers in one place.
+
+## 2026-10-02 [jlc][fab][easyeda2kicad] CPL rotation: an imported footprint needs NO correction; the package table turned 41 shipped parts
+JLC places a part the way its LCSC footprint model is drawn in EasyEDA. A footprint pulled by
+easyeda2kicad (lib_pull.py, every `aiee:` footprint named like `SOT-23-6_L2.9-W1.6-...`) IS that
+model's geometry, so its CPL rotation must equal the board rotation. jlc_rotations.csv's package
+rows (`^SOT-23,180`, `^LQFP-,270`, `^SOIC-,270`, ...) are for KiCad LIBRARY footprints and still
+matched the imported names, so every board in ~/dev/boards shipped such parts 90 or 180 deg off
+(the owner's SOT-23-5/6 JLC previews). cpl_verify.py now fits each part's own model; on all 161
+parts with a cached model the imported footprint needed correction 0. Two more facts:
+(a) the EasyEDA component endpoint rate-limits PER IP - about ten quick requests, then 403 for
+minutes, curl included - and easyeda2kicad's EasyedaApi swallows the 403 into `{}`, which reads as
+"no such part"; lib/easyeda.py fetches itself and raises on HTTP errors. (b) A pad-size fit
+tolerance is wrong: an SO-8 LCSC model's rows sit 6.0 mm apart vs 5.12 in a KiCad-style land
+pattern; use half the smallest pad pitch (each model pad nearer its own pad than any other).

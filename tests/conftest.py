@@ -47,3 +47,12 @@ def _never_file_documents(monkeypatch):
             if d and not os.access(os.path.join(d, "cc-docs"), os.X_OK)]
     monkeypatch.setenv("PATH", os.pathsep.join(dirs))
     assert shutil.which("cc-docs") is None
+
+
+@pytest.fixture(autouse=True)
+def _easyeda_offline(monkeypatch, tmp_path_factory):
+    """No test fetches an LCSC footprint model or reads the user's cache: a
+    test that needs models copies tests/fixtures/easyeda into its own dir."""
+    monkeypatch.setenv("HWDE_EASYEDA_OFFLINE", "1")
+    monkeypatch.setenv("HWDE_EASYEDA_CACHE",
+                       str(tmp_path_factory.mktemp("easyeda_empty")))
