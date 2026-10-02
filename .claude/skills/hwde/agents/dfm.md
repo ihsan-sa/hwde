@@ -23,10 +23,14 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
    `Assembly Class` + `Instructions`), `BOM.csv` (the UPLOAD: `smt_placed`
    only, JLC's four columns, one row per LCSC part), `prebuy.csv` (placed
    Extended parts x `--build-qty`, default 5: the parts JLC may show as idle
-   stock to buy first) and `CPL.csv` (`smt_placed` only) with rotation
-   corrections from `reference/jlc_rotations.csv`. Read `rotation_audit`
-   (base -> correction -> final per part), `class_counts`, `not_placed` and
-   `violations`. Exit 1 = an assembly violation, not a crash.
+   stock to buy first) and `CPL.csv` (`smt_placed` only). Each part's
+   rotation comes from its OWN LCSC footprint model (EasyEDA data, cached in
+   `parts/easyeda/`; the first run fetches, and EasyEDA rate-limits after
+   ~10 quick requests, so let it finish); `reference/jlc_rotations.csv` is
+   only the fallback for a part with no model. Read `rotation_audit` (base
+   -> correction -> final, `source` lcsc_model or table, per part),
+   `rotation_from_table`, `class_counts`, `not_placed` and `violations`.
+   Exit 1 = an assembly violation, not a crash.
    - Membership comes from `assembly_class` in canonical parts data
    (`smt_placed`, `hand_install`, `off_board`, `dnp`, `customer_supplied`,
    `select_on_test`, `board_feature`), per-ref via `refdes_class` /
@@ -34,17 +38,45 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
    text. NEVER filter the generated files afterwards and never hand-edit
    them: if a site must ship empty, class it `dnp` in parts.json and say why
    in `refdes_notes`. Tell the human which file is the upload.
-3. Gate: `scripts/gate.py --gate dfm kicad/<board>.kicad_pcb` - runs
+3. Placement image pass (the second, independent opinion on rotation):
+   `scripts/cpl_render.py --pcb kicad/<board>.kicad_pcb --cpl fab/CPL.csv
+   --parts parts/parts.json --out-dir fab/cpl_render` draws every placed
+   part the way JLC's assembly preview does - the LCSC model at the CPL
+   position and rotation (red dot = its pin 1, red K/+ on a polarised part)
+   over the board's silkscreen and pads (cyan = pad 1, K, +). Then spawn ONE
+   subagent on claude-sonnet-5-5 (Agent tool, `model: sonnet`) and give it
+   `fab/cpl_render/index.json` and the PNGs. Its whole job: open each
+   image and, for every designator, say whether the red pin-1 dot sits on
+   the cyan pad 1 and, on a polarised part, whether the red K/+ sits on the
+   cyan K/+ - "match", "mismatch" or "unclear" (polarity "n/a" when not
+   polarised) - judging from the images alone, never from cpl_verify
+   output. It writes `fab/cpl_visual.json`: `{"model":
+   "claude-sonnet-5-5", "parts": {"U3": {"pin1": "match", "polarity":
+   "n/a", "note": ""}, ...}}`, one line for EVERY designator in index.json;
+   a "NO LCSC MODEL" crop is "unclear". Do not edit its verdicts -
+   dfm_check merges them in the next step.
+4. Gate: `scripts/gate.py --gate dfm kicad/<board>.kicad_pcb` - runs
    dfm_check on a scratch export: copper (trace/clearance/edge), drill
    (size/spacing/annular), mask/silk, release completeness, and **CPL
    polarity vs the schematic** - the ONLY catcher for a polarized part
-   rotated with its nets swapped (net-level parity is blind to it). Errors
+   rotated with its nets swapped (net-level parity is blind to it), and
+   **CPL placement per part** (`scripts/cpl_verify.py` inside dfm_check,
+   on the fab dir's CPL.csv): pin 1 of each part's LCSC model must land on
+   the board's pad 1, and a diode/LED/polarised cap's K/+ on the board's.
+   A wrong part (`cpl_rotation`), a part with no model, no fit or on the
+   bottom side (`cpl_no_model`), and a part the script and
+   `fab/cpl_visual.json` disagree on or the image pass left out
+   (`cpl_visual_disagree`) are ERRORS; `placement.parts` in the report puts
+   both verdicts side by side. With no cpl_visual.json the release gate
+   (strict) refuses, because the image pass is required. Fix a wrong
+   rotation by re-running bom_cpl (it derives from the model), never by
+   editing CPL.csv. Errors
    fail; advisory classes (0.12 mm stock silk, tight mask dams, a placed part
    sourced off LCSC) are warnings - list them, do not silence them. A placed
    part with NO source at all, a `smt_placed` part with no placement, a
    populate quantity the classes contradict, and a shipped BOM/CPL that lists
    a part the classes exclude are ERRORS.
-4. On gate failure: report; the orchestrator dispatches fixers (do not fix
+5. On gate failure: report; the orchestrator dispatches fixers (do not fix
    routing/placement yourself).
 
 ## The semi-manual second opinion (no public API - human step)
@@ -57,6 +89,7 @@ parts (LEDs/diodes/electrolytics) oriented correctly.
 FILES: fab/ contents + zip (with sha256s)
 GATE: dfm: <pass/fail, errors/warnings>; bom_complete: <true/false,
   missing refs>
-SUMMARY: <up to 10 lines: package contents, rotation corrections applied,
+SUMMARY: <up to 10 lines: package contents, rotation corrections applied
+  (model vs table), script/image placement disagreements,
   warnings worth human eyes>
 OPEN: <human upload steps + anything unresolved, or "none">
