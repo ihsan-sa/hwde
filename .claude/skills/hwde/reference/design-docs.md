@@ -3,8 +3,13 @@
 `report_gen.py` assembles state.json + digests + reports + renders
 into the design doc; without pdflatex it degrades to .tex-only (check_env
 warns). Only the FINAL design doc is filed in the document register: run that
-one with `--file`, or `DOC_PROJECT=Boards report_gen.py ... --file`. Never
-export DOC_PROJECT for the session, or every run files. An unchanged rebuild
+one with `--file`. It files into the board's own folder of the library, the
+project `Boards/<PN> <name>` when the boards register gives the part number,
+else `Boards/Unregistered`; `DOC_PROJECT=<project>` overrides that (never the
+bare group `Boards`, which cc-docs refuses). Its title leads with the part
+number (`PCB-0022-B nfc-card design doc`), so a new revision never files over
+the last one's documents. Never export DOC_PROJECT for the
+session, or every run files. An unchanged rebuild
 files nothing. At P10 close (or when the owner asks) every board also gets two
 more documents, each filed as its own: `--kind highlight` (a few pages: what
 it is, a picture, BOM, the decisions that changed it, checks) and `--kind full

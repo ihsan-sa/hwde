@@ -153,6 +153,10 @@ def test_redoc_dry_run_names_the_part_number(tmp_path, capsys):
     args = row["cc_docs"]
     assert row["pn"] == "PCB-0001-A"
     assert args[args.index("--describes") + 1] == "PCB-0001-A"
+    # the board's own library folder (owner, #ai-ee: "Each PCB should get a
+    # folder in the library with the name of the PCB")
+    assert row["project"] == "Boards/PCB-0001-A blinky2"
+    assert args[args.index("--project") + 1] == "Boards/PCB-0001-A blinky2"
     code = redoc_boards.main(["nope", "--root", str(root), "--dry-run"])
     out = json.loads(capsys.readouterr().out)
     assert code == 1 and out["boards"][0]["error"] == "no workspace"
@@ -235,8 +239,8 @@ def test_redoc_dry_run_kind_names_that_document(tmp_path, capsys):
     out = json.loads(capsys.readouterr().out)
     assert code == 0, out
     args = out["boards"][0]["cc_docs"]
-    assert args[args.index("--title") + 1] == "blinky2 highlight doc"
+    assert args[args.index("--title") + 1] == "PCB-0001-A blinky2 highlight doc"
     assert args[1].endswith("reports/highlight/blinky2-highlight.pdf")
     code = redoc_boards.main(["--root", str(root), "--dry-run"])
     args = json.loads(capsys.readouterr().out)["boards"][0]["cc_docs"]
-    assert args[args.index("--title") + 1] == "blinky2 design doc"
+    assert args[args.index("--title") + 1] == "PCB-0001-A blinky2 design doc"

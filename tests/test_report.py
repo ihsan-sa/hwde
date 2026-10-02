@@ -976,11 +976,94 @@ def test_no_filing_without_opt_in_even_with_cc_docs_on_path(tmp_path, monkeypatc
 def test_filing_with_flag_or_doc_project(tmp_path, monkeypatch):
     log = _fake_cc_docs(tmp_path, monkeypatch)
     report_gen.file_in_register(tmp_path / "x.pdf", "b", _Builder(), True)
-    assert "--project Boards" in log.read_text()
+    assert "--project Boards/Unregistered " in log.read_text()
     log.unlink()
     monkeypatch.setenv("DOC_PROJECT", "Other")
     report_gen.file_in_register(tmp_path / "x.pdf", "b", _Builder())
     assert "--project Other" in log.read_text()
+
+
+def test_board_project_is_the_boards_own_folder(tmp_path, monkeypatch):
+    """Each board files into "Boards/<PN> <name>" (owner, #ai-ee: "Each PCB
+    should get a folder in the library with the name of the PCB like the PCB
+    number and name"); with no part number, "Boards/Unregistered"; never the
+    bare group "Boards"; DOC_PROJECT still overrides."""
+    monkeypatch.delenv("DOC_PROJECT", raising=False)
+    root = tmp_path / "boards"
+    numbered = root / "PCB-0018-A_bldc-motor-driver"
+    bare = root / "blinky2"          # an older bare dir, listed in the register
+    stray = root / "stray"           # not in the register
+    for d in (numbered, bare, stray):
+        d.mkdir(parents=True)
+    (root / "register.yaml").write_text(
+        "products:\n  PCB-0018:\n    revs:\n"
+        "      A: {dir: PCB-0018-A_bldc-motor-driver}\n"
+        "  PCB-0001:\n    revs:\n      B: {dir: blinky2}\n", encoding="utf-8")
+    assert report_gen.board_project(numbered) == \
+        "Boards/PCB-0018-A bldc-motor-driver"
+    assert report_gen.board_project(bare) == "Boards/PCB-0001-B blinky2"
+    assert report_gen.board_project(stray) == "Boards/Unregistered"
+    assert report_gen.board_project(None) == "Boards/Unregistered"
+    args = report_gen.cc_docs_args(numbered, "bldc", numbered / "x.pdf")
+    assert args[args.index("--project") + 1] == \
+        "Boards/PCB-0018-A bldc-motor-driver"
+    monkeypatch.setenv("DOC_PROJECT", "Other")
+    assert report_gen.board_project(numbered) == "Other"
+    assert report_gen.board_project(stray) == "Other"
+
+
+def test_filing_goes_to_the_boards_folder(tmp_path, monkeypatch):
+    log = _fake_cc_docs(tmp_path, monkeypatch)
+    monkeypatch.delenv("DOC_PROJECT", raising=False)
+    ws = tmp_path / "PCB-0018-A_bldc"
+    ws.mkdir()
+    (tmp_path / "register.yaml").write_text(
+        "products:\n  PCB-0018:\n    revs:\n      A: {dir: PCB-0018-A_bldc}\n",
+        encoding="utf-8")
+    report_gen.file_in_register(ws / "x.pdf", "b", _Builder(), True, ws=ws)
+    assert "--project Boards/PCB-0018-A bldc --title" in log.read_text()
+
+
+def test_second_revision_never_lands_on_the_firsts_docs(tmp_path, monkeypatch):
+    """PCB-0022-B's docs once filed as new revisions of PCB-0022-A's because
+    the title was "<board> <kind>" with no part number and cc-docs matched on
+    it. The title now leads with the part number, and each revision has its
+    own folder, so a register keyed on either never gives B one of A's ids."""
+    monkeypatch.delenv("DOC_PROJECT", raising=False)
+    root = tmp_path / "boards"
+    a, b = root / "PCB-0022-A_nfc-card", root / "PCB-0022-B_nfc-card"
+    for d in (a, b):
+        d.mkdir(parents=True)
+    (root / "register.yaml").write_text(
+        "products:\n  PCB-0022:\n    revs:\n"
+        "      A: {dir: PCB-0022-A_nfc-card}\n"
+        "      B: {dir: PCB-0022-B_nfc-card}\n", encoding="utf-8")
+    ids: dict = {}
+
+    def file(ws, kind):
+        args = report_gen.cc_docs_args(ws, "nfc-card", ws / "x.pdf", kind=kind)
+        title = args[args.index("--title") + 1]
+        project = args[args.index("--project") + 1]
+        # the old matching (title alone) and the folder-aware one
+        return (ids.setdefault(("t", title), len(ids)),
+                ids.setdefault(("pt", project, title), len(ids)), title)
+
+    for kind in report_gen.KINDS:
+        a_by_title, a_by_folder, a_title = file(a, kind)
+        b_by_title, b_by_folder, b_title = file(b, kind)
+        assert a_title == f"PCB-0022-A nfc-card {report_gen.KINDS[kind][3]}"
+        assert b_title == f"PCB-0022-B nfc-card {report_gen.KINDS[kind][3]}"
+        assert a_by_title != b_by_title and a_by_folder != b_by_folder
+        # a rebuild of A still lands on A's own documents
+        assert file(a, kind)[:2] == (a_by_title, a_by_folder)
+    # a board name that already carries the part number is not doubled
+    args = report_gen.cc_docs_args(a, "PCB-0022-A_nfc-card", a / "x.pdf")
+    assert args[args.index("--title") + 1] == "PCB-0022-A_nfc-card design doc"
+    # with no part number the title stays as it was
+    stray = root / "stray"
+    stray.mkdir()
+    args = report_gen.cc_docs_args(stray, "stray", stray / "x.pdf")
+    assert args[args.index("--title") + 1] == "stray design doc"
 
 
 def _stub_compile(tmp_path, monkeypatch):

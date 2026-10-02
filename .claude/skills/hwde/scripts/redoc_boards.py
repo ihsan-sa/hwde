@@ -5,7 +5,9 @@ A one-shot for the boards repo: after its workspaces carry their part numbers,
 each design doc is rebuilt from the workspace as it stands (report_gen.py -
 state.json, reports, renders; no LLM step runs) so the PDF prints the PN
 under its title and in every footer, and is filed with
-`cc-docs file --describes <PN>`. cc-docs files a new revision only when the
+`cc-docs file --describes <PN>` into the board's own library folder, the
+project "Boards/<PN> <name>" (report_gen.board_project; DOC_PROJECT set in
+the environment overrides it). cc-docs files a new revision only when the
 content changed, so a second run files nothing (the board reports
 `unchanged`). The skip is keyed on the library too, so a rehearsal with
 --library leaves the live run free to file.
@@ -19,7 +21,8 @@ the design doc); each kind is its own document in the library.
 BOARD is an old name, a PN or a directory (default: every register rev whose
 workspace exists). --library points cc-docs at a scratch library
 (CC_DOCS_ROOT) instead of the live one; --dry-run builds nothing and prints,
-per board, the workspace, PN and the `cc-docs file` arguments it would use.
+per board, the workspace, PN, project and the `cc-docs file` arguments it
+would use.
 The rebuilt .tex/.pdf land in each workspace's reports/design_doc/ and are
 not committed here.
 
@@ -66,7 +69,8 @@ def run(args) -> tuple[dict, str | None]:
             continue
         pn, why = boardreg.part_number(ws)
         row = {"board": key, "workspace": str(ws),
-               "pn": pn["pn"] if pn else None}
+               "pn": pn["pn"] if pn else None,
+               "project": report_gen.board_project(ws) if pn else None}
         if pn is None:
             row["error"] = why
             bad += 1
