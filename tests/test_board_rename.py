@@ -199,7 +199,8 @@ def _redoc(capsys, monkeypatch, root, payload, cc_docs=True):
 
 def test_redoc_counts_an_unfiled_board(tmp_path, capsys, monkeypatch):
     root = scratch(tmp_path)
-    base = {"status": "pass", "pdf": "x.pdf", "warnings": []}
+    base = {"status": "pass", "pdf": "x.pdf", "warnings": [],
+            "attached": ["blinky2_gerbers.zip"]}
     code, out = _redoc(capsys, monkeypatch, root,
                        {**base, "filed": "002-0001 x.pdf", "unchanged": False})
     assert code == 0 and out["status"] == "pass"
@@ -213,6 +214,30 @@ def test_redoc_counts_an_unfiled_board(tmp_path, capsys, monkeypatch):
     assert code == 2 and "cc-docs is not on PATH" in out["error"]
 
 
+def test_redoc_counts_a_fab_set_that_did_not_go_up(tmp_path, capsys,
+                                                  monkeypatch):
+    """A board with a fab set whose files were not attached is not filed;
+    attached, or skipped by a matching stamp, it is."""
+    root = scratch(tmp_path)   # its fab/ holds blinky2_gerbers.zip
+    (root / "blinky2" / "fab" / "BOM.csv").write_text("bom", encoding="utf-8")
+    base = {"status": "pass", "pdf": "x.pdf", "warnings": [],
+            "filed": "002-0001 x.pdf", "unchanged": False}
+    code, out = _redoc(capsys, monkeypatch, root, {**base, "attached": []})
+    assert code == 1 and out["status"] == "violations"
+    code, out = _redoc(capsys, monkeypatch, root,
+                       {**base, "attached": ["blinky2_gerbers.zip",
+                                             "blinky2_BOM.csv"]})
+    assert code == 0, out
+    code, out = _redoc(capsys, monkeypatch, root,
+                       {**base, "filed": None, "unchanged": True,
+                        "attached": []})
+    assert code == 0
+    code = redoc_boards.main(["--root", str(root), "--dry-run"])
+    out = json.loads(capsys.readouterr().out)
+    assert out["boards"][0]["attach"] == ["blinky2_gerbers.zip",
+                                          "blinky2_BOM.csv"]
+
+
 def test_redoc_keeps_report_when_one_board_fails(tmp_path, capsys, monkeypatch):
     root = scratch(tmp_path)
     (root / "other" / "state.json").write_text("{}", encoding="utf-8")
@@ -222,7 +247,8 @@ def test_redoc_keeps_report_when_one_board_fails(tmp_path, capsys, monkeypatch):
         if Path(ws).name == "other":
             raise RuntimeError("kicad-cli timed out")
         return ({"status": "pass", "pdf": "x.pdf", "warnings": [],
-                 "filed": "002-0001 x.pdf", "unchanged": False}, 0)
+                 "filed": "002-0001 x.pdf", "unchanged": False,
+                 "attached": []}, 0)
     monkeypatch.setattr(redoc_boards.report_gen, "run", flaky)
     code = redoc_boards.main(["--root", str(root)])
     out = json.loads(capsys.readouterr().out)

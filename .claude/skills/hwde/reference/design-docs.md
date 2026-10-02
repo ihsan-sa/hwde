@@ -10,7 +10,10 @@ bare group `Boards`, which cc-docs refuses). Its title leads with the part
 number (`PCB-0022-B nfc-card design doc`), so a new revision never files over
 the last one's documents. Never export DOC_PROJECT for the
 session, or every run files. An unchanged rebuild
-files nothing. At P10 close (or when the owner asks) every board also gets two
+files nothing. Every filed document also carries the board's fab set as
+supporting files, each name led by the workspace directory's name:
+`<ws>_gerbers.zip`, `<ws>_BOM.csv`, `<ws>_CPL.csv` and the distributor BOMs
+when present; a fab set that changed under an unchanged PDF still goes up. At P10 close (or when the owner asks) every board also gets two
 more documents, each filed as its own: `--kind highlight` (a few pages: what
 it is, a picture, BOM, the decisions that changed it, checks) and `--kind full
 --render-history` (the design doc plus a render of each routing snapshot,
