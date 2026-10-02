@@ -28,7 +28,7 @@ import state as state_mod  # noqa: E402
 import state_migrate  # noqa: E402
 import statelib  # noqa: E402
 from checklib import CheckError  # noqa: E402
-from _boards import BOARDS  # noqa: E402
+from _boards import BOARDS, need_shipped_checks  # noqa: E402
 
 FIXTURES = REPO / "tests" / "fixtures" / "stages" / "pd_trigger"
 GATES_YAML = REPO / ".claude" / "skills" / "hwde" / "reference" / "gates.yaml"
@@ -583,6 +583,7 @@ def test_migration_sweep_and_bad_version(tmp_path):
 def test_all_live_workspaces_are_v2():
     """Standing invariant: the six committed board workspaces stay migrated
     (the T7 session ran state_migrate over boards/)."""
+    need_shipped_checks()
     states = sorted(BOARDS.glob("*/state.json"))
     if not states:
         pytest.skip(f"needs the boards repo ({BOARDS}; set HWDE_BOARDS_ROOT)")
