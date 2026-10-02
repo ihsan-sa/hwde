@@ -206,6 +206,10 @@ class Pad:
     # the pad-local `(drill ... (offset x y))`, rotated with the pad.
     drill: Optional[tuple[float, float]] = None
     drill_offset: tuple[float, float] = (0.0, 0.0)
+    # KiCad's "Castellated pad" fabrication property, `(property
+    # pad_prop_castellated)` - a plated half-hole on the board edge
+    # (lib/castellation.py).
+    castellated: bool = False
 
     @cached_property
     def poly(self) -> Polygon:
@@ -706,7 +710,10 @@ class BoardGeom:
             ref=ref, number=number, net=self._resolve_net(pad),
             shape=pshape, size=(w, h), center=center, angle=pad_angle,
             rratio=rratio, layers=layers, drill=drill,
-            drill_offset=drill_off))
+            drill_offset=drill_off,
+            castellated=any(_tok(x) == "pad_prop_castellated"
+                            for prop in _kids(pad, "property")
+                            for x in prop[1:])))
 
     def _parse_zones(self, root):
         zid = 0

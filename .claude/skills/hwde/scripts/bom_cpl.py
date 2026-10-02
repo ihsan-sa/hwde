@@ -700,6 +700,9 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
                        f"{m['derived_populated']}"})
 
     corrected = [a for a in audit if a["correction"] != 0.0]
+    import castellation
+    # None = not known (no board file beside a supplied pos file)
+    has_board = Path(pcb).is_file()
     return {
         "script": "bom_cpl",
         "status": "violations" if violations else "pass",
@@ -730,6 +733,11 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
         "qty_mismatch": qty_mismatch,
         "violations": violations,
         "bom_complete": not unsourced,
+        # counted from the board's pads, so the report and the order say
+        # "castellated" only when the board really has castellated pads
+        "castellated_pads": castellation.count(pcb) if has_board else None,
+        "castellated_refs": (sorted(castellation.refs(pcb), key=_natural_key)
+                             if has_board else None),
     }
 
 

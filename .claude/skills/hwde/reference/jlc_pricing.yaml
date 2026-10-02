@@ -79,6 +79,14 @@ options:
     0.8: 0.00
     1.2: 0.00
     2.0: 3.00
+  # "Castellated Holes: Yes" adder, per order, when the board has any
+  # castellated pad (lib/castellation.py counts them). JLC publishes NO fixed
+  # price for it - it is computed per quote - so this is ONE reported quote
+  # point, not a table: a $36 castellated upcharge reported on JLC orders
+  # (forum.pedalpcb.com/threads/castellated-holes-on-eagle.25247, seen
+  # 2026-10-02). Replace it with a measured API calculate figure (the
+  # castellated board's api_quote.json) when one exists.
+  castellated_holes: 36.00
 
 # SMT assembly. JLC bills a setup fee, a per-part feeder fee for EXTENDED parts
 # (Basic parts are feeder-free - this is why parts_search ranks Basic first),

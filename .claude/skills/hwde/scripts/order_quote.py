@@ -13,6 +13,11 @@ real number. The report always carries `estimated: true` and the deep link to
 the authoritative quote page, so the human checkpoint compares against reality
 instead of trusting this table.
 
+A board with castellated pads (lib/castellation.py) gets the per-order
+castellated-holes adder from jlc_pricing.yaml in every row's pcb cost
+(`pcb.castellated`) and `spec.castellated_pads`; a board without them shows
+neither key.
+
 CLI:
   order_quote.py --pcb board.kicad_pcb [--qty 5,10,30] [--assembly]
                  [--parts parts.json] [--finish HASL,ENIG] [--colors green,black]
@@ -32,6 +37,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import yaml  # noqa: E402
 
+import castellation  # noqa: E402
 import geom  # noqa: E402
 import safelib  # noqa: E402
 
@@ -68,7 +74,8 @@ def _nearest_qty_price(table: dict, qty: int) -> tuple[float, int]:
 
 
 def pcb_cost(pricing: dict, layers: int, qty: int, w: float, h: float,
-             finish: str, color: str, thickness: float = 1.6) -> dict:
+             finish: str, color: str, thickness: float = 1.6,
+             castellated: bool = False) -> dict:
     pcb = pricing["pcb"]
     base_table = pcb["base"].get(layers) or pcb["base"].get(str(layers))
     if base_table is None:
@@ -87,10 +94,15 @@ def pcb_cost(pricing: dict, layers: int, qty: int, w: float, h: float,
     adders = (float(opts.get("surface_finish", {}).get(finish, 0.0))
               + float(opts.get("solder_mask_color", {}).get(color, 0.0))
               + float(opts.get("thickness_mm", {}).get(thickness, 0.0)))
-    total = base + oversize + adders
-    return {"base": round(base, 2), "base_at_qty": at_qty,
-            "oversize": round(oversize, 2), "options": round(adders, 2),
-            "total": round(total, 2)}
+    # the per-order castellated-holes option, only for a board that has them
+    cast = float(opts.get("castellated_holes", 0.0)) if castellated else 0.0
+    total = base + oversize + adders + cast
+    out = {"base": round(base, 2), "base_at_qty": at_qty,
+           "oversize": round(oversize, 2), "options": round(adders, 2),
+           "total": round(total, 2)}
+    if castellated:
+        out["castellated"] = round(cast, 2)
+    return out
 
 
 def assembly_cost(pricing: dict, qty: int, n_parts: int, n_joints: int,
@@ -194,6 +206,7 @@ def run(pcb: Path, qtys: list[int], finishes: list[str], colors: list[str],
     w, h, area_dm2 = board_size(pcb)
     bg = geom.load_board(pcb)
     layers = len(bg.stackup.copper_layers)
+    n_cast = len(castellation.pads(bg))
 
     n_parts, n_joints, n_extended = (0, 0, 0)
     n_extended_source = None
@@ -206,7 +219,7 @@ def run(pcb: Path, qtys: list[int], finishes: list[str], colors: list[str],
         for finish in finishes:
             for color in colors:
                 pc = pcb_cost(pricing, layers, qty, w, h, finish, color,
-                              thickness)
+                              thickness, castellated=n_cast > 0)
                 row = {"qty": qty, "surface_finish": finish,
                        "solder_mask_color": color, "pcb": pc,
                        "total": pc["total"]}
@@ -258,6 +271,9 @@ def run(pcb: Path, qtys: list[int], finishes: list[str], colors: list[str],
             "thickness_mm": thickness, "assembly": assembly,
             "n_parts": n_parts, "n_joints": n_joints,
             "n_extended_parts": n_extended}
+    if n_cast:
+        # only on a castellated board, so every other spec stays as it was
+        spec["castellated_pads"] = n_cast
     if assembly:
         # only in assembly runs, so the P10 bench spec stays byte-identical
         spec["n_extended_source"] = n_extended_source

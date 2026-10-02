@@ -33,6 +33,26 @@ land pattern come from memory.
 
 The SVG overlay (`--svg`) is for a human eyeball, not for the gate.
 
+## Castellated edge pads (the board's own half-holes)
+
+A board that solders down by its edge (a Pico-style module) needs plated
+half-holes on its outline, not a pulled part. `scripts/castellated_fp.py
+--pins N --pitch P --out {ws}/lib/aiee.pretty/<name>.kicad_mod` writes the
+row: every pad carries `(property pad_prop_castellated)`, sizes default to
+JLC's recommended values and anything below JLC's minimums refuses (both in
+the `castellated:` block of reference/jlc_capabilities.yaml, with sources).
+Place it with its origin ON Edge.Cuts (local +Y = board interior) and rotate
+for other edges. From then on dfm_check checks the half-holes (on the
+outline, spacing, ring, corners), the quote adds the castellated surcharge,
+the order sets `castellatedHoles` 1, and the report says "castellated". A
+board without that property is never called castellated, whatever the brief
+says - a plain PTH row is a deviation the owner accepts, not a claim.
+
+Known limits: JLC publishes no fixed castellated surcharge, so the quote's
+adder is one forum-reported point; `castellatedHoles` 1 has not been through
+a live calculate yet; and the corner and other-edge checks need a cornered
+outline, so a fully rounded outline skips them.
+
 ## When the librarian is needed
 
 Scripted fixes cover silk, refdes and the common passives. Spawn `librarian`
