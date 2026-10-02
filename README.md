@@ -78,7 +78,9 @@ board whose files already record an order, and it will not run without a fresh
 quote and a design that matches the one quoted. A person then has to type a
 confirmation that names the board, the quantity and the total.
 
-/fwe and /npie are two newer skills that take over where hwde stops. /fwe
+/fwe and /npie are two newer skills that take over where hwde stops. They
+live in their own repositories, [ihsan-sa/fwe](https://github.com/ihsan-sa/fwe)
+and [ihsan-sa/npie](https://github.com/ihsan-sa/npie). /fwe
 writes firmware for a board, working from the board's own netlist to get the
 pin map. /npie reads the same design and writes a staged bring-up procedure,
 with pass and fail limits taken from the design, then runs it through one
