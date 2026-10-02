@@ -22,6 +22,11 @@ The Run Record carries the model cost of generating the board from
 reports/cost.json (gen_cost.py): the total, the split by step or the reason
 there is none. A missing cost.json is a warning and a "not recorded" line.
 
+The DFM section states the board's castellated pads from bom_cpl.json (else
+order.json's spec snapshot): the count and refs when there are some, "none"
+when there are none - and then a brief/brief.md or architecture/*.md line
+that claims castellation (and does not deny it) is a warning.
+
 A finished PDF is filed in the board's own folder of the library's Boards
 group ("<PN> <board> design doc", or "<board> design doc" with no part
 number) with `cc-docs file` only when asked: `--file` (the
@@ -203,6 +208,13 @@ _CHAR_MAP = {
     "\u0394": r"\(\Delta\)",       # greek capital delta
     "\u00d8": "dia. ",             # diameter-ish O-slash
 }
+
+
+# A line claiming castellation, and the words that make it a denial instead
+# ("not castellated", "plain PTH instead of castellated").
+_CASTELLATED_CLAIM = re.compile(r"castellat", re.I)
+_CASTELLATED_DENIED = re.compile(
+    r"\b(not|no|without|instead|plain|deviation|non)\b", re.I)
 
 
 def latex_escape(text) -> str:
@@ -625,7 +637,7 @@ class DocBuilder:
         snap = order.get("spec_snapshot")
         if isinstance(snap, dict):
             keys = ["layers", "width_mm", "height_mm", "qty", "surface_finish",
-                    "solder_mask_color", "assembly"]
+                    "solder_mask_color", "assembly", "castellated_pads"]
             rows = [[latex_escape(k), latex_escape(snap.get(k))] for k in keys
                     if k in snap]
             self.body.append(r"\subsection*{Fabrication spec snapshot}")
@@ -785,6 +797,39 @@ class DocBuilder:
         self.record("verification", "included" if used else "missing",
                     ", ".join(used) or "reports/verify_all.json")
 
+    def castellation_line(self, bom: dict | None, order: dict | None) -> None:
+        """Say 'castellated' only when the board has castellated pads: the
+        count comes from the board (bom_cpl.json, else order.json's spec
+        snapshot), and a brief or architecture note that claims castellation
+        the board does not have is a warning."""
+        n = (bom or {}).get("castellated_pads")
+        refs = (bom or {}).get("castellated_refs") or []
+        if n is None:
+            n = ((order or {}).get("spec_snapshot") or {}).get("castellated_pads")
+        if n is None:
+            return
+        if n:
+            on = f" on {', '.join(map(str, refs))}" if refs else ""
+            self.body.append(latex_escape(
+                f"Castellated edges: {n} castellated pad(s){on}; the order "
+                "sets Castellated Holes: Yes."))
+            return
+        self.body.append("Castellated edges: none (the board has no "
+                         "castellated pads).")
+        texts = [("brief/brief.md", read_text(self.ws, "brief/brief.md"))]
+        arch = self.ws / "architecture"
+        if arch.is_dir():
+            texts += [(f"architecture/{f.name}",
+                       f.read_text(encoding="utf-8", errors="replace"))
+                      for f in sorted(arch.glob("*.md"))]
+        for rel, text in texts:
+            if text and any(_CASTELLATED_CLAIM.search(ln)
+                            and not _CASTELLATED_DENIED.search(ln)
+                            for ln in text.splitlines()):
+                self.warn(f"{rel} says 'castellated' but the board has no "
+                          "castellated pads - correct the text or add them "
+                          "(castellated_fp.py)")
+
     def sec_dfm_fab(self) -> None:
         used = []
         self.start("DFM and Fabrication")
@@ -806,6 +851,7 @@ class DocBuilder:
             self.warn("reports/fab_export.json not found or has no layers_exported")
 
         bom = read_json(self.ws, "reports/bom_cpl.json")
+        self.castellation_line(bom, read_json(self.ws, "fab/order.json"))
         rows_ok = bool(bom and isinstance(bom.get("bom_rows"), list)
                        and bom["bom_rows"])
         hard = self.core(CORE_BOM, rows_ok)

@@ -15,7 +15,15 @@ Checks (all thresholds from reference/jlc_capabilities.yaml, keyed
            which is exactly what the fab's own DFM engine sees),
            min_copper_to_edge
   drill    min_hole_diameter, min_hole_to_hole, min_hole_to_edge,
-           annular ring (hole vs the pad copper around it)
+           annular ring (hole vs the pad copper around it). Castellated
+           holes (pad_prop_castellated) are exempt from hole/copper-to-edge
+           and the ring check - they sit on the edge by design - and are
+           checked by the castellation family instead
+  castellation  lib/castellation.py over the BOARD file against the
+           castellated: block of jlc_capabilities.yaml: drill, hole-to-hole,
+           ring, inward pad extension, hole centre on the outline, distance
+           to other edges and corners, board size and thickness, and a
+           plated hole the outline cuts without the castellated property
   mask     silk_over_pad (silk ink inside a mask opening = unprintable/
            unsolderable), solder-mask dam between openings
   silk     min silk stroke width
@@ -72,6 +80,7 @@ from shapely.geometry import Point  # noqa: E402
 from shapely.ops import unary_union  # noqa: E402
 from shapely.strtree import STRtree  # noqa: E402
 
+import castellation  # noqa: E402
 import checklib  # noqa: E402
 import gerblib  # noqa: E402
 import geom  # noqa: E402
@@ -247,17 +256,26 @@ def check_clearance(fab, rules, vios: list) -> None:
                 clearance_mm=checklib.rnd(d), min_mm=lo))
 
 
-def check_copper_to_edge(fab, rules, vios: list) -> None:
+def _castellated_at(cast, x: float, y: float, r: float = 0.0) -> bool:
+    """True when (x, y) is a castellated hole (cast: castellation.holes())."""
+    return any(math.hypot(x - cx, y - cy) <= max(r, d / 2.0)
+               for cx, cy, d in cast)
+
+
+def check_copper_to_edge(fab, rules, vios: list, cast=()) -> None:
     lo = rules.get("min_copper_to_edge_mm")
     outline = fab.outline
     if lo is None or outline.is_empty:
         return
     edge = outline.exterior
+    disks = [Point(cx, cy).buffer(d / 2.0) for cx, cy, d in cast]
     for name in fab.copper_layer_names():
         lg = fab.copper(name)
         if lg is None:
             continue
         for comp in lg.components():
+            if any(comp.intersects(k) for k in disks):
+                continue  # castellated pad: on the edge by design
             d = comp.distance(edge)
             # Copper crossing the outline reads as distance 0; both cases are
             # the same defect (copper too close to / past the board edge).
@@ -272,7 +290,7 @@ def check_copper_to_edge(fab, rules, vios: list) -> None:
 
 # ------------------------------------------------------------- drill checks
 
-def check_holes(fab, rules, vios: list) -> None:
+def check_holes(fab, rules, vios: list, cast=()) -> None:
     holes = fab.holes
     lo_d = rules.get("min_hole_diameter_mm")
     if lo_d is not None:
@@ -303,6 +321,8 @@ def check_holes(fab, rules, vios: list) -> None:
     if lo_he is not None and not outline.is_empty:
         edge = outline.exterior
         for h in holes:
+            if _castellated_at(cast, h.x, h.y):
+                continue
             d = Point(h.x, h.y).buffer(h.diameter / 2.0).distance(edge)
             if _below(d, lo_he):
                 vios.append(checklib.violation(
@@ -312,7 +332,7 @@ def check_holes(fab, rules, vios: list) -> None:
                     distance_mm=checklib.rnd(d), min_mm=lo_he))
 
 
-def check_annular_ring(fab, rules, vios: list) -> None:
+def check_annular_ring(fab, rules, vios: list, cast=()) -> None:
     """Radial copper around each plated hole, measured on the OUTER layers
     (where the ring is thinnest after registration)."""
     lo = rules.get("min_annular_ring_mm")
@@ -331,8 +351,8 @@ def check_annular_ring(fab, rules, vios: list) -> None:
         pads_by_layer[name] = (polys, STRtree(polys) if polys else None)
 
     for h in fab.holes:
-        if not h.plated:
-            continue
+        if not h.plated or _castellated_at(cast, h.x, h.y):
+            continue  # a half-hole's ring is castellation's to measure
         c = Point(h.x, h.y)
         r = h.diameter / 2.0
         best = None
@@ -731,6 +751,7 @@ DFM_FAMILIES = {
     "bom": ("dfm_bom_incomplete", "dfm_assembly_unplaced_smt",
             "dfm_assembly_qty_mismatch", "dfm_unplaced_in_package"),
     "release": ("dfm_open_outline", "dfm_missing_layer", "dfm_no_drill"),
+    "castellation": castellation.KINDS,
 }
 
 
@@ -794,15 +815,22 @@ def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float | None = None,
         bg = geom.load_board(pcb)
         vios: list = []
         facts: dict = {}
+        cast = castellation.holes(bg)
 
         check_outline(fab, vios)
         if "copper" not in skip:
             check_trace_width(fab, rules, vios)
             check_clearance(fab, rules, vios)
-            check_copper_to_edge(fab, rules, vios)
+            check_copper_to_edge(fab, rules, vios, cast)
         if "drill" not in skip:
-            check_holes(fab, rules, vios)
-            check_annular_ring(fab, rules, vios)
+            check_holes(fab, rules, vios, cast)
+            check_annular_ring(fab, rules, vios, cast)
+        if "castellation" not in skip:
+            cvios, cfacts = castellation.check(
+                bg, castellation.load_rules(capabilities or CAPABILITIES),
+                bg.stackup.total_thickness or None)
+            vios.extend(cvios)
+            facts.update(cfacts)
         if "silk" not in skip:
             check_silk(fab, rules, vios, bg=bg)
             check_mask_dam(fab, rules, vios)
@@ -840,7 +868,7 @@ def run(pcb: Path, fab_dir: Path | None = None, copper_oz: float | None = None,
 
         # U2 coverage (codex C7): record which families never ran and why.
         skipped_cov: dict[str, str] = {}
-        for fam in ("copper", "drill", "silk"):
+        for fam in ("copper", "drill", "silk", "castellation"):
             if fam in skip:
                 skipped_cov[fam] = "skipped via --skip"
         no_outline = fab.edge_file is None or fab.outline.is_empty
@@ -901,7 +929,7 @@ def main(argv: list[str] | None = None) -> int:
                     help="skip the CPL polarity check")
     ap.add_argument("--parts", help="parts.json (BOM completeness)")
     ap.add_argument("--skip", default="",
-                    help="comma list of groups to skip: copper,drill,silk")
+                    help="comma list of groups to skip: copper,drill,silk,castellation")
     ap.add_argument("--strict", action="store_true",
                     help="release mode (codex C7): any sub-check family that "
                          "could not run (open outline, no netlist, no "

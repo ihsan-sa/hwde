@@ -26,7 +26,11 @@ api-reference PcbOrderCraftData table, the contract's [SDK/PDF] source):
   --api         QUOTE-ONLY: uploadGerber -> audit/get -> calculate, with
                 pcbParam built from the spec snapshot + quote spec + the
                 stackup-derived copper weight (architecture/stackup.md
-                `## Chosen:` id, e.g. JLC2313_1.6_2oz -> "2"). Writes
+                `## Chosen:` id, e.g. JLC2313_1.6_2oz -> "2"), and
+                castellatedHoles 1 exactly when the board has castellated
+                pads (spec_snapshot.castellated_pads, lib/castellation.py;
+                a castellated board also gets a human step naming the
+                option). Writes
                 fab/api_quote.json (REAL price vs our estimate, shipList,
                 achieveDateList, audit findings, the quoted gerber sha256)
                 and records the verdict in order.json's api block. NEVER
@@ -121,6 +125,7 @@ SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 
+import castellation  # noqa: E402
 import fabhash  # noqa: E402
 import jlcapi  # noqa: E402
 import releaselib  # noqa: E402
@@ -403,7 +408,13 @@ def build_pcb_param(spec: dict) -> dict:
         "panelByJLCPCB_Y": 0,                 #   panelFlag = 0
         "differentDesign": 1,                 # table: "default value is 1"
         "flyingProbeTest": 2,                 # create example: 2 = 100% test
-        "castellatedHoles": 0,                # enum: 0 = none
+        # enum: 0 = none, 1 = castellated process. Set from the BOARD's own
+        # castellated pads (spec_snapshot.castellated_pads, counted by
+        # lib/castellation.py), never from a brief: a board without them
+        # must not buy the process, and one with them must not ship as
+        # plain holes the fab may leave unplated. The 1 has not yet been
+        # through a live calculate (no castellated board has been quoted).
+        "castellatedHoles": 1 if spec.get("castellated_pads") else 0,
         "orderDetailsRemark": "",             # required String; no remarks
         # calculate-example value; the 0/1/2 enum is undescribed in the doc
         "cascadeStructure": 1,
@@ -1188,6 +1199,10 @@ def run(pcb: Path, fab_dir: Path, quote: Path | None = None,
     else:
         status = "ready_for_human"
     quote_spec = (quote_data or {}).get("spec", {})
+    # the board decides; the quote's count only stands in when the board
+    # file is not at hand
+    n_cast = (castellation.count(pcb) if Path(pcb).is_file()
+              else int(quote_spec.get("castellated_pads") or 0))
 
     manifest = {
         "script": "order_submit",
@@ -1215,6 +1230,7 @@ def run(pcb: Path, fab_dir: Path, quote: Path | None = None,
             "surface_finish": (quote_row or {}).get("surface_finish"),
             "solder_mask_color": (quote_row or {}).get("solder_mask_color"),
             "assembly": quote_spec.get("assembly"),
+            "castellated_pads": n_cast,
         },
         "release": release,
         "api": {"attempted": bool(use_api), "available": api_ok,
@@ -1230,6 +1246,11 @@ def run(pcb: Path, fab_dir: Path, quote: Path | None = None,
             "Review, then pay. Payment is always the human's action.",
         ],
     }
+    if n_cast:
+        manifest["human_steps"].insert(-1, (
+            f"CASTELLATED: the board has {n_cast} castellated pad(s) - set "
+            "'Castellated Holes: Yes' on the quote page (the API leg sends "
+            "castellatedHoles 1) and confirm the surcharge."))
     if not release["governed"]:
         manifest["human_steps"].insert(0, (
             "UNGOVERNED package (no state.json beside the fab dir): no "

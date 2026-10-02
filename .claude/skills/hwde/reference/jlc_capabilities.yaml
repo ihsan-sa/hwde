@@ -26,9 +26,11 @@
 #   consumed by NO code: min_pad_size_mm, min_silk_height_mm,
 #     min_solder_mask_clearance_mm. These and the remaining JLCDFM classes
 #     (silk text height, min pad size, mask-to-copper clearance, copper
-#     slivers, acid traps, via-in-pad, castellation) are covered by P10's API
+#     slivers, acid traps, via-in-pad) are covered by P10's API
 #     DFM audit + the human jlcdfm.com step (V6 resolution, PROGRESS.md) -
 #     do not infer local coverage from a key listed here.
+#   castellated: block below - read by lib/castellation.py (dfm_check's
+#     castellation family, castellated_fp.py's sizing, order_quote/order_submit).
 #   V11 verdict (unchanged): JLC's inner via-pad removal stays unmodeled BY
 #     POLICY - the pipeline never enables that ordering option, and both
 #     geometry paths (geom.py, gerblib) consistently model inner pads present.
@@ -48,6 +50,35 @@ board:
   surface_finish: [HASL, "LeadFree HASL", ENIG]
   solder_mask_colors: [green, black, blue, red, white, yellow, purple, "matte black", "matte green"]
   silkscreen_colors: [white, black]
+
+# Castellated (plated half-hole) edge pads. A pad is castellated when its
+# footprint marks it `(property pad_prop_castellated)` (KiCad's "Castellated
+# pad" fabrication property). Two JLC sources disagree; we take the STRICTER
+# value of each (verified 2026-10-02):
+#   [blog]  https://jlcpcb.com/blog/142-castellated-pcbs-introduction-and-design-requirements
+#           drill 0.6, hole-to-hole 0.6 (rec 0.8), board edge to castellated
+#           pad 1.0, annular ring 0.25 (absolute 0.18), hole to board corner
+#           >= 3.0 (rec 5.0), pad inward extension >= 0.5 (rec 0.8),
+#           board >= 10 x 10 mm
+#   [caps]  https://jlcpcb.com/capabilities/pcb-capabilities
+#           hole >= 0.5, hole to hole >= 0.5, hole to board edge >= 1,
+#           board >= 10 x 10 mm, thickness >= 0.6
+# JLC publishes no fixed surcharge for the "Castellated Holes: Yes" option
+# (it is priced per quote); the estimate lives in jlc_pricing.yaml.
+castellated:
+  min_drill_mm: 0.6                 # [blog] B (caps says 0.5)
+  rec_drill_mm: 1.0                 # [blog] recommended 0.8-1.0
+  min_hole_to_hole_mm: 0.6          # [blog] C, hole edge to hole edge
+  rec_hole_to_hole_mm: 0.8          # [blog] recommended
+  min_annular_ring_mm: 0.18         # [blog] D absolute minimum
+  rec_annular_ring_mm: 0.25         # [blog] D
+  min_pad_extension_mm: 0.5         # [blog] pad inward extension
+  rec_pad_extension_mm: 0.8         # [blog] recommended
+  min_to_other_edge_mm: 1.0         # [blog] A / [caps] L: to any edge the hole is not on
+  min_to_corner_mm: 3.0             # [blog] hole to board corner
+  min_board_mm: 10.0                # both: 10 x 10 mm minimum board
+  min_thickness_mm: 0.6             # [caps]
+  on_outline_tol_mm: 0.05           # ours: hole centre must sit on Edge.Cuts
 
 design_rules:
 
