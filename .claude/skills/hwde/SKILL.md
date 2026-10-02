@@ -272,12 +272,6 @@ substitution in the spawn ledger. Never silently drop to a weaker tier.
   those are a schematic + re-route job, not surgery. Its region scan for
   added parts is front-side only.
 - order_quote figures are estimated:true; the JLC cart is the only real quote.
-- Castellated edges: a pad is castellated only by KiCad's
-  `pad_prop_castellated` property (castellated_fp.py writes it). JLC
-  publishes no fixed castellated surcharge, so the quote's adder is one
-  reported point, and castellatedHoles 1 has not been through a live
-  calculate yet. Corner checks need a cornered outline: a fully rounded
-  outline skips them.
 - JLCPCB Open API: PCB ordering only - there is NO assembly/PCBA API
   (BOM/CPL ordering stays the JLC web flow), and 4-layer boards are the
   web path (`--api-create` guards on layer count). copperWeight as a

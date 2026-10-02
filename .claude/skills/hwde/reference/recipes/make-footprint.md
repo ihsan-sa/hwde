@@ -48,6 +48,11 @@ the order sets `castellatedHoles` 1, and the report says "castellated". A
 board without that property is never called castellated, whatever the brief
 says - a plain PTH row is a deviation the owner accepts, not a claim.
 
+Known limits: JLC publishes no fixed castellated surcharge, so the quote's
+adder is one forum-reported point; `castellatedHoles` 1 has not been through
+a live calculate yet; and the corner and other-edge checks need a cornered
+outline, so a fully rounded outline skips them.
+
 ## When the librarian is needed
 
 Scripted fixes cover silk, refdes and the common passives. Spawn `librarian`
