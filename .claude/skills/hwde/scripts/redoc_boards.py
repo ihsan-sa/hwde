@@ -10,7 +10,11 @@ project "Boards/<PN> <name>" (report_gen.board_project; DOC_PROJECT set in
 the environment overrides it). cc-docs files a new revision only when the
 content changed, so a second run files nothing (the board reports
 `unchanged`). The skip is keyed on the library too, so a rehearsal with
---library leaves the live run free to file.
+--library leaves the live run free to file. Each filing also puts the
+board's fab set on the revision under <ws>-prefixed names
+(report_gen.fab_attachments), so a board whose fab files changed under an
+unchanged PDF files them again; a board whose fab set did not go up counts
+as not filed.
 
     redoc_boards.py [BOARD...] [--root DIR] [--library DIR] [--dry-run]
                     [--kind design|highlight|full] [--out FILE]
@@ -21,8 +25,8 @@ the design doc); each kind is its own document in the library.
 BOARD is an old name, a PN or a directory (default: every register rev whose
 workspace exists). --library points cc-docs at a scratch library
 (CC_DOCS_ROOT) instead of the live one; --dry-run builds nothing and prints,
-per board, the workspace, PN, project and the `cc-docs file` arguments it
-would use.
+per board, the workspace, PN, project, the `cc-docs file` arguments it
+would use and the names it would attach.
 The rebuilt .tex/.pdf land in each workspace's reports/design_doc/ and are
 not committed here.
 
@@ -80,6 +84,7 @@ def run(args) -> tuple[dict, str | None]:
             row["cc_docs"] = report_gen.cc_docs_args(
                 ws, st["board"], ws / "reports" / subdir
                 / f"{st['board']}-{suffix}.pdf", kind=args.kind)
+            row["attach"] = [n for _, n in report_gen.fab_attachments(ws)]
         else:
             try:
                 payload, code = report_gen.run(str(ws), file_doc=True,
@@ -87,11 +92,15 @@ def run(args) -> tuple[dict, str | None]:
                 row.update(status=payload["status"], pdf=payload["pdf"],
                            filed=payload["filed"],
                            unchanged=payload["unchanged"],
+                           attached=payload["attached"],
                            warnings=payload["warnings"][-3:])
-                # "not filed" is a finding; a stamp-matched skip is not
+                # "not filed" is a finding, and so is a fab set that did
+                # not go up; a stamp-matched skip is neither
+                fab = report_gen.fab_attachments(ws)
                 bad += (code != 0 or payload["pdf"] is None
-                        or (payload["filed"] is None
-                            and not payload["unchanged"]))
+                        or (not payload["unchanged"]
+                            and (payload["filed"] is None
+                                 or (fab and not payload["attached"]))))
             except Exception as exc:   # one board's failure must not lose
                 row["error"] = f"{type(exc).__name__}: {exc}"  # the rest's
                 bad += 1

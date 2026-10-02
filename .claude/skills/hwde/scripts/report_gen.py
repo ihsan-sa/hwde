@@ -45,7 +45,20 @@ reports/cost.json. The part number is also printed under the title, in
 every page's running head beside the board name, and as a row of the metadata
 table ("not in the boards register" otherwise). The payload's `filed` is
 cc-docs' first output line (the number and path) when this run filed, else
-null; `unchanged` is true when a matching stamp skipped the filing. The workspace may be named by its directory, the board's old name or
+null; `unchanged` is true when a matching stamp skipped the filing.
+A filing also puts the board's fab set on the revision it filed or found
+unchanged, every name led by the workspace directory's name <ws> (owner,
+#ai-ee: "name the files all with the prefix of the project name"):
+fab/<ws>_gerbers.zip, fab/BOM.csv and fab/CPL.csv as <ws>_BOM.csv and
+<ws>_CPL.csv (copied under those names in a temp dir; the JLC tooling keeps
+the bare ones), and fab/<ws>_BOM_digikey.csv, <ws>_BOM_mouser.csv and
+<ws>_BOM_cost.json, each only when present. It is a second call,
+`cc-docs attach <number> --replace`, because `cc-docs file --attach`
+refuses a changed file on an unchanged revision and refuses the PDF with it
+when a file is over a cap. The stamp carries each attached file's hash, so a
+fab set that changed under an unchanged PDF still goes up; a failed attach
+warns and leaves the stamp alone. The payload's `attached` lists the names
+put up this run. A board with no fab set files as before. The workspace may be named by its directory, the board's old name or
 its part number (lib/boardreg.py resolves the last two).
 
 --kind picks the document (KINDS): `design` (the default, everything above),
@@ -504,6 +517,7 @@ class DocBuilder:
         self.warnings: list[str] = []
         self.filed: str | None = None   # cc-docs' line when it filed
         self.unchanged = False   # a matching FILED_STAMP skipped the filing
+        self.attached: list[str] = []   # fab files put on the revision
         self.head: list[str] = []   # title block (before \tableofcontents)
         self.body: list[str] = []
 
@@ -1700,6 +1714,55 @@ def cc_docs_args(ws: Path | None, board: str, pdf: Path,
     return args
 
 
+# (file under fab/, the name it is attached under); "{ws}" is the workspace
+# directory's name, so every attached name starts with it.
+FAB_ATTACH = (
+    ("{ws}_gerbers.zip", "{ws}_gerbers.zip"),
+    ("BOM.csv", "{ws}_BOM.csv"),
+    ("CPL.csv", "{ws}_CPL.csv"),
+    ("{ws}_BOM_digikey.csv", "{ws}_BOM_digikey.csv"),
+    ("{ws}_BOM_mouser.csv", "{ws}_BOM_mouser.csv"),
+    ("{ws}_BOM_cost.json", "{ws}_BOM_cost.json"),
+)
+
+
+def fab_attachments(ws: Path | None) -> list[tuple[Path, str]]:
+    """The board's fab files that exist, each with the name it is attached
+    under (FAB_ATTACH); empty without a ws or a fab set."""
+    if ws is None:
+        return []
+    name = Path(ws).resolve().name
+    out = []
+    for src, dst in FAB_ATTACH:
+        p = Path(ws) / "fab" / src.format(ws=name)
+        if p.is_file():
+            out.append((p, dst.format(ws=name)))
+    return out
+
+
+def attach_fab(exe: str, number: str, fab: list[tuple[Path, str]],
+               builder) -> bool:
+    """Put `fab` on revision `number` with `cc-docs attach --replace`, each
+    file copied under its attach name. True when cc-docs took them all."""
+    with tempfile.TemporaryDirectory(prefix="hwde-fab-") as td:
+        files = []
+        for src, name in fab:
+            shutil.copyfile(src, Path(td) / name)
+            files.append(str(Path(td) / name))
+        try:
+            cp = subprocess.run([exe, "attach", number, "--replace", *files],
+                                capture_output=True, text=True, timeout=300)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            builder.warn(f"fab files not attached: {type(exc).__name__}: {exc}")
+            return False
+    if cp.returncode != 0:
+        builder.warn("fab files not attached (rc=%d): %s"
+                     % (cp.returncode, (cp.stderr or "").strip()[:200]))
+        return False
+    builder.attached = [name for _, name in fab]
+    return True
+
+
 FILED_STAMP = ".filed.json"
 _GENERATED_RE = re.compile(r"generated \d{4}-\d\d-\d\d \d\d:\d\d:\d\d")
 _GRAPHICS_RE = re.compile(r"\\include(?:graphics|pdf)(?:\[[^\]]*\])?\{([^}]*)\}")
@@ -1728,6 +1791,9 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
     stdout stays the JSON payload. With a digest, a matching FILED_STAMP next
     to the PDF (same digest, project and CC_DOCS_ROOT library) skips the
     filing and sets builder.unchanged, and a successful filing writes it.
+    The board's fab set (fab_attachments) then goes on the revision cc-docs
+    named, and its hashes into the stamp, so a changed fab set alone files
+    again; a failed attach leaves the stamp unwritten so the next run retries.
     """
     project = os.environ.get("DOC_PROJECT", "").strip()
     if not (requested or project):
@@ -1736,6 +1802,10 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
     stamp = pdf.parent / FILED_STAMP
     want = {"digest": digest, "project": project,
             "library": os.environ.get("CC_DOCS_ROOT", "")}
+    fab = fab_attachments(ws)
+    if fab:
+        want["attach"] = {name: hashlib.sha256(p.read_bytes()).hexdigest()
+                          for p, name in fab}
     if digest is not None:
         try:
             if json.loads(stamp.read_text(encoding="utf-8")) == want:
@@ -1759,6 +1829,11 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
                      % (cp.returncode, (cp.stderr or "").strip()[:200]))
         return
     builder.filed = ((cp.stdout or "").strip().splitlines() or [""])[0]
+    number = (builder.filed.split() or [""])[0]
+    if fab and not (number and attach_fab(exe, number, fab, builder)):
+        if not number:
+            builder.warn("fab files not attached: cc-docs printed no number")
+        return
     if digest is not None:
         stamp.write_text(json.dumps(want), encoding="utf-8")
 
@@ -1833,6 +1908,7 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
         "compile": comp,
         "filed": builder.filed,
         "unchanged": builder.unchanged,
+        "attached": builder.attached,
         "kind": kind,
     }
     return payload, (1 if violations else 0)
