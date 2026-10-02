@@ -1,8 +1,8 @@
-# The hwde showcase: how it is made
+# The PCB flow (hwde) showcase: how it is made
 
 The showcase itself is the repository's [README](../../README.md), and the
 same text is set as a PDF in [hwde-showcase.pdf](hwde-showcase.pdf) (library
-document 003-0001, the hwde showcase). The two copies are made two ways:
+document 003-0001, the PCB flow (hwde) showcase). The two copies are made two ways:
 
 - **The board gallery is generated.** `gallery.py` reads
   [gallery.yaml](gallery.yaml) and the boards repo (`register.yaml`, and each
