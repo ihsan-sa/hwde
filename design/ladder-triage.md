@@ -35,7 +35,7 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-10-04 (row 355 added), all 355 rows
+Recomputed from the table on 2026-10-04 (row 356 added), all 356 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
@@ -43,9 +43,9 @@ Recomputed from the table on 2026-10-04 (row 355 added), all 355 rows
 | L0 | 127 | 16 |
 | L1 | 21 | 18 |
 | L2 | 66 | 128 |
-| L3 | 141 | 193 |
+| L3 | 142 | 194 |
 
-136 entries want to climb at least one level. Status: **done 184**,
+136 entries want to climb at least one level. Status: **done 185**,
 **open 146**, **n/a 9**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
@@ -474,3 +474,4 @@ the row's Now level and status in the same commit as the code.
 | 353 | 5131 | Distributor BOM upload headers could not be read live - DigiKey's come | [bom][fab][research][tools] | L0 | L0 | scripts/distributor_bom.py | n/a | External-service behaviour: whether DigiKey myLists and Mouser's BOM Tool auto-map these headers can only be learned from a real upload. The headers live in one place (DIGIKEY_FIELDS / MOUSER_FIELDS) and tests/test_distributor_bom.py pins them; fix them there after the first upload. |
 | 354 | 5143 | A connector facing into the board passed every gate; the place and ve | [placement][connector][verify] | L2 | L2 | scripts/lib/matinglib.py | done | place_metrics (family `mating`) and check_mating in verify_all fail a mating connector whose mouth faces into the board, sits back from its edge or has a part in its insertion zone; families in reference/connector_mating.yaml; tests/test_mating.py pins PCB-0021-A J4 and PCB-0018-A J701/J702 |
 | 355 | 5146 | CPL rotation: an imported footprint needs NO correction; the package t | [jlc][fab][easyeda2kicad] | L2 | L2 | scripts/cpl_verify.py | done | bom_cpl.py no longer applies jlc_rotations.csv package rows to easyeda2kicad-imported footprints, and cpl_verify.py (run by dfm_check, family `placement`) fits each part's CPL rotation to its own LCSC footprint model and fails a mismatch; lib/easyeda.py raises on the per-IP 403 instead of reading it as "no such part"; tests/test_cpl_verify.py pins three cached models. |
+| 356 | 5160 | gate verify skipped a board's waivers when the board sat in a worktree | [verify][waivers] | L3 | L3 | scripts/lib/releaselib.py | done | `releaselib.waivers_for_input` finds the workspace by its state.json first, then the boards-dir rule, then the input dir; tests/test_attest.py pins a workspace outside any boards dir. |

@@ -885,3 +885,20 @@ def test_reference_attestations_verify_valid():
         assert releaselib.check_seal(att), f"{board}: seal mismatch"
         v = releaselib.verify(ws)
         assert v["valid"], f"{board}: {v['problems']}"
+
+
+def test_waivers_found_in_a_workspace_outside_any_boards_dir(tmp_path):
+    """A board checked out in a worktree (~/.cc/worktrees/boards/<track>/<b>)
+    has no boards dir above it; the workspace is recognised by state.json."""
+    ws = tmp_path / "wt" / "track" / "myboard"
+    (ws / "kicad").mkdir(parents=True)
+    (ws / "reports").mkdir()
+    (ws / "state.json").write_text("{}", encoding="utf-8")
+    side = ws / "reports" / "verify-waivers.json"
+    side.write_text("{}", encoding="utf-8")
+    pcb = ws / "kicad" / "myboard.kicad_pcb"
+    pcb.write_text("", encoding="utf-8")
+    assert releaselib.waivers_for_input(pcb) == side
+    # no sidecar anywhere -> None, as before
+    side.unlink()
+    assert releaselib.waivers_for_input(pcb) is None

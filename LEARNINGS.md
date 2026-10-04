@@ -5156,3 +5156,6 @@ minutes, curl included - and easyeda2kicad's EasyedaApi swallows the 403 into `{
 "no such part"; lib/easyeda.py fetches itself and raises on HTTP errors. (b) A pad-size fit
 tolerance is wrong: an SO-8 LCSC model's rows sit 6.0 mm apart vs 5.12 in a KiCad-style land
 pattern; use half the smallest pad pitch (each model pad nearer its own pad than any other).
+
+## 2026-10-04 [verify][waivers] gate verify skipped a board's waivers when the board sat in a worktree
+rp2040-mini, checked out at ~/.cc/worktrees/boards/<track>/<board>, failed findings it had waived: `releaselib.waivers_for_input` only recognised a workspace whose parent is a boards dir, so it never looked at reports/verify-waivers.json and fell through to the input dir. It now takes the first parent holding state.json as the workspace (the same marker statelib.find_workspace uses, which is what gate freshness already binds through the `waivers` kind), with the boards-dir rule and the input-dir path kept as fallbacks. A rule that finds a workspace by where it sits breaks on the first checkout elsewhere; find it by what it holds. `gate.workspace_dir` still uses the boards-dir rule, but only to choose which repo a gate commit goes into.
