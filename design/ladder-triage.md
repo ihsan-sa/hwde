@@ -35,18 +35,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-10-02 (row 354 added), all 354 rows
+Recomputed from the table on 2026-10-04 (rows 355-415 added, U22), all 415 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 127 | 16 |
-| L1 | 21 | 18 |
-| L2 | 65 | 127 |
-| L3 | 141 | 193 |
+| L0 | 182 | 25 |
+| L1 | 23 | 26 |
+| L2 | 69 | 148 |
+| L3 | 141 | 216 |
 
-136 entries want to climb at least one level. Status: **done 183**,
-**open 146**, **n/a 9**, planned 16
+184 entries want to climb at least one level. Status: **done 183**,
+**open 205**, **n/a 11**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
 

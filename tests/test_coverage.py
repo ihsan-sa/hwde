@@ -57,6 +57,27 @@ def run_knowledge(tmp_path, argv):
 
 APPROVAL = {"by": "owner", "date": "2026-08-15"}
 
+# Who may rule a committed record or checklist approved: the owner (the U14
+# rulings, 2026-08-15), or perms on the owner's standing redirect (U22,
+# 2026-10-04). A perms ruling says so and cites the redirect thread; it never
+# claims to be the owner's own.
+RULINGS = {"owner": "2026-08-15", "perms": "2026-10-04"}
+REDIRECT_THREAD = "1791102051.529859"
+# The five U22 second-read records land verified, not approved: the rulings
+# approved only the promoted set (design/u22-staged/second-reads.md).
+U22_SECOND_READS = {"in-aggressor-separation", "in-leakage-symmetry-and-guarding",
+                    "inamp-gain-pin-and-input-node-parasitics",
+                    "in-path-symmetry-sets-cmrr", "in-bias-return-sizing"}
+
+
+def assert_ruled(item: dict) -> None:
+    a = item.get("approval") or {}
+    rid = item["id"]
+    assert a.get("by") in RULINGS, rid
+    assert a.get("date") == RULINGS[a["by"]], rid
+    if a["by"] == "perms":
+        assert REDIRECT_THREAD in a.get("note", ""), rid
+
 
 def write_record(d: Path, rid: str, **over) -> Path:
     rec = {
@@ -161,7 +182,7 @@ def test_committed_library_lint_green_and_checklists_present():
     assert {"buck", "100base-tx", "usb-fs"} <= ids
     for c in knowledgelib.load_checklists():
         assert knowledgelib.record_maturity(c) == "approved", c["id"]
-        assert c.get("approval", {}).get("by") == "owner", c["id"]
+        assert_ruled(c)
 
 
 def test_committed_records_are_strict_green_after_the_u14_backfill():
@@ -174,12 +195,17 @@ def test_committed_records_are_strict_green_after_the_u14_backfill():
     for r in records:
         rid = r["id"]
         assert knowledgelib.record_level(r) in knowledgelib.LEVELS, rid
-        # every record landed owner-approved (U14 ruling); proven only ever
-        # arrives via --prove, which writes its own evidence
-        assert knowledgelib.record_maturity(r) in ("approved", "proven"), rid
+        # every record landed approved (owner, U14; or perms on the owner's
+        # redirect, U22), except the U22 second reads, which land verified
+        # because the rulings approved only the promoted set; proven only
+        # ever arrives via --prove, which writes its own evidence
+        if rid in U22_SECOND_READS:
+            assert knowledgelib.record_maturity(r) == "verified", rid
+        else:
+            assert knowledgelib.record_maturity(r) in (
+                "approved", "proven"), rid
         if r["maturity"] == "approved":
-            assert r["approval"]["by"] == "owner", rid
-            assert r["approval"]["date"] == "2026-08-15", rid
+            assert_ruled(r)
             # the ruling itself: what does this rule scale with?
             assert len(r["approval"].get("note", "")) > 80, rid
         if r["level"] == "principle":
@@ -832,21 +858,29 @@ def test_committed_library_covers_a_buck_block_at_a_real_operating_point(tmp_pat
 
 @pytest.mark.parametrize("mutate, cls, verdict", [
     # off the selection ladder's V/I corner, from a source with no attach
-    # rule: all three selection-class records go outside at once
-    ({"vin_v": 400, "iout_a": 40, "source_kind": "dc-input"}, "selection",
-     "gap"),
+    # rule, voltage-mode: all four selection-class records go outside at once
+    # (U22 added the current-mode inductor window)
+    ({"vin_v": 400, "iout_a": 40, "source_kind": "dc-input",
+      "control_kind": "vmode"}, "selection", "gap"),
     # ... but the V/I corner ALONE is not enough: buck-upstream-inrush-limit
     # carries the selection class and is bounded only by the source
     ({"vin_v": 400, "iout_a": 40}, "selection", "covered"),
     # a sync buck: the free-wheel-diode record does not apply (but power-loop
     # stays covered through the C_IN/C_O separation record)
     ({}, "power-loop", "covered"),
-    # 8-layer stack is outside the 4-layer join recipe
-    ({"board_layers": 8}, "return-path", "gap"),
-    # 30 W dissipation is past vias-as-the-heat-path
-    ({"pdiss_w": 30}, "thermal-via", "gap"),
-    # a bench supply is not a source with an attach rule
-    ({"source_kind": "dc-input"}, "inrush", "gap"),
+    # 8-layer stack is outside the 4-layer join recipe; external FETs put
+    # the integrated-FET EP via-array record (U22) out too
+    ({"board_layers": 8, "integration_kind": "controller"}, "return-path",
+     "gap"),
+    # ... the 8-layer stack ALONE stays covered through that EP record
+    ({"board_layers": 8}, "return-path", "covered"),
+    # 30 W dissipation is past vias-as-the-heat-path, and with external FETs
+    # the EP via-array record is out
+    ({"pdiss_w": 30, "integration_kind": "controller"}, "thermal-via", "gap"),
+    # a battery is not a source with an attach or hot-plug rule
+    ({"source_kind": "battery"}, "inrush", "gap"),
+    # ... a bench supply now is: U22's DC-input hot-plug overshoot record
+    ({"source_kind": "dc-input"}, "inrush", "covered"),
     # controller + external FETs: the integrated-FET BST/FB record is out
     ({"integration_kind": "controller"}, "decoupling", "gap"),
 ])
