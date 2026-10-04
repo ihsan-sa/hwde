@@ -244,7 +244,16 @@ def waivers_for_input(input_file: Path) -> Path | None:
     workspace waiver file."""
     p = Path(input_file)
     candidates = []
-    for parent in p.resolve().parents:
+    parents = list(p.resolve().parents)
+    # The workspace is identified by its own marker (state.json), not by where
+    # it sits: a board checked out in a worktree (~/.cc/worktrees/boards/
+    # <track>/<board>) has no boards dir above it. The boards-dir rule stays
+    # as the fallback for a workspace that has no state.json yet.
+    for parent in parents:
+        if (parent / "state.json").is_file():
+            candidates.append(parent / "reports" / "verify-waivers.json")
+            break
+    for parent in parents:
         if env.is_boards_dir(parent.parent):
             candidates.append(parent / "reports" / "verify-waivers.json")
             break
