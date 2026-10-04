@@ -1,0 +1,442 @@
+# PCB-0014-A_bb-adc U22 promotion pass, 2026-10-04. Rulings by perms on the owner's
+# standing redirect (#ai-ee 1791102051.529859); packet design/u22-ruling-packet.md.
+# Apply: learnings.py resolve --workspace <boards>/PCB-0014-A_bb-adc --batch <this file>
+version: 1
+rulings:
+- entry: 2026-08-16-a-blockquoted-brief-silently-disables-the-entire
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. PIPELINE BUG: detect skips > lines, lint goes silently blind; not
+    in root
+  triage:
+    now: L2
+    target: L2
+    owner: scripts/lib/modeslib.py
+    status: open
+    note: 'Owner and fix: scripts/lib/modeslib.py.'
+- entry: 2026-08-16-jlc-s-external-reference-attribute-lies-for
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. MCP3202 VDD=VREF one pin; catalog attribute wrong; triage already
+    names the errata file as owner x2
+  triage:
+    now: L0
+    target: L3
+    owner: agents/part-sourcer.md
+    status: open
+    note: 'Owner and fix: NEW reference/part_errata.yaml.'
+- entry: 2026-08-16-a-12-bit-part-s-5-lsb
+  status: promoted
+  kind: root_learnings
+  level: L0
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. rank converters by error in VOLTS at the target resolution; knowledge_record
+    candidate later (principle)
+  triage:
+    now: L0
+    target: L0
+    owner: agents/part-sourcer.md
+    status: open
+    note: 'Owner and fix: agents/part-sourcer.md.'
+- entry: 2026-08-16-one-lcsc-search-term-returns-six-clone
+  status: promoted
+  kind: root_learnings
+  level: L1
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. manufacturer column + clone warning; not in root
+  triage:
+    now: L0
+    target: L1
+    owner: scripts/parts_search.py
+    status: open
+    note: 'Owner and fix: scripts/parts_search.py.'
+- entry: 2026-08-16-source-impedance-and-divider-total-resistance-are
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. rule lives in verified resistive-attenuator-loading-source-and-load
+    + sar-adc-input-settling-and-source-impedance (Q4); a root row would be a
+    second home
+- entry: 2026-08-16-a-reference-family-s-dropout-is-per
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. verified series-voltage-reference-input-headroom-gate states specified_per_member
+    and the inverse-to-Vout split
+- entry: 2026-08-16-analog-com-and-mouser-com-time-out
+  status: promoted
+  kind: root_learnings
+  level: L1
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. see K5; since the packet, root LEARNINGS 2026-08-27 records st.com
+    and mouser.com as dark, so the new part is analog.com, the farnell mirror
+    and the reachability probe
+  triage:
+    now: L0
+    target: L1
+    owner: scripts/research.py
+    status: open
+    note: >-
+      K5 lead: allowlist membership says nothing about reachability; st.com/analog.com/mouser.com
+      dark from this host, Farnell is the ADI mirror; folds bb-mcu's row. Owner
+      and fix: scripts/research.py.
+- entry: 2026-08-16-research-task-block-resistive-attenuator-1-6
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id001
+  - >-
+    reference/knowledge/records/resistive-attenuator-bottom-node-is-a-reference.yaml
+  - >-
+    reference/knowledge/records/resistive-attenuator-high-z-tap-guard-and-leakage.yaml
+  - >-
+    reference/knowledge/records/resistive-attenuator-loading-source-and-load.yaml
+  - >-
+    reference/knowledge/records/resistive-attenuator-ratio-from-relative-specs.yaml
+  - >-
+    reference/knowledge/records/resistive-attenuator-self-heating-and-gradient.yaml
+  - >-
+    reference/knowledge/records/resistive-attenuator-tcr-tracking-not-absolute-tcr.yaml
+  targets: *id001
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: >-
+    2026-08-16-the-session-scratchpad-is-shared-across-concurrently
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. parallel agents collide on filenames; not in root
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/state.py
+    status: open
+    note: 'Owner and fix: scripts/state.py (per-agent scratch subdir).'
+- entry: 2026-08-16-a-second-reader-s-non-binding-blemish
+  status: promoted
+  kind: prompt_line
+  level: L0
+  artifacts:
+  - agents/research-second-reader.md
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. one line: a non-binding note is never applied; flag-without-refute
+    has a cost
+- entry: 2026-08-16-research-task-block-series-voltage-reference-1
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id002
+  - >-
+    reference/knowledge/records/series-voltage-reference-error-stack.yaml
+  - >-
+    reference/knowledge/records/series-voltage-reference-input-headroom-gate.yaml
+  - >-
+    reference/knowledge/records/series-voltage-reference-kelvin-and-ir-drop.yaml
+  - >-
+    reference/knowledge/records/series-voltage-reference-output-cap-window.yaml
+  - >-
+    reference/knowledge/records/series-voltage-reference-solder-shift-and-grade.yaml
+  - >-
+    reference/knowledge/records/series-voltage-reference-switched-cap-load.yaml
+  - >-
+    reference/knowledge/records/series-voltage-reference-tempco-box-and-hysteresis.yaml
+  targets: *id002
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: 2026-08-16-research-task-block-sar-adc-1-10
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id003
+  - >-
+    reference/knowledge/records/sar-adc-acquisition-charge-transfer.yaml
+  - >-
+    reference/knowledge/records/sar-adc-analog-ground-and-remote-sense.yaml
+  - >-
+    reference/knowledge/records/sar-adc-constraints-emission.yaml
+  - >-
+    reference/knowledge/records/sar-adc-conversion-window-noise-timing.yaml
+  - >-
+    reference/knowledge/records/sar-adc-high-z-node-vs-digital-aggressors.yaml
+  - >-
+    reference/knowledge/records/sar-adc-input-settling-and-source-impedance.yaml
+  - >-
+    reference/knowledge/records/sar-adc-reference-bypass-and-recharge.yaml
+  - >-
+    reference/knowledge/records/sar-adc-reference-charge-loop.yaml
+  - >-
+    reference/knowledge/records/sar-adc-reference-sets-the-gain.yaml
+  - >-
+    reference/knowledge/records/sar-adc-supply-bypass-and-rail-isolation.yaml
+  targets: *id003
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: 2026-08-16-research-task-block-precision-buffer-1-9
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id004
+  - >-
+    reference/knowledge/records/precision-buffer-capacitive-load-isolation.yaml
+  - >-
+    reference/knowledge/records/precision-buffer-chopper-artifacts-into-sampler.yaml
+  - >-
+    reference/knowledge/records/precision-buffer-pin-decoupling-and-input-routing.yaml
+  - >-
+    reference/knowledge/records/precision-buffer-rail-to-rail-output-floor.yaml
+  - >-
+    reference/knowledge/records/precision-buffer-riso-settling-stability-collision.yaml
+  - >-
+    reference/knowledge/records/precision-buffer-sar-charge-bucket-interface.yaml
+  - >-
+    reference/knowledge/records/precision-buffer-settles-not-bandwidth.yaml
+  - >-
+    reference/knowledge/records/precision-buffer-zero-drift-source-impedance-ceiling.yaml
+  - >-
+    reference/knowledge/records/precision-buffer-zero-drift-speed-vs-impedance-trade.yaml
+  targets: *id004
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: 2026-08-16-lcsc-s-own-datasheet-url-can-resolve
+  status: promoted
+  kind: root_learnings
+  level: L1
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. filter the "temporarily unavailable" stub pattern
+  triage:
+    now: L0
+    target: L1
+    owner: scripts/parts_search.py
+    status: open
+    note: 'Owner and fix: scripts/parts_search.py.'
+- entry: 2026-08-17-place-ic-with-decoupling-s-default-caps
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. derive caps_dx from symbol width; error message misattributes
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/schlib.py
+    status: open
+    note: 'Owner and fix: scripts/schlib.py.'
+- entry: 2026-08-17-kicad-10-0-3-erc-is-indifferent
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. audit NC-typed pins that carry a net, ERC will not (root L657 is the
+    export sibling, not this)
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/netlist_audit.py
+    status: open
+    note: 'Owner and fix: scripts/netlist_audit.py.'
+- entry: 2026-08-17-schlib-guards-labels-landing-on-wires-a
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. extend the guard to hand-drawn wires (mirror check)
+  triage:
+    now: L2
+    target: L3
+    owner: scripts/schlib.py
+    status: open
+    note: 'Owner and fix: scripts/schlib.py.'
+- entry: 2026-08-18-supersedes-the-2026-08-17-sense-run
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. a sense line is its OWN net + single-point tie PART once a pour exists;
+    electrical parent = series-voltage-reference-kelvin-and-ir-drop
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/netlist_audit.py
+    status: open
+    note: 'Owner and fix: scripts/netlist_audit.py.'
+- entry: 2026-08-18-a-freshly-pulled-symbol-comes-back-with
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. retype on pull, per symbol, never clobber hand edits; sibling of buck
+    #1 (same owner, different defect)
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/lib_pull.py
+    status: open
+    note: >-
+      Owner and fix: scripts/lib_pull.py + scripts/lib_pin_types.py.
+- entry: 2026-08-19-meas-param-rejects-braces-and-the-measure
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. count .meas vs results, fail on a vanished measure; root L2706/L3947
+    cover param= forms, not this
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/sim_run.py
+    status: open
+    note: 'Owner and fix: scripts/sim_run.py.'
+- entry: 2026-08-19-mixing-clamped-and-unclamped-output-stages-in
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. same owner as amp #3/#5 (one behavioural op-amp template)
+  triage:
+    now: L0
+    target: L3
+    owner: agents/sim-analyst.md
+    status: open
+    note: 'Owner and fix: NEW reference/sim/opamp_behavioural.cir.'
+- entry: 2026-08-18-seeding-a-rejected-part-as-the-deliberate
+  status: promoted
+  kind: root_learnings
+  level: L0
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. bench-design heuristic; prose is its level
+  triage:
+    now: L0
+    target: L0
+    owner: agents/sim-analyst.md
+    status: open
+    note: 'Owner and fix: agents/sim-analyst.md.'
+- entry: 2026-08-19-stitch-vias-hole-to-hole-model-is
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. floor = rule + drill_a/2 + drill_b/2 centre-to-centre; already_stitched
+    0.2 mm test; root L2954 is THT-drill blindness, a different defect
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/stitch_vias.py
+    status: open
+    note: 'Owner and fix: scripts/stitch_vias.py.'
+- entry: 2026-08-19-a-driven-guard-ring-is-a-planes
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. separate from K3 (uses connect: solid but the fact is the closure
+    proof)
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/planes_gen.py
+    status: open
+    note: >-
+      Owner and fix: NEW scripts/check_guard.py (closure is provable).
+- entry: 2026-08-19-verify-fill-is-broken-by-a-missing
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. ROOT CAUSE of root L2967 (which blamed a custom DRU); mis-measures
+    every ai-ee board; owner may retire L2967's reading in its triage note
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/lib/geom.py
+    status: open
+    note: >-
+      Owner and fix: scripts/lib/geom.py _refill_copy copies the .kicad_dru.
+- entry: 2026-08-19-an-unavoidable-layer-change-crossing-stops-being
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. false positive: exempt crossings inside the transition via's excision
+    disk
+  triage:
+    now: L2
+    target: L2
+    owner: scripts/check_return_path.py
+    status: open
+    note: 'Owner and fix: scripts/check_return_path.py.'
+- entry: 2026-08-19-conn-th-2p-p5-00-wj500v-5
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. see K1 and C4 - the orientation CLAIM (+Y) is contested; promote the
+    METHOD, hold the number; place_edit silk_clear (2026-08-27) now removes footprint-instance
+    silk, so only the mirror op remains a gap
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/fp_verify.py
+    status: open
+    note: >-
+      K1 lead: check a connector's mating face from a DIMENSIONED vendor drawing
+      matched to the fab outline, never from silk or a render (U22 Q2); a 180
+      rotation of a 2-pin part swaps its nets; KF128's 3D model carries rotate
+      180; no scripted op owns footprint-instance graphics (mirror gap). Owner
+      and fix: scripts/fp_verify.py (mating-face asymmetry check) + NEW reference/part_errata.yaml.
+      The +Y facing is ruled correct (Q2).
+- entry: 2026-08-19-guard-ring-leakage-is-set-by-what
+  status: promoted
+  kind: root_learnings
+  level: L0
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. leakage = what is INSIDE the ring; re-route the guarded net before
+    moving the offender
+  triage:
+    now: L0
+    target: L0
+    owner: agents/router.md
+    status: open
+    note: 'Owner and fix: agents/router.md.'
+- entry: 2026-08-19-a-footprint-can-contradict-itself-and-then
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K1: same event as #23, folded

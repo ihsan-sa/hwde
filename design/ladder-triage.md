@@ -1,15 +1,15 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
-# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02; row 355 2026-10-04)
+# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02; row 355 2026-10-04; row 356 2026-10-04; rows 357-417 U22 2026-10-04)
 
-One row per `LEARNINGS.md` entry (355 of them; the last starts at
-line 5146), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (417 of them; the last starts at
+line 6441), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (146) are the gaps nothing owns yet -
+the outer-loop worklist. `open` rows (205) are the gaps nothing owns yet -
 they are the input to T6 (per-stage deep evaluation) and to any later step
 looking for the next promotion.
 
@@ -35,18 +35,18 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-10-04 (row 356 added), all 356 rows
+Recomputed from the table on 2026-10-04 (rows 357-417 added, U22), all 417 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
-| L0 | 127 | 16 |
-| L1 | 21 | 18 |
-| L2 | 66 | 128 |
-| L3 | 142 | 194 |
+| L0 | 182 | 25 |
+| L1 | 23 | 26 |
+| L2 | 70 | 149 |
+| L3 | 142 | 217 |
 
-136 entries want to climb at least one level. Status: **done 185**,
-**open 146**, **n/a 9**, planned 16
+184 entries want to climb at least one level. Status: **done 185**,
+**open 205**, **n/a 11**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
 
@@ -475,3 +475,64 @@ the row's Now level and status in the same commit as the code.
 | 354 | 5143 | A connector facing into the board passed every gate; the place and ve | [placement][connector][verify] | L2 | L2 | scripts/lib/matinglib.py | done | place_metrics (family `mating`) and check_mating in verify_all fail a mating connector whose mouth faces into the board, sits back from its edge or has a part in its insertion zone; families in reference/connector_mating.yaml; tests/test_mating.py pins PCB-0021-A J4 and PCB-0018-A J701/J702 |
 | 355 | 5146 | CPL rotation: an imported footprint needs NO correction; the package t | [jlc][fab][easyeda2kicad] | L2 | L2 | scripts/cpl_verify.py | done | bom_cpl.py no longer applies jlc_rotations.csv package rows to easyeda2kicad-imported footprints, and cpl_verify.py (run by dfm_check, family `placement`) fits each part's CPL rotation to its own LCSC footprint model and fails a mismatch; lib/easyeda.py raises on the per-IP 403 instead of reading it as "no such part"; tests/test_cpl_verify.py pins three cached models. |
 | 356 | 5160 | gate verify skipped a board's waivers when the board sat in a worktree | [verify][waivers] | L3 | L3 | scripts/lib/releaselib.py | done | `releaselib.waivers_for_input` finds the workspace by its state.json first, then the boards-dir rule, then the input dir; tests/test_attest.py pins a workspace outside any boards dir. |
+| 357 | 5163 | An ALREADY-retyped pulled library can still hide exactly one ERC-block | [P4][erc][kicad-sch-api][schematic] | L0 | L2 | scripts/lib_pin_types.py | open | Owner and fix: scripts/lib_pin_types.py (BOOT/BST pin class). |
+| 358 | 5188 | The runner's injected `rshunt=1e9` is a ~1 nA current source at every | [P4][spice][sim-analyst] | L0 | L1 | scripts/sim_run.py | open | Owner and fix: scripts/sim_run.py (report rshunt injection at the measured node; overridable). |
+| 359 | 5203 | A switcher's DC setpoint IS simmable without any converter model - one | [P4][spice][sim-analyst] | L0 | L3 | agents/sim-analyst.md | open | Owner and fix: agents/sim-analyst.md (Tier-B VCVS boundary model). |
+| 360 | 5219 | An in-stock LCSC part can have NO EasyEDA CAD record at all - lib_pull | [P4][easyeda2kicad][parts][erc] | L0 | L1 | scripts/lib_pull.py | open | Owner and fix: scripts/lib_pull.py (distinct "no CAD record" outcome). |
+| 361 | 5242 | planes_gen's DEFAULT thermal-relief pad connection strands a pad in a | [P7][routing][planes_gen] | L0 | L3 | scripts/planes_gen.py | open | K3 lead: zone connect is per-ZONE only, either way (also folds bb-ldo's inverse case: solid pour, hand-soldered pin); island count is not connectivity. Owner and fix: scripts/planes_gen.py (per-pad connect). |
+| 362 | 5258 | Read pad extents from `geom.pads_of().poly.bounds`, never from the raw | [P7][routing][geometry] | L0 | L3 | scripts/lib/geom.py | open | Owner and fix: scripts/lib/geom.py (API note + lint on raw size reads). |
+| 363 | 5269 | A THT footprint with `attr through_hole` but no `exclude_from_pos_file | [P9][bom_cpl][fab] | L2 | L2 | scripts/bom_cpl.py | open | Owner and fix: scripts/bom_cpl.py (THT rows need an explicit assembly-class decision). |
+| 364 | 5290 | `placement.edges` pins the connectors to the PROVISIONAL outline, so u | [P6][gates][build-modes][PIPELINE BUG] | L0 | L3 | reference/recipes/resize-board.md | open | K4 lead: at a canonical binding with placement.edges run place -> fit -> silk -> gate; folds bb-ldo's provisional-outline and silk-against-outline rows. Owner and fix: reference/recipes/resize-board.md + agents/placement.md (order) + scripts/gate.py (place gate at canonical grades edges against the FITTED outline). |
+| 365 | 5315 | A pulled THT footprint was under-drilled 1.30 mm against the vendor's | [P3][librarian][footprint][fp_verify][PIPELINE BUG] | L0 | L2 | scripts/fp_verify.py | open | Owner and fix: scripts/fp_verify.py (drill vs stated pin, square-pin diagonal) + P3 roster extracts THT connector datasheets. |
+| 366 | 5346 | fp_verify never compares row_spacing_mm, although land_pattern carries | [P3][fp_verify][footprint] | L0 | L2 | scripts/fp_verify.py | open | Owner and fix: scripts/fp_verify.py. |
+| 367 | 5365 | silk_place SKIPS board_only refs by design, so a mounting hole's refde | [P8][silk][silk_place] | L0 | L2 | scripts/silk_place.py | open | Owner and fix: scripts/silk_place.py (solve or explicitly skip-and-report board_only refs). |
+| 368 | 5383 | Backticks in a Bash-tool argument are COMMAND SUBSTITUTION, and a stat | [P3][process][windows][state] | L0 | L0 | CLAUDE.md | n/a | Owner and fix: n/a (host/tool fact), sibling of root L4310. |
+| 369 | 5400 | A pulled symbol's reversed pin ANGLES make schlib emit INWARD stubs, a | [P4][schematic][easyeda2kicad][kicad-sch-api] | L0 | L3 | scripts/lib_pull.py | open | Owner and fix: scripts/lib_pull.py (normalise pin angles on pull). |
+| 370 | 5421 | Hang a rail's power symbol in its own cluster, not on a pin stub, when | [P4][schematic][erc] | L0 | L3 | scripts/schlib.py | open | Owner and fix: scripts/schlib.py. |
+| 371 | 5437 | A pulled 2-pin passive names its pins "1"/"2" - KiCad prints those nam | [P4][schematic][easyeda2kicad] | L0 | L3 | scripts/lib_pull.py | open | Owner and fix: scripts/lib_pull.py (hide pin names on 2-pin passives). |
+| 372 | 5450 | Two pins of ONE part are two nets on the sheet: a drawn run off the ta | [P4][schematic][erc][netlist] | L0 | L2 | scripts/netlist_audit.py | open | Owner and fix: scripts/netlist_audit.py (unnamed rail nets; same-part pins on distinct nets). |
+| 373 | 5463 | planes_gen would have via-stitched the live SOT-223 tab: its EP heuris | [P7][planes_gen][thermal-via][knowledge] | L0 | L2 | scripts/planes_gen.py | open | Owner and fix: scripts/planes_gen.py (honour constraints.thermal[].min_vias, incl. 0). |
+| 374 | 5475 | route_auto's KRT finish connects plane-net SMD pads with TRACES, not v | [P7][route_auto][stitch_vias][thermal] | L0 | L2 | scripts/route_auto.py | open | Owner and fix: scripts/route_auto.py (KRT finish never traces plane-net SMD pads). |
+| 375 | 5489 | `--out-report` into a missing directory crashes AFTER the board is alr | [P7][route_critical][scripts] | L0 | L3 | scripts/route_critical.py | open | Owner and fix: scripts/route_critical.py (mkdir parents before the board write). |
+| 376 | 5499 | stitch_vias places vias INSIDE large pads, and its own checker cannot | [P8][stitch_vias][dfm] | L0 | L2 | scripts/stitch_vias.py | open | K2 lead: RING_RADII measured from pad CENTRE, via_check blind to its own pad, no F.Cu stub with a pad via; folds the 2026-08-20 reproduction. Owner and fix: scripts/stitch_vias.py. |
+| 377 | 5515 | check_current charges every transition via the whole net's current | [P8][check_current][plane] | L1 | L1 | scripts/check_current.py | open | K7 lead: check_current charges each transition via with the whole net current; folds the 2026-08-20 redundancy row. Owner and fix: scripts/check_current.py (split current across parallel vias). |
+| 378 | 5526 | At block-only, thermal is the whole design - and the datasheet's coppe | [P0][build-modes][thermal] | L0 | L0 | agents/architect.md | open | Owner and fix: agents/architect.md. |
+| 379 | 5537 | planes_gen has no re-pour path: on a board that already has zones and | [P6][planes_gen][board_edit][scripts] | L0 | L3 | scripts/planes_gen.py | open | Owner and fix: scripts/planes_gen.py --repour or route_edit zone op. |
+| 380 | 5569 | Centring both edge connectors on a small square leaves no room for pin | [P6][silk][placement] | L0 | L1 | scripts/silk_place.py | open | Owner and fix: scripts/silk_place.py (report the binding obstacle). |
+| 381 | 5588 | Freerouting cannot read this board at all - route_auto has nothing to | [P7][route_auto][freerouting] | L1 | L2 | scripts/route_auto.py | open | K6 residual: the DSN wedge itself is landed (root L435/L3662); route_auto still burns every rung x 600 s on a wedge visible in the first log line. Owner and fix: scripts/route_auto.py (abort ladder on DSN-read StackOverflow; --timeout-s 120 meanwhile). |
+| 382 | 5603 | Moving the edge parts in fixes the WIDTH; the SHAPE stays inherited | [P6][build-modes][canonical] | L0 | L1 | scripts/check_thermal.py | open | Owner and fix: scripts/check_thermal.py (report min short dimension = 2 x (reach + inset)). |
+| 383 | 5635 | Silk can pass check_silk AND real DRC while being invisible | [P8][silk][render] | L0 | L2 | scripts/check_silk.py | open | Owner and fix: scripts/check_silk.py (visibility leg). |
+| 384 | 5652 | `.meas ac rms` is FREQUENCY-WEIGHTED, which is how you get integrated | [P4][spice][sim-analyst] | L0 | L3 | agents/sim-analyst.md | open | Owner and fix: agents/sim-analyst.md bench recipe. |
+| 385 | 5669 | Pad every .dc/.ac sweep: the FIRST point can converge to junk and `at= | [P4][spice][sim-analyst] | L0 | L3 | scripts/sim_run.py | open | Owner and fix: scripts/sim_run.py (pad sweeps by default). |
+| 386 | 5685 | A behavioural op-amp needs its anti-windup on the INTEGRATOR node, and | [P4][spice][sim-analyst] | L0 | L3 | agents/sim-analyst.md | open | Owner and fix: NEW reference/sim/opamp_behavioural.cir. |
+| 387 | 5701 | Build the in-amp from its OWN published 3-op-amp structure and the REF | [P4][sim-analyst][inamp] | L0 | L3 | agents/sim-analyst.md | open | Owner and fix: NEW reference/sim/opamp_behavioural.cir (3-op-amp in-amp variant). |
+| 388 | 5715 | A datasheet stability curve is taken AT A STATED GAIN - a unity-gain o | [P4][sim-analyst][datasheet] | L0 | L0 | agents/datasheet-extractor.md | open | Owner and fix: agents/datasheet-extractor.md (record the gain a curve is taken at). |
+| 389 | 5739 | `outline_bbox` is a BBOX, not a size - and the "generous provisional r | [P6][board_init][board_edit][build-modes] | L0 | L3 | scripts/board_init.py | open | Owner and fix: scripts/board_init.py (report outline_wh_mm). |
+| 390 | 5751 | `--outline fit` CLIPS to the CURRENT outline, so "place canonically, t | [P6][board_edit][placement] | L0 | L2 | scripts/board_edit.py | open | Owner and fix: scripts/board_edit.py (warn when content exceeds the outline). |
+| 391 | 5763 | A connector's pole ORDER against the IC's pin order forces exactly one | [P6][P4][placement][diff-pair][inamp] | L0 | L0 | agents/schematic-block.md | open | Owner and fix: agents/schematic-block.md. |
+| 392 | 5789 | `diff_pairs` conflates "route these symmetrically" with "control these | [P2][P5][P7][P8][constraints][diff-pair][orchestrator] | L0 | L3 | reference/constraints_schema.md | open | Owner and fix: reference/constraints_schema.md + scripts/rules_gen.py + scripts/check_diffpair.py (symmetry_only). |
+| 393 | 5822 | A late pin change must sweep every artifact that STATES the pin order, | [P6][P4][process][orchestrator] | L0 | L2 | scripts/netlist_audit.py | open | Owner and fix: scripts/netlist_audit.py (artifacts that STATE pin order agree with the netlist). |
+| 394 | 5841 | KiCad DRAWS text-box overflow instead of clipping it, and no gate sees | [P4][kicad][schematic][render] | L0 | L3 | scripts/schlib.py | open | Owner and fix: scripts/schlib.py (size text boxes to content). |
+| 395 | 5852 | Envelope authoring, not citation accuracy, is where research records f | [P9][research][knowledge][second-reader] | L0 | L0 | agents/research-second-reader.md | open | Owner and fix: agents/research-second-reader.md (read the envelope's DIRECTION first). |
+| 396 | 5880 | A blind re-read is worth running even when you expect it to confirm - | [P9][research][knowledge][process] | L0 | L0 | agents/research-second-reader.md | n/a | Owner and fix: n/a (process), agents/research-second-reader.md. |
+| 397 | 5900 | A blockquoted brief silently disables the ENTIRE U18 mode leg of check | [P0][modes][check_requirements][pipeline] | L2 | L2 | scripts/lib/modeslib.py | open | Owner and fix: scripts/lib/modeslib.py. |
+| 398 | 5925 | JLC's "External" reference attribute lies for 8-pin MCP3202: VDD and V | [P1][parts][adc][jlc] | L0 | L3 | agents/part-sourcer.md | open | Owner and fix: NEW reference/part_errata.yaml. |
+| 399 | 5950 | A 12-bit part's "+/-5 LSB gain error" is a BIGGER voltage than a 16-bi | [P2][parts][adc][accuracy] | L0 | L0 | agents/part-sourcer.md | open | Owner and fix: agents/part-sourcer.md. |
+| 400 | 5973 | One LCSC search term returns six clone brands under a precision part's | [P1][parts][jlc][sourcing] | L0 | L1 | scripts/parts_search.py | open | Owner and fix: scripts/parts_search.py. |
+| 401 | 5992 | analog.com and mouser.com time out from this sandbox; farnell.com is t | [P1][P2][research][env] | L0 | L1 | scripts/research.py | open | K5 lead: allowlist membership says nothing about reachability; st.com/analog.com/mouser.com dark from this host, Farnell is the ADI mirror; folds bb-mcu's row. Owner and fix: scripts/research.py. |
+| 402 | 6017 | The session scratchpad is shared across concurrently running agents an | [P2][agents][parallel][pipeline] | L0 | L3 | scripts/state.py | open | Owner and fix: scripts/state.py (per-agent scratch subdir). |
+| 403 | 6040 | LCSC's own datasheet URL can resolve to a "Datasheet temporarily unava | [P3][parts][jlc][sourcing] | L0 | L1 | scripts/parts_search.py | open | Owner and fix: scripts/parts_search.py. |
+| 404 | 6070 | `place_ic_with_decoupling`'s default `caps_dx` is too small for this l | [P4][schlib][python] | L0 | L3 | scripts/schlib.py | open | Owner and fix: scripts/schlib.py. |
+| 405 | 6088 | KiCad 10.0.3 ERC is indifferent to `no_connect`-typed pins - marker or | [P4][schematic][erc] | L0 | L2 | scripts/netlist_audit.py | open | Owner and fix: scripts/netlist_audit.py. |
+| 406 | 6106 | schlib guards labels-landing-on-wires; a hand-drawn wire needs the MIR | [P4][schematic][analog] | L2 | L3 | scripts/schlib.py | open | Owner and fix: scripts/schlib.py. |
+| 407 | 6125 | SUPERSEDES the 2026-08-17 sense-run entry: a remote sense must be its | [P4][schematic][analog][layout] | L0 | L2 | scripts/netlist_audit.py | open | Owner and fix: scripts/netlist_audit.py. |
+| 408 | 6158 | A freshly pulled symbol comes back with `input` pins into a library wh | [P4][parts][lib_pull][erc] | L0 | L3 | scripts/lib_pull.py | open | Owner and fix: scripts/lib_pull.py + scripts/lib_pin_types.py. |
+| 409 | 6179 | `.meas ... param='...'` rejects {braces} - and the measure vanishes wi | [P8][sim][ngspice] | L0 | L2 | scripts/sim_run.py | open | Owner and fix: scripts/sim_run.py. |
+| 410 | 6200 | Mixing clamped and unclamped output stages in ONE .dc deck silently co | [P8][sim][ngspice][opamp] | L0 | L3 | agents/sim-analyst.md | open | Owner and fix: NEW reference/sim/opamp_behavioural.cir. |
+| 411 | 6221 | Seeding a REJECTED PART as the deliberate defect turns a bench into an | [P8][sim][analog] | L0 | L0 | agents/sim-analyst.md | open | Owner and fix: agents/sim-analyst.md. |
+| 412 | 6246 | stitch_vias' hole-to-hole model is 0.3 mm too permissive - KiCad measu | [P7][stitch_vias][drc][kicad] | L0 | L2 | scripts/stitch_vias.py | open | Owner and fix: scripts/stitch_vias.py. |
+| 413 | 6283 | A driven guard ring is a planes_gen zone with connect:solid - and clos | [P7][planes_gen][guard-ring][analog] | L0 | L2 | scripts/planes_gen.py | open | Owner and fix: NEW scripts/check_guard.py (closure is provable). |
+| 414 | 6321 | `--verify-fill` is broken by a missing `.kicad_dru`, NOT by a fill-mod | [P8][check_return_path][geom][kicad] | L0 | L3 | scripts/lib/geom.py | open | Owner and fix: scripts/lib/geom.py _refill_copy copies the .kicad_dru. |
+| 415 | 6354 | An unavoidable layer-change crossing stops being an ERROR when the cro | [P7][check_return_path][routing] | L2 | L2 | scripts/check_return_path.py | open | Owner and fix: scripts/check_return_path.py. |
+| 416 | 6391 | `CONN-TH_2P-P5.00_WJ500V-5.08-2P` draws its silk entry arrows on the O | [P8][footprint][silk][review] | L0 | L2 | scripts/fp_verify.py | open | K1 lead: check a connector's mating face from a DIMENSIONED vendor drawing matched to the fab outline, never from silk or a render (U22 Q2); a 180 rotation of a 2-pin part swaps its nets; KF128's 3D model carries rotate 180; no scripted op owns footprint-instance graphics (mirror gap). Owner and fix: scripts/fp_verify.py (mating-face asymmetry check) + NEW reference/part_errata.yaml. The +Y facing is ruled correct (Q2). |
+| 417 | 6441 | Guard-ring leakage is set by what is INSIDE the ring - and the cheapes | [P7][guard-ring][silk][drc] | L0 | L0 | agents/router.md | open | Owner and fix: agents/router.md. |

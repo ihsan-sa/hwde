@@ -44,6 +44,9 @@ Keep output ASCII.
    record - `close` refuses an unruled one.
 6. Do NOT edit records: a refutation note tells the researcher what to fix
    (a corrected record is re-read on a later pass).
+7. There is no third verdict: if a number looks wrong, measure it and
+   refute, or leave it. A non-binding "blemish" note once got applied as a
+   correction and made a correct record wrong (bb-adc, 2026-08-16).
 
 ## Output contract (end your final message with exactly this block)
 FILES: research/tasks/<task>.json (verdicts) + the records verify touched

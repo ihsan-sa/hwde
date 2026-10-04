@@ -82,7 +82,7 @@ U18; hold bb-ldo / bb-adc / bb-amp / bb-mcu until U16 + U18 land.
 | U19 | Bottom-side placement the annealer can discover | **done** | 2026-08-16 |
 | U20 | place_anneal must not degrade declared decoupling | **done** | 2026-08-20 |
 | U21 | Unverified research is loud, never silent | **done** | 2026-08-20 |
-| U22 | Cross-run promotion + approval pass (owner present) | pending | - |
+| U22 | Cross-run promotion + approval pass (owner present) | **done** (hwde side; boards queues staged) | 2026-10-04 |
 
 Dependency graph (plan): S0 -> S1 -> S2 -> S3 -> {S4, S5}; S0 -> S6 -> S7; S2 -> S8 -> S9 -> S10 -> S11;
 {S5, S7, S8, S11} -> S12 -> S13 -> S14. S4-S7 may run in parallel with S8-S10 (separate sessions/terminals).
@@ -5609,3 +5609,51 @@ check_ratings by_check key that landed without a re-record.
 
 **Deviations:** none. **Verify-later:** thresholds are mine, not the owner's;
 the U11 routing teaching cycle may set rules (or a gate) from them.
+
+## U22 - Cross-run promotion + approval pass (2026-10-04) - DONE (hwde side)
+
+Rulings: perms, 2026-10-04, on the owner's standing redirect (#ai-ee
+1791102051.529859) - every approval block says `by: perms` and cites that; none
+claims to be the owner's own ruling. Packet: `design/u22-ruling-packet.md`,
+`docs/u22-rulings.md`, `docs/u22-candidates.yaml`.
+
+**Built.**
+- Records: 74 bb-* records promoted with `research.py promote` and approved
+  (Q1), with the packet's edits: swd nrst band 2.4-3.6 V + 500 ns field;
+  fixed-LDO min-load keyed `variant_kind: fixed`; failure-signature -> part;
+  terminal-selection and rail-to-rail floor -> topology; pin-decoupling ->
+  principle, no envelope; three zero-drift records keyed `amp_kind`; three
+  reference-charge records `generalizes: [sar-adc-acquisition-charge-transfer]`;
+  dims normalised `tamb_max_c` -> `ambient_max_c`, `iout_max_ua` -> `iout_ua`.
+  The three flagged limits stay narrow (approval notes say so).
+- Merge: `in-bias-current-return-path` (principle, 5 sources) approved; its
+  INA333 citations were second-read clean. Fold: bb-buck's precision-EN record
+  folded into `buck-en-softstart-sequencing`, re-approved; buck view re-rendered.
+- Q3: six bb-amp second reads (`design/u22-staged/second-reads.md`), none
+  refuted. The five keepers land as `verified` with the reader's edits, NOT
+  approved (Q1 approved only the 76); `in-aggressor-separation` is a principle.
+- Checklists: all nine promoted and approved after a coverage run on the five
+  bb boards; lowered to principle: mcu decoupling, swd-debug-port return-path,
+  precision-buffer emi + decoupling.
+- Learnings (Q4): per-board rulings `design/u22-staged/rulings/<board>.yaml`
+  (61 root_learnings, 1 prompt_line, 12 knowledge_record, 13 duplicate,
+  1 superseded = bb-mcu's -Y terminal row, ruled wrong by Q2). Root LEARNINGS +
+  triage rows 357-417 written by `learnings.py resolve` run on a scratch copy.
+- Library: 96 records / 12 checklists, `knowledge.py --validate --strict` green.
+
+**Dedupe:** 82 records in -> 80 out (1 merge, 1 fold); 76 lessons -> 62 + 14.
+
+**Not done here (boards repo).** The queues and workspace record statuses live
+in ihsan-sa/boards, which this track may not write. The resolved queues are
+staged at `design/u22-staged/queues/<board>/queue.yaml`: copy each over
+`<board>/learnings/queue.yaml`, copy the rulings file beside it, mark bb-amp's
+`in-bias-current-return-path` + `in-bias-return-path-required` superseded, and
+run `learnings.py validate`. Do NOT re-run `resolve` on the root rows: it
+refuses a header LEARNINGS.md already carries.
+
+**Coverage after.** bb-amp and bb-buck fully covered. What's left is honest:
+provisional where the board never declared the dim (ambient_max_c,
+variant_kind, iout_ua - architect.md now lists them), gaps where no record
+exists (swd esd, decoupling, constraints-emission; attenuator
+constraints-emission).
+

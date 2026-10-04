@@ -5159,3 +5159,1312 @@ pattern; use half the smallest pad pitch (each model pad nearer its own pad than
 
 ## 2026-10-04 [verify][waivers] gate verify skipped a board's waivers when the board sat in a worktree
 rp2040-mini, checked out at ~/.cc/worktrees/boards/<track>/<board>, failed findings it had waived: `releaselib.waivers_for_input` only recognised a workspace whose parent is a boards dir, so it never looked at reports/verify-waivers.json and fell through to the input dir. It now takes the first parent holding state.json as the workspace (the same marker statelib.find_workspace uses, which is what gate freshness already binds through the `waivers` kind), with the boards-dir rule and the input-dir path kept as fallbacks. A rule that finds a workspace by where it sits breaks on the first checkout elsewhere; find it by what it holds. `gate.workspace_dir` still uses the boards-dir rule, but only to choose which repo a gate commit goes into.
+
+## 2026-08-15 [P4][erc][kicad-sch-api][schematic] An ALREADY-retyped pulled library can still hide exactly one ERC-blocking pin: BOOT on a buck
+Promoted from boards/PCB-0010-A_bb-buck/LEARNINGS.md (promotion pass 2026-10-04).
+The pulled `LMR33630ADDAR` symbol arrived with a sane typing pass already applied
+(PGND/VIN/EP `power_in`, SW/VCC `power_out`, EN/PG/FB `passive`) - so the usual
+"easyeda types are junk, retype everything" reflex reads as unnecessary here. It is
+not: BOOT (pin 7) came typed `power_in`, and `/BST` has no schematic-visible driver
+(the bootstrap diode VCC->BOOT is inside the package; the net's only other member is
+C6, a passive). Measured with the fix disabled, `kc.py erc` on the finished sheet
+returned EXACTLY ONE finding - `power_pin_not_driven` "Input Power pin not driven by
+any Output Power pins" on U1 pin 7 - and zero of everything else, so the whole ERC
+gate hung on that single library attribute.
+Two ways out, and they are not equivalent. A PWR_FLAG on `/BST` clears ERC but leaves
+the pin `power_in`, which pulls `/BST` into `netlist_audit`'s `power_undeclared`
+warning - and `architecture/sheets.md` s4 deliberately leaves `/BST` undeclared
+(a `power` entry would give a gate-charge node a width rule). Retyping the pin to
+`passive` in `lib/aiee.kicad_sym` clears both, matches sbuck-5v3a's AP64350 BST pin,
+and matches the standing retype rule (supplies/grounds power_in, regulator output
+power_out, everything else passive - a bootstrap node is not the part's supply).
+Done in `kicad/gen/lib_pin_types.py`, which lists only DEVIATIONS from the pulled
+typing so a later `lib_pull` refresh cannot be silently re-typed wholesale, and which
+`gen/root.py` calls before the symbol cache reads the library. Generalisation: judge a
+pulled symbol pin-by-pin against the datasheet extract even when the file looks
+already-fixed, and prefer the library fix over a PWR_FLAG whenever the net is one the
+architecture deliberately leaves out of constraints.json.
+
+## 2026-08-15 [P4][spice][sim-analyst] The runner's injected `rshunt=1e9` is a ~1 nA current source at every node - on a high-impedance FB divider that is 2 % of the IFB spec you came to measure
+Promoted from boards/PCB-0010-A_bb-buck/LEARNINGS.md (promotion pass 2026-10-04).
+`sim_run.py`/`prepare_circuit` injects `.options rshunt=1e9` unless the deck sets rshunt
+itself (it exists so one floating node cannot make the solve singular). On a 100k/24.9k
+feedback divider the tap sits at 1.0 V, so the injected shunt quietly pulls 1 nA out of it
+- and the datasheet term the bench exists to bound, LMR33630 IFB, is 50 nA max. The shunt
+is therefore 2 % of the modelled worst-case error term, and it lands with the SAME SIGN
+(it raises the implied VOUT by ~0.1 mV), i.e. it silently flatters nothing but does
+contaminate a corner that is being reported to 5 digits. The deck has no floating node
+(every node reaches ground through R2, the reference source or the amplifier), so the fix
+is one documented line: `.options rshunt=1e12`, which drops the artefact to 0.1 uV and
+made all 15 measures match closed form to 6 significant digits. Generalisation: on any
+bench whose measured quantity is a sub-microamp current or a megohm-class node, treat the
+injected 1e9 shunt as a real circuit element and override it deliberately.
+
+## 2026-08-15 [P4][spice][sim-analyst] A switcher's DC setpoint IS simmable without any converter model - one high-gain VCVS is the whole Tier-B boundary model
+Promoted from boards/PCB-0010-A_bb-buck/LEARNINGS.md (promotion pass 2026-10-04).
+Policy forbids simulating the buck (no vendor model, and an agent-authored switcher model
+would not be honest), which reads as "the output voltage cannot be verified at all". It
+can: the only thing the regulator does to the divider at DC is drive VOUT until
+v(FB) == VREF, and that is one ideal amplifier - `Vref nref 0 DC {vref}` plus
+`Eu1 vout 0 nref fb 1e8`. The network then SOLVES for the divider ratio instead of the
+deck restating it, which is the whole point (a retyped `Vout = vref*(1+r1/r2)` B-source
+would pass even if R1/R2 were wrong). Gain 1e8 leaves 50 nV of residual setpoint error, six
+decades under any useful bound. Corners come from N `.subckt` instances (ngspice has no
+`.step`), and `.meas dc <n> find v(<node>) at=0` against a 2-point `.dc` sweep of a dummy
+source is enough analysis to make `.measure` legal - 11 corners + 4 derived params solved
+in 1.0 s. Keep the as-drawn `--fragment` lines verbatim at the TOP level as the nominal
+instance: it is the one bound that still fires if a later editor changes the schematic
+values without touching the `.param` corner block.
+
+## 2026-08-15 [P4][easyeda2kicad][parts][erc] An in-stock LCSC part can have NO EasyEDA CAD record at all - lib_pull fails it while its own family siblings pull clean
+Promoted from boards/PCB-0010-A_bb-buck/LEARNINGS.md (promotion pass 2026-10-04).
+The A3 setpoint recentring needed YAGEO `RT0603BRD07102KL` (LCSC **C861068**, 2009 in
+stock, full parametrics from `parts_search`). `lib_pull --lcsc C861068 C861257` pulled
+C861257 and returned `status: error` / exit 1 for C861068 with only
+"Failed to fetch data from EasyEDA API". That reads like the known WAF/rate-limit class
+(LEARNINGS 2026-07-28), and it is NOT: probed directly,
+`EasyedaApi().get_cad_data_of_component()` returns `{}` for C861068 and a full dict for
+C861257 and C136967 in the same second. **Distinguish the two before retrying or backing
+off** - a rate limit clears, an absent CAD record never will, and retrying just burns the
+WAF budget. Fix used: derive the symbol from the just-pulled SAME-FAMILY sibling
+(RT0603BRD0725K5L -> RT0603BRD07102KL, identity fields only: symbol name, Value, MPN,
+Datasheet, `LCSC Part`), which keeps the pulled geometry and the shared `aiee:R0603`
+footprint - defensible because a 2-pin chip resistor's symbol carries no part-specific
+pinout to get wrong. Do NOT hand-draw a symbol for a part whose pinout is non-trivial;
+there, change the MPN instead.
+Second fact from the same pull, and the reason the ERC gate did not break: the freshly
+pulled `RT0603BRD0725K5L` came typed **`unspecified` on both pins** while
+`RT0603BRD07100KL` / `RT0603BRD0724K9L` - same YAGEO RT0603BRD family, pulled at P3 -
+came typed `passive`. Pin typing therefore varies WITHIN one family by pull date, so the
+`gen/lib_pin_types.py` deviation list has to be re-checked after every single pull, not
+just after a wholesale library refresh.
+
+## 2026-08-16 [P7][routing][planes_gen] planes_gen's DEFAULT thermal-relief pad connection strands a pad in a tight corridor - `connect: solid` in a planes-only sidecar is the fix
+Promoted from boards/PCB-0010-A_bb-buck/LEARNINGS.md (promotion pass 2026-10-04).
+On this 2-layer board U1's PGND pin (pad 1, 1.3 x 0.6 mm) sits in a 0.79 mm-tall corridor
+between the +VIN bulk-feed track above and the C1->VIN hot-loop track below. KiCad's default
+zone `connect_pads` is THERMAL RELIEF, whose ~0.5 mm thermal gap is applied from BOTH the pad
+and the neighbouring exposed pad, so the two gaps overlapped and no fill could form between
+U1.1 and the EP. Result: `starved_thermal` (min spoke count 2, actual 1) PLUS a genuine
+`unconnected_items` - U1.1 + C1.2 sat on their own 1.2 mm2 pour island, electrically off the
+GND net, while F.Cu GND reported only "2 islands" and looked healthy. Re-pouring the same
+region with `{"layer":"F.Cu","net":"GND","connect":"solid"}` in a planes-only sidecar
+(constraints.json untouched) cleared both in one step and is independently correct here: the
+EP is AGND and the datasheet wants it soldered SOLID to the plane. Two corollaries: (a) a
+zone-fill island COUNT is not a connectivity check - only kicad-cli DRC is; (b) planes_gen
+will not restyle an existing zone (>=80% existing-fill coverage -> skip), so the pour must be
+regenerated from a clean board, not patched.
+
+## 2026-08-16 [P7][routing][geometry] Read pad extents from `geom.pads_of().poly.bounds`, never from the raw `(size w h)` - the pad carries its OWN rotation
+Promoted from boards/PCB-0010-A_bb-buck/LEARNINGS.md (promotion pass 2026-10-04).
+Three hand-computed track endpoints landed 0.2-1.3 mm outside their target pad because a naive
+read of L1's `(pad ... (size 5.4 2.9))` ignored the pad's own `at` rotation: the real land is
+2.9 wide x 5.4 tall (x 45.72..48.62, y 38.53..43.93), not 5.4 x 2.9. route_edit ACCEPTS such an
+op - it only verifies the segment landed where asked - and the error surfaces two steps later as
+`unconnected_items` + `track_dangling` naming a track by LENGTH, not by endpoint. Cheap guard
+before emitting any route_edit op list: assert every add_track endpoint is `covered` by the
+target pad's `poly`; the footprint rotation, the pad rotation and the board transform are all
+already baked into it.
+
+## 2026-08-16 [P9][bom_cpl][fab] A THT footprint with `attr through_hole` but no `exclude_from_pos_files` defaults to `smt_placed` - the terminals shipped in CPL.csv
+Promoted from boards/PCB-0010-A_bb-buck/LEARNINGS.md (promotion pass 2026-10-04).
+bb-buck P9. `bom_cpl.py` decides BOM/CPL membership from `assembly_class`, and its
+auto-classifier keys on `exclude_from_pos_files`, NOT on `attr through_hole`. The
+easyeda2kicad KF128-5.08-2P screw-terminal footprint carries `attr through_hole` and no
+pos-file exclusion, so both terminals were classified `smt_placed` and written into
+`CPL.csv` - onto a pick-and-place list for a machine that physically cannot place them.
+
+`bom_cpl` reported `status: pass`, `violations: []`, `bom_complete: true`. Nothing in the
+pipeline flags it, because from the script's point of view a placed part with an LCSC code
+and a position is exactly what a CPL row is.
+
+Fix: `"assembly_class": "hand_install"` on the parts.json line (applies to every ref in
+`refs`), plus `refdes_notes` for the assembler. Class counts then read
+smt_placed 14 / hand_install 2 / board_feature 4, and CPL.csv drops to the 14 real
+placements.
+
+**Check the class split by eye on any board with THT parts** - `n_placed == n_parts` is not
+the reassurance it looks like. Candidate script fix: treat `attr through_hole` as a
+hand_install signal in the auto-classifier the same way `exclude_from_pos_files` is.
+
+## 2026-08-16 [P6][gates][build-modes][PIPELINE BUG] `placement.edges` pins the connectors to the PROVISIONAL outline, so under a `canonical` binding the place gate cannot pass BEFORE `--outline fit`
+Promoted from boards/PCB-0011-A_bb-mcu/LEARNINGS.md (promotion pass 2026-10-04).
+`placelib.legality_violations` measures every `placement.edges` ref against
+`edge_line(model.outline, ...)` with `EDGE_TOL = 2.5 mm`, and the outline it reads is
+whatever `board_init --outline auto` produced. On bb-mcu that was 51.15 x 43.524 mm, a
+shelf-pack artifact; the canonical layout is 33.77 x 21.26 mm of content. Placing to the
+canonical layout leaves J1 16.85 mm from the provisional right edge -> `edge_violation`,
+gate FAIL. Placing to satisfy the edge means spreading the three connectors to the
+provisional edges, and then `--outline fit` measures the spread and "earns" the
+provisional size - the bb-buck lesson (2026-08-16 board_edit entry) with the sign
+flipped: fit measures the placement in front of it, and a placement stretched to a big
+outline has already spent the difference.
+Both `reference/recipes/resize-board.md` ("Place (P6) against that room, gate `place`",
+then fit) and the P6 agent contract order it place -> gate -> fit. For a `canonical`
+binding with ANY `placement.edges` entry the order has to be **place -> fit -> gate**.
+Measured on this board: after `board_edit --outline fit --margin M` the place gate is
+clean (0 violations, all five coverage legs green) at M = 0.5 / 1.0 / 2.0, giving
+34.77 x 22.26 / 35.77 x 23.26 / 37.77 x 25.26 mm. The fix is the ORDER, not the
+placement. Second-order trap in the same shape: `silk_place` and `board_edit --outline
+fit` disagree about what is on the board - fit measures courtyards + copper + rule areas
+and ignores silk, while silk_place solves refdes positions against the CURRENT outline,
+so on the provisional board it parked J1/J3/H1/H2's refdes where the earned edge later
+cuts them. Hand-place any refdes outside the future content bbox, or re-run silk_place
+after the fit.
+
+## 2026-08-16 [P3][librarian][footprint][fp_verify][PIPELINE BUG] A pulled THT footprint was under-drilled 1.30 mm against the vendor's own 1.50 mm, and nothing in the pipeline could have caught it
+Promoted from boards/PCB-0011-A_bb-mcu/LEARNINGS.md (promotion pass 2026-10-04).
+J1 (WJ500V-5.08-2P, LCSC C8465) pulled with a 1.30 mm drill. The vendor's own
+"PCB LAYOUT" panel recommends **1.50 mm**, and the datasheet dimensions the pin
+0.90 mm wide. If that pin is square - which the square screw-clamp opening
+drawn above it indicates, though the shape is never explicitly labelled - its
+worst-case diagonal is 0.90 * sqrt(2) = **1.273 mm**, leaving **0.027 mm** of
+total diametral clearance. That is a terminal that does not seat, discovered at
+assembly, on every board in the batch.
+
+Why no gate saw it, and this is the part worth keeping:
+
+1. `fp_verify` has **no drill-vs-pin check at all**. It checks pad count,
+   pitch, pin-1, pad size and a fab annulus floor. Nothing compares the hole to
+   the thing that goes through it.
+2. `fp_verify`'s land-pattern diff needs a `parts/<lcsc>.json`, and connectors
+   do not get datasheet extractions by default - the P3 roster runs an
+   extractor "per nontrivial IC". So the diff never ran, and the librarian
+   correctly reported the connectors as verified only for courtyard, pin-1 and
+   annulus floor.
+
+It surfaced ONLY because the librarian reported honestly what it could NOT
+verify instead of reporting a clean pass, and that gap was then chased with two
+extra extractions. An agent that had summarised "3/3 footprints pass" would
+have shipped it.
+
+Two fixes worth making: extract datasheets for THROUGH-HOLE CONNECTORS as well
+as ICs at P3 (their drill is a board-killer and their datasheets are short),
+and give `fp_verify` a drill-vs-stated-pin check with the square-pin diagonal
+built in.
+
+## 2026-08-16 [P3][fp_verify][footprint] fp_verify never compares row_spacing_mm, although land_pattern carries the field
+Promoted from boards/PCB-0011-A_bb-mcu/LEARNINGS.md (promotion pass 2026-10-04).
+The U1 SOP-20 diff returned pad_count 20/20, pitch ok, pin-1 present and ONE
+pad_size warning. Hand measurement found what the tool does not look at:
+
+    pad size     0.35 x 1.494 mm  vs datasheet 0.40 x 1.35 mm  -> warned
+    row spacing  6.00 mm          vs datasheet 5.75 mm         -> NOT CHECKED
+
+`datasheet_extract` populates `land_pattern.row_spacing_mm`, so the data is
+there and only the comparison is missing. On a two-row leaded package the row
+spacing is what decides whether the pads capture the lead FEET at all - it is
+more load-bearing than pad size, because getting it wrong slides both rows off
+the leads while pad-count and pitch still pass.
+
+Here it was benign and was accepted on a worked argument (the pulled land spans
+2.253-3.747 mm from the centreline against a lead foot at ~2.6-3.2 mm, so it
+captures the foot with MORE toe and a WIDER inter-pad gap than ST's own land).
+But it was found by hand, not by the gate.
+
+## 2026-08-16 [P8][silk][silk_place] silk_place SKIPS board_only refs by design, so a mounting hole's refdes is never solved and can end up labelling the IC
+Promoted from boards/PCB-0011-A_bb-mcu/LEARNINGS.md (promotion pass 2026-10-04).
+`check_silk` flagged `silk_misattributed`: H3's refdes sat 1.67 mm from its own
+hole and **0.23 mm from U1**, reading as U1's designator on a board whose only
+IC it is. The obvious remedy fails silently in the right direction:
+
+    silk_place --refs H1,H2,H3,H4 --apply
+    -> moved 0, skipped [{H1 board_only} {H2 board_only} {H3 board_only} {H4 board_only}]
+
+`silk_place` solves "every visible non-board_only silk refdes", and mounting
+holes are board_only. It exits 0 and reports honestly - it just cannot help.
+The fix is the one `check_silk`'s own message names: a direct
+`place_edit move_text`, which needs the hole's real coordinates (they are in
+the P6 place-edit report, not in the silk report).
+
+Worth considering: mounting-hole refdes carry no assembly information at all -
+nothing is placed at H3 - so hiding them may beat placing them.
+
+## 2026-08-16 [P3][process][windows][state] Backticks in a Bash-tool argument are COMMAND SUBSTITUTION, and a state.py decision silently lost a word to it
+Promoted from boards/PCB-0011-A_bb-mcu/LEARNINGS.md (promotion pass 2026-10-04).
+Recording a decision whose `--why` prose contained a backtick-quoted term:
+
+    ... with the floor at `proven`, a verified-but-unapproved record ...
+
+Bash ran `proven` as a command, substituted its empty output, and state.py
+stored "... with the floor at , a verified-but-unapproved record ...". state.py
+exited 0; the only signal was one `proven: command not found` line on stderr
+from a different process than the one being checked.
+
+Same family as the recorded `\`-in-a-quoted-heredoc collapse: prose destined
+for a file should not travel through the shell. Long `--why` / `--note` text is
+exactly that, and it is the audit trail, so a silent deletion there is worse
+than most places. Read a long decision back out of state.json once after
+recording it - that is how this was caught.
+
+## 2026-08-16 [P4][schematic][easyeda2kicad][kicad-sch-api] A pulled symbol's reversed pin ANGLES make schlib emit INWARD stubs, and rotating the part is not the fix
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+`aiee:293D226X9016D2TE3` (C2, the 22 uF compensation tantalum) came out of easyeda2kicad with
+its two pin angles backwards relative to its own graphics: pin 1 at x=-5.08 carried angle 180
+and pin 2 at x=+5.08 carried angle 0, so both leads are DRAWN away from the plates (connecting
+to nothing, 3.5 mm short of the electrode) and `schlib.stub_dir` - which reads outward as the
+opposite of the pin angle - emitted both auto-stubs INWARD. Result: the rail and ground labels
+land 5.08 mm apart ON the body and render as one run-together string ("+3V3GND") with the rail
+label over the plate. ERC is 0/0 and the netlist is correct throughout - a pin's connection
+point is its `(at ...)`, which the angle does not move - so NO machine gate sees it; only the
+H2 schematic PDF does. The obvious workaround (rotate the cap to a vertical shunt) is WORSE and
+already on the ladder: KiCad rotates field TEXT with the symbol while schem_refdes does not, so
+a rot-90/270 2-pin passive overprints its own Reference/Value (2026-08-09 entry) - measured here
+too, the 22-char value string ran vertically through the refdes and the LCSC field. Fix at the
+SOURCE, like the pin-TYPE repair does: `kicad/gen/lib_fixups.py` (idempotent, `--check`
+mode, re-run after any lib_pull) rewrites the two angles and trims both lead lengths to 3.81 mm.
+Nothing electrical changes - verified by `netlist_audit --compare` against the pre-repair
+netlist: 0 differences. Sibling symbol `aiee:TAJA106K016RNJ` (C1, same vendor family, same
+pull) has CORRECT angles, so this is per-symbol damage and cannot be assumed away: check any
+pulled 2-pin passive by placing it and reading `Sheet._pin_out_dir`, not by reading the file.
+
+## 2026-08-16 [P4][schematic][erc] Hang a rail's power symbol in its own cluster, not on a pin stub, when the IC's pins are on 2.54 mm pitch
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+`power_symbol_at_pin("U1", "2", "power:+3V3")` puts the symbol's PIN on the stub end and the
+symbol BODY (the arrow) extends from there - on the AMS1117's 2.54 mm pin pitch that body lands
+on the neighbouring pin's local label, so the rendered sheet shows the +3V3 arrow drawn through
+U1 pin 1's "GND" text. Electrically fine (ERC 0/0), unreadable on the PDF. Measured root cause:
+every KiCad power symbol is EXACTLY 2.54 mm tall (GND's triangle hangs 2.54 below its pin, the
+rail arrows rise 2.54 above), which is exactly the pin pitch - so a symbol on any middle pin
+reaches precisely into the neighbouring pin's row, and the geometry is unsolvable by stub length
+alone (whichever of two adjacent pins gets the shorter stub, its symbol lands on the other's
+wire). The arrangement that works on bb-ldo's final sheet: the middle pin (VOUT) takes the short
+stub and its rail symbol, and the neighbour (GND) is routed OFF its own row first - out 1.27,
+up, across, then down into its symbol - which is also the only ordering of the three left-side
+pins with no wire crossing. `power_flag(net, at=..., sym=..., flag=False)` remains the clean
+form for a free-area rail cluster that must not carry a PWR_FLAG.
+
+## 2026-08-16 [P4][schematic][easyeda2kicad] A pulled 2-pin passive names its pins "1"/"2" - KiCad prints those names ON the body, on top of each other
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+Every easyeda-pulled 2-pin part on this board (both tantalums, both screw terminals) carries pin
+NAMES that are the same strings as the pin NUMBERS. KiCad renders names INSIDE the symbol body, so
+on a small part both names land at the body centre and overprint each other and the numbers - a
+garbled glyph in the middle of every passive, which is what the schematic reviewer saw. Nothing
+machine-checkable notices: ERC 0/0, netlist unchanged, `schem_refdes` reports `residue: []` because
+pin names are symbol graphics, not fields it places. Fix at the source with `(pin_names hide)` on
+the symbol (kept in `kicad/gen/lib_fixups.py`); the NUMBERS stay visible, which is what tells a
+reader which end of a polarized part is pin 1. Write the bare-token form `(pin_names hide)` into a
+`(version 20211014)` pulled lib - that file's own properties use bare `hide`, not `(hide yes)` -
+and kicad-sch-api carries the token through into the schematic's embedded `lib_symbols`.
+
+## 2026-08-16 [P4][schematic][erc][netlist] Two pins of ONE part are two nets on the sheet: a drawn run off the tab left the rail unnamed and ERC stayed 0/0
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+Redrawing bb-ldo with real wires, the +3V3 output path was drawn from U1 pin 4 (the SOT-223 tab)
+through C2 to J2, while U1 pin 2 (VOUT) got the rail's `power:+3V3` symbol. Pins 2 and 4 are the
+same node INSIDE the package, but on the sheet they are two separate nodes: the drawn run never
+touched the symbol, so it exported as `Net-(C2-Pad1)` and `+3V3` held only U1.2. **ERC reported
+0 errors / 0 warnings** - an unnamed net with three pins on it is perfectly legal - and the only
+gate that caught it was `netlist_audit --compare` against the pre-redraw netlist. Two rules. (a) A
+cosmetic redraw is not verified until the netlist is diffed against the version it replaced;
+compare is the gate, ERC is not. (b) When a part exposes one node on two pins, each pin needs its
+own connection to the rail - a second power symbol on the drawn run is the cheapest, and is what
+joins them globally.
+
+## 2026-08-17 [P7][planes_gen][thermal-via][knowledge] planes_gen would have via-stitched the live SOT-223 tab: its EP heuristic never reads constraints' `min_vias`
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+`planes_gen` places a thermal-via grid under "the largest NETTED SMD pad per footprint whose area
+>= 4.0 mm2 and whose net is a plane net". U1's tab (pin 4, 2.34 x 3.6 = 8.4 mm2) is exactly that,
+and its net `+3V3` IS the F.Cu plane net - so the default run drills a grid from the VOUT heatsink
+pour straight into the B.Cu GND plane. That is the short forbidden by verified record
+`linear-regulator-live-tab-thermal-vias`, and `constraints.thermal[U1].min_vias: 0` does NOT stop
+it: grep the script - nothing in `planes_gen` reads `min_vias`, the two numbers never meet. On any
+board whose plane net is a live tab net (1117-class VOUT, a high-side FET drain), run
+`planes_gen --no-thermal-vias` and let the pour do the cooling by dielectric coupling. Same trap
+waits on C2, whose 8.3 mm2 tantalum pads also clear the 4.0 mm2 floor.
+
+## 2026-08-17 [P7][route_auto][stitch_vias][thermal] route_auto's KRT finish connects plane-net SMD pads with TRACES, not vias - on a thermal-pour board that silently eats the heatsink
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+Freerouting itself stopped at 0.60 completion (2 nets unrouted, all three rungs identical); the KRT
+mop-up finished GND and DRC went to 0. But it did it by daisy-chaining the three F.Cu GND SMD pads
+(U1.1, C1.2, C2.2) to J1's thru-hole with ~25.6 mm of 0.2575 mm F.Cu trace - straight across the
+`+3V3` thermal pour, including a slit between U1 and C2 at 7 mm from the tab. Cost: pour 1210.8 ->
+1189.6 mm2 and check_thermal's effective area 592.6 -> 577.1 mm2 (-2.6%), on a board whose whole
+margin IS that number. The chain's own answer is in `route_critical`'s report note ("plane is the
+trunk; SMD pads stitched by stitch_vias"): rip the KRT GND traces with `route_edit` and run
+`stitch_vias`, which puts one via per pad on a ring just past the pad edge, away from the body -
+inside the void the pad already cuts in the pour, so they cost ~0 mm2 and leave B.Cu continuous
+under the tab. Recovered to 1199.2 / 585.0 mm2 with DRC still 0. On a 2-layer pour board the
+stitch therefore has to come AFTER route_auto *and* after ripping what KRT laid, not merely after.
+
+## 2026-08-17 [P7][route_critical][scripts] `--out-report` into a missing directory crashes AFTER the board is already written
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+`route_critical --out-report boards/bb-ldo/route/route_critical.json` mutated the board (4 +5V
+segments landed), then died with a raw `FileNotFoundError` traceback from `checklib.emit` because
+`route/` did not exist - no JSON, no facts, exit non-zero on a run that actually succeeded. The
+workspace scaffold (`state.py`) creates `routing/`, while the P7 role prompt and every route script
+default to `route/`, so the first `--out-report` of a session hits this. `mkdir` the report
+directory before the first write; re-running `route_critical` afterwards is safe (it detects
+`already_routed` and adds no duplicate copper).
+
+## 2026-08-18 [P8][stitch_vias][dfm] stitch_vias places vias INSIDE large pads, and its own checker cannot see it
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+Two compounding defects. (1) `RING_RADII` are measured from the pad CENTRE, so
+any pad with a half-extent > 0.65 mm gets its "just past the pad edge" via
+placed inside the pad. (2) `via_check` only tests FOREIGN copper, so a via
+landing in its OWN pad is never flagged. On JLC economy PCBA - which neither
+fills nor plugs vias, with paste apertures equal to the pads - paste prints
+over an open barrel and wicks down it at reflow: starved or open joints.
+
+Third defect in the same family: it emits **no F.Cu stub** with a pad via, so
+on a board whose top layer has no copper for that net (here GND, because the
+top layer is the +3V3 heatsink pour) an off-pad via is orphaned. The tool
+should emit stub + via as a pair.
+
+Caught only by a human-style visual review at P8, three stages after the edit.
+
+## 2026-08-18 [P8][check_current][plane] check_current charges every transition via the whole net's current
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+It wants >= 1 via per 0.5 A and attributes the full rail current to each via.
+On bb-ldo the 0.515 A load return never crosses the three GND stitch vias at
+all: it flows J2's GND pin -> B.Cu plane -> J1's GND pin, and BOTH are
+through-hole screw terminals whose pins penetrate every layer. Those vias carry
+only the regulator's quiescent current and capacitor ripple. Doubling them to
+satisfy the heuristic would have spent ~2 mm2 of heatsink pour to silence an
+advisory. The check's own message says "per-cluster current unattributed" -
+believe that qualifier before spending copper.
+
+## 2026-08-18 [P0][build-modes][thermal] At block-only, thermal is the whole design - and the datasheet's copper table is the spec
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+Nothing about a 5 V -> 3.3 V linear regulator is interesting except where the
+watt goes. The part choice turned on which candidate published a copper-area
+-> theta_JA table measured on OUR board class (1 oz FR-4, 2 layer), not on
+which had the better headline numbers: the electrically superior MCP1825S was
+rejected because its only theta_JA figure is a JEDEC 4-layer number that a
+2-layer board cannot reach and its datasheet gives no curve to design against.
+Choosing it would have meant sizing the copper with no applicable data - the
+exact error the board exists to teach against.
+
+## 2026-08-20 [P6][planes_gen][board_edit][scripts] planes_gen has no re-pour path: on a board that already has zones and whose outline GREW, it ADDS a duplicate zone - and nothing in the skill can delete a zone
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+`board_edit --outline WxH` re-clips the existing fills but says plainly that
+zone OUTLINES do not follow the edge, so the pour has to be regenerated. Run
+`planes_gen` on that board and its idempotency guard - "an existing same-net
+fill covering >= 80% of the planned region means skip" (`EXISTING_COVER`) -
+reads only 73% here, because the old zone's rectangle stops at the old
+boundary. So it ADDS a second `+3V3` F.Cu zone and a second `GND` B.Cu zone,
+same nets, same layers, both at priority 0, on top of the two already there.
+The fill union is correct (measured 1097.86 mm2 either way) but KiCad DRC
+returns two hard `zones_intersect` errors: "intersecting zones must have
+distinct priorities".
+
+There is no way out with the sanctioned editors. `route_edit`'s `remove
+{uuid}` indexes `board.GetTracks()` only, so a zone uuid comes back "absent"
+and then fails the driver's own verify (the uuid is still in the file);
+`place_edit` is footprints + text; `board_edit` only removes Edge.Cuts items;
+`plane_repair` bridges splits. Nothing exposes `SetAssignedPriority` on an
+existing zone either, which would have been the other legal fix.
+
+The recovery that works is `state.py restore --label <a zone-free snapshot>`
+and re-running the whole chain (place -> board_edit -> planes_gen -> silk) on
+a board that has no zones. On bb-ldo `pre-P7-routing` was exactly that, and
+diffing it against the delivered board (ignoring uuids, tracks, vias, zones)
+showed a single line of difference - the `HOT SURFACE` legend - which
+`place_edit add_text` puts back. So: **before re-pouring a board whose outline
+changed, get it to a zero-zone state first**; discovering it afterwards costs
+a full rebuild.
+
+Wanted: `planes_gen --repour` (drop the same-net/layer zones it is about to
+replace), or a `zone` op on route_edit.
+
+## 2026-08-20 [P6][silk][placement] Centring both edge connectors on a small square leaves no room for pin-adjacent silk - and the binding obstacle is a neighbour's own polarity marker
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+Honouring `placement.edges pos 0.5` on the 34.655 mm square puts J1 and J2
+courtyards 12.655 mm apart, and the U1+C1+C2 cluster only fits that corridor
+turned 90 deg. Measured silk-to-silk (centreline + stroke/2, NOT courtyards),
+the left channel is 16.270 -> 17.026 = 0.756 mm and the right is 26.957 ->
+28.635 = 1.678 mm. A 1.2 mm silk label is 1.4 mm tall, so neither takes one -
+and the left channel is narrow not because of a courtyard but because C1's
+FOOTPRINT prints a 0.25 mm-stroke `+` polarity cross 3.1 mm out from its
+centre, 1.1 mm beyond its own courtyard. Turning the labels 90 deg into the
+channels was tried and real DRC rejected it (2 hits on that `+`, 1 on U1's
+body line at 0.024 mm).
+
+Two things to carry: courtyard extents are the wrong model for silk clearance
+(footprint silk routinely exceeds the courtyard), and when the corridor loses,
+the answer is to move the legends OUT - net name above the connector for the
+upper pin, below for the lower, function label as the header. That keeps a
+3.9 mm / 9.0 mm = 2.3:1 adjacency to the right pad and clears real DRC at 0.
+
+## 2026-08-20 [P7][route_auto][freerouting] Freerouting cannot read this board at all - route_auto has nothing to contribute, so its KRT fallback is the ONLY thing it can do
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+Re-routing the 34.655 mm square: `route_critical` lays the +5V trunk with KRT,
+and Freerouting 2.2.4 then dies with `StackOverflowError` at
+`PolylineTrace.combine` while READING the DSN - ZERO pass lines, rung1.log is
+75 KB of one repeated frame. That is the documented KRT-guide-wire wedge
+(repo LEARNINGS 2026-07-23), and every rung parses the same DSN, so the whole
+ladder is dead. `route_auto` therefore has exactly two outcomes on bb-ldo:
+`--no-krt-finish` -> exit 2, "board untouched"; or the KRT finish, which is
+the pass that daisy-chains the F.Cu GND SMD pads with traces across the
+thermal pour (2026-08-17 entry). Running it to then rip what it laid buys
+nothing: the deliberate `route_edit` via+stub pairs are the same end state.
+Set `--timeout-s` low (120) - the default 600 makes the wedge cost 10 minutes
+per rung for a result that is knowable from the first log line.
+
+## 2026-08-20 [P6][build-modes][canonical] Moving the edge parts in fixes the WIDTH; the SHAPE stays inherited
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+At P6 this board was found to have inherited its width from `board_init
+--outline auto`'s provisional 86.29 mm, via `placement.edges` pinning the
+connectors to whatever outline was on the board. The fix - move the connectors
+inward, then `--outline fit` - corrected the width and was verified. It was
+still only half a fix: `fit` wraps wherever the parts ended up, so the ASPECT
+remained a property of the provisional rectangle. The board shipped at
+50.000 x 26.420 (1.89:1) when the design wanted a square.
+
+A 22-candidate measured study (build each candidate, pour it, measure the real
+fill) found:
+
+- The free-aspect optimum is a broad **plateau from 1.00 to 1.47**; r25 varies
+  0.4% across it. There is no peak to chase, only a boundary to stay under.
+- That boundary is **derivable, not empirical**: check_thermal's reach disc
+  plus the pour inset fits wholly on the board only when the short dimension is
+  >= 2 x (14.329 + 0.5) = 29.66 mm. At 1321 mm2 that caps aspect at 1.50:1.
+  The delivered 26.42 mm height spilled 28.2 mm2 of the disc off both edges.
+- `placement.edges` cost **0.00 mm2** at aspect <= 1.47 and only 31.8 mm2 at
+  1.89. Its real width floor is ~32.3 mm. **The constraint the finding blamed
+  was not the cause** - a 36.35 mm square satisfies J1-left/J2-right with the
+  terminals CENTRED at the `pos: 0.5` the constraint actually declares, which
+  the delivered board did not honour.
+- The square at 1201 mm2 beat the 1321 mm2 rectangle on **all four** measures
+  in 9.1% less board, and the rectangle met its own >= 1000 mm2 effective floor
+  only on r25 - its r20 was 904 mm2, below it.
+
+Lesson: at a canonical binding, verify the outline's ASPECT is derived, not
+just its area. And when a review names a mechanism, measure the mechanism -
+this one was wrong while its conclusion was right.
+
+## 2026-08-20 [P8][silk][render] Silk can pass check_silk AND real DRC while being invisible
+Promoted from boards/PCB-0012-A_bb-ldo/LEARNINGS.md (promotion pass 2026-10-04).
+A relocated refdes was placed in an open pocket that passed `check_silk` (0
+violations) and `kc.py drc` (0 violations) - and was completely invisible in
+the render, hidden under the through-hole connector's own body, because the
+pocket sat inside the footprint's envelope. Both checkers reason about
+geometric collision in 2D; neither has a concept of "underneath the part".
+
+Only the render caught it. On any board with tall through-hole parts, a silk
+placement is not verified until it has been LOOKED at.
+
+Related, same board: `silk_place --refs J2` reported an EMPTY residual list
+while leaving a refdes 0.33 mm from a neighbouring part's pads, reading as that
+part's label. Its collision-only scoring treats "close to the wrong part but
+not touching" as good enough - `check_silk`'s `silk_misattributed` is the check
+that catches it, and it is not what `silk_place` optimises for.
+
+## 2026-08-16 [P4][spice][sim-analyst] `.meas ac rms` is FREQUENCY-WEIGHTED, which is how you get integrated noise out of ngspice without `.noise`
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+ngspice has no way to report integrated noise into a measure - `.measure` is documented for
+ac/dc/tran/sp only, and the `.noise` totals never reach the "Measurements for" block the
+runner parses. The way through: inject the RTI noise DENSITY as a plain AC source, then
+`.meas ac x rms vm(out) from=f1 to=f2`; total rms = x * sqrt(f2-f1). Verified on this host
+against a closed-form RC integral (fc = 100 Hz over 1..10 kHz): analytic 0.124137, measured
+0.124537 on `.ac lin` and 0.124539 on `.ac dec` - so the weighting is by frequency, not by
+sweep point, and a decade sweep is fine. `integ` matches the same closed form to 5 digits
+(528.834 vs 528.83). ONE source only: `.ac` superposes sources COHERENTLY, so two noise
+sources add as voltages, not in quadrature - lump the whole RTI density into one and list
+in the header what you left out and why. Second engine fact from the same session: a prior
+measure's result IS available to `.meas <n> param='<prior> ...'` but NOT to
+`.meas <n> when v(x)='<prior>-3'` - `when` values are substituted at parse time and the run
+dies with "Undefined parameter". Hard-code the trigger level and say in the sidecar that a
+wrong gain therefore shows up as a MISSING measure (still an error) rather than a bad one.
+
+## 2026-08-16 [P4][spice][sim-analyst] Pad every .dc/.ac sweep: the FIRST point can converge to junk and `at=` on the LAST point errors out
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+On a 5-op-amp chain (three inside the AD8226 macromodel, two OPA2333 halves) ngspice 46
+reported "Dynamic gmin stepping failed / True gmin stepping failed / source stepping failed"
+at the first point of `.dc Vd -0.001 0.025` and returned a bogus operating point there:
+`v(amp1)` read 0.1025 V (pinned to the model's output clamp) where the correct answer is
+0.2123 V, while every later point - which converges from the previous solution - was exact.
+At the other end, `at=0.025` on the last point of the same sweep failed with "out of
+interval". Both vanish if the range is padded (`-0.002 .. 0.026`) so that no MEASURED point
+is a sweep endpoint. Costs nothing, and without it a bench silently reports a wrong number
+rather than failing. Two related traps found the same session: `.meas tran ... fall=last`
+with no `from=/to=` scans the WHOLE run (a settling-time measure on the first step returned
+the recovery edge of an overload 2 ms later - 2020 us instead of 23.6 us), and there is no
+`i(x1.r2)` vector for a resistor inside a subcircuit - derive branch currents from node
+voltages in a `param=` instead.
+
+## 2026-08-16 [P4][spice][sim-analyst] A behavioural op-amp needs its anti-windup on the INTEGRATOR node, and its swing clamp AFTER ro - the datasheet swing number is already loaded
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+Two defects measured in one agent-authored generic op-amp macromodel, both of which produced
+plausible-looking wrong answers rather than errors. (1) Clamping only the output buffer
+leaves the R||C integrator node free: 1 ms of a +25 mV overload charged it to ~160 V at the
+slew limit, and the bench then showed the amplifier NEVER recovering - a fake overload-
+recovery failure. Clamp the integrator node itself (stiff diode pair to rail +- a small
+anti-windup headroom) so recovery costs headroom/slew-rate. (2) Clamping ahead of the
+open-loop output resistance and then dropping ro*Iload on top DOUBLE-COUNTS the load: a
+datasheet "output swing 30 mV from the rail at RL = 10 k" is already a loaded figure, and
+stacking a 1 kohm ro on it put the clip level at 3.152 V instead of ~3.27 V - inside the
+gate window by 2 mV, i.e. it would have passed while being wrong. Put the swing clamp on
+the output NODE and leave ro free to do its real job (AC output impedance and capacitive-load
+stability). Corollary for the sidecar: state that the recovery TIME is then a property of
+the anti-windup headroom you chose, not a datasheet number, and gate it as a warning.
+
+## 2026-08-16 [P4][sim-analyst][inamp] Build the in-amp from its OWN published 3-op-amp structure and the REF-impedance defect becomes a gate failure instead of a review opinion
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+Modelling the AD8226 as its published topology - two preamps with 24.7k feedback around the
+external RG, then a difference amplifier from four 50k resistors with REF at the end of one
+of them - costs about fifteen lines and makes three separate things emergent rather than
+asserted: the gain law G = 1 + 49.4k/RG comes from the resistors, internal Node 1 is a real
+node you can probe (`v(x1.xu1.nd1)` works), and any impedance in series with REF reproduces
+the datasheet's own 2*(50k+Rref)/(100k+Rref) uneven amplification exactly. That last one
+turns "the REF buffer is not optional" from a design-review claim into a measured gate bound:
+deleting the buffer and driving REF from the bare 9.24 k divider Thevenin moved the CMRR
+bench from 0.134 mV to 17.06 mV over a 0.2 V common-mode sweep, 57x over its window, and
+moved the reference node itself by 16.9 mV. Seed exactly that defect to prove the bound
+before shipping it.
+
+## 2026-08-16 [P4][sim-analyst][datasheet] A datasheet stability curve is taken AT A STATED GAIN - a unity-gain overshoot figure does not transfer to a stage running at higher noise gain
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+The error this board actually made, and the reason a part was designed in and then removed
+one phase later. OPA2333 Figure 15 ("SMALL-SIGNAL OVERSHOOT vs LOAD CAPACITANCE") shows
+overshoot reaching roughly the mid-30 % range by CL = 1 nF, and requirements allowed 1 nF of
+output cable, so P3 added R6 = 100 R as an isolation resistor. What the figure does not say
+on its face - its test conditions are not labelled on the page, only the page-level
+"TA = +25C, VS = +5V" note - is that an overshoot-vs-CL curve is a UNITY-GAIN measurement,
+the worst case for a voltage-feedback amplifier. The stage it was applied to runs at a noise
+gain of 3.49, which moves the loop crossover from GBW to GBW/3.49 and is worth roughly 25
+degrees of phase margin against the identical load. Measured in one bench: the same
+calibrated macromodel gives 32.0 % for a plain unity buffer into 1 nF (reproducing Figure 15,
+which is how the model was calibrated) and 6.6 % for the real stage into the same 1 nF with
+NO isolation resistor. The part was never needed. Rules: (1) before designing a part in on
+the strength of a capacitive-load, overshoot, phase-margin or settling curve, find the GAIN
+the curve was taken at and re-ask the question at the gain you are actually running - and if
+the datasheet does not label the figure, say so and treat unity gain as the assumption;
+(2) a stability curve read at the wrong gain is not conservative, it is simply a different
+circuit; (3) put the calibration instance IN the bench (here a unity buffer reproducing
+Figure 15 alongside the real stage) so a reader can audit the transfer instead of trusting
+it. Corollary already recorded above: an out-of-loop series resistor only isolates in
+proportion to R/ro, so 100 R against a 1-2 kohm open-loop output impedance moved overshoot
+by 0.3 to 1.3 points - it would not have done the job even if the job had existed.
+
+## 2026-08-17 [P6][board_init][board_edit][build-modes] `outline_bbox` is a BBOX, not a size - and the "generous provisional room" auto picked was the wrong ASPECT, not the wrong area
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+`reports/board_init.json` records `"outline_bbox": [13.0, 13.0, 41.02, 57.69]` - min/max corners.
+The P5 digest (and the P6 spawn brief that quoted it) both read that as "41.0 x 57.7 mm". The board
+is 28.02 x 44.69 mm. That is not a rounding difference: it inverts which dimension is scarce. The
+canonical layout for this block is a WIDE board (J1 on the left edge, J2 on the right edge, a two-IC
+chain between them), and it does not fit in 28 mm of width at any packing density - while the AREA
+auto chose (1252 mm2) is within 8 % of what the layout finally needed (1259 mm2 of content). Two
+rules: (1) print `w x h` derived from the bbox, never the bbox corners, in any prose a later stage
+reads; (2) at a `canonical` binding `--outline auto` is only sized, never shaped - check the aspect
+against the block's own layout before treating the provisional room as roomy.
+
+## 2026-08-17 [P6][board_edit][placement] `--outline fit` CLIPS to the CURRENT outline, so "place canonically, then fit" only works if you GROW the room first
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+`board_edit.content_bounds()` intersects the union of courtyards/copper/rule-areas with the current
+outline before taking the bbox - deliberately, so fit can never invent a containment violation. The
+consequence for the canonical flow is an ordering constraint nobody states: if the placement you want
+extends past the provisional edge, `--outline fit` measures only the part that was inside and returns
+a SMALLER board, silently. The working order is grow (`--outline WxH`, generous in both axes) ->
+place -> `--outline fit`. `--outline WxH` also refuses while the CURRENT placement has anything
+outside the NEW rect, so the grow rect has to cover the union of the old and new placements, or the
+placement has to be applied first. Companion fact: fit is idempotent (re-running with the same margin
+reproduces the same rect), so the orchestrator's own post-gate fit is a no-op confirmation.
+
+## 2026-08-17 [P6][P4][placement][diff-pair][inamp] A connector's pole ORDER against the IC's pin order forces exactly one crossing on the input pair - and it is a free schematic fix, measured both ways
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+bb-amp's J1 was drawn (IN+, IN-, GND) on poles 1/2/3 while the AD8226's inputs run (-IN, RG, RG,
++IN) on pins 1..4. Those two orders are reversed, so /IN_P and /IN_N must swap exactly once between
+connector and amplifier. This is TOPOLOGICAL, not a placement failure: rotation preserves orientation,
+so I enumerated all eight combinations (J1 on each of four edges x U1's input face toward it) and
+every one interleaves. Rotating BOTH parts mirrors both orders and preserves the interleave; only a
+reflection of one of them fixes it, and a front-side SMD part cannot be reflected.
+
+Measured, same placement, only the two pad-net assignments changed (J1.1 <-> J1.2):
+  before   /IN_P, /IN_N HPWL 15.23 mm each, board HPWL 173.45, crossings_signal 6 (incl. IN_N x IN_P)
+  after    /IN_P, /IN_N HPWL 11.43 mm each, board HPWL 165.85, crossings_signal 5 (pair gone)
+  geometry start dy -/+2.540 -> end -/+1.900, dx 10.790, euclid 10.8090 on BOTH legs, delta 0.000000
+  routing  two straight F.Cu segments at the netclass width, ZERO vias, kicad-cli --severity-all
+           reports 0 non-unconnected findings and 0 remaining unconnected on either input net
+Before the swap the same placement needed a via pair on one leg (~0.6 pF of imbalance, ~-123 dB at
+1 kHz by in-input-path-equivalence's 1.1 ppm/pF) plus a slot in the B.Cu reference under the input
+region, which blocks.md section 5 item 6 forbids.
+
+Rules: (1) at P4, order a multi-pole input terminal to MATCH the amplifier's pin order along the
+facing direction, not to match the schematic's reading order - it costs nothing and it is the
+difference between a zero-via pair and a pour slot under the input; (2) P6 cannot fix it, so a
+placement agent that finds an unavoidable pair crossing should report the pole swap rather than
+spend vias on it; (3) a `board_update` will NOT carry a pad-net rewire (it refuses by design) - the
+fix costs a P5 re-init, so it is cheapest caught at P4 review.
+
+## 2026-08-17 [P2][P5][P7][P8][constraints][diff-pair][orchestrator] `diff_pairs` conflates "route these symmetrically" with "control these to an impedance", and every consumer assumes the second
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+Four sightings on ONE board, each in a different phase and each looking like an
+unrelated problem:
+
+- **P2** - the `interface:in` coverage slot is typed from `diff_pairs[].base`, so it
+  inherited `gap_mm` / `max_skew_mm` / `max_uncoupled_mm`. None of the interface
+  records' envelopes could be tested against geometric dims, so all five returned
+  `unknown` and could only ever read `provisional`. Fixed by retyping the slot's
+  `operating_point` with electrical dims (`rsource_ohm`, `vcm_v`, `ibias_ua`, `dt_c`...).
+- **P5** - `rules_gen.py:166` is `dp.get("impedance_ohm", 90)`, and the diff-pair
+  NETCLASS WIDTH is solved from that number. A pair with no impedance declared got a
+  **1.3743 mm** trace width on a board with no controlled impedance anywhere. The router
+  traces at class width, so this ships silently.
+- **P7** - `route_critical --only diff` drives `route_diff.py`, which REQUIRES the pair to
+  emerge coupled at the declared gap and errors otherwise. Running it would have converged
+  both legs onto the mirror axis and into R1's pads.
+- **P8** - `check_diffpair` failed the verify gate demanding both legs stay within 0.75 mm
+  of each other, flagging all 10.81 mm of a deliberately mirror-symmetric pair as
+  "uncoupled".
+
+**The rule.** A low-frequency differential pair needs EQUALITY (length, width, via count,
+neighbourhood, capacitance to the reference), not COUPLING. Coupling is an
+impedance-control mechanism, and forcing it on a precision DC pair actively destroys the
+symmetry it looks like it is protecting.
+
+**What to do until the schema grows a `symmetry_only` flag:** declare `impedance_ohm` as
+the impedance the pair ACTUALLY HAS at the width you want (solve it backwards from
+`lib/impedance.py` against the real stackup), set `max_uncoupled_mm` past the run length,
+and put a `_note` key in the JSON saying both are consequences rather than targets. Fix
+the premise, never waive the symptom - a waiver leaves the wrong number in the file for
+the next reader.
+
+## 2026-08-17 [P6][P4][process][orchestrator] A late pin change must sweep every artifact that STATES the pin order, not just the ones a gate reads
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+The P6 J1 pole swap propagated correctly into the netlist, the schematic, the board and
+the P6 digest - every artifact a gate consumes. It did NOT reach `requirements.md`
+(sections 2 and 9a), `architecture/blocks.md` (B1 and the block diagram), or the
+design-doc PDF already delivered at H1. Those are exactly the artifacts a HUMAN reads.
+
+The board then shipped to P8 review with **no connector legend at all** and **every
+document stating the opposite pole order**. On a hand-wired board that is a destroyed-IC
+path: J3 reversed puts -3.3 V on both supply pins.
+
+No gate catches either half. ERC, DRC, verify, DFM and the netlist audit are all blind to
+a missing silkscreen legend and to a stale sentence in a markdown file. Only a
+fresh-context reviewer looking at the RENDER found it.
+
+**Rule:** when a pin or pole assignment changes after P4, grep the whole workspace for the
+old order and fix every hit, then regenerate the design doc. Treat "which artifacts state
+this fact" as part of the change, not as documentation cleanup afterwards.
+
+## 2026-08-17 [P4][kicad][schematic][render] KiCad DRAWS text-box overflow instead of clipping it, and no gate sees it
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+Hit twice on this board while adding notes to the equations box. When a text box's content
+outgrows its border, KiCad renders the overflow outside the frame - across the sheet and
+into the margin - while ERC and `netlist_audit` both stay clean, because neither looks at
+graphics.
+
+Both times it was caught only by measuring the rendered line pitch off the plotted PDF
+(~1.45x font size per line) and re-reading the render. **Any generated schematic text
+needs a render check, not a gate run.**
+
+## 2026-08-20 [P9][research][knowledge][second-reader] Envelope authoring, not citation accuracy, is where research records fail - and a bad envelope runs BACKWARDS
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+Six draft records were re-read blind by fresh readers on 2026-08-20. All six refuted, and
+the failure was concentrated: **transcription was near word-perfect in all six** and page
+numbers were right in four. What broke them was the `envelope`, in three of the six - and
+each of those three excluded **exactly the regime the rule was written for**:
+
+- `inamp-gain-pin-and-input-node-parasitics` - `f_signal_hz max 5000` on an error the
+  record's own mechanism says GROWS with frequency. `envelope_contains` therefore returns
+  `outside` for precisely the designs where the effect is worst.
+- `in-leakage-symmetry-and-guarding` - capped at `1 Mohm` while the record's own guard
+  regime STARTS at 1 Mohm.
+- `in-bias-return-sizing` - capped `rsource_ohm` at 10 k while its own rule prescribes the
+  balanced bleeder pair for HIGHER source impedance.
+
+**The test that catches all three** is the U14 ruling already in `knowledgelib`: an
+envelope bounds *where the rule stops being TRUE*, never *the numbers the rule happens to
+carry*. All three had silently bounded the numbers - two of them the rows of a spec table,
+one an example value. A useful second question: **does the envelope's edge sit where the
+mechanism is weakest or strongest?** If the cap is where the effect is strongest, it is
+backwards.
+
+Corollary found the same day: a worked number quoted out of its stated test condition is
+the other recurring defect. `in-path-symmetry-sets-cmrr` quotes SBOA582's 40 dB case
+without its `Gain = 1 V/V` condition from Fig 3-2 - at the board's own G ~ 150 the same
+formula gives 77.5 dB. Same family as the Figure-15 unity-gain error from P4: **a vendor
+number carries its test condition, and dropping the condition always flatters the claim.**
+
+## 2026-08-20 [P9][research][knowledge][process] A blind re-read is worth running even when you expect it to confirm - it prices the repair
+Promoted from boards/PCB-0013-A_bb-amp/LEARNINGS.md (promotion pass 2026-10-04).
+Re-reading six already-refuted records looked like it could only reproduce a known answer.
+It did reproduce it (0 verified of 6, matching the earlier pass on every record, reached
+without being told the prior verdicts) - but the run paid for itself three ways:
+
+1. **A new concrete error** nobody had: the 40 dB / Gain = 1 V/V condition above.
+2. **A sharper witness line.** The first pass ruled that INA333-based bias-return SIZING
+   does not transfer to an AD8226 board at all. The re-read split it properly: the LAW
+   (Ib x R against the error budget) transfers as a general in-amp principle; only the
+   47k/10k NUMBERS, which are 70 pA CMOS values, do not. That distinction is what makes
+   the record repairable instead of dead.
+3. **A repair price per record.** Five of six are fixable from sources already in their
+   ledgers with no fetch; one (`in-aggressor-separation`'s unbroken-reference rule) needs a
+   plane-continuity source nobody has, and the reader proved that by checking the
+   uncited pages too - the app note's own reference design splits its plane.
+
+Blind matters: a reader told the prior verdict tends to re-derive it. A reader told only
+"both outcomes are expected" produces evidence you can actually compare.
+
+## 2026-08-16 [P0][modes][check_requirements][pipeline] A blockquoted brief silently disables the ENTIRE U18 mode leg of check_requirements.py
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+`modeslib.detect` skips lines beginning with `>` and lets the first PLAIN line of the
+brief decide the token. Write the owner's brief as a markdown blockquote - the obvious
+way to mark "these are their words, verbatim" - and `detect` returns `None`. The
+consequence is not a failure but a silence: `req_mode_unnamed` and
+`req_mode_unmarked_size` can never fire, so a requirements.md that names no mode and
+states an unmarked HARD size passes the lint clean. What you get instead is a
+`req_mode_stray` WARNING whose text points the wrong way ("section 1 names a build mode
+but no brief/ file opens with a mode token"), which reads as a cosmetic complaint about
+section 1 rather than as "your mode checks are all switched off".
+
+Verified on this run: with the brief blockquoted, exit 0 / status pass / one stray
+warning; with the token as the first plain line, exit 0 / 0 violations and
+`brief_token` populated in the report. Both are exit 0 - the difference is only visible
+in the report body, which is why it can pass unnoticed.
+
+The mechanical half of U18 is NOT affected: `state.py mode` records the resolved mode
+into state.json independently, so `board_init`'s refusal of a fixed `--outline` still
+bites. Only the lint goes blind.
+
+Fix here: the brief's first plain line IS the token line; provenance ("owner brief,
+verbatim, received <date>") goes BELOW a rule, not above the token. Sibling workspace
+bb-mcu had the same shape at the time of writing.
+
+## 2026-08-16 [P1][parts][adc][jlc] JLC's "External" reference attribute lies for 8-pin MCP3202: VDD and VREF are ONE physical pin
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+Scouting 12-bit SPI SARs with a separate reference input, the MCP3202 ranks first on
+every catalog axis that parts_search can see - better stock (1347) and lower price
+($2.06) than the MCP3201 - and its JLC attribute row claims an External reference.
+It is disqualified anyway: in the 8-pin package MCP3202 bonds VDD and VREF to a single
+pin, so the reference cannot be set below the supply. On a board whose whole accuracy
+argument rests on an external 2.5 V-class reference, that silently turns the design
+ratiometric to the host's +/-5 % rail.
+
+Only the datasheet (DS21290F) shows it; the catalog attribute does not. The general
+form: for a converter, "has an external reference" is a PIN-MAP question, and the pin
+map lives in the datasheet's package section, not in a distributor attribute. Check it
+per package variant, not per part family - the 8-pin and 14-pin members of one family
+differ exactly here.
+
+Second finding from the same sweep: of the SARs the scout surfaced, every one with
+16-bit-class accuracy (ADS8318 / ADS8681 / ADS8688) requires >=4.5 V AVDD.
+**CORRECTED at P2 - do not carry the generalisation.** The architect found ADS8326
+(16-bit, 2.7-5.5 V supply, external VREF, +/-2.5 LSB INL max) in stock, which
+falsifies "nothing that accurate runs natively at 3.3 V". The true statement is
+narrower: the 16-bit parts with the WIDEST input ranges and on-chip attenuators need
+>=4.5 V, because the attenuator needs the headroom - not 16-bit accuracy as such.
+A one-sweep absence is evidence about the sweep, not about the catalogue.
+
+## 2026-08-16 [P2][parts][adc][accuracy] A 12-bit part's "+/-5 LSB gain error" is a BIGGER voltage than a 16-bit part's, and ranking SARs on INL hides it
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+P1 ranked 12-bit SARs and reported INL per candidate, which is the spec everyone
+quotes. MCP3201-B's own DS21290F also specifies **gain error +/-5 LSB MAX and offset
++/-3 LSB**, and at 12 bits over a 5 V full scale one LSB is 1.22 mV - so the gain
+term alone is 6.10 mV, **1.22x the entire +/-5 mV error budget** of this board. The
+part was the P1 lead candidate and would have failed the board's headline spec on a
+datasheet number nobody had read.
+
+The mechanism generalises and is counter-intuitive: DC error specs denominated in
+LSB shrink 16x in VOLTAGE going from 12-bit to 16-bit at the same full scale. So a
+16-bit converter quoting "+/-16 LSB gain error" is FOUR TIMES BETTER in volts than a
+12-bit one quoting "+/-5 LSB". Resolution and accuracy move together in the spec
+table, in the opposite direction to the intuition that a coarser part has an easier
+job. "12-bit or better" in a brief is a resolution floor; it says nothing about the
+DC error, and on an accuracy-driven board the higher-resolution part is often the
+cheaper way to buy accuracy.
+
+Selection rule to carry: for a converter on a DC-accuracy board, rank on OFFSET,
+GAIN and INL **as maxima, converted to millivolts at the terminal** - never on INL
+alone, and never in LSB. Parts that specify only typicals for offset and gain are
+disqualified by that alone: an unbounded term cannot enter an error budget.
+
+## 2026-08-16 [P1][parts][jlc][sourcing] One LCSC search term returns six clone brands under a precision part's MPN pattern, and a clone's offset spec can be 300x looser
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+Searching JLC for an AD8605-pattern precision op-amp returns the genuine
+Analog-Devices row alongside six clone-brand rows sharing the same MPN pattern and
+pinout. Pulling one clone's own datasheet (brand TECH PUBLIC) gives 5 mV MAX input
+offset voltage against the genuine part's reputation of tens of microvolts - 30 to
+300x looser, on a part number a BOM would treat as equivalent.
+
+On an 0.1 %-class board that single number IS the whole budget: 5 mV of offset
+against a +/-5 mV total error target at 25 C. The failure mode is the bad kind - the
+board assembles, powers up, converts, and is simply wrong by a percent, with a BOM
+line that reads like the right part.
+
+Generalises past this part: for any part whose VALUE is a precision spec (offset,
+tempco, initial accuracy, ratio match), the LCSC brand column is a selection
+criterion, not metadata. Pin the manufacturer, not just the MPN, and pin it in
+parts.json so P3 cannot silently resolve to a cheaper row. Catalog attributes are
+not a substitute - they are frequently copied from the original part's datasheet.
+
+## 2026-08-16 [P1][P2][research][env] analog.com and mouser.com time out from this sandbox; farnell.com is the working ADI-datasheet mirror and is already allowlisted
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+Four independent agents this session failed to reach `analog.com`, and two failed
+on `www.mouser.com/datasheet/...`. Both are on the fetch allowlist, so the failure
+is network reachability from this host, not policy. That matters because ADI now
+owns Linear and Maxim, so a large share of precision-analog primary material -
+references, precision amplifiers, matched networks, the MT-series notes - is behind
+that one unreachable host.
+
+The workaround that WORKED, without touching the allowlist: `www.farnell.com/
+datasheets/<id>.pdf` serves ADI datasheets and is already an allowlisted domain.
+That is how the ADR4520 dropout question was settled. Caveat found in the same
+pass: the Farnell mirror served **Rev 0 (2012)** while current ADI/LCSC copies are
+a later revision, so a mirror is good enough to SETTLE a question and not good
+enough to COMMIT a part - re-confirm the load-bearing row against the current
+revision before ordering.
+
+Also refused, and correctly: `www.lcsc.com/datasheet/<C-id>.pdf` is an HTML viewer
+shell, not a PDF; research.py fetch rejects it under `--expect pdf`. The wmsc.lcsc
+stem is the real PDF path.
+
+Practical ordering for a researcher on this host: ti.com first (fast, deep, and
+its cross-vendor app notes cover most analog topologies), vishay.com for passives,
+farnell.com as the ADI mirror, and do not spend depth-cap attempts on analog.com.
+
+## 2026-08-16 [P2][agents][parallel][pipeline] The session scratchpad is shared across concurrently running agents and its filenames are not collision-safe
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+A researcher writing a PDF crop helper to the session scratchpad as `crop.py` had it
+OVERWRITTEN mid-run by a sibling agent doing the same thing under the same obvious
+name. No damage this time - the first agent had finished cropping - but the failure
+mode is silent and ugly: agent A's script is replaced by agent B's between A writing
+it and A running it, so A executes B's code and reports results for the wrong input.
+
+The scratchpad path is per-SESSION, not per-agent, and a full-run spawns many agents
+concurrently. Obvious names collide precisely because they are obvious: `crop.py`,
+`tmp.json`, `extract.py`, `out.pdf`. Nothing in the harness namespaces them.
+
+Two habits fix it, and orchestrators should put one of them in the spawn prompt when
+running agents in parallel: give every scratch file a name unique to the agent's task
+(`crop-<task-id>.py`), or have each agent create and work inside its own subdirectory
+of the scratchpad. Prefer the subdirectory - it also keeps a failed run's debris
+identifiable afterwards.
+
+Worth noting the same hazard is already handled correctly one level up: research
+outputs are workspace-first (`<ws>/research/...`) and gate commits are workspace-
+scoped, which is why four concurrent researchers could not corrupt each other's
+records. Only the scratchpad is unprotected.
+
+## 2026-08-16 [P3][parts][jlc][sourcing] LCSC's own datasheet URL can resolve to a "Datasheet temporarily unavailable" stub, and parts_search does not filter that pattern
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+Sourcing the voltage reference, the LCSC datasheet URL listed for BOTH grades of the
+part resolved to a stub page reading "Datasheet temporarily unavailable" rather than
+to a PDF. `parts_search.py` already drops JLC placeholder ROWS (no-brand, no-datasheet,
+~$0.04 entries), but a real, branded, in-stock part whose datasheet LINK is a stub
+passes through as fully sourced. The role's own rule - "no fetchable datasheet =
+unverified" - then bites at extraction time, one phase later than it should.
+
+The recovery that worked: the genuine document was reachable through an independent
+distributor mirror (`docs.rs-online.com`), cross-checked for page count and file size
+against a third listing before being trusted. Two mirrors agreeing on a 32-page,
+~1 MB file is decent evidence you have the real document.
+
+Two things fell out of the same episode, both worth more than the stub itself:
+
+**Do not trust an AI web-search summary for a datasheet revision.** Two separate
+search summaries confidently asserted this part was at "Rev G, 05/15/2024" and
+"Revision B". Direct inspection of the PDF shows **Rev 0, 4/12** - and that Rev 0 IS
+the current revision, still in distribution fourteen years on. A revision claim is
+exactly the kind of fact that reads as trivially checkable and is therefore rarely
+checked; here it decided whether an 87 mV headroom margin was still valid.
+
+**Reaching a document through a mirror is not the same as knowing it is current.**
+The first pass settled the spec from a mirror and correctly logged "Rev 0 (2012) -
+re-confirm against the current revision before BOM release". Closing that item needed
+a SECOND, independent channel, not a re-read of the same file. The distinction between
+"this is what the document says" and "this document is current" has to be carried
+explicitly, because the first is cheap and the second is not.
+
+## 2026-08-17 [P4][schlib][python] `place_ic_with_decoupling`'s default `caps_dx` is too small for this library's 2-pin symbols, and it fails as a confusing label-guard error
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+The default `caps_dx=12.7` puts adjacent decoupling caps 12.7 mm apart. Every 2-pin
+symbol pulled into `lib/aiee.kicad_sym` has its pins at +/-5.08 mm from the anchor
+(measured: R0805, C0402, C0603, C0805, C1210 all +/-5.08; the 1 nF C0603 alone is
++/-3.81), so a cap's pin-2 stub ends 7.62 mm right of its anchor and the NEXT cap's
+pin-1 label anchor lands 7.62 mm left of its own - i.e. exactly on the neighbour's
+stub wire. Generation then dies with
+
+    ValueError: label 'VDD_ADC' at (132.08, 114.3) lands on an existing wire run
+    (132.08, 114.3)-(134.62, 114.3) - it would merge nets
+
+which names the LABEL, not the spacing, and sends you looking at the net contract.
+The guard is doing its job - two nets really would have merged - but the fix is
+`caps_dx=25.40`, which is what bb-buck already passes explicitly on every call.
+Rule for this library: never take the default; 25.40 mm is the working minimum for a
+row of these caps, and the failure is at build time, not silent.
+
+## 2026-08-17 [P4][schematic][erc] KiCad 10.0.3 ERC is indifferent to `no_connect`-typed pins - marker or no marker - so the NC marker is documentation, not compliance
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+The ADR4520 carries four NIC pins plus a factory test pin, all hand-typed `no_connect`
+in the project library (a P3 edit that must survive any re-pull, decision 69a).
+Probed both ways on a one-part scratch sheet through `kc.py erc`: five NC markers ->
+0 errors / 0 warnings; the same five pins left completely alone -> also 0/0. So the
+ERC gate cannot tell "deliberately unconnected" from "forgotten", and neither reading
+is enforced by the tool. The markers are placed anyway, because the only place the
+datasheet's "Do not connect" can live in the artifact is the artifact.
+
+Same session, second cosmetic fact with a real consequence: `schem_refdes` does not
+rotate field text but KiCad does (LEARNINGS root, 2026-08-09), and on a rot-90 symbol
+that lands the Value as a VERTICAL string. A 27-character Value ("2-pos 5.08mm screw
+terminal") on a connector near the left border then runs clean off an A4 sheet - no
+warning, `place_report.residue` still empty, visible only in the rendered PDF. J1 got
+the rotation (it separates two otherwise-overprinted net labels) and a short MPN Value
+to pay for it.
+
+## 2026-08-17 [P4][schematic][analog] schlib guards labels-landing-on-wires; a hand-drawn wire needs the MIRROR check, and on this board that guard is the only thing between a correct netlist and a silently wrong one
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+`Sheet._assert_label_clear` rejects a LABEL whose anchor lands on an existing wire run.
+Nothing checks the other direction, and this board needs the other direction: `U1`'s
+-IN is a dedicated sense run drawn as an explicit multi-segment wire to `R5`'s bottom
+pad, carrying no label of its own, so the geometry IS the connection. A segment
+crossing any foreign label anchor or pin would merge the sense net into whatever it
+touched, and every downstream gate would still pass - ERC sees one net either way,
+`netlist_audit` sees `U1.3` on `GND` either way, and both readings are electrically
+"correct" because there really is one net.
+
+`gen/root.py` therefore ships `sense_run()`, which builds the path and asserts each
+segment clear of every label anchor (recomputed from `Sheet._pin_nets`) and every pin
+of every placed component, endpoints excepted. It is also called BEFORE the remaining
+labels are placed, so schlib's own guard covers everything that follows: the two
+directions together are complete. Verified after the build by dumping the exported net
+memberships (14 real nets, `U1.3` and `R5.2` together on `GND` and nothing else joined)
+and by asserting all four wire segments are present in the saved file.
+
+## 2026-08-18 [P4][schematic][analog][layout] SUPERSEDES the 2026-08-17 sense-run entry: a remote sense must be its OWN NET with a single-point tie PART - "electrically one net" is the wrong unit of analysis once a pour exists
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+The 2026-08-17 entry above reasoned that `U1` -IN and the attenuator's bottom node are
+electrically one net, so the schematic's job was the WIRE and `constraints.json`'s
+`R5` -> `U1` corridor would carry the Kelvin intent into copper. **Both halves are
+wrong, and the adversarial review (E1) found it.**
+
+1. **"One net" stops being true the moment a plane is poured.** On the netlist `U1.3`
+   was one of SIXTEEN `GND` nodes, indistinguishable from `U1.4`. `planes_gen` connects
+   every node of the pour's net, so pin 3 gets a thermal to the B.Cu pour at the
+   converter exactly as pin 4 does - and the measurement is then referenced to the pour
+   AT THE CONVERTER, which is the error the sense exists to cancel. The drawn wire does
+   not survive netlist export; only nets do.
+2. **A corridor is a KEEP-CLEAR SWATH, not a connectivity rule.** It reserves area. It
+   cannot stop a pour from tying a node, and no gate reads it as if it could.
+
+The fix that works is structural: `/AGND_SENSE` as its own net with exactly three nodes
+(`U1.3`, `R5.2`, `R8.1`) and `R8`, a 0 ohm link, as the ONE tie to `GND` at the string
+bottom. The pour cannot swallow a net that is not `GND`, so the isolation is now
+enforced by connectivity rather than by intent. Residual after the split:
+`K*(V_sig - V_S) + Vos`, where the only error term is the J1-return-to-string-bottom
+pour offset, input-referred at UNITY and carrying only the string's own 5 uA - sub-1 uV.
+`R8` adds ~0.25 uV, leaving -IN six orders inside the -0.3/+0.5 V window.
+
+**The transferable rule: any Kelvin / remote-sense / star-point node needs a NET of its
+own and a physical single-point tie (0 ohm link or a deliberate junction), never a
+shared ground net plus a placement hint.** Cost here was one Basic 0402-class part from
+the same reel family as R6/R7. Corollary worth its own line: `netlist_audit`'s
+`_constraint_nets` covers `high_speed`, `power`, `voltages`, `thermal` and `diff_pairs`
+- it does NOT read `placement.corridors[].net`, so a corridor naming a net that does not
+exist passes silently. Sheets.md s6's "an entry naming a net that does not exist fails
+silently" applies to corridors with no gate behind it; check it by hand at P4.
+
+## 2026-08-18 [P4][parts][lib_pull][erc] A freshly pulled symbol comes back with `input` pins into a library whose other symbols were already retyped - and the whole-library fixer would undo a hand-edit
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+Adding `R8` mid-P4 meant one new `lib_pull.py --lcsc C21189` into a library that P3 had
+already put through `lib_pin_types.py` plus a hand-edit. Two things fell out.
+
+**The pull is untyped.** `0603WAF0000T5E` arrived with BOTH pins typed `input` while its
+siblings `0603WAF499JT5E` / `0603WAF100JT5E` (same family, same reel, pulled at P3) were
+`passive`. Two `input` pins on a passive net is an ERC error waiting to happen, and the
+difference is invisible unless you dump pin types - `schlib.py --pins` reports it.
+
+**The whole-library fixer is not the answer.** `lib_pin_types.py` takes `--lib` and no
+symbol filter, and it has no NC concept: running it would silently revert `U2`'s five
+hand-set `no_connect` pins to `passive` (dry-run-confirmed at P3, decision 69a). So the
+repair was a SCOPED text edit - `(pin input line` -> `(pin passive line` inside that one
+symbol's block only, with an assert on the expected count - and both facts were verified
+afterwards: the new symbol reads `passive`/`passive`, `ADR4520BRZ-R7` still reads
+`no_connect` on 1/3/5/7/8. Rule: after any incremental `lib_pull` into an
+already-corrected library, diff the pin types of the NEW symbol only, and repair it
+scoped. `--overwrite` would have been worse - it re-pulls the parts whose types are the
+hand-corrected ones.
+
+## 2026-08-19 [P8][sim][ngspice] `.meas ... param='...'` rejects {braces} - and the measure vanishes with the run still reporting ok
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+Machine-verified on ngspice 46 through `sim_run.py`. Inside a measure's `param='...'`
+expression, `{param_name}` is a hard syntax error - stderr carries `Syntax error:
+letter [{]`, `Expression err: ...`, `Cannot compute substitute` - and the measure is
+simply ABSENT from the returned dict. `run_circuit()` still returns `status: ok`, so a
+deck can lose a third of its measures and look healthy; only counting the measures you
+expected catches it. The rules, all probed:
+
+- `param='(vpk-vfin)/vstep*100'` with BARE `.param` names: WORKS.
+- `param='(vpk-vfin)/{vstep}*100'`: dropped.
+- `AT={t0+tacq}` and `WHEN v(x)={vhi-15.6e-6}`: braces WORK in these clauses.
+- a measure RESULT inside a braced clause, e.g. `WHEN v(o1)={vhi+0.5*(vpk1-vfin1)}`:
+  rejects the whole circuit (`NameError` from the parser) - braced clauses are resolved
+  at parse time, before any measure has a value.
+
+So: braces in `AT=`/`WHEN=`, bare names in `param=`, never a measure result in braces.
+The useful corollary is that `param=` over bare `.param` names lets a bounds sidecar gate
+a FITTED VALUE directly (`cbulk_uf param='(c5+c3)*1e6'` against the ADR4520's two-ended
+1-100 uF window) or a closed-form limit (`qdyn/cbulk*1e6`), with no solver in the path.
+
+## 2026-08-19 [P8][sim][ngspice][opamp] Mixing clamped and unclamped output stages in ONE .dc deck silently corrupts the OTHER instances
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+`zero-scale-swing` put three copies of the same op-amp boundary model in one `.dc` sweep:
+two with `V- = GND` (so at zero scale the output sits exactly ON the `min(max(...))`
+rail clamp, where the derivative is zero) and one with `V- = -0.3 V` (TI's contingency
+generator, never clamped). The operating point then falls back through `Dynamic gmin
+stepping failed` / `True gmin stepping failed` / `source stepping failed` - 63 to 99 of
+them across the sweep - and ngspice returns `status: ok` with values that are WRONG FOR
+THE INSTANCES THAT WERE FINE ON THEIR OWN: the as-built buffer read a flat ~5 uV across
+the whole bottom decade instead of tracking its input, which reads exactly like a real
+zero-scale failure. Each instance converges cleanly in isolation.
+
+Two rules. (1) A rail-clamped behavioural output stage and an unclamped one do not share
+a DC matrix - sweep the rail between RUNS (it is a `.param`, and that is also how the
+seeded defect is applied) rather than between instances. (2) `Warning: ... stepping
+failed` on stderr is not cosmetic in a DC bench; treat any of them as invalidating the
+whole sweep, because the wrong numbers arrive silently and plausibly. The cheap check
+that caught it: run the deck at three `reltol` settings decades apart - real physics is
+identical to 5 digits (verified so for every settling number in `acquisition-settling`),
+a fallback-corrupted solve is not.
+
+## 2026-08-18 [P8][sim][analog] Seeding a REJECTED PART as the deliberate defect turns a bench into an independent audit of an earlier decision
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+Every bench on this board was calibrated by mutating one value to the defect it exists
+to catch, confirming the bound trips, and reverting. For the settling bench the obvious
+mutation was a wrong resistor - but substituting the **rejected amplifier** was
+available for free, and it did something a value-mutation cannot.
+
+The OPA333 had been rejected at P2/P3 on three arguments assembled from datasheet
+numbers: a GBW floor of 48/(2*pi*t_acq) = 849 kHz against its 350 kHz, its own measured
+40.4 us settling curve, and an isolation-resistor interval that looked empty (that third
+argument was later WITHDRAWN as an overreach - the vendor equation gives an optimum, not
+a maximum). Dropping its model into the settling bench moved the settling error from
+**0.136 uV to 4509 uV** - a 33,000x miss of a 15.6 uV budget.
+
+Why this is worth more than an ordinary seeded defect: the rejection had been argued
+across two phases, partly on a leg that turned out to be wrong, and re-derived from a
+different datasheet's timing section. A defect seed that reproduces a REAL earlier
+decision closes the loop on it with a different method entirely - simulation rather than
+datasheet arithmetic - and would have flagged a rejection made for bad reasons.
+
+Generalise: when a bench needs a seeded defect and the project has already REJECTED a
+candidate for that exact role, seed the rejected candidate. It costs nothing extra, it
+proves the bound discriminates on the axis that actually decided the design, and it
+audits a decision that otherwise never gets re-tested.
+
+## 2026-08-19 [P7][stitch_vias][drc][kicad] stitch_vias' hole-to-hole model is 0.3 mm too permissive - KiCad measures hole EDGE to hole EDGE, so the tool ships DRC errors it cannot see
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+stitch_vias' docstring pins its spacing model as "EDGE_GAP = 0.5 - 0.3 = 0.2 mm - identical
+to the S11-verified 0.5 mm CENTRE floor for two standard 0.3-drill vias". That equivalence
+is wrong, and it is wrong in the unsafe direction.
+
+THE ARITHMETIC. KiCad 10 measures `hole_to_hole` between hole EDGES, so what the rule sees is
+
+    measured = centre_spacing - drill_diameter        (both drills 0.30 mm)
+
+On this board stitch_vias proposed a GND via at (41.85, 39.85) for U3.2 while an existing
+0.6/0.3 GND via sat at (41.60, 40.40): centre spacing sqrt(0.25^2 + 0.55^2) = **0.604 mm**,
+comfortably past its own 0.5 mm model floor. Applied to a scratch copy of the finished board,
+that exact spacing produces a hard error:
+
+    error hole_to_hole | Drilled hole too close to other hole
+                       | (rule 'aiee_hole_to_hole_floor' min 0.4995 mm; actual 0.3042 mm)
+
+0.604 - 0.30 = 0.304, matching the reported 0.3042 exactly. So a 0.5 mm hole_to_hole rule needs
+**0.8 mm centre-to-centre** for two 0.3-drill vias, not 0.5 mm: everything stitch_vias places in
+the (0.5, 0.8) mm band next to an existing same-net via is a violation its own check passes and
+the gate then fails on. The band widens with drill size - the floor is always
+`rule + drill_a/2 + drill_b/2` centre-to-centre.
+
+SECOND TRAP, same op. `already_stitched` is a **0.2 mm pad-centre-to-via proximity test**, so a
+pad properly connected by a short track to a via 0.9 mm away is reported as needing stitching at
+all. 11 of 12 GND SMD pads here were correctly skipped; the 12th was electrically stitched
+already and still generated a proposal.
+
+MITIGATION. Always run `--dry-run` first and treat every proposal as a candidate **LOCATION**,
+not as an addition to apply. Measure each proposed `at` against the existing same-net vias with
+the arithmetic above before writing anything. On this board the proposed spot was directly under
+the pad and strictly better than what was there, so the right answer was not to add the via but
+to **REPLACE** the existing one - and the jog track that had forced the offset via disappeared
+with it, shortening the op-amp's V- return and leaving more guard copper inside the ring. A
+proposal that is illegal as an addition is often correct as a relocation.
+
+## 2026-08-19 [P7][planes_gen][guard-ring][analog] A driven guard ring is a planes_gen zone with connect:solid - and closure is a provable geometric property, not an eyeball
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+The /AIN_DIV tap on this board (~240 kohm Thevenin) needs a guard ring poured on
+/AIN_BUF, the buffer OUTPUT - same potential, low impedance (record
+`resistive-attenuator-high-z-tap-guard-and-leakage`). Two things made it buildable
+without hand-drawing a trace loop:
+
+1. **planes_gen builds it.** One entry in a `planes` sidecar -
+   `{"net":"/AIN_BUF","layer":"F.Cu","region":[40.40,37.90,45.20,43.20],"priority":1,
+   "connect":"solid","min_width":0.25}` - and KiCad's own filler forms the ring, because
+   the fill flows around every foreign pad at clearance and merges with the same-net pad
+   it must be driven from. `connect: solid` is load-bearing: with the default thermal
+   relief the fill does NOT merge with U3.1's pad and the ring never closes through it.
+   Gotcha: planes_gen REJECTS unknown keys on a `planes` entry - a `_why` string, which
+   every other constraints.json section carries, is a hard `CheckError: planes[0]: unknown
+   keys ['_why']`. Park the rationale in a sibling key on the sidecar root.
+
+2. **The region is chosen from the CHANNELS, not from the node.** Copper 0.127 wide plus
+   2 x 0.127 clearance needs 0.381 mm, so the 0.35 mm SOT-23-5 pin1/pin2 and pin2/pin3
+   channels cannot carry the ring at all - the closed ring has to encircle the V- pin
+   TOGETHER with the +IN pin, and V- escapes straight down through its own via. The four
+   legs run through the channels that DO fit: the 1.5 mm inter-row channel under the
+   package (north), the 0.87 mm channels under the two adjacent 0805 bodies (west/east),
+   and open board south of the string.
+
+3. **Closure is a test, not a judgement.** Union the net's F.Cu copper (fill + pads +
+   tracks); the ring is closed iff that union is ONE polygon carrying an interior ring
+   (a hole) that `contains()` the whole guarded net's copper. Here: 1 polygon, 1 hole,
+   `contains(/AIN_DIV) == True`, minimum ring copper width 0.612 mm, guard-to-node gap
+   exactly 0.127 mm (the DRU floor - the guard sits as tight as it is legal to sit).
+   Re-run it after EVERY refill: route_auto, route_edit + refill and plane_repair all
+   restate the fill, and a ring that closed before the autoroute is not evidence about
+   the ring that ships.
+
+Anything placed inside the ring must exist BEFORE the pour, because KiCad's filler leaves
+no room for a via added later: the V- escape via and both /AIN_DIV traces were laid with
+route_edit first, and the fill formed around them.
+
+## 2026-08-19 [P8][check_return_path][geom][kicad] `--verify-fill` is broken by a missing `.kicad_dru`, NOT by a fill-model disagreement - and it mis-measures every ai-ee board
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+`check_return_path --verify-fill` dies on this board with
+
+    StaleFillError: zone 0 on F.Cu: committed fill 17.176 mm^2 differs from fresh 6.613 mm^2 (> 1%)
+
+The tempting reading - "KiCad's filler disagrees with the checker's own independent fill
+model, so a `connect: solid` zone cannot be verified" - is WRONG on both halves. There is no
+independent model: `geom.BoardGeom.assert_fresh(refill=True)` calls `_refill_copy()`, which runs
+the real `kicad-cli pcb drc --refill-zones --save-board` on a temp copy. Both numbers are KiCad's.
+
+The actual cause is a missing sidecar. `_refill_copy` copies the `.kicad_pcb` and, explicitly,
+"the sibling .kicad_pro if present (keeps DRC rules identical)" - but **not the `.kicad_dru`**.
+Measured three ways on the finished board, reading the guard zone and the GND pour:
+
+    staged files              guard F.Cu     GND B.Cu
+    pcb + pro + dru           17.176 mm2     1745.233 mm2   <- EXACTLY the committed fill
+    pcb + pro (_refill_copy)   6.613 mm2     1728.589 mm2
+    pcb alone                  6.613 mm2     1728.502 mm2
+
+The `.kicad_pro` makes no difference at all; the `.kicad_dru` makes all of it. Without the DRU,
+`aiee_clearance_floor (min 0.127 mm)` is gone and KiCad refills at its stock 0.2 mm default. The
+loss is not proportional: wider clearance drops narrow passages under the zone's 0.25 mm
+min_thickness, those passages vanish, and island removal then culls whatever they were feeding -
+so 0.073 mm of extra clearance destroyed 61% of the guard pour.
+
+BLAST RADIUS. `rules_gen` writes a `.kicad_dru` for every ai-ee board, so `--verify-fill`
+mis-measures every one of them - this is not a `connect: solid` quirk. The READ path is safe
+(the copy is discarded, and the gate does not pass `--verify-fill`), but the same omission in
+any WRITE path would commit a silently wrong fill. Verified NOT affected here: planes_gen,
+route_auto and route_edit stage the board with its same-stem sidecars, and every fill they
+produced matched the pcb+pro+dru number.
+
+## 2026-08-19 [P7][check_return_path][routing] An unavoidable layer-change crossing stops being an ERROR when the crossing lands inside the transition via's excision disk
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+`check_return_path` grades severity ONLY on centerline crossing length -
+`sev = "error" if crossing >= CROSSING_ERROR_MM else "warning"`, and `CROSSING_ERROR_MM = 0.01`.
+So shortening or straightening a crossing never clears it; the centerline must not cross
+surviving deficit at all. What removes deficit is the excision step: a disk of
+`item_radius + ALLOW_CLEARANCE_MM (0.65)` around each single via - 0.95 mm for a 0.6 mm via.
+
+This board's SPI fan needs 2 crossings (J2 orders CS,SCLK,DOUT; the converter orders
+CS,DOUT,SCLK - a 3-cycle, so /CS must cross both). The crossings are topologically forced: /CS's
+B.Cu tunnel MUST pass under both F.Cu traces, so "move it under bare board" is not available.
+What IS available is moving the tunnel so each crossing sits inside a transition via's disk.
+
+    before: one 4.39 mm tunnel, 45 deg diagonal, single via
+            /SCLK  ERROR   0.73 mm2, 0.64 mm crossing
+            /DOUT  warning 0.09 mm2, 0.00 mm crossing  <- already excised, 0.53 mm from the via
+            /CS    ERROR   2.35 mm2, 1.81 mm crossing
+
+    after:  1.93 mm tunnel, PERPENDICULAR, via pair straddling both crossed traces
+            (66.000, 40.980) via -> B.Cu -> via (66.000, 39.050); /DOUT crossed at 0.65 mm
+            from the south via, /SCLK at 0.63 mm from the north via, both < 0.95 mm
+            /SCLK  gone      /DOUT  gone      /CS  error 0.20 mm2, 0.03 mm (-91% / -98%)
+
+/DOUT was the tell: it already passed as a warning purely because its centerline happened to
+cross 0.53 mm from the existing via. Reading WHY one of three sibling nets passed gave the rule.
+
+This is physics, not checker-gaming: where the pour void under the aggressor is the transition
+via's own antipad rather than a slot, the return current detours around a small disk instead of
+running the length of a cut. The routing rule: put the layer transition as close to the crossed
+trace as DRC allows (via edge + clearance + half the crossed trace), and cross perpendicular.
+
+COROLLARY, and a real design margin: this board's driven guard ring CLOSES at the DRU's 0.127 mm
+clearance and does NOT close at 0.2 mm - refilled at 0.2 the /AIN_BUF pour drops 19.03 -> 8.68
+mm2, the entire south leg is culled and the closure test finds ZERO holes. The ring still fills,
+still looks like copper in a render, and is no longer a guard. Any change to the clearance floor
+or fab class must re-run the closure proof.
+
+## 2026-08-19 [P8][footprint][silk][review] `CONN-TH_2P-P5.00_WJ500V-5.08-2P` draws its silk entry arrows on the OPPOSITE face from its own 3D model's openings - a render of a footprint cannot outrank the part geometry it draws
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+J1 (library footprint **`CONN-TH_2P-P5.00_WJ500V-5.08-2P`**, `lib/aiee.pretty`) shipped rotated 180 degrees: its wire throats faced
+EAST, into the board. A render check had "confirmed" the orientation and passed it. The
+render was not misread - the artifact lied.
+
+The footprint contradicts itself. Its pads sit on local y = 0 and its body is ASYMMETRIC
+about that pad row: F.Fab spans local y -5.64 .. +4.52 and F.CrtYd -5.5 .. +4.5, so the
+**4.50 mm face is local +y** and that is the wire-entry face on the vendor drawing (two
+3.0 mm openings, z 3.0-9.8, centred x = +/-2.54; the -y face is a solid wall). But the
+two `fp_poly` entry ARROWS on F.Silkscreen are drawn on local **-y** - the solid face.
+Arrows and throats point at opposite faces, so any check that reads the silk concludes
+the exact opposite of the truth, and does so confidently.
+
+THE TEST THAT WORKS. Measure the body asymmetry about the pad row from fab/courtyard
+geometry and match it to the vendor number, then apply the footprint transform yourself.
+At rot 90 KiCad maps local +y -> board +x, so the 4.52 face pointed east (into the board);
+at rot -90 it maps local +y -> board -x. After rotating, the courtyard reads x[19.955,
+30.045] about a pad row at x = 24.500 - west face 4.545 mm, east 5.545 mm - so the 4.50
+wire-entry face now points west, out of the board edge. That is a number, not a picture.
+
+CONSEQUENCES BEYOND THE ROTATION. (a) The pads SWAP: a 180-degree rotation of a 2-pin
+connector exchanges the nets at the two positions, so every net on it must be ripped and
+re-routed - here /AIN_RAW moved from y 41.600 to 36.520 and GND took its place. (b)
+place_edit REFUSES a footprint move on a routed board ("rip the affected nets FIRST, then
+move, then route fresh"; --allow-routed to override) - obey it, do not reach for the flag
+first. (c) THE ARROWS ARE PRINTED SILK, not just a library annoyance - they ship in F.SilkS on
+the fabricated board, so a corrected "SIG"/"GND" label and a contradictory arrow end up
+millimetres apart and a user who trusts the arrow is actively misled.
+
+FIXING THE ARROWS ON A BOARD INSTANCE IS UNOWNED. No pipeline writer can touch a
+footprint's `fp_poly`: place_swig's silk ops are TEXT only (add_text / remove_text /
+move_text, and remove_text matches `board.GetDrawings()` - board-frame gr_text - so it
+cannot see footprint children); route_edit does tracks/vias; board_edit does Edge.Cuts;
+fpfix takes `--lib <dir>.pretty` and never a board. Corrected here with a minimal SWIG
+worker following place_edit's own contract (stage a copy beside the board, edit under
+bundled python, re-parse + DRC the copy, os.replace only on success). PIPELINE GAP worth
+closing: a `mirror_fp_graphic` / `remove_fp_graphic` op on place_swig.
+
+THE MIRROR AXIS IS THE BODY, NOT THE PAD ROW. J1's silk body lines sit at x 19.855-20.105
+(west) and 30.015-30.265 (east), so the body's own axis is x = 25.06 - mirroring the arrow
+polys about THAT maps them onto the opposite face preserving their exact 0.015 mm abutment
+to the body outline, and reflecting along the arrow's own axis reverses head and tail, so
+the glyph stays a valid arrow pointing inward. Mirroring about the PAD ROW (x = 24.5)
+instead would have overhung the body by ~1 mm and collided with the new "SIG" label.
+Arrows moved x[27.000, 30.000] -> x[20.120, 23.120]; DRC 0, check_silk 0.
+
+The LIBRARY is still wrong and is deliberately NOT patched from here (a re-pull reverts
+it): anyone reusing `CONN-TH_2P-P5.00_WJ500V-5.08-2P` inherits the same trap.
+
+## 2026-08-19 [P7][guard-ring][silk][drc] Guard-ring leakage is set by what is INSIDE the ring - and the cheapest fix can be re-routing the GUARDED net, not moving the offender
+Promoted from boards/PCB-0014-A_bb-adc/LEARNINGS.md (promotion pass 2026-10-04).
+Review priced GND conductors inside the closed /AIN_BUF guard ring at 0.227 / 0.289 /
+0.350 mm from the guarded node - about 1.20 mV at the terminal on blocks.md's 1 Gohm
+model, against 0.78 mV the guard exists to stop. The ring cannot intercept a leakage path
+that STARTS inside it.
+
+U3 pin 2 (V-) is irreducibly inside: the pin2/pin3 channel is 0.350 mm and copper needs
+width + 2 x clearance = 0.381 mm at the 0.127 mm floor, so the ring must encircle pin 2
+together with pin 3. "Move the via out of the ring" is likewise unreachable - the pad it
+serves is inside, so any conductor touching it is inside.
+
+What actually worked was re-routing the GUARDED net. Both sub-0.35 mm paths (0.227 and
+0.289) were to the same thing: the /AIN_DIV stub running down the WEST side of the pocket,
+right past the GND via and pin 2. /AIN_DIV is a 3-pad net (R3.2, R4.1, U3.3) whose
+spanning tree can take the stub off EITHER resistor for the SAME 2.600 mm. Moving it from
+R3.2->U3.3 to R4.1->U3.3 - identical length, requirement "keep /AIN_DIV short" untouched
+at 4.600 mm total - put the stub on the east side and deleted both paths outright. With
+the via also nudged 0.2 mm west, the two GND conductors inside the ring now measure 0.350
+mm (pin 2, the irreducible pin gap) and 0.556 mm (the via). Scaling review's own 1/d model
+that is roughly 1.20 -> 0.52 mV, i.e. under the 0.78 mV the guard stops.
+
+Generalise: before moving the offending conductor, check whether the GUARDED net has a
+degenerate spanning tree. Re-routing the victim can be free where moving the offender is
+blocked.
+
+SILK GOTCHA from the same pass: `add_text` at size 0.7 draws a `text_height` DRC error -
+board setup enforces a 0.8 mm silk minimum. `check_silk` does NOT catch it (it is lenient
+by design and never the oracle); `kicad-cli pcb drc` does. Size every scripted silk string
+at >= the board's own minimum and verify with kc drc.
