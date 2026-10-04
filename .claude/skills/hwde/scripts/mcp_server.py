@@ -211,7 +211,9 @@ def tool_state(a: dict) -> dict:
     if view not in ("show", "resume", "freshness"):
         raise ToolError(f"view must be show, resume or freshness, not {view!r}")
     ws, _ = _workspace(a.get("workspace"))
-    return _run_script("state.py", [view, "--workspace", str(ws)])
+    # a read: resume must not migrate the workspace layout from here
+    extra = ["--no-migrate"] if view == "resume" else []
+    return _run_script("state.py", [view, "--workspace", str(ws)] + extra)
 
 
 def tool_gate(a: dict) -> dict:
@@ -229,7 +231,8 @@ def tool_dfm_check(a: dict) -> dict:
 def tool_review(a: dict) -> dict:
     flags = _write_flags(a)
     ws, slots = _workspace(a.get("workspace"))
-    state = _run_script("state.py", ["resume", "--workspace", str(ws)])
+    state = _run_script("state.py", ["resume", "--workspace", str(ws)]
+                        + (["--no-migrate"] if "--no-record" in flags else []))
     gates = [_gate(g, ws, slots, flags) for g in REVIEW_GATES]
     table = {g["gate"]: g["result"].get("status") for g in gates}
     worst = max((g["exit"] for g in gates if g["exit"] is not None), default=0)

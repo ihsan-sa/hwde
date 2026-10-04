@@ -6,7 +6,7 @@ sessions and for unattended board runs.
 
 | Piece | Where | Note |
 |---|---|---|
-| `Dockerfile` | image `hwde-run:latest` (any name works) | FROM `kicad/kicad:10.0.5` (Debian 13, kicad-cli 10.0.5, python 3.13.5 + SWIG pcbnew, symbol/footprint libs, libngspice) + Node + Claude Code + venv (`requirements.lock` minus pywin32) + Temurin 25 JRE + Freerouting 2.2.4 + KiCadRoutingTools 0.19.0 + TeX Live + xvfb |
+| `Dockerfile` | image `hwde-run:latest` (any name works) | FROM `kicad/kicad:10.0.6` (kicad-cli 10.0.6, the box's version; system python + SWIG pcbnew, symbol/footprint libs, libngspice) + Node + Claude Code + venv (`requirements.lock` minus pywin32) + Temurin 25 JRE + Freerouting 2.2.4 + KiCadRoutingTools 0.19.0 + TeX Live + xvfb |
 | `project-init` | the image's entrypoint | links `/workspace/.venv -> /opt/venv`, marks `tools/` as unused, adds `/workspace` and the boards root (`$HWDE_BOARDS_ROOT`, default `/workspace/boards`) to git safe.directory, starts Xvfb `:99`, then execs the command |
 | `hwde-loop` | `/usr/local/bin/hwde-loop <board>` | unattended run: `claude -p "/hwde ..."` per iteration, fresh context, resumes from `state.json`; journal `<boards-root>/<b>/log/run-journal.md`; per-iteration records `<boards-root>/<b>/log/run/` (reduced - no session ids or token counts); commits land in the boards repo, not this one |
 | `run-contract.md` | read by the loop every iteration | the delegation rules + Done criteria for an unattended run |
@@ -14,7 +14,7 @@ sessions and for unattended board runs.
 Toolchain pins in the container are env vars read by `scripts/lib/env.py`:
 `HWDE_KICAD_CLI HWDE_JAVA HWDE_FREEROUTING_JAR HWDE_KRT_DIR HWDE_NGSPICE_DLL`
 (+ `KICAD10_*_DIR`). KiCad 10.0.3 (the Windows pin) has no published image;
-10.0.5 shares the 10.0 file format - never mix with 9.x.
+10.0.6 shares the 10.0 file format - never mix with 9.x.
 
 ## Use
 

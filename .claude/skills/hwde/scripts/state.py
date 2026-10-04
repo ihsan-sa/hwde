@@ -9,6 +9,8 @@ trail (`a killed-and-resumed session continues from the last gate`).
 Schema (version 2 - T7 freshness; v1 files upgrade via state_migrate.py):
     {
       "version": 2, "board": str, "workspace": str, "created": ts, "updated": ts,
+      "workspace_schema": int,  # file LAYOUT version, absent = 1; `resume`
+                                # migrates it (statelib.WORKSPACE_SCHEMA)
       "phase": "P0".."P10" | "done",
       "gates": {gate_name: {phase, status: pass|fail, attempts: int,
                             last: {ts, status, failing_count, total,
@@ -45,6 +47,10 @@ CLI (spec 6 contract: argparse, JSON to stdout, exit 0 ok / 2 error; exit 1
 only for a cross-spawn checkpoint):
     state.py init --workspace DIR --board NAME [--phase P0] [--force]
     state.py show|resume|freshness [--workspace DIR | --state FILE]
+        (show/freshness never write; resume first brings the workspace
+        layout up to statelib.WORKSPACE_SCHEMA - moving files and saving
+        state.json - and lists what it did under "workspace_migration";
+        resume --no-migrate writes nothing and reports "pending" there)
     state.py set-phase --phase P7 [--force] ...
     state.py record-gate --gate NAME --result gate_result.json [--phase PN] ...
     state.py artifact --name pcb --path kicad/b.kicad_pcb ...
@@ -251,6 +257,7 @@ class State:
         ts = now()
         data = {
             "version": VERSION, "board": board,
+            "workspace_schema": statelib.WORKSPACE_SCHEMA,
             "workspace": str(workspace).replace("\\", "/"),
             "created": ts, "updated": ts, "phase": phase,
             "gates": {}, "human": {}, "artifacts": {}, "open_issues": [],
@@ -920,7 +927,13 @@ def run(argv=None):
     p.add_argument("--out")
 
     for name in ("show", "resume", "freshness"):
-        common(sub.add_parser(name))
+        p = sub.add_parser(name)
+        common(p)
+        if name == "resume":
+            p.add_argument("--no-migrate", action="store_true",
+                           help="resume without migrating the workspace "
+                                "layout (a read-only caller); reports "
+                                "\"pending\"")
 
     p = sub.add_parser("set-phase")
     common(p)
@@ -1039,14 +1052,37 @@ def run(argv=None):
     state_path = _find_state(args)
     result: dict = {"script": SCRIPT, "cmd": args.cmd}
 
-    if args.cmd in ("show", "resume", "freshness"):  # read-only: never saves
+    if args.cmd == "resume":
+        # the one read that may write: a workspace behind on its layout is
+        # migrated first (statelib.migrate_workspace), under the writer lock
+        st = State.load(state_path)
+        _check_pin(st, args)
+        migration: list[dict] | str = []
+        behind = st.data.get("workspace_schema", 1) != \
+            statelib.WORKSPACE_SCHEMA
+        if behind and args.no_migrate:
+            migration = "pending"
+        elif behind:
+            with safelib.writer_lock(state_path, what="state.json"):
+                st = State.load(state_path)
+                _check_pin(st, args)
+                try:
+                    migration = statelib.migrate_workspace(state_path.parent,
+                                                           st.data)
+                except ValueError as exc:
+                    raise CheckError(str(exc)) from exc
+                st._log("workspace_migrate",
+                        to=statelib.WORKSPACE_SCHEMA, actions=migration)
+                st.save()
+        return {**result, **st.resume_summary(),
+                "workspace_migration": migration,
+                "digest": st.base_digest}, args.out
+
+    if args.cmd in ("show", "freshness"):  # read-only: never saves
         st = State.load(state_path)
         _check_pin(st, args)
         if args.cmd == "show":
             return {**result, **st.data, "digest": st.base_digest}, args.out
-        if args.cmd == "resume":
-            return {**result, **st.resume_summary(),
-                    "digest": st.base_digest}, args.out
         return {**result, **st.freshness()}, args.out
 
     # U12: one OS-exclusive hold across load -> mutate -> save, so two CLI
