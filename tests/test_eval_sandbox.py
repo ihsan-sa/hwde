@@ -42,3 +42,14 @@ def test_hidden_paths_are_unreadable(tmp_path):
 def test_work_and_system_are_readable():
     seen = e2e_run.probe(["/work", "/usr/bin/env"])
     assert seen == {"/work": True, "/usr/bin/env": True}
+
+
+def test_allowed_tools_scope_bash():
+    """The nested run gets no unscoped Bash: each Bash grant names its
+    command, and the hwde arm may run the skill's scripts with python3."""
+    for arm, tools in e2e_run.ALLOWED_TOOLS.items():
+        assert "Bash" not in tools, arm
+        assert all(t.endswith(")") for t in tools if t.startswith("Bash")), arm
+    assert ("Bash(python3 .claude/skills/hwde/scripts/*)"
+            in e2e_run.ALLOWED_TOOLS["hwde"])
+    assert not any("python3:" in t for t in e2e_run.ALLOWED_TOOLS["hwde"])

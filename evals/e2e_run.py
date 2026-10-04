@@ -25,11 +25,16 @@ would cost more is cut off there and recorded with budget_stopped=true.
 --seeds N runs seeds 1..N one after another (the cost pilot) and stops
 after the first run that hit that cap.
 
-The run starts claude with permissions skipped, because bwrap is the
-boundary. The box's guard refuses that launch from a session, so the owner
-starts a run by hand, in a terminal with the hwde toolchain sourced:
+The run starts claude as `-p --permission-mode acceptEdits --allowedTools
+<list>`: file edits are accepted, and only the tools a design run needs are
+allowed (ALLOWED_TOOLS; Bash only for the hwde venv python running the
+skill's scripts, kicad-cli, ls, mkdir and cd /work; the bare arm gets
+python3 and python on any file instead, since it has no scripts of its own;
+the venv's bin is first on the sandbox's PATH). Nothing else is granted, so a call outside the list is denied rather than prompted, and bwrap
+stays the boundary around all of it. From a terminal with the hwde toolchain
+sourced:
   . ~/.local/kicad10/hwde-env.sh
-  .venv/bin/python evals/e2e_run.py --brief usbc_ldo --arm hwde --seeds 5
+  .venv/bin/python evals/e2e_run.py --brief usbc_ldo --arm hwde --seeds 1
 
 CLI:
   e2e_run.py --brief usbc_ldo --arm hwde (--seed 1 | --seeds 5) [--model M]
@@ -99,7 +104,8 @@ def sandbox_argv(work: Path) -> list[str]:
           "--setenv", "HOME", str(HOME),
           "--setenv", "HWDE_BOARDS_ROOT", f"{WORK}/boards",
           "--setenv", "PATH",
-          f"{HOME}/.local/kicad10/bin:{HOME}/.local/bin:/usr/bin:/bin"]
+          f"{HOME}/.local/hwde-venv/bin:{HOME}/.local/kicad10/bin:"
+          f"{HOME}/.local/bin:/usr/bin:/bin"]
     return a + ["--"]
 
 
@@ -116,12 +122,33 @@ def probe(paths: list[str]) -> dict:
         return out
 
 
+# Planning, 2026-10-04: "launch the nested run as claude -p --permission-mode
+# acceptEdits --allowedTools <explicit list>, naming exactly the tools a design
+# run needs (Read, Edit, Write, Glob, Grep, and Bash scoped as narrowly as the
+# hwde scripts allow)". Skill and Agent are how /hwde and its agents/ run.
+_FILE_TOOLS = ["Read", "Edit", "Write", "Glob", "Grep", "TodoWrite"]
+_SHELL = ["Bash(kicad-cli:*)", "Bash(ls:*)", "Bash(mkdir:*)",
+          f"Bash(cd {WORK}:*)"]
+_PY = ["python3", "python", ".venv/bin/python", f"{WORK}/.venv/bin/python"]
+_SCRIPTS = [".claude/skills/hwde/scripts/",
+            f"{WORK}/.claude/skills/hwde/scripts/"]
+ALLOWED_TOOLS = {
+    "hwde": _FILE_TOOLS + ["Skill", "Agent"] + _SHELL + [
+        f"Bash({py} {sc}*)" for py in _PY for sc in _SCRIPTS],
+    "bare": _FILE_TOOLS + _SHELL + ["Bash(python3:*)", "Bash(python:*)"],
+}
+
+
 def prompt(arm: str, brief: str) -> str:
     if arm == "hwde":
         return (f"/hwde Take this brief through the full brief-to-order "
                 f"pipeline, unattended: there is no human to answer holds, "
                 f"so record your assumptions and continue. Put the board "
-                f"workspace under {WORK}/boards/.\n\n{brief}")
+                f"workspace under {WORK}/boards/. Run the skill's scripts "
+                f"from {WORK} as `python3 .claude/skills/hwde/scripts/<name>"
+                f".py ...` (python3 is the hwde venv; the HWDE_* tool pins "
+                f"are set), one command per call: other shell commands are "
+                f"denied.\n\n{brief}")
     return (f"Design this board in KiCad 10 (kicad-cli and its python are "
             f"on PATH), unattended: nobody will answer questions. Leave the "
             f"finished design in {WORK}/{BOARD}/: kicad/{BOARD}.kicad_sch, "
@@ -204,7 +231,8 @@ def run(args) -> int:
         (work / ".venv").symlink_to(HOME / ".local" / "hwde-venv")
     cmd = ["claude", "-p", prompt(args.arm, (bdir / "brief.md").read_text(
                encoding="utf-8")),
-           "--output-format", "json", "--dangerously-skip-permissions",
+           "--output-format", "json", "--permission-mode", "acceptEdits",
+           "--allowedTools", *ALLOWED_TOOLS[args.arm],
            "--max-budget-usd", str(args.max_budget_usd)]
     if args.model:
         cmd += ["--model", args.model]
