@@ -28,8 +28,8 @@ after the first run that hit that cap.
 The run starts claude as `-p --permission-mode acceptEdits --allowedTools
 <list>`: file edits are accepted, and only the tools a design run needs are
 allowed (ALLOWED_TOOLS; Bash only for the hwde venv python running the
-skill's scripts, kicad-cli, ls, mkdir and cd /work; the bare arm gets
-python3 and python on any file instead, since it has no scripts of its own;
+skill's scripts and the board's kicad/gen/ generator, kicad-cli, ls,
+mkdir and cd /work; the bare arm gets python3 and python on any file instead, since it has no scripts of its own;
 the venv's bin is first on the sandbox's PATH). Nothing else is granted, so a call outside the list is denied rather than prompted, and bwrap
 stays the boundary around all of it. From a terminal with the hwde toolchain
 sourced:
@@ -130,8 +130,11 @@ _FILE_TOOLS = ["Read", "Edit", "Write", "Glob", "Grep", "TodoWrite"]
 _SHELL = ["Bash(kicad-cli:*)", "Bash(ls:*)", "Bash(mkdir:*)",
           f"Bash(cd {WORK}:*)"]
 _PY = ["python3", "python", ".venv/bin/python", f"{WORK}/.venv/bin/python"]
+# the skill's scripts, and the schematic generator its P4 agent writes into
+# the board (the 2026-10-04 pilot run stopped at P4 when that was denied)
 _SCRIPTS = [".claude/skills/hwde/scripts/",
-            f"{WORK}/.claude/skills/hwde/scripts/"]
+            f"{WORK}/.claude/skills/hwde/scripts/",
+            "boards/*/kicad/gen/", f"{WORK}/boards/*/kicad/gen/"]
 ALLOWED_TOOLS = {
     "hwde": _FILE_TOOLS + ["Skill", "Agent"] + _SHELL + [
         f"Bash({py} {sc}*)" for py in _PY for sc in _SCRIPTS],
@@ -257,7 +260,8 @@ def run(args) -> int:
     rec = {
         "schema": 1, "kind": "run", "run_id": run_id,
         "hwde_commit": git_head(), "kicad": kicad_version(),
-        "harness": "claude-code", "model": args.model or res.get("model"),
+        "harness": "claude-code",
+        "model": args.model or next(iter(res.get("modelUsage") or {}), None),
         "arm": args.arm, "fixture": f"e2e_{args.brief}", "seed": args.seed,
         "started": started.isoformat(timespec="seconds"), "wall_s": wall,
         "cost_usd": res.get("total_cost_usd"), "turns": res.get("num_turns"),
