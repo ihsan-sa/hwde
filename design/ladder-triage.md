@@ -1,9 +1,9 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
-# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02)
+# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02; row 355 2026-10-04)
 
-One row per `LEARNINGS.md` entry (354 of them; the last starts at
-line 5143), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (355 of them; the last starts at
+line 5146), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -35,17 +35,17 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-10-02 (row 354 added), all 354 rows
+Recomputed from the table on 2026-10-04 (row 355 added), all 355 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
 | L0 | 127 | 16 |
 | L1 | 21 | 18 |
-| L2 | 65 | 127 |
+| L2 | 66 | 128 |
 | L3 | 141 | 193 |
 
-136 entries want to climb at least one level. Status: **done 183**,
+136 entries want to climb at least one level. Status: **done 184**,
 **open 146**, **n/a 9**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
@@ -473,3 +473,4 @@ the row's Now level and status in the same commit as the code.
 | 352 | 5126 | Split pre-routed wires overflow Freerouting's stack; route_auto now jo | [freerouting][route_auto][dsn] | L3 | L3 | scripts/lib/routelib.py | done | `routelib.dsn_merge_wires` joins each net's split pre-routed wires into maximal chains before route_auto hands the DSN to Freerouting (main and probe paths), so the StackOverflowError in PolylineTrace.combine cannot recur from KiCad's split export. |
 | 353 | 5131 | Distributor BOM upload headers could not be read live - DigiKey's come | [bom][fab][research][tools] | L0 | L0 | scripts/distributor_bom.py | n/a | External-service behaviour: whether DigiKey myLists and Mouser's BOM Tool auto-map these headers can only be learned from a real upload. The headers live in one place (DIGIKEY_FIELDS / MOUSER_FIELDS) and tests/test_distributor_bom.py pins them; fix them there after the first upload. |
 | 354 | 5143 | A connector facing into the board passed every gate; the place and ve | [placement][connector][verify] | L2 | L2 | scripts/lib/matinglib.py | done | place_metrics (family `mating`) and check_mating in verify_all fail a mating connector whose mouth faces into the board, sits back from its edge or has a part in its insertion zone; families in reference/connector_mating.yaml; tests/test_mating.py pins PCB-0021-A J4 and PCB-0018-A J701/J702 |
+| 355 | 5146 | CPL rotation: an imported footprint needs NO correction; the package t | [jlc][fab][easyeda2kicad] | L2 | L2 | scripts/cpl_verify.py | done | bom_cpl.py no longer applies jlc_rotations.csv package rows to easyeda2kicad-imported footprints, and cpl_verify.py (run by dfm_check, family `placement`) fits each part's CPL rotation to its own LCSC footprint model and fails a mismatch; lib/easyeda.py raises on the per-IP 403 instead of reading it as "no such part"; tests/test_cpl_verify.py pins three cached models. |
