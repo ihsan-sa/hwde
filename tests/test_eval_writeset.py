@@ -50,7 +50,8 @@ def test_new_pytest_hooks_and_config_are_refused_anywhere():
     paths = ["conftest.py", "tests/conftest.py", "tests/sub/conftest.py",
              ".claude/skills/hwde/scripts/conftest.py", "pytest.ini",
              ".pytest.ini", "tox.ini", "setup.cfg", "pyproject.toml",
-             "tests/pytest.ini", "evals/x/pyproject.toml"]
+             "tests/pytest.ini", "evals/x/pyproject.toml", "pytest.toml",
+             ".pytest.toml", "tests/pytest.toml"]
     for status in ("A", "M"):
         res = wc.check(FIX, [(status, p) for p in paths])
         got = {r["path"]: r["class"] for r in res["refused"]}
@@ -166,6 +167,20 @@ def test_a_new_path_that_shadows_a_scoring_module_is_refused():
         paths[2]: ("scorers", "shadows the scoring module evalcard")}
     ok = ".claude/skills/hwde/scripts/lib/currentlib.py"
     assert wc.check(FIX, [("A", ok)], repo=str(REPO))["refused"] == []
+
+
+def test_a_new_py_named_like_stdlib_or_an_installed_package_is_refused():
+    paths = [".claude/skills/hwde/scripts/json.py", "tests/yaml/__init__.py",
+             "tools/os/x.py"]
+    res = wc.check(FIX, [("A", p) for p in paths], repo=str(REPO),
+                   read=_plain)
+    got = {r["path"]: r["why"] for r in res["refused"]}
+    assert got[paths[0]] == "shadows the scoring module json"
+    assert got[paths[2]] == "shadows the scoring module os"
+    assert paths[1] in got  # yaml is installed in the venv
+    ok = ["docs/json/notes.md", "tests/test_new.py"]
+    assert wc.check(FIX, [("A", p) for p in ok], repo=str(REPO),
+                    read=_plain)["refused"] == []
 
 
 def test_the_scoring_list_holds_evalcard_checklib_and_the_scorecard():

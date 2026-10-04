@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import importlib.metadata
 import json
 import subprocess
 import sys
@@ -61,7 +62,8 @@ CHECK_FILES = {"Makefile", "check.cmd"}
 # refused under any directory, added or changed: pytest or the interpreter
 # loads each of them
 PYTEST_FILES = {"conftest.py", "pytest.ini", ".pytest.ini", "tox.ini",
-                "setup.cfg", "pyproject.toml", "sitecustomize.py",
+                "setup.cfg", "pyproject.toml", "pytest.toml",
+                ".pytest.toml", "sitecustomize.py",
                 "usercustomize.py"}
 
 
@@ -130,6 +132,16 @@ def shadows(path: str, modules: set[str]) -> str | None:
     for comp in path.split("/"):
         if comp.split(".", 1)[0] in stems:
             return comp.split(".", 1)[0]
+    if path.endswith(".py"):
+        # a new .py file or package dir named like a stdlib module or an
+        # installed distribution's top-level name (scripts/json.py would
+        # shadow json inside bench.py)
+        taken = set(sys.stdlib_module_names) | set(
+            importlib.metadata.packages_distributions())
+        for comp in path.split("/"):
+            name = comp[:-3] if comp.endswith(".py") else comp
+            if name in taken:
+                return name
     return None
 
 
@@ -192,6 +204,9 @@ def _sys_path_ok(call: ast.Call, anchored: set[str]) -> bool:
 
 def scan_test(src: str) -> str | None:
     """Why a new test file could change how OTHER tests run, else None.
+
+    This is a tripwire: it catches the obvious cases, not every trick. The
+    reviewer reading the diff is the real check.
 
     An ordinary test imports, builds paths from __file__ and puts them on
     sys.path, defines tests and fixtures, and patches through pytest's
