@@ -23,7 +23,9 @@ is appended to --out as a JSON line.
 Stops: --max-budget-usd (default 40) is passed to claude, so a run that
 would cost more is cut off there and recorded with budget_stopped=true.
 --seeds N runs seeds 1..N one after another (the cost pilot) and stops
-after the first run that hit that cap.
+after the first run that hit that cap. Before each run it asks
+`cc-pause is ai-ee` and starts nothing while the project is paused (exit 1);
+a host without cc-pause is never paused.
 
 The run starts claude as `-p --permission-mode acceptEdits --allowedTools
 <list>`: file edits are accepted, and only the tools a design run needs are
@@ -213,6 +215,14 @@ def findings(sc: dict | None) -> list[dict]:
     return out
 
 
+def paused(repo: str = "ai-ee") -> bool:
+    """True while `cc-pause is <repo>` says the project is parked."""
+    if not shutil.which("cc-pause"):
+        return False
+    return subprocess.run(["cc-pause", "is", repo],
+                          capture_output=True).returncode == 0
+
+
 def run(args) -> int:
     bdir = BRIEFS / args.brief
     if not (bdir / "brief.md").is_file():
@@ -306,9 +316,16 @@ def main(argv=None) -> int:
     if not args.brief:
         ap.error("--brief is required for a run")
     if not args.seeds:
+        if paused():
+            print("e2e_run: ai-ee is paused, no run started", file=sys.stderr)
+            return 1
         return run(args)[0]
     worst = 0
     for seed in range(1, args.seeds + 1):
+        if paused():
+            print(f"e2e_run: ai-ee is paused, seed {seed} not started",
+                  file=sys.stderr)
+            return max(worst, 1)
         args.seed = seed
         rc, capped = run(args)
         worst = max(worst, rc)

@@ -53,3 +53,16 @@ def test_allowed_tools_scope_bash():
     assert ("Bash(python3 .claude/skills/hwde/scripts/*)"
             in e2e_run.ALLOWED_TOOLS["hwde"])
     assert not any("python3:" in t for t in e2e_run.ALLOWED_TOOLS["hwde"])
+
+
+def test_paused_project_starts_no_run(monkeypatch):
+    started = []
+    monkeypatch.setattr(e2e_run, "run",
+                        lambda a: started.append(a.seed) or (0, False))
+    monkeypatch.setattr(e2e_run, "paused", lambda repo="ai-ee": True)
+    assert e2e_run.main(["--brief", "usbc_ldo", "--seeds", "3"]) == 1
+    assert e2e_run.main(["--brief", "usbc_ldo"]) == 1
+    assert started == []
+    monkeypatch.setattr(e2e_run, "paused", lambda repo="ai-ee": False)
+    assert e2e_run.main(["--brief", "usbc_ldo", "--seeds", "3"]) == 0
+    assert started == [1, 2, 3]
