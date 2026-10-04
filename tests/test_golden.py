@@ -38,6 +38,15 @@ MANIFEST = score_checks.load_manifest(GOLDEN)
 MUTATIONS = {name: Path(m["script"]).name
              for name, m in MANIFEST["mutants"].items()}
 
+# the 13 mutants on main when the registry landed; later rows may add more,
+# so the merged manifest must contain these (subset, not equality)
+PINNED_MUTANTS = (
+    "plane-split-under-clock", "missing-return-via", "undersized-power-trace",
+    "decoupler-moved", "diffpair-skew", "silk-over-pad", "cpl-rotation",
+    "hv-rail-spacing", "ldo-thermal-starved", "swdio-off-grid",
+    "rail-cap-missing", "cap-undervoltage", "usb-faces-inward",
+)
+
 
 @pytest.fixture(scope="session")
 def kicad_cli() -> Path:
@@ -161,6 +170,12 @@ def test_manifest_complete(manifest):
         script = GOLDEN / m["script"]
         assert script.exists(), f"{name}: script missing {script}"
         assert "expect" in m and m["expect"], f"{name}: no expectation"
+
+
+def test_pinned_mutants_in_manifest(manifest):
+    """A mutant dropped from the manifest or a fragment that stops loading."""
+    missing = set(PINNED_MUTANTS) - set(manifest["mutants"])
+    assert not missing, f"pinned mutants missing from manifest: {sorted(missing)}"
 
 
 def test_manifest_boards_exist(manifest):
