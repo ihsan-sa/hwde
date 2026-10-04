@@ -7,15 +7,15 @@ reached 99.4%.
 
 ## Verdict
 
-**Still short of the 98% target: 5 of the 14 boards that routed reached it.**
-The corpus rerun finished 16 of the 17 boards. rf-term-150w, bb-mcu, bb-ldo, bb-amp
+**Still short of the 98% target: 5 of the 15 boards that routed reached it.**
+The corpus rerun finished all 17 boards. rf-term-150w, bb-mcu, bb-ldo, bb-amp
 and bb-adc routed 100%, and all of those are small (2 to 15 nets). Ten boards got a
-legal anneal. On the other six the anneal found no legal placement, so they routed
-the seed placement: four of them left 3 to 8 nets each (57% to 73%). The two lumina
+legal anneal. On the other seven the anneal found no legal placement, so they routed
+the seed placement: five of them left 3 to 8 nets each (57% to 73%). The two lumina
 boards did not route at all: Freerouting produced nothing usable and the KRT fallback did not help. The
 17th board, astra-amp, was renamed to stereo-class-d-amp in the boards repo while the
-run was going, which crashed the run; bench now records such a board as failed and
-goes on, and stereo-class-d-amp has not been benchmarked. No runtime is valid,
+run was going, which crashed the run; stereo-class-d-amp was benched on its own on
+2026-10-04 and routed 71.4% from its seed placement. No runtime is valid,
 because the load average peaked between 28 and 785 during every board, against the
 12 the brief sets.
 
@@ -75,7 +75,7 @@ found no legal placement, the hwde HPWL is the seed's.
 | PCB-0015-A g0-sense | 16 | 7 violations | none legal (2 on best) | 68.8% (11/16), unrouted +3V3, +5V, /main/NRST, GND, VBUS | 100% | 36 / 166 | 243 -> 356 mm, crossings 26 -> 59 | 627 s, **not valid** | 76.3 / 41.5 |
 | PCB-0016-A pd-trigger-lite | 11 | legal | legal | 90.9% (10/11), unrouted VBUS | 100% | 4 / 6 | 103 -> 80 mm, crossings 9 -> 4 | 342 s, **not valid** | 66.0 / 44.0 |
 | PCB-0016-B pd-trigger-lite-dip | 12 | 3 violations | legal | 91.7% (11/12), unrouted VBUS | 90% | 5 / 23 | 129 -> 96 mm, crossings 9 -> 9 | 350 s, **not valid** | 67.7 / 45.0 |
-| PCB-0017-A astra-amp | | not run: renamed to stereo-class-d-amp in the boards repo mid-run | | | | | | | |
+| PCB-0017-A stereo-class-d-amp (2026-10-04) | 28 | 8 violations | none legal (1 on best) | 71.4% (20/28), unrouted +12V, /OUTNL, /OUTNR, /OUTPL, /OUTPR, /RINN, /SPK_R_P, GND | 88% | 28 / 58 | 368 -> 527 mm, crossings 16 -> 106 | 676 s, **not valid** | 31.4 / 24.7 |
 
 stm32-blinky's and usb-buck's single error is the unrouted connection. pd-trigger's
 16 are 10 `track_width`, 4 `hole_clearance` and 2 unconnected. usb-buck's FR
@@ -83,8 +83,11 @@ completion is low, I think because its +3V3 and GND connections go to the inner
 planes, which Freerouting left and KRT's finish connected (42 unconnected items
 before the finish, 1 after). bb-mcu routed fully on a placement with one courtyard
 overlap left, so its 3 DRC errors are 2 courtyard overlaps and a PTH inside a
-courtyard. To bench stereo-class-d-amp, rerun the command under Method: it skips
-every board that has a `result.json`.
+courtyard. stereo-class-d-amp ran later on its own (`--corpus ~/.cache/hwde-pbench5
+--boards PCB-0017-A_stereo-class-d-amp`) and failed the same way the other
+no-legal boards did: its 28 DRC errors are 14 unconnected, 3 courtyard overlaps,
+3 copper-edge clearance, 3 track width, 2 shorts, 2 solder-mask bridges and one
+hole-to-hole, and +12V and GND are among its unrouted nets.
 
 ### First run (13 boards unfinished at load ~140)
 
