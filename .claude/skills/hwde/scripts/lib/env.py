@@ -41,7 +41,12 @@ from pathlib import Path
 
 # Minimum KiCad per SPEC.md section 1.
 MIN_KICAD = (9, 0, 5)
-# The pipeline authors all boards in KiCad 10 format (pinned 10.0.3) and
+# The exact KiCad the box host runs and CI runs (the image tag in
+# .github/workflows/checks.yml and docker/Dockerfile; tests/test_kicad_pin.py
+# holds them equal). check_env warns, never fails, on any other version:
+# 10.0.x share one file format, but DRC/render numbers move between patches.
+KICAD_PIN = (10, 0, 6)
+# The pipeline authors all boards in KiCad 10 format and
 # formats are not forward-compatible: a 9.x kicad-cli exits 3 on them. An
 # EXPLICIT pin (HWDE_KICAD_CLI / HWDE_KICAD_ROOT) below major 10 is therefore
 # always a stale-pin mistake and is rejected loudly (ladder row 18). Plain

@@ -33,6 +33,9 @@
 #   workspace slots  {ws} {board} {pcb} {sch} {netlist} {pro} {dru}
 #                    {constraints} {decoupling} {parts} {sims} {fab} {reports}
 #                    {log} {state}
+#                    {checks} = the verify check-report dir (reports/checks;
+#                    kicad/reports/checks on a workspace resume has not yet
+#                    moved - statelib.check_reports_dir)
 #     - every kicad/ path resolves through statelib.kind_path (invalidation.yaml
 #       artifact_kinds + the workspace's own registry overrides), never by
 #       string-building a layout this repo happens to use.
@@ -109,6 +112,8 @@ verbs:
           - gate: dfm
           - do: "scripts/render.py {pcb} --views top,bottom --out-dir {reports}"
             why: "the reviewer needs pictures, not s-expressions"
+          - note: "the verify check reports are {checks}/summary.json and
+                   {checks}/<check>.json - give the reviewer that directory"
           - agent: verify-reviewer
             tier: fable/high
             why: "fresh context over verify_all.json + renders"

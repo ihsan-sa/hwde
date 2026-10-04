@@ -37,7 +37,8 @@ through `tests/_boards.py` and skips, with the reason, when it is absent.
 ## Environment (S0-verified on this Windows 11 host)
 
 - venv: `.venv\Scripts\python.exe` (Python 3.13.5). Pins: `requirements.txt` / `requirements.lock`.
-- KiCad **pinned 10.0.3** through `.claude/skills/hwde/scripts/lib/env.py` - always resolve
+- KiCad resolved through `.claude/skills/hwde/scripts/lib/env.py` (exact pin `KICAD_PIN` 10.0.6 =
+  box host + CI; this host was set up on 10.0.3, which check_env warns about) - always resolve
   kicad-cli/bundled-python through it (kicad-cli is NOT on PATH; 9.0.5 installed as fallback;
   never mix versions - formats are not forward-compatible).
 - `check.cmd` = the `make check` equivalent (host has no make). Tests: `.venv\Scripts\python -m pytest`.
@@ -49,7 +50,7 @@ through `tests/_boards.py` and skips, with the reason, when it is absent.
 ## Environment - Linux container (2026-08-27, `docker/`)
 
 The same toolchain runs on Linux inside the image built from `docker/Dockerfile`
-(base `kicad/kicad:10.0.5`: kicad-cli 10.0.5 + python 3.13.5 with SWIG pcbnew +
+(base `kicad/kicad:10.0.6`: kicad-cli 10.0.6 + system python with SWIG pcbnew +
 symbol/footprint libs + libngspice; plus Node/Claude Code, the venv from
 `requirements.lock` at `/opt/venv` linked to `.venv`, Temurin 25, Freerouting
 2.2.4, KiCadRoutingTools 0.19.0, TeX Live). In the container:

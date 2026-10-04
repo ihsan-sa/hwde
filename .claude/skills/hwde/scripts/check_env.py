@@ -172,6 +172,13 @@ def check_kicad(resolved: dict, full: bool) -> list[dict]:
         "kicad-cli", ver >= env.MIN_KICAD, f"{cli} ({vs})", KICAD_INSTALL_HELP))
     if ver < env.MIN_KICAD:
         return out
+    pin = ".".join(map(str, env.KICAD_PIN))
+    out.append(check(
+        "kicad-pin", ver == env.KICAD_PIN,
+        f"kicad-cli {vs} matches the pin" if ver == env.KICAD_PIN else
+        f"kicad-cli {vs} is not the pinned {pin}: same file format, but "
+        "check numbers may differ from the host's and CI's",
+        f"Install KiCad {pin} to match the host and CI.", warn=True))
 
     r = subprocess.run([str(cli), "pcb", "render", "--help"],
                        capture_output=True, text=True, timeout=60)
