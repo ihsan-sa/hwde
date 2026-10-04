@@ -6,6 +6,8 @@ track/eval-fix-<anything>; every other branch passes untouched. For a fix
 row, every path changed between the merge base with --base and HEAD is
 refused when it is one of:
 
+  rule      this check itself (evals/writeset_check.py) and the workflow
+            that runs it (.github/workflows/writeset.yml), new or changed
   scorers   bench.py, score_checks.py, lib/benchlib.py, lib/benchcorpus.py,
             lib/e2elib.py, reference/e2e-scoring.md, evals/
   checks    tests/ (adding a NEW test file is allowed; changing, renaming
@@ -36,6 +38,8 @@ SK = ".claude/skills/hwde/"
 SCORERS = {SK + "scripts/bench.py", SK + "scripts/score_checks.py",
            SK + "scripts/lib/benchlib.py", SK + "scripts/lib/benchcorpus.py",
            SK + "scripts/lib/e2elib.py", SK + "reference/e2e-scoring.md"}
+# the rule's own enforcement: refused first, whatever else changes
+RULE_FILES = {"evals/writeset_check.py", ".github/workflows/writeset.yml"}
 CHECK_FILES = {"Makefile", "check.cmd"}
 # refused under any directory, added or changed: pytest loads each of them
 PYTEST_FILES = {"conftest.py", "pytest.ini", ".pytest.ini", "tox.ini",
@@ -46,6 +50,8 @@ def classify(path: str, status: str) -> str | None:
     """The protected class a changed path falls in, or None when allowed.
     status is git's letter: A added, anything else changes what was there."""
     name = path.rsplit("/", 1)[-1]
+    if path in RULE_FILES:
+        return "rule"
     if "waiver" in path.lower():
         return "waivers"
     if name == "bounds.yaml" or path.startswith("tests/fixtures/stages/baselines/"):

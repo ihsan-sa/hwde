@@ -54,6 +54,20 @@ def test_new_pytest_hooks_and_config_are_refused_anywhere():
     assert wc.check(FIX, [("A", "tests/test_new.py")])["refused"] == []
 
 
+def test_a_fix_row_may_not_change_the_check_itself():
+    for status in ("A", "M", "D"):
+        res = wc.check(FIX, [(status, "evals/writeset_check.py")])
+        assert res["refused"] == [{"path": "evals/writeset_check.py",
+                                   "status": status, "class": "rule"}]
+
+
+def test_a_fix_row_may_not_change_the_writeset_workflow():
+    for status in ("A", "M", "D"):
+        res = wc.check(FIX, [(status, ".github/workflows/writeset.yml")])
+        assert res["refused"] == [{"path": ".github/workflows/writeset.yml",
+                                   "status": status, "class": "rule"}]
+
+
 def test_the_workflow_runs_mains_copy_of_the_check():
     """The PR's own writeset_check.py could wave itself through, so the
     workflow pipes main's copy into python."""
