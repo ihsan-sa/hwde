@@ -20,7 +20,12 @@ One concern: silkscreen that will not assemble or read.
    text visually attaches to the wrong part ("attribution beats closeness").
    Calibrated on the corpus: flags the carrier's exact 3 shipped residuals
    and the rf4 golden's C14 (a true instance predating this check); zero on
-   every other golden/mutant/shipped board.
+   every other golden/mutant/shipped board. A HIDDEN refdes is never
+   misattributed (it is not printed); where no spot near its own pads
+   exists, place_edit set_text hides or shrinks it. Every refdes not printed
+   on silk (hidden, or on a non-silk layer) is listed in the report's
+   `refdes_off_silk` fact - not a violation, so the status is unchanged -
+   so the assembly drawing knows which parts carry no silk label.
 
 Silk geometry is parsed here (not in geom.py, which is copper-only): top-level
 gr_text / gr_line / gr_poly / gr_rect / gr_circle / gr_arc on *.SilkS, plus the
@@ -327,6 +332,27 @@ def refdes_texts(root) -> list[tuple[str, "Silk"]]:
     return out
 
 
+def refdes_off_silk(root) -> list[dict]:
+    """[{ref, why}] for every footprint whose Reference is not printed on
+    silk: hidden (place_edit set_text hide) or on a non-silk layer. Board-only
+    parts (mounting holes, logos) are listed too - the list is for the
+    assembly drawing, which wants every unlabelled part."""
+    out = []
+    for fp in _kids(root, "footprint"):
+        for prop in _kids(fp, "property"):
+            pv = _strs(prop)
+            if len(pv) < 2 or pv[0] != "Reference" or not pv[1].strip():
+                continue
+            ln = _kid(prop, "layer")
+            strs = _strs(ln) if ln is not None else []
+            layer = strs[0] if strs else None
+            if _hidden(prop):
+                out.append({"ref": pv[1], "why": "hidden"})
+            elif _silk_side(layer or "") is None:
+                out.append({"ref": pv[1], "why": f"on {layer}"})
+    return sorted(out, key=lambda d: d["ref"])
+
+
 def text_geom(text: str, x: float, y: float, angle: float, size_x: float,
               size_y: float, thickness: float) -> Polygon:
     """The text box every check_silk rule measures (board coords; angle is
@@ -395,7 +421,8 @@ def check_attribution(bg: geom.BoardGeom, root) -> list[dict]:
             SCRIPT, "warning", s.pos, f"{s.side}.SilkS", None, [ref],
             f'refdes "{ref}" sits {own_off:.2f} mm beyond its own pads and '
             f"{nearest_d:.2f} mm from {nearest_ref} - reads as {nearest_ref}'s "
-            "label; scripted fix: place_edit.py move_text", SCRIPT,
+            "label; scripted fix: place_edit.py move_text, or set_text "
+            "(hide / shrink) when no spot near its own pads passes", SCRIPT,
             kind="silk_misattributed", ref=ref,
             offset_mm=checklib.rnd(own_off), nearest_ref=nearest_ref,
             nearest_mm=checklib.rnd(nearest_d)))
@@ -482,12 +509,15 @@ def run(argv=None):
     violations = run_checks(bg, silks)
     violations.extend(check_attribution(bg, root))
 
+    off_silk = refdes_off_silk(root)
     payload = checklib.report(
         SCRIPT, args.pcb, violations,
         checked=[{"silk_items": len(silks),
                   "texts": sum(1 for s in silks if s.kind == "text"),
                   "graphics": sum(1 for s in silks if s.kind != "text"),
-                  "refdes_checked": len(refdes_texts(root))}])
+                  "refdes_checked": len(refdes_texts(root)),
+                  "refdes_off_silk": len(off_silk)}],
+        refdes_off_silk=off_silk)
     return payload, args.out
 
 

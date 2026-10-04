@@ -236,9 +236,27 @@ def test_unplaceable_when_every_free_spot_fails_check_silk(tmp_path_factory):
     assert "passes check_silk" in res["reason"]       # free spots existed
     assert "silk_misattributed" in res["reason"]
     assert "hide" in res["suggest"] and "fab" in res["suggest"]
+    # ready place_edit ops: shrink to the 0.8 mm floor first, hide last
+    fx = res["fix_ops"]
+    assert fx["hide"] == {"op": "set_text", "ref": "C1",
+                          "field": "reference", "hide": True}
+    assert fx["shrink"]["size"] == 0.8
+    import place_edit
+    place_edit.validate_ops({"version": 1, "ops": list(fx.values())})
     [v] = payload["violations"]
     assert v["kind"] == "silk_residual" and "unplaceable" in v["msg"]
+    assert v["fix_ops"] == fx
     assert payload["moved"] == 0
+
+
+def test_fix_ops_skip_shrink_at_the_floor():
+    """A label already at the 0.8 mm floor gets only the hide op - shrinking
+    it further would trade misattribution for silk_illegible."""
+    at_floor = {"size": 0.8, "size_y": 0.8, "thickness": 0.15}
+    assert set(silk_place._fix_ops("R1", at_floor)) == {"hide"}
+    big = {"size": 1.0, "size_y": 1.0, "thickness": 0.15}
+    assert silk_place._fix_ops("R1", big)["shrink"] == {
+        "op": "set_text", "ref": "R1", "field": "reference", "size": 0.8}
 
 
 def test_rule_verdict_rejects_label_over_a_pad(tmp_path_factory):

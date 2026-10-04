@@ -25,7 +25,10 @@ pad_to_mask_clearance or a part's solder_mask_margin): KiCad's "silkscreen
 clipped by solder mask" test measures silk against those. A label with no
 spot that passes check_silk is reported unplaceable (residual, with the
 fix: hide it and keep it on the fab layer, or shrink it) and left where it
-is - never moved to a spot check_silk would flag.
+is - never moved to a spot check_silk would flag. Each residual carries
+`fix_ops`: ready place_edit set_text ops - `shrink` (to check_silk's 0.8 mm
+floor, only when the label is larger; re-run silk_place on the ref after it)
+and `hide` (the last resort, which check_silk lists under refdes_off_silk).
 
 Text box: per-char advance 0.845*size + stroke, height size + stroke
 (placelib.text_box, measured constants - 0.75 and 1.0 per char are both
@@ -346,7 +349,8 @@ def _clearance(boxp, obstacles, cap, tree=None):
 
 UNPLACEABLE_FIX = ("hide this reference on silk and keep it on the fab "
                    "layer for assembly, or shrink the refdes text to 0.8 mm "
-                   "(check_silk's legibility floor) and re-run")
+                   "(check_silk's legibility floor) and re-run - fix_ops "
+                   "holds both as place_edit set_text ops")
 
 
 def rule_verdict(ref, info, x, y, deg, side_pads, boxes):
@@ -375,7 +379,21 @@ def rule_verdict(ref, info, x, y, deg, side_pads, boxes):
     return None, own_off, att
 
 
-def _unplaceable(ref, collision_free, nearest_fail):
+def _fix_ops(ref, info) -> dict:
+    """place_edit set_text ops for an unplaceable label: `hide` always,
+    `shrink` only while the label is above the silk size floor."""
+    import place_edit
+    min_size, _ = place_edit.silk_text_floor()
+    out = {}
+    if max(info["size"], info.get("size_y", info["size"])) > min_size + 1e-6:
+        out["shrink"] = {"op": "set_text", "ref": ref, "field": "reference",
+                         "size": min_size}
+    out["hide"] = {"op": "set_text", "ref": ref, "field": "reference",
+                   "hide": True}
+    return out
+
+
+def _unplaceable(ref, collision_free, nearest_fail, info=None):
     """Residual entry for a label with no spot that passes check_silk."""
     if not collision_free:
         why = ("no collision-free candidate within +3.0 mm push (channel "
@@ -383,8 +401,11 @@ def _unplaceable(ref, collision_free, nearest_fail):
     else:
         why = (f"none of {collision_free} collision-free spots passes "
                f"check_silk; the closest is {nearest_fail[1]}")
-    return {"ref": ref, "reason": why, "unplaceable": True,
-            "suggest": UNPLACEABLE_FIX}
+    out = {"ref": ref, "reason": why, "unplaceable": True,
+           "suggest": UNPLACEABLE_FIX}
+    if info is not None:
+        out["fix_ops"] = _fix_ops(ref, info)
+    return out
 
 
 def solve(pcb: Path, refs: list[str] | None, min_clear: float):
@@ -514,7 +535,8 @@ def solve(pcb: Path, refs: list[str] | None, min_clear: float):
             if best_score is None or score > best_score:
                 best, best_score = (x, y, deg, b), score
         if best is None:
-            residual.append(_unplaceable(ref, collision_free, nearest_fail))
+            residual.append(_unplaceable(ref, collision_free, nearest_fail,
+                                         info))
             # current box stays; count it as an obstacle for later labels
             placed_boxes[side].append(_current_box(ref, fp, info))
             continue
@@ -615,7 +637,7 @@ def run(argv: list[str] | None = None):
         SCRIPT, "warning", None, None, None, [r["ref"]],
         f"{r['ref']}: unplaceable - {r['reason']}; label left where it is. "
         f"Fix: {r['suggest']}", SCRIPT, kind="silk_residual",
-        suggest=r["suggest"])
+        suggest=r["suggest"], fix_ops=r.get("fix_ops"))
         for r in residual]
 
     facts = {

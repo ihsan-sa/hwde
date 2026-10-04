@@ -28,6 +28,12 @@ unscriptable):
    "y": mm, ["deg": d]}
      - repositions a footprint's Reference/Value field text (board frame;
        stored angle is ABSOLUTE per LEARNINGS [geometry]).
+  {"op": "set_text", "ref": R, "field": "reference"|"value", ["hide": bool],
+   ["size": mm], ["thickness": mm], ["layer": "F.SilkS"|"B.SilkS"|...]}
+     - hides/shows, resizes (both axes) or re-layers a footprint's
+       Reference/Value field in place; a B.* layer mirrors the text, an F.*
+       layer un-mirrors it (same rule as add_text). The driver enforces the
+       silk size/stroke floor. Absolute, so idempotent.
   {"op": "silk_clear", "ref": R, ["layer": "F.SilkS"], ["only_offboard": true]}
      - deletes a footprint's own GRAPHIC silk (lines/arcs/circles/polys) on
        that layer, never its Reference/Value text. `only_offboard` keeps the
@@ -144,6 +150,27 @@ def apply_text_op(board, op: dict) -> dict:
                 "x": round(pcbnew.ToMM(pos.x), 6),
                 "y": round(pcbnew.ToMM(pos.y), 6),
                 "deg": round(item.GetTextAngleDegrees(), 4)}
+    if kind == "set_text":
+        fp = board.FindFootprintByReference(op["ref"])
+        if fp is None:
+            raise KeyError(f"footprint '{op['ref']}' not on board")
+        item = fp.Reference() if op["field"] == "reference" else fp.Value()
+        if op.get("layer") is not None:
+            item.SetLayer(_layer_id(board, op["layer"]))
+            item.SetMirrored(op["layer"].startswith("B."))
+        if op.get("size") is not None:
+            size = float(op["size"])
+            item.SetTextSize(pcbnew.VECTOR2I(iu(size), iu(size)))
+        if op.get("thickness") is not None:
+            item.SetTextThickness(iu(float(op["thickness"])))
+        if op.get("hide") is not None:
+            item.SetVisible(not op["hide"])
+        sz = item.GetTextSize()
+        return {"ref": op["ref"], "field": op["field"],
+                "layer": pcbnew.LSET.Name(item.GetLayer()),
+                "hidden": not item.IsVisible(),
+                "size": round(pcbnew.ToMM(sz.y), 6),
+                "thickness": round(pcbnew.ToMM(item.GetTextThickness()), 6)}
     raise KeyError(f"unknown text op '{kind}'")
 
 
@@ -217,7 +244,7 @@ def apply_silk_clear(board, op: dict) -> dict:
 
 def apply_op(board, op: dict) -> dict:
     kind = op["op"]
-    if kind in ("add_text", "remove_text", "move_text"):
+    if kind in ("add_text", "remove_text", "move_text", "set_text"):
         return apply_text_op(board, op)
     if kind == "silk_clear":
         return apply_silk_clear(board, op)
