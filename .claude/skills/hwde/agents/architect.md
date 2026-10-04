@@ -40,7 +40,9 @@ output ASCII.
    fsw_khz, edge_ns, pdiss_w, board_layers, switching_kind hard|soft,
    rectifier_kind sync|async, integration_kind integrated-fet|controller,
    source_kind usb|usb-pd|poe|dc-input, control_kind cot|vmode|cmode,
-   injection_kind ...) - the P2-exit coverage check tests them against
+   injection_kind ...; the analog/MCU blocks add ambient_max_c, iout_ua,
+   vs_v, vio_v, amp_kind zero-drift|..., variant_kind fixed|adjustable)
+   - the P2-exit coverage check tests them against
    record envelopes; a dim you leave out keeps the record `provisional`.
    A buck block needs all eight of vin_v, iout_a, pdiss_w, board_layers,
    switching_kind, rectifier_kind, integration_kind, source_kind to reach
