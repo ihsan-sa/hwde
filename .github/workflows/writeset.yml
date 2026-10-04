@@ -1,0 +1,23 @@
+# The eval loop's write-set rule (evals/writeset_check.py): a branch named
+# track/eval-fix-* may not touch scorers, checks, bounds, fixtures or waivers.
+# Every other branch passes in seconds. Its own file so it runs without the
+# KiCad image the checks workflow needs.
+name: writeset
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  writeset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: eval-fix rows stay out of what judges them
+        run: python3 evals/writeset_check.py --branch "${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}" --base origin/main
