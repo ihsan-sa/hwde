@@ -25,8 +25,8 @@ Auth is one setting, auth():
               never falls back to the login.
   login mode  otherwise, HWDE_EVAL_CREDS (default ~/.claude/.credentials.json)
               is bound READ-WRITE at ~/.claude/.credentials.json, because an
-              OAuth refresh writes it back (the owner allowed this,
-              2026-10-04, over perms' ruling).
+              OAuth refresh writes it back (the owner's ruling, relayed
+              by planning on 2026-10-04, overriding perms' no-login one).
 
 Network: --unshare-net leaves the sandbox a loopback and nothing else, so
 127.0.0.1 services, other workers' X displays and the LAN are out of reach.
