@@ -284,7 +284,8 @@ def run_board(cache: Path, b: dict, envv: dict, timeout: int) -> str:
     if work.exists():
         shutil.rmtree(work)
     kicad = work / "kicad"
-    shutil.copytree(src.parent, kicad, ignore=shutil.ignore_patterns(".git", "*-backups"))
+    shutil.copytree(src.parent, kicad, ignore=shutil.ignore_patterns(".git", "*-backups"),
+                    ignore_dangling_symlinks=True)
     pcb = kicad / src.name
     reports = work / "reports"
     reports.mkdir(parents=True)
