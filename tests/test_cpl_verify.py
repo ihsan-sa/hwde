@@ -271,3 +271,47 @@ def test_render_puts_pin1_dot_on_pad1_only_when_right(ws, tmp_path):
         assert png.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
     assert idx["parts"]["X1"]["has_model"] is False
     assert idx["parts"]["D1"]["polar"] is True
+
+
+# ---------------------------------------------- cache resolution, fetch errors
+
+def test_cache_order_env_then_board_dir_then_shared(tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    board = tmp_path / "board"
+    board.mkdir()
+    parts = board / "parts.json"
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("HWDE_EASYEDA_CACHE", raising=False)
+    monkeypatch.delenv("AIEE_EASYEDA_CACHE", raising=False)
+    shared = home / ".cache" / "hwde" / "easyeda"
+    # No board-local dir (a worktree checkout): the shared cache.
+    assert cv.default_cache(parts) == shared
+    assert cv.default_cache(None) == shared
+    # A board-local dir that exists wins over the shared one.
+    (board / "easyeda").mkdir()
+    assert cv.default_cache(parts) == board / "easyeda"
+    # The env var wins over both.
+    monkeypatch.setenv("HWDE_EASYEDA_CACHE", str(tmp_path / "env"))
+    assert cv.default_cache(parts) == tmp_path / "env"
+    assert cv.default_cache(None) == tmp_path / "env"
+
+
+def test_failed_fetch_is_fetch_failed_not_no_model(ws, tmp_path, monkeypatch):
+    """A fetch that raises must not read as a missing model (and so not as a
+    pin-1 result); an API with no data for the part stays no_model."""
+    pcb, _ = ws
+    monkeypatch.setattr(easyeda.time, "sleep", lambda s: None)
+
+    def boom(lcsc):
+        raise OSError("HTTP Error 403: rate limited")
+    monkeypatch.setattr(easyeda, "_fetch_raw", boom)
+    rep = cv.verify(pcb, _cpl(U1=90), LCSC, tmp_path / "empty", fetch=True)
+    row = rep["parts"][0]
+    assert row["verdict"] == "fetch_failed"
+    assert "403" in row["why"] and "pin-1" in row["why"]
+    assert rep["failed"] == ["U1"] and rep["status"] == "violations"
+    assert "fetch_failed" in cv.FAIL_VERDICTS
+
+    monkeypatch.setattr(easyeda, "_fetch_raw", lambda lcsc: {})
+    rep = cv.verify(pcb, _cpl(U1=90), LCSC, tmp_path / "empty2", fetch=True)
+    assert rep["parts"][0]["verdict"] == "no_model"
