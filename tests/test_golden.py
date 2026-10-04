@@ -5,6 +5,10 @@ Plan S1 accept criteria:
   - mutation scripts run deterministically
   - manifest complete
 
+The mutants are manifest.yaml's plus every manifest.d/*.yaml fragment's
+(score_checks.load_manifest), so a check row's mutant is tested here without
+editing this file.
+
 Everything here drives the REAL kicad-cli (10.0.3 pin via env.py); tests
 are marked `smoke` where they need the live toolchain so `pytest -m "not
 smoke"` still runs the pure-file checks.
@@ -18,29 +22,21 @@ import sys
 from pathlib import Path
 
 import pytest
-import yaml
 
 REPO = Path(__file__).resolve().parents[1]
 GOLDEN = REPO / "tests" / "golden"
-sys.path.insert(0, str(REPO / ".claude" / "skills" / "hwde" / "scripts" / "lib"))
+SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
+sys.path.insert(0, str(SCRIPTS))
+sys.path.insert(0, str(SCRIPTS / "lib"))
 import env  # noqa: E402
+import score_checks  # noqa: E402
+import verify_all  # noqa: E402
 
 BOARDS = ["blinky2", "usbbuck4", "rf4"]
-MUTATIONS = {
-    "plane-split-under-clock": "plane_split_under_clock.py",
-    "missing-return-via": "missing_return_via.py",
-    "undersized-power-trace": "undersized_power_trace.py",
-    "decoupler-moved": "decoupler_moved.py",
-    "diffpair-skew": "diffpair_skew.py",
-    "silk-over-pad": "silk_over_pad.py",
-    "cpl-rotation": "cpl_rotation.py",
-    "hv-rail-spacing": "hv_rail_spacing.py",
-    "ldo-thermal-starved": "ldo_thermal_starved.py",
-    "swdio-off-grid": "swdio_off_grid.py",
-    "rail-cap-missing": "rail_cap_missing.py",
-    "cap-undervoltage": "cap_undervoltage.py",
-    "usb-faces-inward": "usb_faces_inward.py",
-}
+MANIFEST = score_checks.load_manifest(GOLDEN)
+# mutant name -> its mutation script, base manifest and fragments alike
+MUTATIONS = {name: Path(m["script"]).name
+             for name, m in MANIFEST["mutants"].items()}
 
 
 @pytest.fixture(scope="session")
@@ -53,7 +49,7 @@ def kicad_cli() -> Path:
 
 @pytest.fixture(scope="session")
 def manifest() -> dict:
-    return yaml.safe_load((GOLDEN / "manifest.yaml").read_text(encoding="utf-8"))
+    return MANIFEST
 
 
 def run_cli(cli: Path, args: list[str]) -> subprocess.CompletedProcess:
@@ -154,15 +150,14 @@ def test_mutant_committed(name, manifest):
 
 def test_manifest_complete(manifest):
     assert set(manifest["golden_boards"]) == set(BOARDS)
-    assert set(manifest["mutants"]) == set(MUTATIONS)
-    known_checks = {"check_return_path", "check_decoupling", "check_current",
-                    "check_diffpair", "check_creepage", "check_thermal",
-                    "check_silk", "check_pdn", "dfm_check",
-                    "check_route_style", "check_ratings",
-                    "check_mating"}
+    # dfm_check is scored in test_fab.py, outside the verify suite
+    known_checks = {c["name"] for c in verify_all.CHECKS} | {"dfm_check"}
     for name, m in manifest["mutants"].items():
         assert m["board"] in BOARDS, f"{name}: unknown board {m['board']}"
         assert m["check"] in known_checks, f"{name}: unknown check {m['check']}"
+        # failure-modes.md 3.2 rule 2: the script is named after the mutant
+        assert m["script"] == f"mutations/{name.replace('-', '_')}.py", (
+            f"{name}: script {m['script']} is not named after the mutant")
         script = GOLDEN / m["script"]
         assert script.exists(), f"{name}: script missing {script}"
         assert "expect" in m and m["expect"], f"{name}: no expectation"
