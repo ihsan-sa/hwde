@@ -5142,3 +5142,17 @@ long designator list fits the Customer Reference field, then fix the headers in 
 
 ## 2026-10-02 [placement][connector][verify] A connector facing into the board passed every gate; the place and verify gates now check mating
 PCB-0021-A J4 (USB-A) and PCB-0018-A J701/J702 (JST GH) sat with their backs at the edge and their mouths into the board, and passed place, DRC, verify, DFM and the render review. lib/matinglib.py now fails that at P6 and P8. Gotchas hit building it: "SMA" is also the DO-214AC diode package (`SMA_L4.3-W2.6...`), so a bare SMA match calls a diode a coax connector; the mouth reads reliably from the pad layout (contact row at the back, body toward the mouth) on every connector in the boards corpus, which EasyEDA footprints give no rotation convention for; and `checklib.violation` sorts `refs`, so a check that needs to say which ref is the subject puts it in its own field. The same sweep found PCB-0021-A J1 (micro-USB) with its contact row parallel to the edge it sits at, so its mouth points along the edge.
+
+## 2026-10-02 [jlc][fab][easyeda2kicad] CPL rotation: an imported footprint needs NO correction; the package table turned 41 shipped parts
+JLC places a part the way its LCSC footprint model is drawn in EasyEDA. A footprint pulled by
+easyeda2kicad (lib_pull.py, every `aiee:` footprint named like `SOT-23-6_L2.9-W1.6-...`) IS that
+model's geometry, so its CPL rotation must equal the board rotation. jlc_rotations.csv's package
+rows (`^SOT-23,180`, `^LQFP-,270`, `^SOIC-,270`, ...) are for KiCad LIBRARY footprints and still
+matched the imported names, so every board in ~/dev/boards shipped such parts 90 or 180 deg off
+(the owner's SOT-23-5/6 JLC previews). cpl_verify.py now fits each part's own model; on all 161
+parts with a cached model the imported footprint needed correction 0. Two more facts:
+(a) the EasyEDA component endpoint rate-limits PER IP - about ten quick requests, then 403 for
+minutes, curl included - and easyeda2kicad's EasyedaApi swallows the 403 into `{}`, which reads as
+"no such part"; lib/easyeda.py fetches itself and raises on HTTP errors. (b) A pad-size fit
+tolerance is wrong: an SO-8 LCSC model's rows sit 6.0 mm apart vs 5.12 in a KiCad-style land
+pattern; use half the smallest pad pitch (each model pad nearer its own pad than any other).
