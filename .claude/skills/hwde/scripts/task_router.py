@@ -427,6 +427,9 @@ def workspace_context(ws: Path | None, board_hint: str | None,
         slots[slot] = f"{ctx['workspace']}/{rel}"
     for slot, sub in DIR_SLOTS.items():
         slots[slot] = f"{ctx['workspace']}/{sub}"
+    # verify check reports: reports/checks, or kicad/reports/checks on a
+    # workspace not yet resumed to workspace_schema 2 (statelib)
+    slots["checks"] = str(statelib.check_reports_dir(ws)).replace("\\", "/")
     ctx["slots"] = slots
     return ctx
 

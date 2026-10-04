@@ -2,10 +2,11 @@
 # S0 Windows environment; see docker/README.md). Build from the repo root:
 #   docker build -t hwde-run:latest -f docker/Dockerfile .
 #
-# Base: the official KiCad image = kicad-cli 10.0.5 + bundled (system) python 3.13.5
-# with the SWIG pcbnew module + symbol/footprint libs + libngspice. 10.0.3 (the
-# Windows pin) has no published image; 10.0.x share one file format.
-FROM kicad/kicad:10.0.5
+# Base: the official KiCad image = kicad-cli 10.0.6 (env.KICAD_PIN, the box
+# host's version; CI uses the same tag) + bundled (system) python
+# with the SWIG pcbnew module + symbol/footprint libs + libngspice. 10.0.x share
+# one file format.
+FROM kicad/kicad:10.0.6
 
 ARG CLAUDE_CODE_VERSION=latest
 ARG NODE_VERSION=24.20.0
