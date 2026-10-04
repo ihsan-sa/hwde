@@ -22,10 +22,14 @@ contain" (codex H1). These files come out of one run:
 
   CPL.csv       Designator, Mid X, Mid Y, Layer, Rotation - `smt_placed` only.
                 Mid X/Y in mm from the pos file; Layer Top/Bottom; Rotation =
-                (kicad rotation + JLC correction) mod 360. The correction is
-                the notorious KiCad<->JLC 0-degree-reference offset, vendored
-                per package family in reference/jlc_rotations.csv (regex on the
-                footprint name, first match wins - LEARNINGS/S8).
+                (kicad rotation + JLC correction) mod 360. The correction comes
+                from the part's OWN LCSC footprint model (cpl_verify.py fits it
+                onto the board footprint, pin 1 on pad 1; models cached per
+                LCSC number, see --easyeda-cache). Only a part with no model
+                falls back to the package table reference/jlc_rotations.csv
+                (regex on the footprint name, first match wins - LEARNINGS/S8);
+                `rotation_audit[].source` says which one each part used, and
+                dfm_check fails the table-fallback parts.
 
   prebuy.csv    the PRE-BUY LIST: every `smt_placed` part parts.json marks
                 Extended (`basic: false` or `type: extended`), with its LCSC
@@ -67,14 +71,17 @@ Instructions text: `refdes_notes: {ref: text}` > line `assembly_notes` >
 a per-class default sentence.
 
 bom_cpl GENERATES; polarity/rotation VALIDATION (catching a backwards part) is
-dfm_check.py's job, which also consumes these classes: a missing LCSC on an
+dfm_check.py's job (with cpl_verify.py), which also consumes these classes: a missing LCSC on an
 `smt_placed` part is a release ERROR, on any other class it is not a finding.
 
 CLI:
   bom_cpl.py --pcb board.kicad_pcb --out-dir fab/ [--pos pos.csv]
              [--parts parts.json] [--rotations jlc_rotations.csv]
              [--name NAME] [--build-qty N] [--ws-name WS] [--boards N]
-             [--no-price-lookup] [--out report.json]
+             [--no-price-lookup] [--easyeda-cache DIR] [--offline]
+             [--out report.json]
+The model cache defaults to <parts.json dir>/easyeda; --offline (or
+HWDE_EASYEDA_OFFLINE=1) never fetches, so an uncached part uses the table.
 Exit 0 ok / 1 assembly violations (incomplete BOM, unplaced smt_placed part,
 declared-quantity mismatch) / 2 error.
 """
@@ -540,11 +547,21 @@ def build_prebuy(bom_rows: list[dict], records: list[dict],
     return rows
 
 
-def build_cpl(parts: list[dict], rules) -> tuple[list[dict], list[dict]]:
-    """CPL rows + a parallel rotation-correction audit trail."""
+def build_cpl(parts: list[dict], rules, derive=None
+              ) -> tuple[list[dict], list[dict]]:
+    """CPL rows + a parallel rotation-correction audit trail. `derive(ref)`
+    gives the rotation the part's own LCSC model needs, or None - then the
+    package table decides."""
     cpl, audit = [], []
     for p in sorted(parts, key=lambda q: _natural_key(q["ref"])):
-        final, corr, pat = correct_rotation(p["package"], p["rot"], rules)
+        model_rot = derive(p["ref"]) if derive else None
+        if model_rot is None:
+            final, corr, pat = correct_rotation(p["package"], p["rot"], rules)
+            source = "table" if pat else "none"
+        else:
+            final = model_rot % 360.0
+            corr = round((final - p["rot"]) % 360.0, 4)
+            pat, source = None, "lcsc_model"
         layer = "Bottom" if p["side"] in ("bottom", "back") else "Top"
         cpl.append({
             "Designator": p["ref"],
@@ -556,8 +573,25 @@ def build_cpl(parts: list[dict], rules) -> tuple[list[dict], list[dict]]:
         audit.append({"ref": p["ref"], "package": p["package"],
                       "base_rot": round(p["rot"], 4),
                       "correction": corr, "final_rot": round(final, 4),
-                      "matched": pat, "layer": layer})
+                      "matched": pat, "source": source, "layer": layer})
     return cpl, audit
+
+
+def model_deriver(pcb: Path, parts_map: dict[str, dict], cache_dir: Path,
+                  fetch: bool):
+    """ref -> the CPL rotation the part's LCSC model needs, or None."""
+    import cpl_verify
+    import easyeda
+    # A run from a pos file alone (no board) has nothing to fit onto.
+    fps = cpl_verify.board_footprints(pcb) if Path(pcb).is_file() else {}
+
+    def derive(ref: str):
+        fp, lcsc = fps.get(ref), parts_map.get(ref, {}).get("lcsc")
+        if fp is None or not lcsc:
+            return None
+        return cpl_verify.derive_rotation(
+            fp, easyeda.get(lcsc, cache_dir, fetch=fetch, pace_s=1.0))
+    return derive
 
 
 def _write_csv(path: Path, fieldnames: list[str], rows: list[dict]) -> None:
@@ -598,7 +632,8 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
         name: str | None = None,
         build_qty: int = DEFAULT_BUILD_QTY, ws_name: str | None = None,
         boards: int = 1, lookup_prices: bool = False,
-        transport=None) -> dict:
+        transport=None, easyeda_cache: Path | None = None,
+        fetch_models: bool | None = None) -> dict:
     if build_qty < 1:
         raise ValueError(f"build_qty must be >= 1, got {build_qty}")
     name = name or pcb.stem
@@ -627,7 +662,11 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
 
     bom_rows = build_bom(placed, parts_map)
     bom_full_rows = build_bom_full(parts, records, classes, notes, parts_map)
-    cpl_rows, audit = build_cpl(placed, rules)
+    import cpl_verify
+    cache = easyeda_cache or cpl_verify.default_cache(parts_json)
+    fetch = (not cpl_verify.offline()) if fetch_models is None else fetch_models
+    cpl_rows, audit = build_cpl(
+        placed, rules, model_deriver(pcb, parts_map, cache, fetch))
     prebuy_rows = build_prebuy(bom_rows, records, build_qty)
     qty_mismatch = check_declared_quantities(records, classes)
 
@@ -725,6 +764,9 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
         "not_placed": not_placed,
         "rotation_audit": audit,
         "n_rotation_corrections": len(corrected),
+        "rotation_from_table": [a["ref"] for a in audit
+                                if a["source"] != "lcsc_model"],
+        "easyeda_cache": str(cache),
         "missing_lcsc": missing,
         "missing_lcsc_unplaced": missing_unplaced,
         "unsourced": unsourced,
@@ -760,6 +802,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="boards to buy for in the distributor BOMs (default 1)")
     ap.add_argument("--no-price-lookup", action="store_true",
                     help="skip the DigiKey/Mouser APIs even with keys set")
+    ap.add_argument("--easyeda-cache", help="LCSC footprint model cache "
+                    "(default: <parts.json dir>/easyeda)")
+    ap.add_argument("--offline", action="store_true",
+                    help="never fetch LCSC models; uncached parts use the table")
     ap.add_argument("--out", help="write JSON report here instead of stdout")
     args = ap.parse_args(argv)
     if args.boards < 1:
@@ -772,7 +818,10 @@ def main(argv: list[str] | None = None) -> int:
                   rotations=Path(args.rotations) if args.rotations else None,
                   name=args.name, build_qty=args.build_qty,
                   ws_name=args.ws_name, boards=args.boards,
-                  lookup_prices=not args.no_price_lookup)
+                  lookup_prices=not args.no_price_lookup,
+                  easyeda_cache=Path(args.easyeda_cache)
+                  if args.easyeda_cache else None,
+                  fetch_models=False if args.offline else None)
     except Exception as exc:  # noqa: BLE001 (SPEC: any error -> exit 2)
         err = {"script": "bom_cpl", "status": "error",
                "error": f"{type(exc).__name__}: {exc}"}

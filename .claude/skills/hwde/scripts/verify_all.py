@@ -2,7 +2,11 @@
 
 Runs every deterministic check (S4 crown jewels + S5) concurrently, each writing
 its own reports/checks/<name>.json, then merges them into one stable summary
-(reports/checks/summary.json). The orchestrator's `verify` gate (gates.yaml)
+(reports/checks/summary.json). reports/checks is the WORKSPACE's (the dir
+holding state.json above the board); a board outside any workspace writes
+<pcb dir>/reports/checks. Old workspaces may still hold kicad/reports/checks;
+readers resolve through statelib.check_reports_dir and `state.py resume`
+moves them (workspace_schema 2). The orchestrator's `verify` gate (gates.yaml)
 reads this summary; cluster_violations.py groups its violations for fixers.
 
 Default (exploratory) mode: a check is SKIPPED (not failed) when an input it
@@ -62,6 +66,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE / "lib"))
 import checklib  # noqa: E402
+import statelib  # noqa: E402
 
 SCRIPT = "verify_all"
 
@@ -272,7 +277,8 @@ def run(argv=None):
     ap.add_argument("--parts", help="P3 parts dir: parts.json + per-part "
                     "extractions (default <ws>/parts when it exists)")
     ap.add_argument("--reports-dir", help="dir for per-check + summary JSON "
-                    "(default: <pcb dir>/reports/checks)")
+                    "(default: <workspace>/reports/checks, or "
+                    "<pcb dir>/reports/checks outside a workspace)")
     ap.add_argument("--out", help="write the summary here (also to reports dir)")
     ap.add_argument("--jobs", type=int, default=8, help="max parallel checks")
     ap.add_argument("--strict", action="store_true",
@@ -286,7 +292,7 @@ def run(argv=None):
         raise checklib.CheckError(f"board not found: {pcb}")
     na = load_not_applicable(args.constraints)
     reports_dir = Path(args.reports_dir) if args.reports_dir else \
-        pcb.parent / "reports" / "checks"
+        statelib.reports_dir_for(pcb)
     reports_dir.mkdir(parents=True, exist_ok=True)
     parts = Path(args.parts) if args.parts else \
         pcb.resolve().parent.parent / "parts"

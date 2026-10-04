@@ -10,7 +10,7 @@ read the result later. Nobody answers questions during the run.
 - Linux (Debian 13), repo at `/workspace`, branch `run/<board>`. Repo venv python
   is `.venv/bin/python` (a link to `/opt/venv`, Python 3.13, `requirements.lock`).
   Everywhere the docs say `.venv\Scripts\python.exe`, use `.venv/bin/python`.
-- KiCad 10.0.5: `kicad-cli` on PATH (`HWDE_KICAD_CLI=/usr/bin/kicad-cli`); the
+- KiCad 10.0.6: `kicad-cli` on PATH (`HWDE_KICAD_CLI=/usr/bin/kicad-cli`); the
   "bundled python" with SWIG `pcbnew` is `/usr/bin/python3` (env.py resolves it).
   Symbol/footprint libs: `/usr/share/kicad/{symbols,footprints}`.
 - Java 25 + Freerouting 2.2.4 + KiCadRoutingTools 0.19.0 + libngspice + TeX Live
