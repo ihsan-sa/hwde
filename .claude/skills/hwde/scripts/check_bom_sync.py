@@ -26,11 +26,14 @@ Rules, each a finding's `kind` (error unless marked):
  - bom_ref_unknown: BOM.csv, CPL.csv or BOM-full.csv names a designator that is
    no footprint on the board.
  - bom_pos_excluded (warning): an SMD footprint carries
-   `exclude_from_pos_files` and parts.json gives it no class, so it became
-   hand_install from the attr alone and will not be machine-placed.
- - bom_files_missing / bom_parts_missing (warning): the BOM/CPL files or
-   parts.json were not found, so that leg did not run. The report's `legs`
-   says which legs ran; it never reads as a pass on a leg it skipped.
+   `exclude_from_pos_files` (and neither `exclude_from_bom` nor
+   `board_only`) and parts.json gives it no class, so it became hand_install
+   from the attr alone and will not be machine-placed.
+
+A missing input is not a finding, because a bare board (the golden corpus)
+has no fab files and that is no fault of the design. Instead the report's
+`legs` says which legs ran, and `skipped` names each one that did not and why
+(DFA-08: a skipped leg is stated, never left silent).
 
 Inputs, each found beside a pipeline workspace's board when not given:
   schematic   <pcb stem>.kicad_sch beside the board, its sheets followed
@@ -214,7 +217,10 @@ def check(pcb: Path, fab_dir: Path | None, parts: Path | None) -> tuple:
                 "(dnp no)")
     for ref in sorted(fps, key=bom_cpl._natural_key):
         f = fps[ref]
-        if f["smd"] and "exclude_from_pos_files" in f["attrs"] \
+        # board_feature (exclude_from_bom / board_only: fiducials, printed
+        # coils, pogo pads) is no part, so only an attr-made hand_install is
+        if f["smd"] and classes.get(ref) == "hand_install" \
+                and "exclude_from_pos_files" in f["attrs"] \
                 and ref not in parts_refs and not is_dnp(ref):
             add("bom_pos_excluded", "warning", ref,
                 f"{ref} is SMD with exclude_from_pos_files and no parts.json "
@@ -227,16 +233,12 @@ def check(pcb: Path, fab_dir: Path | None, parts: Path | None) -> tuple:
             if (fab_dir / name).is_file():
                 files[name] = csv_designators(fab_dir / name)
     legs["fab"] = bool(files)
-    if not files:
-        viols.append(violation(
-            SCRIPT, "warning", None, None, None, [],
-            "no BOM.csv, CPL.csv or BOM-full.csv found; the BOM and CPL "
-            "legs did not run", SCRIPT, kind="bom_files_missing"))
-    if not have_parts:
-        viols.append(violation(
-            SCRIPT, "warning", None, None, None, [],
-            "no parts.json found; classes come from board attrs and the "
-            "schematic only", SCRIPT, kind="bom_parts_missing"))
+    legs["skipped"] = [m for m, missing in (
+        ("fab: no BOM.csv, CPL.csv or BOM-full.csv found, so the BOM and "
+         "CPL legs did not run", not files),
+        ("parts: no parts.json found, so classes come from board attrs and "
+         "the schematic only", not have_parts),
+        ("schematic: no schematic DNP marks read", not sch)) if missing]
 
     for name in ("BOM.csv", "CPL.csv"):
         listed = files.get(name)
@@ -268,7 +270,7 @@ def check(pcb: Path, fab_dir: Path | None, parts: Path | None) -> tuple:
     return viols, legs
 
 
-def main(argv=None) -> int:
+def run(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--pcb", required=True)
     ap.add_argument("--fab-dir", help="dir holding BOM.csv / CPL.csv / "
@@ -277,20 +279,21 @@ def main(argv=None) -> int:
                     "<ws>/parts/parts.json)")
     ap.add_argument("--out")
     args = ap.parse_args(argv)
+    pcb = Path(args.pcb)
+    if not pcb.is_file():
+        raise checklib.CheckError(f"board not found: {pcb}")
+    fab = find_fab_dir(pcb, args.fab_dir)
+    parts = find_parts(pcb, args.parts)
+    viols, legs = check(pcb, fab, parts)
+    skipped = legs.pop("skipped")
+    return checklib.report(
+        SCRIPT, pcb, viols, legs=legs, skipped=skipped,
+        fab_dir=str(fab) if fab else None,
+        parts=str(parts) if parts else None), args.out
 
-    def run():
-        pcb = Path(args.pcb)
-        if not pcb.is_file():
-            raise checklib.CheckError(f"board not found: {pcb}")
-        fab = find_fab_dir(pcb, args.fab_dir)
-        parts = find_parts(pcb, args.parts)
-        viols, legs = check(pcb, fab, parts)
-        return checklib.report(
-            SCRIPT, pcb, viols, legs=legs,
-            fab_dir=str(fab) if fab else None,
-            parts=str(parts) if parts else None), args.out
 
-    return checklib.cli_wrap(SCRIPT, run)
+def main(argv=None) -> int:
+    return checklib.cli_wrap(SCRIPT, lambda: run(argv))
 
 
 if __name__ == "__main__":

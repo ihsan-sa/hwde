@@ -81,19 +81,20 @@ def _drop_ref(path, ref):
     path.write_text("\n".join(out) + "\n", encoding="utf-8")
 
 
-def test_golden_has_no_errors_and_says_which_legs_skipped():
+def test_golden_has_no_findings_and_says_which_legs_skipped():
+    # a bare board is no fault: no finding, but the skipped legs are named
     viols, legs = _run(GOLDEN / "blinky2" / "blinky2.kicad_pcb")
-    assert _errors(viols) == []
+    assert viols == []
+    skipped = legs.pop("skipped")
     assert legs == {"schematic": True, "parts": False, "fab": False}
-    assert {v["kind"] for v in viols} == {"bom_files_missing",
-                                           "bom_parts_missing"}
+    assert [s.split(":")[0] for s in skipped] == ["fab", "parts"]
 
 
 def test_clean_fab_files_pass(tmp_path):
     viols, legs = _run(_workspace(tmp_path))
     assert _errors(viols) == []
     assert legs["fab"] is True
-    assert "bom_files_missing" not in {v["kind"] for v in viols}
+    assert "fab" not in [s.split(":")[0] for s in legs["skipped"]]
 
 
 def test_committed_mutant_is_caught_at_r2():
@@ -180,9 +181,27 @@ def test_pos_excluded_smd_part_warns_until_parts_json_names_it(tmp_path):
 def test_cli_exit_codes(tmp_path):
     pcb = _workspace(tmp_path)
     out = tmp_path / "r.json"
-    # warnings only (no parts.json) still report as violations -> exit 1
-    assert check_bom_sync.main(["--pcb", str(pcb), "--out", str(out)]) == 1
+    # clean files, parts.json absent: exit 0, and the report names the skip
+    assert check_bom_sync.main(["--pcb", str(pcb), "--out", str(out)]) == 0
     rep = json.loads(out.read_text(encoding="utf-8"))
-    assert rep["legs"]["fab"] is True and rep["status"] == "violations"
+    assert rep["legs"]["fab"] is True
+    assert [s.split(":")[0] for s in rep["skipped"]] == ["parts"]
+    assert check_bom_sync.main(["--pcb", str(MUTANT / "blinky2.kicad_pcb")]) \
+        == 1
     assert check_bom_sync.main(["--pcb", str(tmp_path / "nope.kicad_pcb")]) \
         == 2
+
+
+def test_board_feature_with_pos_excluded_is_no_part(tmp_path):
+    # fiducials, printed coils and pogo pads carry exclude_from_pos_files
+    # too, but exclude_from_bom makes them board_feature, not hand_install
+    pcb_text = MUT.mutlib.edit_footprint(
+        GOLDEN_PCB, "C4", "(attr smd)",
+        "(attr smd exclude_from_pos_files exclude_from_bom)",
+        "C4 board feature")
+    pcb = _workspace(tmp_path, pcb_text=pcb_text)
+    _drop_ref(tmp_path / "BOM.csv", "C4")
+    _drop_ref(tmp_path / "CPL.csv", "C4")
+    viols, _ = _run(pcb)
+    assert _refs(viols, "bom_pos_excluded") == set()
+    assert _errors(viols) == []
