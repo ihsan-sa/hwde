@@ -5638,7 +5638,7 @@ claims to be the owner's own ruling. Packet: `design/u22-ruling-packet.md`,
 - Learnings (Q4): per-board rulings `design/u22-staged/rulings/<board>.yaml`
   (61 root_learnings, 1 prompt_line, 12 knowledge_record, 13 duplicate,
   1 superseded = bb-mcu's -Y terminal row, ruled wrong by Q2). Root LEARNINGS +
-  triage rows 355-415 written by `learnings.py resolve` run on a scratch copy.
+  triage rows 357-417 written by `learnings.py resolve` run on a scratch copy.
 - Library: 96 records / 12 checklists, `knowledge.py --validate --strict` green.
 
 **Dedupe:** 82 records in -> 80 out (1 merge, 1 fold); 76 lessons -> 62 + 14.

@@ -240,8 +240,10 @@ def run_report_for_gate(gate: dict, input_file: Path) -> dict:
 def run_dfm(board: Path, strict: bool = False) -> dict:
     """Run dfm_check on the board (P9). Gerbers are exported to a scratch dir,
     so gating never litters the design folder; the schematic beside the board
-    (pipeline convention) is the CPL-polarity oracle, and parts.json - when the
-    project has one - drives the BOM-completeness leg. strict (U2/C7): a
+    (pipeline convention) is the CPL-polarity oracle, and parts.json - beside
+    the board or in the workspace's parts/ - drives the BOM-completeness and
+    CPL-placement legs, the latter on the workspace's fab/CPL.csv and
+    fab/cpl_visual.json when they exist. strict (U2/C7): a
     sub-check that could not run (open outline, no netlist, no parts.json)
     is a coverage failure -> the payload comes back status error and the
     gate refuses instead of grading the partial report."""
@@ -250,9 +252,18 @@ def run_dfm(board: Path, strict: bool = False) -> dict:
     sch = board.with_suffix(".kicad_sch")
     if sch.exists():
         kwargs["schematic"] = sch
-    parts = board.parent / "parts.json"
-    if parts.exists():
-        kwargs["parts"] = parts
+    for parts in (board.parent / "parts.json",
+                  board.parent.parent / "parts" / "parts.json"):
+        if parts.exists():
+            kwargs["parts"] = parts
+            break
+    # The shipped CPL and the fab step's image verdict, when the workspace
+    # has them (kicad/<board> -> fab/): placement is checked on what ships.
+    fab = board.parent.parent / "fab"
+    if (fab / "CPL.csv").is_file():
+        kwargs["cpl"] = fab / "CPL.csv"
+    if (fab / "cpl_visual.json").is_file():
+        kwargs["visual"] = fab / "cpl_visual.json"
     payload = dfm_check.run(board, **kwargs)
     if payload.get("status") == "error":
         raise RuntimeError(f"dfm could not run: {payload.get('error')}")

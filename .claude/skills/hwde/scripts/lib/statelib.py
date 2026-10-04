@@ -241,6 +241,76 @@ def find_workspace(input_file: Path | None,
     return None
 
 
+# ---------------------------------------------------------------------------
+# workspace layout schema (state.json "workspace_schema")
+# ---------------------------------------------------------------------------
+# The LAYOUT of a workspace, versioned apart from the state.json schema
+# ("version"): a layout change moves files, a state change rewrites JSON.
+# Absent = 1. Each step below names what it moves; `state.py resume` runs the
+# steps a workspace is behind on, so a board picks up the layout the first
+# time anyone resumes it.
+#   2: verify check reports live in ONE place, <ws>/reports/checks/. Before
+#      it verify_all defaulted to <pcb dir>/reports/checks, so boards carry
+#      kicad/reports/checks/ (some carry both).
+WORKSPACE_SCHEMA = 2
+CHECKS_REL = "reports/checks"
+LEGACY_CHECKS_REL = "kicad/reports/checks"
+
+
+def check_reports_dir(ws: Path) -> Path:
+    """Where workspace `ws` keeps its verify check reports. Writers always
+    use <ws>/reports/checks; readers come here so a workspace nobody has
+    resumed since schema 2 still reads from kicad/reports/checks when that is
+    the only place holding reports."""
+    ws = Path(ws)
+    new, old = ws / CHECKS_REL, ws / LEGACY_CHECKS_REL
+    if not any(new.glob("*.json")) and any(old.glob("*.json")):
+        return old
+    return new
+
+
+def reports_dir_for(pcb: Path) -> Path:
+    """Default check-report dir for a board file: its workspace's
+    reports/checks when the board sits inside one (state.json above it),
+    else <pcb dir>/reports/checks (a corpus board, a scratch export)."""
+    ws = find_workspace(pcb)
+    return ws / CHECKS_REL if ws else Path(pcb).parent / "reports" / "checks"
+
+
+def migrate_workspace(ws: Path, data: dict) -> list[dict]:
+    """Bring workspace `ws` (state dict `data`) up to WORKSPACE_SCHEMA.
+    Mutates `data` (the caller saves it) and returns one record per file
+    action. Idempotent: a current workspace returns [] and is untouched.
+    Never overwrites: a report already at the new path wins and its legacy
+    twin stays where it is, so nothing is lost when a board has both."""
+    ws = Path(ws)
+    have = data.get("workspace_schema", 1)
+    if not isinstance(have, int) or have > WORKSPACE_SCHEMA:
+        raise ValueError(f"{ws}: workspace_schema {have!r} is newer than "
+                         f"this build ({WORKSPACE_SCHEMA}); update hwde")
+    actions: list[dict] = []
+    if have < 2:
+        old, new = ws / LEGACY_CHECKS_REL, ws / CHECKS_REL
+        if old.is_dir():
+            for f in sorted(p for p in old.iterdir() if p.is_file()):
+                dst = new / f.name
+                if dst.exists():
+                    actions.append({"action": "kept", "from": f"{LEGACY_CHECKS_REL}/{f.name}",
+                                    "to": f"{CHECKS_REL}/{f.name}"})
+                    continue
+                new.mkdir(parents=True, exist_ok=True)
+                f.replace(dst)
+                actions.append({"action": "moved", "from": f"{LEGACY_CHECKS_REL}/{f.name}",
+                                "to": f"{CHECKS_REL}/{f.name}"})
+            for d in (old, old.parent):  # kicad/reports/checks, kicad/reports
+                try:
+                    d.rmdir()  # only when now empty
+                except OSError:
+                    break
+    data["workspace_schema"] = WORKSPACE_SCHEMA
+    return actions
+
+
 _PN_DIR = re.compile(r"^PCB-\d{4}-[A-HJ-NP-Z]_")  # boardreg's <PN>_<name>
 
 
