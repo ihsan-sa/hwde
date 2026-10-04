@@ -1,0 +1,140 @@
+# PCB-0011-A_bb-mcu U22 promotion pass, 2026-10-04. Rulings by perms on the owner's
+# standing redirect (#ai-ee 1791102051.529859); packet design/u22-ruling-packet.md.
+# Apply: learnings.py resolve --workspace <boards>/PCB-0011-A_bb-mcu --batch <this file>
+version: 1
+rulings:
+- entry: 2026-08-16-research-task-block-swd-debug-port-1
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id001
+  - >-
+    reference/knowledge/records/swd-debug-port-edge-rate-sets-layout-demand.yaml
+  - >-
+    reference/knowledge/records/swd-debug-port-nrst-on-the-header.yaml
+  - >-
+    reference/knowledge/records/swd-debug-port-stm32f0-internal-pulls.yaml
+  - >-
+    reference/knowledge/records/swd-debug-port-termination-follows-silicon.yaml
+  - >-
+    reference/knowledge/records/swd-debug-port-unkeyed-header-pin-order.yaml
+  targets: *id001
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: 2026-08-16-research-task-block-mcu-1-8-verified
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id002
+  - >-
+    reference/knowledge/records/mcu-analog-rail-tracks-digital-rail.yaml
+  - >-
+    reference/knowledge/records/mcu-boot-select-strap-stm32f0.yaml
+  - >-
+    reference/knowledge/records/mcu-decoupler-is-the-local-source.yaml
+  - reference/knowledge/records/mcu-package-power-budget.yaml
+  - reference/knowledge/records/mcu-reset-sampled-pin-audit.yaml
+  - >-
+    reference/knowledge/records/mcu-supply-pin-pair-decoupling.yaml
+  - >-
+    reference/knowledge/records/mcu-supply-return-continuity.yaml
+  - >-
+    reference/knowledge/records/mcu-swd-port-live-at-reset-stm32f0.yaml
+  targets: *id002
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: 2026-08-16-wj500v-5-08-2p-wire-entry-is
+  status: declined
+  kind: superseded
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. Q2 rules the WJ500V-5.08-2P wire enters at +Y (bb-adc, from the dimensioned
+    vendor drawing matched to the fab outline); this -Y reading came from a side
+    render and is wrong.
+- entry: 2026-08-16-placement-edges-pins-the-connectors-to-the
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. see K4; the recipe line is a 2-line edit if the owner prefers prompt_line
+    now
+  triage:
+    now: L0
+    target: L3
+    owner: reference/recipes/resize-board.md
+    status: open
+    note: >-
+      K4 lead: at a canonical binding with placement.edges run place -> fit ->
+      silk -> gate; folds bb-ldo's provisional-outline and silk-against-outline
+      rows. Owner and fix: reference/recipes/resize-board.md + agents/placement.md
+      (order) + scripts/gate.py (place gate at canonical grades edges against
+      the FITTED outline).
+- entry: 2026-08-16-a-pulled-tht-footprint-was-under-drilled
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. PIPELINE BUG; side finding for the owner: boards/bb-ldo/lib/aiee.pretty/CONN-TH_2P-P5.00_WJ500V-5.08-2P.kicad_mod
+    still carries the 1.30 mm drill (bb-adc/bb-mcu/buck-5v3a copies are 1.50)
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/fp_verify.py
+    status: open
+    note: >-
+      Owner and fix: scripts/fp_verify.py (drill vs stated pin, square-pin diagonal)
+      + P3 roster extracts THT connector datasheets.
+- entry: 2026-08-16-fp-verify-never-compares-row-spacing-mm
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. field exists in land_pattern, never compared
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/fp_verify.py
+    status: open
+    note: 'Owner and fix: scripts/fp_verify.py.'
+- entry: 2026-08-16-being-on-the-fetch-allowlist-says-nothing
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K5
+- entry: 2026-08-16-silk-place-skips-board-only-refs-by
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. a mounting hole's refdes ended up labelling the IC; root L3103 is
+    attribution-blindness, different
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/silk_place.py
+    status: open
+    note: >-
+      Owner and fix: scripts/silk_place.py (solve or explicitly skip-and-report
+      board_only refs).
+- entry: 2026-08-16-backticks-in-a-bash-tool-argument-are
+  status: promoted
+  kind: root_learnings
+  level: L0
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. a state.py decision lost a word to command substitution
+  triage:
+    now: L0
+    target: L0
+    owner: CLAUDE.md
+    status: n/a
+    note: 'Owner and fix: n/a (host/tool fact), sibling of root L4310.'

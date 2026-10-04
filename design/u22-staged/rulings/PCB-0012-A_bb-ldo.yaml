@@ -1,0 +1,286 @@
+# PCB-0012-A_bb-ldo U22 promotion pass, 2026-10-04. Rulings by perms on the owner's
+# standing redirect (#ai-ee 1791102051.529859); packet design/u22-ruling-packet.md.
+# Apply: learnings.py resolve --workspace <boards>/PCB-0012-A_bb-ldo --batch <this file>
+version: 1
+rulings:
+- entry: 2026-08-16-research-task-block-linear-regulator-1-6
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id001
+  - >-
+    reference/knowledge/records/linear-regulator-1117-output-cap-esr-window.yaml
+  - >-
+    reference/knowledge/records/linear-regulator-copper-is-the-heatsink.yaml
+  - >-
+    reference/knowledge/records/linear-regulator-esr-zero-compensation.yaml
+  - >-
+    reference/knowledge/records/linear-regulator-fixed-variant-min-load.yaml
+  - >-
+    reference/knowledge/records/linear-regulator-live-tab-thermal-vias.yaml
+  - >-
+    reference/knowledge/records/linear-regulator-tab-copper-area-theta-ja.yaml
+  targets: *id001
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: 2026-08-16-a-pulled-symbol-s-reversed-pin-angles
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. rotating the part is not the fix
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/lib_pull.py
+    status: open
+    note: >-
+      Owner and fix: scripts/lib_pull.py (normalise pin angles on pull).
+- entry: 2026-08-16-hang-a-rail-s-power-symbol-in
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. 2.54 mm pitch: power symbol in its own cluster
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/schlib.py
+    status: open
+    note: 'Owner and fix: scripts/schlib.py.'
+- entry: 2026-08-16-a-pulled-2-pin-passive-names-its
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. names print on the body
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/lib_pull.py
+    status: open
+    note: >-
+      Owner and fix: scripts/lib_pull.py (hide pin names on 2-pin passives).
+- entry: 2026-08-16-two-pins-of-one-part-are-two
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. ERC stayed 0/0
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/netlist_audit.py
+    status: open
+    note: >-
+      Owner and fix: scripts/netlist_audit.py (unnamed rail nets; same-part pins
+      on distinct nets).
+- entry: 2026-08-17-planes-gen-would-have-via-stitched-the
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. live-tab short forbidden by verified linear-regulator-live-tab-thermal-vias;
+    the two numbers never meet
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/planes_gen.py
+    status: open
+    note: >-
+      Owner and fix: scripts/planes_gen.py (honour constraints.thermal[].min_vias,
+      incl. 0).
+- entry: 2026-08-17-route-auto-s-krt-finish-connects-plane
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. root L3586 is the hand-KRT rule; the automatic finish pass does the
+    same
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/route_auto.py
+    status: open
+    note: >-
+      Owner and fix: scripts/route_auto.py (KRT finish never traces plane-net
+      SMD pads).
+- entry: 2026-08-17-out-report-into-a-missing-directory-crashes
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. trivial fix; crash lands after the board is written
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/route_critical.py
+    status: open
+    note: >-
+      Owner and fix: scripts/route_critical.py (mkdir parents before the board
+      write).
+- entry: 2026-08-18-a-provisional-outline-binds-placement-just-as
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K4
+- entry: 2026-08-18-silk-place-solves-against-the-outline-on
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K4 (the lead already carries "re-run silk_place after the fit")
+- entry: 2026-08-18-stitch-vias-places-vias-inside-large-pads
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. see K2
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/stitch_vias.py
+    status: open
+    note: >-
+      K2 lead: RING_RADII measured from pad CENTRE, via_check blind to its own
+      pad, no F.Cu stub with a pad via; folds the 2026-08-20 reproduction. Owner
+      and fix: scripts/stitch_vias.py.
+- entry: 2026-08-18-no-scripted-way-to-set-a-per
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K3 (inverse case folded into the root row)
+- entry: 2026-08-18-check-current-charges-every-transition-via-the
+  status: promoted
+  kind: root_learnings
+  level: L1
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. see K7; root L3798 (pour_neck) is a different leg
+  triage:
+    now: L1
+    target: L1
+    owner: scripts/check_current.py
+    status: open
+    note: >-
+      K7 lead: check_current charges each transition via with the whole net current;
+      folds the 2026-08-20 redundancy row. Owner and fix: scripts/check_current.py
+      (split current across parallel vias).
+- entry: 2026-08-18-at-block-only-thermal-is-the-whole
+  status: promoted
+  kind: root_learnings
+  level: L0
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. at block-only the datasheet copper table IS the spec; framing rule,
+    prose is its level
+  triage:
+    now: L0
+    target: L0
+    owner: agents/architect.md
+    status: open
+    note: 'Owner and fix: agents/architect.md.'
+- entry: 2026-08-20-planes-gen-has-no-re-pour-path
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. roots L2586/L4526 are adjacent (no resize; outline does not follow);
+    the duplicate-zone + no-delete path is new
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/planes_gen.py
+    status: open
+    note: >-
+      Owner and fix: scripts/planes_gen.py --repour or route_edit zone op.
+- entry: 2026-08-20-centring-both-edge-connectors-on-a-small
+  status: promoted
+  kind: root_learnings
+  level: L1
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. the obstacle was a neighbour's polarity marker
+  triage:
+    now: L0
+    target: L1
+    owner: scripts/silk_place.py
+    status: open
+    note: >-
+      Owner and fix: scripts/silk_place.py (report the binding obstacle).
+- entry: 2026-08-20-freerouting-cannot-read-this-board-at-all
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. wedge itself landed (root L435/L3662)
+  triage:
+    now: L1
+    target: L2
+    owner: scripts/route_auto.py
+    status: open
+    note: >-
+      K6 residual: the DSN wedge itself is landed (root L435/L3662); route_auto
+      still burns every rung x 600 s on a wedge visible in the first log line.
+      Owner and fix: scripts/route_auto.py (abort ladder on DSN-read StackOverflow;
+      --timeout-s 120 meanwhile).
+- entry: 2026-08-20-the-in-pad-defect-reproduces-on-new
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K2
+- entry: 2026-08-20-via-redundancy-and-check-current-s-clustering
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K7
+- entry: 2026-08-20-moving-the-edge-parts-in-fixes-the
+  status: promoted
+  kind: root_learnings
+  level: L1
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K4-adjacent, distinct: ASPECT is derivable; 22-candidate study
+  triage:
+    now: L0
+    target: L1
+    owner: scripts/check_thermal.py
+    status: open
+    note: >-
+      Owner and fix: scripts/check_thermal.py (report min short dimension = 2
+      x (reach + inset)).
+- entry: 2026-08-20-silk-can-pass-check-silk-and-real
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. passes check_silk + DRC while invisible
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/check_silk.py
+    status: open
+    note: 'Owner and fix: scripts/check_silk.py (visibility leg).'
+- entry: 2026-08-20-freerouting-2-2-4-cannot-parse-this
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K6
