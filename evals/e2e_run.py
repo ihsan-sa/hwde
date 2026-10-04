@@ -34,7 +34,10 @@ The one way out is egress.py: an allowlist CONNECT proxy (egress.ALLOW, port
 443 only) that runs in this process, outside the sandbox, on a unix socket
 bound in; a forwarder inside puts it on 127.0.0.1:EGRESS_PORT, and
 HTTPS_PROXY points there. If the proxy dies the run loses the network; it
-never falls back to an open one.
+never falls back to an open one. No host unix socket is bound in either
+(/tmp, /run and /var are fresh tmpfs, /dev is bwrap's own, /proc is the
+pid namespace's), and abstract sockets belong to the netns, so the proxy
+socket is the only socket file the sandbox can see.
 
 After the run, bench.py --stage E2E scores /work's board OUTSIDE the
 sandbox, and one run record (with its findings: every check scoring below 1)
@@ -105,7 +108,11 @@ EGRESS_PORT = 3128
 PY = os.path.realpath(sys.executable)
 
 # Host paths bound read-only at the same path; absent ones are skipped.
-RO_SYSTEM = ["/usr", "/etc", "/opt", "/run/systemd/resolve"]
+# None may hold a host unix socket: /run/systemd/resolve was dropped because
+# its varlink socket reached the host's resolved across --unshare-net (a DNS
+# channel out). Names resolve on the host, in the egress proxy, so
+# /etc/resolv.conf dangling in here costs nothing.
+RO_SYSTEM = ["/usr", "/etc", "/opt"]
 RO_HOME = [".local/kicad10", ".local/hwde-venv", ".local/hwde-tools",
            ".local/share/claude", ".local/bin/claude"]
 # Auth, one setting (see the docstring): an API key file, else the login.

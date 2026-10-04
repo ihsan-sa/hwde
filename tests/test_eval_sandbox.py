@@ -148,6 +148,100 @@ def test_an_arbitrary_host_is_unreachable():
     assert _net("proxy", "api.anthropic.com", 80) == "HTTP/1.1 403 Forbidden"
 
 
+# in-sandbox client: connect each AF_UNIX address in argv ("@x" = abstract)
+_UNIX = r'''
+import socket, sys
+for a in sys.argv[1:]:
+    s = socket.socket(socket.AF_UNIX)
+    s.settimeout(5)
+    try:
+        s.connect("\0" + a[1:] if a.startswith("@") else a)
+        print(a, "open")
+    except OSError as e:
+        print(a, type(e).__name__)
+    finally:
+        s.close()
+'''
+
+
+def _unix(addrs):
+    r = e2e_run.sandbox_exec([e2e_run.PY, "-c", _UNIX, *addrs],
+                             capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    return dict(ln.rsplit(" ", 1) for ln in r.stdout.splitlines())
+
+
+def _host_unix_sockets() -> list[str]:
+    """Every listening/bound AF_UNIX address the host netns lists, path
+    sockets as paths and abstract ones as "@name"."""
+    out = []
+    for ln in Path("/proc/net/unix").read_text().splitlines()[1:]:
+        f = ln.split()
+        if len(f) >= 8 and f[7] not in out:
+            out.append(f[7])
+    return out
+
+
+@needs_bwrap
+def test_no_host_unix_socket_connects(tmp_path):
+    """Every path socket the host has, plus a live one this test opens,
+    is unreachable from inside: none is bound in."""
+    d = tempfile.mkdtemp(dir=os.environ.get("XDG_RUNTIME_DIR") or "/tmp")
+    live = str(Path(d) / "l")
+    with socket.socket(socket.AF_UNIX) as ls:
+        ls.bind(live)
+        ls.listen(1)
+        try:
+            paths = [a for a in _host_unix_sockets() if a.startswith("/")]
+            assert live in paths
+            seen = _unix(paths)
+        finally:
+            shutil.rmtree(d)
+    assert set(seen) == set(paths)
+    assert [a for a, v in seen.items() if v == "open"] == []
+
+
+@needs_bwrap
+def test_an_abstract_host_socket_does_not_connect():
+    """Abstract sockets belong to the netns: a host listener isn't there."""
+    name = f"hwde-sbx-{os.getpid()}"
+    with socket.socket(socket.AF_UNIX) as ls:
+        ls.bind("\0" + name)
+        ls.listen(1)
+        assert _unix(["@" + name]) == {"@" + name: "ConnectionRefusedError"}
+
+
+@needs_bwrap
+def test_the_host_resolver_is_unreachable():
+    """systemd-resolved's varlink socket is not bound in, and no name
+    resolves inside: DNS happens on the host, in the egress proxy."""
+    vl = "/run/systemd/resolve/io.systemd.Resolve"
+    assert _unix([vl]) == {vl: "FileNotFoundError"}
+    r = e2e_run.sandbox_exec(
+        [e2e_run.PY, "-c", "import socket\ntry:\n"
+         "    socket.getaddrinfo('example.com', 443)\n    print('resolved')\n"
+         "except OSError as e:\n    print(type(e).__name__)"],
+        capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.strip() == "gaierror"
+
+
+@needs_bwrap
+def test_the_proxy_is_the_only_socket_file_inside():
+    walk = (r"import os, stat" "\n"
+            r"for root, ds, fs in os.walk('/'):" "\n"
+            r"    if root == '/': ds[:] = [d for d in ds if d != 'proc']" "\n"
+            r"    for f in fs:" "\n"
+            r"        p = os.path.join(root, f)" "\n"
+            r"        try:" "\n"
+            r"            if stat.S_ISSOCK(os.lstat(p).st_mode): print(p)" "\n"
+            r"        except OSError: pass")
+    r = e2e_run.sandbox_exec([e2e_run.PY, "-c", walk], capture_output=True,
+                             text=True, timeout=600)
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.split() == ["/egress/proxy.sock"]
+
+
 @needs_bwrap
 def test_a_dead_proxy_fails_closed(tmp_path):
     """With nothing serving the socket, nothing gets out."""
