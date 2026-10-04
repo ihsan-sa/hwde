@@ -5156,3 +5156,13 @@ minutes, curl included - and easyeda2kicad's EasyedaApi swallows the 403 into `{
 "no such part"; lib/easyeda.py fetches itself and raises on HTTP errors. (b) A pad-size fit
 tolerance is wrong: an SO-8 LCSC model's rows sit 6.0 mm apart vs 5.12 in a KiCad-style land
 pattern; use half the smallest pad pitch (each model pad nearer its own pad than any other).
+
+## 2026-10-04 [connector][verify][mate-pins] Pair mated pins by where they touch, not by pin number
+check_mate_pins.py pairs a stacked mate's pads by overlaying the two pad patterns on their centres:
+KiCad stores a B.Cu footprint as placed, so pads that touch sit at the same top-view offset. Pin
+numbers do not survive the trip - on the lumina carrier and par (PCB-0004-A J4 male on F.Cu, PCB-0005-A
+J4 female on B.Cu) carrier pin 19 meets par pin 20, and a pin-number compare reports a clean pair as
+crossed. Gotchas: JLC footprints name headers `HDR-TH_<n>P-P2.54-V-M` (male) and `-V-F` (female), not
+PinHeader/PinSocket, so a KiCad-only family regex misses every shipped board; two boards name one
+signal differently (ADC0_CONN vs ADC0), which a pair's `net_map` covers rather than a fuzzy match;
+and PCB-0011-A J2/J3 (same 5-pin male header, +3V3 vs /IO3 on pin 3) still carries the MECH-06 fault.
