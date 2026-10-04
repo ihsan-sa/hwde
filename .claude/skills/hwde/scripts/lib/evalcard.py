@@ -256,7 +256,7 @@ def suite_score(cards: list[dict], cluster_of=None) -> dict:
     card to its cluster (a brief); default each board is its own."""
     cluster_of = cluster_of or (lambda c: c["board"])
 
-    def grouped(val):
+    def grouped(val):  # recurring-defect-ok: held-files-unchecked — groups scorecards by brief for the bootstrap, not board rows
         g: dict[str, list[float]] = {}
         for c in cards:
             g.setdefault(cluster_of(c), []).append(val(c))
