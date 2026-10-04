@@ -9,8 +9,11 @@ refused when it is one of:
   scorers   bench.py, score_checks.py, lib/benchlib.py, lib/benchcorpus.py,
             lib/e2elib.py, reference/e2e-scoring.md, evals/
   checks    tests/ (adding a NEW test file is allowed; changing, renaming
-            or deleting an existing one is not), .github/, pyproject.toml,
-            Makefile, check.cmd
+            or deleting an existing one is not), .github/, Makefile,
+            check.cmd, any conftest.py, and any pytest config file
+            (pytest.ini, .pytest.ini, tox.ini, setup.cfg, pyproject.toml),
+            new or changed, at the root or below: each one can rewire or
+            skip the suite
   bounds    any bounds.yaml, tests/fixtures/stages/baselines/
   fixtures  tests/fixtures/, tests/golden/
   waivers   any path with "waiver" in its name
@@ -33,7 +36,10 @@ SK = ".claude/skills/hwde/"
 SCORERS = {SK + "scripts/bench.py", SK + "scripts/score_checks.py",
            SK + "scripts/lib/benchlib.py", SK + "scripts/lib/benchcorpus.py",
            SK + "scripts/lib/e2elib.py", SK + "reference/e2e-scoring.md"}
-CHECK_FILES = {"pyproject.toml", "Makefile", "check.cmd"}
+CHECK_FILES = {"Makefile", "check.cmd"}
+# refused under any directory, added or changed: pytest loads each of them
+PYTEST_FILES = {"conftest.py", "pytest.ini", ".pytest.ini", "tox.ini",
+                "setup.cfg", "pyproject.toml"}
 
 
 def classify(path: str, status: str) -> str | None:
@@ -48,7 +54,8 @@ def classify(path: str, status: str) -> str | None:
         return "fixtures"
     if path in SCORERS or path.startswith("evals/"):
         return "scorers"
-    if path.startswith(".github/") or path in CHECK_FILES:
+    if (path.startswith(".github/") or path in CHECK_FILES
+            or name in PYTEST_FILES):
         return "checks"
     if path.startswith("tests/") and status != "A":
         return "checks"

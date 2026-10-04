@@ -19,5 +19,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # main's copy of the check, never the branch's own: a fix row could
+      # otherwise edit writeset_check.py to wave itself through. Until the
+      # check lands on main there is no copy to run; a fix row fails then.
       - name: eval-fix rows stay out of what judges them
-        run: python3 evals/writeset_check.py --branch "${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}" --base origin/main
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if git cat-file -e origin/main:evals/writeset_check.py 2>/dev/null; then
+            git show origin/main:evals/writeset_check.py | python3 - --branch "$BRANCH" --base origin/main
+          else
+            case "$BRANCH" in
+              track/eval-fix-*) echo "writeset: main has no writeset_check.py yet; a fix row can't be checked" >&2; exit 1 ;;
+              *) echo "writeset: main has no writeset_check.py yet; $BRANCH is not a fix row" ;;
+            esac
+          fi

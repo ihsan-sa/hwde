@@ -38,6 +38,30 @@ def test_a_fix_row_may_change_hwde_and_add_a_test():
     assert wc.check(FIX, [("D", "tests/test_bench.py")])["refused"]
 
 
+def test_new_pytest_hooks_and_config_are_refused_anywhere():
+    """A new conftest.py or pytest config can skip or rewrite the suite, so
+    adding one is refused like changing one, at the root or below."""
+    paths = ["conftest.py", "tests/conftest.py", "tests/sub/conftest.py",
+             ".claude/skills/hwde/scripts/conftest.py", "pytest.ini",
+             ".pytest.ini", "tox.ini", "setup.cfg", "pyproject.toml",
+             "tests/pytest.ini", "evals/x/pyproject.toml"]
+    for status in ("A", "M"):
+        res = wc.check(FIX, [(status, p) for p in paths])
+        got = {r["path"]: r["class"] for r in res["refused"]}
+        assert got == {p: ("scorers" if p.startswith("evals/") else "checks")
+                       for p in paths}, status
+    # an ordinary new test file is still fine
+    assert wc.check(FIX, [("A", "tests/test_new.py")])["refused"] == []
+
+
+def test_the_workflow_runs_mains_copy_of_the_check():
+    """The PR's own writeset_check.py could wave itself through, so the
+    workflow pipes main's copy into python."""
+    wf = (REPO / ".github" / "workflows" / "writeset.yml").read_text()
+    assert "git show origin/main:evals/writeset_check.py" in wf
+    assert "python3 evals/writeset_check.py" not in wf
+
+
 def test_other_branches_are_not_checked():
     entries = [("M", ".claude/skills/hwde/scripts/bench.py")]
     res = wc.check("track/eval-driver", entries)
