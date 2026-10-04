@@ -333,3 +333,7 @@ def test_boards_sources_resolve_in_the_boards_repo(tmp_path, monkeypatch):
     assert not knowledgelib._source_exists("boards/ws/parts/gone.pdf")
     monkeypatch.setenv("HWDE_BOARDS_ROOT", str(tmp_path / "not-cloned"))
     assert knowledgelib._source_exists("boards/ws/parts/gone.pdf")
+    # an empty root (a check run pointed at a blank dir) is not cloned either
+    (tmp_path / "empty").mkdir()
+    monkeypatch.setenv("HWDE_BOARDS_ROOT", str(tmp_path / "empty"))
+    assert knowledgelib._source_exists("boards/ws/parts/gone.pdf")

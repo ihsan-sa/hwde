@@ -1,13 +1,16 @@
 """score_checks.py - per-check scorecard for the deterministic verify checks.
 
-Runs every check verify_all.py runs (verify_all.CHECKS, so a new check joins
-the scorecard the day it joins the suite) over three corpora and scores each
+Runs every check verify_all.py runs (verify_all.load_checks: the built-in
+suite plus every scripts/checks.d/*.yaml fragment, so a new check joins the
+scorecard the day it joins the suite) over three corpora and scores each
 check on its own:
 
   golden   tests/golden/<board>/ - known-good boards. Every finding counts as
            a false positive, unless tests/golden/scorecard/triage.yaml records
            it as a true finding (verdict: real) with the reason.
-  mutants  tests/golden/manifest.yaml mutants - one planted fault each, owned
+  mutants  tests/golden/manifest.yaml mutants, plus those of every
+           tests/golden/manifest.d/*.yaml fragment (same `mutants:` shape;
+           a name taken twice is an error) - one planted fault each, owned
            by one check. The owning check catches it when one of its findings
            matches every key of the mutant's `expect` (kind, net, layer, ref in
            refs, pair as a set, pos within POS_TOL_MM); otherwise it is a miss.
@@ -39,15 +42,19 @@ errors}}}}, "findings"[...fp / miss / untriaged detail], "regressions"[...]}
 Exit (SPEC section 6): 0 scored and no regression, 1 regression against the
 last history line, 2 error.
 
+--golden and --checks-d point the run at another corpus and fragment dir
+(the registry's own test scores a drop-in check that way).
+
 CLI: [--corpora golden,mutants,boards] [--boards-root DIR] [--jobs N]
-     [--out FILE] [--history FILE] [--doc FILE] [--record] [--compare]
+     [--golden DIR] [--checks-d DIR] [--out FILE] [--history FILE]
+     [--doc FILE] [--record] [--compare]
 """
 from __future__ import annotations
 
 import argparse
 import concurrent.futures
 import datetime
-import importlib
+import importlib.util
 import json
 import math
 import sys
@@ -79,12 +86,30 @@ CHECK_NAMES = [c["name"] for c in verify_all.CHECKS]
 
 # ------------------------------------------------------------ running checks
 
-def _run_check(name: str, argv: list[str]) -> dict:
+_MODULES: dict[str, object] = {}
+
+
+def _load(script: str):
+    """The check module at `script`, imported once per worker."""
+    mod = _MODULES.get(script)
+    if mod is None:
+        stem = Path(script).stem
+        mod = sys.modules.get(stem)
+        if mod is None or Path(getattr(mod, "__file__", "") or "").resolve() \
+                != Path(script).resolve():
+            spec = importlib.util.spec_from_file_location(stem, script)
+            mod = importlib.util.module_from_spec(spec)
+            sys.modules[stem] = mod
+            spec.loader.exec_module(mod)
+        _MODULES[script] = mod
+    return mod
+
+
+def _run_check(script: str, argv: list[str]) -> dict:
     """One check in-process (a pool worker); an exception is the check's
     error status, as cli_wrap would report it."""
     try:
-        mod = importlib.import_module(name)
-        payload, _ = mod.run(argv)
+        payload, _ = _load(script).run(argv)
         return {"status": payload.get("status"),
                 "violations": payload.get("violations", [])}
     except BaseException as exc:  # noqa: BLE001 - argparse exits too
@@ -156,6 +181,27 @@ def triage_matches(t: dict, check: str, v: dict) -> bool:
     return True
 
 
+def load_manifest(golden: Path = GOLDEN) -> dict:
+    """<golden>/manifest.yaml with every <golden>/manifest.d/*.yaml
+    fragment's `mutants:` merged in. A fragment holds only mutants, and a
+    mutant name already taken is an error, so two rows never collide."""
+    manifest = yaml.safe_load((golden / "manifest.yaml").read_text(
+        encoding="utf-8"))
+    mutants = manifest.setdefault("mutants", {})
+    for path in sorted((golden / "manifest.d").glob("*.yaml")):
+        doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        if not isinstance(doc, dict) or set(doc) - {"mutants"} \
+                or not isinstance(doc.get("mutants"), dict):
+            raise checklib.CheckError(
+                f"{path}: a fragment is one `mutants:` mapping")
+        for name, m in doc["mutants"].items():
+            if name in mutants:
+                raise checklib.CheckError(
+                    f"{path}: mutant {name!r} already in the manifest")
+            mutants[name] = m
+    return manifest
+
+
 def load_triage(path: Path) -> list[dict]:
     if not path.exists():
         return []
@@ -184,27 +230,29 @@ def load_waivers(ws: Path) -> list[dict]:
 
 # ------------------------------------------------------------ corpora
 
-def golden_jobs(manifest: dict) -> list[dict]:
+def golden_jobs(manifest: dict, names: list[str],
+                golden: Path = GOLDEN) -> list[dict]:
     jobs = []
     for board in manifest["golden_boards"]:
-        d = GOLDEN / board
+        d = golden / board
         jobs.append({"corpus": "golden", "item": board, "board": f"golden:{board}",
                      "inputs": {"pcb": str(d / f"{board}.kicad_pcb"),
                                 **sidecars(d)},
-                     "checks": CHECK_NAMES})
+                     "checks": names})
     return jobs
 
 
-def mutant_jobs(manifest: dict) -> list[dict]:
+def mutant_jobs(manifest: dict, names: list[str],
+                golden: Path = GOLDEN) -> list[dict]:
     jobs = []
     for name, m in manifest["mutants"].items():
-        if m["check"] not in CHECK_NAMES:
+        if m["check"] not in names:
             continue    # e.g. dfm_check: a fab check, not in the verify suite
-        d = GOLDEN / "mutants" / name
+        d = golden / "mutants" / name
         jobs.append({"corpus": "mutants", "item": name,
                      "board": f"golden:{m['board']}",
                      "inputs": {"pcb": str(d / f"{m['board']}.kicad_pcb"),
-                                **sidecars(d, GOLDEN / m["board"])},
+                                **sidecars(d, golden / m["board"])},
                      "checks": [m["check"]], "target": m["check"],
                      "expect": m.get("expect") or {}})
     return jobs
@@ -218,7 +266,7 @@ def _phase(ws: Path) -> int:
         return 0
 
 
-def board_jobs(root: Path) -> tuple[list[dict], str | None]:
+def board_jobs(root: Path, names: list[str]) -> tuple[list[dict], str | None]:
     if not root.is_dir():
         return [], f"boards repo absent at {root}"
     jobs = []
@@ -230,7 +278,7 @@ def board_jobs(root: Path) -> tuple[list[dict], str | None]:
         if (ws / "parts").is_dir():
             inputs["parts"] = str(ws / "parts")
         jobs.append({"corpus": "boards", "item": ws.name, "board": ws.name,
-                     "inputs": inputs, "checks": CHECK_NAMES,
+                     "inputs": inputs, "checks": names,
                      "waivers": load_waivers(ws)})
     if not jobs:
         return [], f"no finished board (phase >= P{FINISHED_PHASE}) in {root}"
@@ -248,19 +296,22 @@ def _ratio(num: int, den: int):
     return round(num / den, 4) if den else None
 
 
-def score(jobs: list[dict], triage: list[dict], n_jobs: int) -> dict:
-    by = {c: {k: _blank() for k in CORPORA} for c in CHECK_NAMES}
+def score(jobs: list[dict], triage: list[dict], n_jobs: int,
+          checks: list[dict] | None = None) -> dict:
+    checks = verify_all.CHECKS if checks is None else checks
+    by = {c["name"]: {k: _blank() for k in CORPORA} for c in checks}
+    script = {c["name"]: str(verify_all.check_script(c)) for c in checks}
     findings: list[dict] = []
     calls = []
     for job in jobs:
-        for check in verify_all.CHECKS:
+        for check in checks:
             if check["name"] not in job["checks"]:
                 continue
             argv = check_argv(check, job["inputs"])
             calls.append((job, check["name"], argv))
     runnable = [(j, c, a) for j, c, a in calls if a is not None]
     with concurrent.futures.ProcessPoolExecutor(max_workers=n_jobs) as ex:
-        results = list(ex.map(_run_check, [c for _, c, _ in runnable],
+        results = list(ex.map(_run_check, [script[c] for _, c, _ in runnable],
                               [a for _, _, a in runnable]))
     got = {(id(j), c): r for (j, c, _), r in zip(runnable, results)}
     for job, name, argv in calls:
@@ -416,6 +467,11 @@ def run(argv=None):
     ap.add_argument("--boards-root", help="boards repo (default "
                     "env.boards_root())")
     ap.add_argument("--jobs", type=int, default=4)
+    ap.add_argument("--golden", default=str(GOLDEN),
+                    help="golden corpus dir: manifest.yaml, manifest.d/, "
+                         "boards, mutants/")
+    ap.add_argument("--checks-d", default=str(verify_all.CHECKS_D),
+                    help="check fragment dir (verify_all.load_checks)")
     ap.add_argument("--out", help="write JSON here instead of stdout")
     ap.add_argument("--history", default=str(HISTORY))
     ap.add_argument("--doc", default=str(DOC))
@@ -431,8 +487,10 @@ def run(argv=None):
     if bad:
         raise checklib.CheckError(f"unknown corpus {bad}; known {CORPORA}")
 
-    manifest = yaml.safe_load((GOLDEN / "manifest.yaml").read_text(
-        encoding="utf-8"))
+    golden = Path(args.golden)
+    checks = verify_all.load_checks(Path(args.checks_d))
+    names = [c["name"] for c in checks]
+    manifest = load_manifest(golden)
     corpora: dict[str, dict] = {}
     jobs: list[dict] = []
     for corpus in CORPORA:
@@ -442,20 +500,21 @@ def run(argv=None):
             continue
         reason = None
         if corpus == "golden":
-            js = golden_jobs(manifest)
+            js = golden_jobs(manifest, names, golden)
         elif corpus == "mutants":
-            js = mutant_jobs(manifest)
+            js = mutant_jobs(manifest, names, golden)
         else:
             root = Path(args.boards_root) if args.boards_root \
                 else env.boards_root()
-            js, reason = board_jobs(root)
+            js, reason = board_jobs(root, names)
         corpora[corpus] = {"status": "skipped" if reason else "scored",
                            "items": [j["item"] for j in js]}
         if reason:
             corpora[corpus]["reason"] = reason
         jobs += js
 
-    scored = score(jobs, load_triage(Path(args.triage)), max(1, args.jobs))
+    scored = score(jobs, load_triage(Path(args.triage)), max(1, args.jobs),
+                   checks)
     payload = {"script": SCRIPT,
                "date": datetime.date.today().isoformat(),
                "corpora": corpora, **scored}
