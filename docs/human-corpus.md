@@ -34,6 +34,16 @@ licence, kept to repos that look like one board or a family of boards, not
 libraries or tools, plus a few well-known boards with a shipped history
 (Glasgow, Bus Pirate 5, ThunderScope, OLIMEX ESP32-PoE).
 
+The second batch leaned on the thin domains (motor, RF, analog) and on boards
+with outcome evidence: GitHub topic searches pairing `kicad` with `bldc`,
+`lora`, `rf`, `eurorack`, `audio` and the like, plus vendors who sell the
+boards they publish (mjbots moteus, Winterbloom, Electronic Cats, OLIMEX,
+tinyVision, Antmicro). A `product` label there cites the store page the
+repo's own README links, and says when the revision on sale is not stated.
+A KiCad 5 file is the commonest reason a candidate fails `fetch`; a
+`.kicad_pro` beside the `.kicad_pcb` is a cheap first filter, though a
+KiCad 6 project can still carry an unsaved KiCad 5 board.
+
 ## Outcome labels
 
 The outcome is the empirical label the evals score against, so it is a

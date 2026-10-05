@@ -15,7 +15,10 @@ For every part in the CPL it draws, in board coordinates:
 A part is right when the red pin-1 dot sits on the cyan pad 1 (and the red K/+
 label on the board's). Parts go several to an image (--per-image, default 9),
 one titled crop each. A part with no model is drawn with the board only and a
-"NO LCSC MODEL" title, so the image pass sees it as unverifiable.
+"NO LCSC MODEL" title, so the image pass sees it as unverifiable. A part whose
+model fetch failed (an EasyEDA 403/429 or a network error) is a separate case:
+it is titled "FETCH FAILED", and the fix is to rerun, not to treat it as no
+model.
 
 The images feed the fab step's vision agent (agents/dfm.md), which writes
 cpl_visual.json; cpl_verify.merge_visual / dfm_check put that beside the
@@ -26,8 +29,11 @@ CLI:
                 [--parts parts.json] [--cache-dir DIR] [--offline]
                 [--per-image N] [--out index.json]
 Writes cpl_render_<n>.png and index.json ({"images": [{"file", "refs"}],
-"parts": {ref: {"lcsc", "cpl_rot", "polar", "has_model"}}}).
-Exit 0 / 2 error.
+"parts": {ref: {"lcsc", "cpl_rot", "polar", "has_model"[, "fetch_error"]}}}
+plus "fetch_failed" [refs], "rate_limited" and a rerun "note" when a fetch
+failed). "polar" is null for a part whose fetch failed, since it can't be judged
+without the model.
+Exit 0 / 1 fetch failed (index.json still written) / 2 error.
 """
 from __future__ import annotations
 
@@ -100,7 +106,7 @@ def render(pcb: Path, cpl: dict[str, dict], lcsc: dict[str, str],
     fps = cv.board_footprints(pcb)
     out_dir.mkdir(parents=True, exist_ok=True)
     refs = sorted((r for r in cpl if r in fps), key=cv._natural)
-    index = {"images": [], "parts": {}}
+    index = {"images": [], "parts": {}, "fetch_failed": []}
     for start in range(0, len(refs), per_image):
         chunk = refs[start:start + per_image]
         cols = min(3, len(chunk))
@@ -111,11 +117,18 @@ def render(pcb: Path, cpl: dict[str, dict], lcsc: dict[str, str],
             ax.set_axis_off()
         for ax, ref in zip(axes.flat, chunk):
             fp, c = fps[ref], cpl[ref]
-            model = easyeda.get(lcsc.get(ref, ""), cache_dir, fetch=fetch)
+            errors: dict = {}
+            model = easyeda.get(lcsc.get(ref, ""), cache_dir, fetch=fetch,
+                                errors=errors)
             polar = cv.is_polar(fp, model)
             index["parts"][ref] = {"lcsc": lcsc.get(ref), "cpl_rot": c["rot"],
                                    "polar": polar,
                                    "has_model": model is not None}
+            failed = model is None and bool(errors)
+            if failed:
+                index["parts"][ref]["polar"] = None
+                index["parts"][ref]["fetch_error"] = next(iter(errors.values()))
+                index["fetch_failed"].append(ref)
             b = board_shapes(fp)
             ax.set_facecolor("#1d5e2f")
             for p in b["pads"]:
@@ -137,7 +150,9 @@ def render(pcb: Path, cpl: dict[str, dict], lcsc: dict[str, str],
                         ax.annotate(r, p["center"], color="cyan", fontsize=9,
                                     ha="center", va="center", zorder=6)
             title = f"{ref}  {lcsc.get(ref) or 'no LCSC'}  CPL {c['rot']:g}"
-            if model is None:
+            if failed:
+                title = f"{ref}  FETCH FAILED"
+            elif model is None:
                 title = f"{ref}  NO LCSC MODEL"
             else:
                 m = model_shapes(model, c)
@@ -175,6 +190,12 @@ def render(pcb: Path, cpl: dict[str, dict], lcsc: dict[str, str],
         fig.savefig(out_dir / name, dpi=110)
         plt.close(fig)
         index["images"].append({"file": name, "refs": chunk})
+    index["rate_limited"] = easyeda.rate_limited()
+    if index["fetch_failed"]:
+        index["note"] = ("fetch failed for " + ", ".join(index["fetch_failed"])
+                         + (f" ({index['rate_limited']})"
+                            if index["rate_limited"] else "")
+                         + ": not a missing model; rerun in a few minutes")
     (out_dir / "index.json").write_text(json.dumps(index, indent=1),
                                         encoding="utf-8")
     return index
@@ -199,7 +220,8 @@ def main(argv: list[str] | None = None) -> int:
                      else cv.default_cache(pj), Path(args.out_dir),
                      fetch=not (args.offline or cv.offline()),
                      per_image=max(1, args.per_image))
-        rep = {"script": "cpl_render", "status": "pass",
+        rep = {"script": "cpl_render",
+               "status": "fetch_failed" if idx["fetch_failed"] else "pass",
                "out_dir": args.out_dir, **idx}
     except Exception as exc:  # noqa: BLE001 (SPEC: any error -> exit 2)
         rep = {"script": "cpl_render", "status": "error",
@@ -207,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
     text = json.dumps(rep, indent=1)
     (Path(args.out).write_text(text, encoding="utf-8") if args.out
      else print(text))
-    return 0 if rep["status"] == "pass" else 2
+    return {"pass": 0, "fetch_failed": 1}.get(rep["status"], 2)
 
 
 if __name__ == "__main__":

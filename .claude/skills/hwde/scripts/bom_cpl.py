@@ -29,7 +29,13 @@ contain" (codex H1). These files come out of one run:
                 falls back to the package table reference/jlc_rotations.csv
                 (regex on the footprint name, first match wins - LEARNINGS/S8);
                 `rotation_audit[].source` says which one each part used, and
-                dfm_check fails the table-fallback parts.
+                dfm_check fails the table-fallback parts. A model FETCH that
+                failed (HTTP 403/429 rate limit, other HTTP status, network)
+                is source `fetch_failed` with the reason in `fetch_error`,
+                never `none`/`table` alone: the table rotation is still
+                written, but the run is a violation (cpl_model_fetch_failed)
+                to rerun once EasyEDA answers. After a 403/429 the rest of
+                the run fetches nothing (`easyeda_rate_limited`).
 
   prebuy.csv    the PRE-BUY LIST: every `smt_placed` part parts.json marks
                 Extended (`basic: false` or `type: extended`), with its LCSC
@@ -80,10 +86,11 @@ CLI:
              [--name NAME] [--build-qty N] [--ws-name WS] [--boards N]
              [--no-price-lookup] [--easyeda-cache DIR] [--offline]
              [--out report.json]
-The model cache defaults to <parts.json dir>/easyeda; --offline (or
+The model cache is $HWDE_EASYEDA_CACHE, else <parts.json dir>/easyeda if it
+exists, else ~/.cache/hwde/easyeda; --offline (or
 HWDE_EASYEDA_OFFLINE=1) never fetches, so an uncached part uses the table.
 Exit 0 ok / 1 assembly violations (incomplete BOM, unplaced smt_placed part,
-declared-quantity mismatch) / 2 error.
+declared-quantity mismatch, a model fetch that failed) / 2 error.
 """
 from __future__ import annotations
 
@@ -551,13 +558,19 @@ def build_cpl(parts: list[dict], rules, derive=None
               ) -> tuple[list[dict], list[dict]]:
     """CPL rows + a parallel rotation-correction audit trail. `derive(ref)`
     gives the rotation the part's own LCSC model needs, or None - then the
-    package table decides."""
+    package table decides. A `derive.errors[ref]` (the model fetch failed)
+    makes the source `fetch_failed`, whatever the table did."""
     cpl, audit = [], []
+    fetch_errors = getattr(derive, "errors", {})
     for p in sorted(parts, key=lambda q: _natural_key(q["ref"])):
         model_rot = derive(p["ref"]) if derive else None
+        fetch_error = None
         if model_rot is None:
             final, corr, pat = correct_rotation(p["package"], p["rot"], rules)
             source = "table" if pat else "none"
+            fetch_error = fetch_errors.get(p["ref"])
+            if fetch_error:
+                source = "fetch_failed"
         else:
             final = model_rot % 360.0
             corr = round((final - p["rot"]) % 360.0, 4)
@@ -574,12 +587,15 @@ def build_cpl(parts: list[dict], rules, derive=None
                       "base_rot": round(p["rot"], 4),
                       "correction": corr, "final_rot": round(final, 4),
                       "matched": pat, "source": source, "layer": layer})
+        if fetch_error:
+            audit[-1]["fetch_error"] = fetch_error
     return cpl, audit
 
 
 def model_deriver(pcb: Path, parts_map: dict[str, dict], cache_dir: Path,
                   fetch: bool):
-    """ref -> the CPL rotation the part's LCSC model needs, or None."""
+    """ref -> the CPL rotation the part's LCSC model needs, or None. A model
+    fetch that failed leaves its reason in `derive.errors[ref]`."""
     import cpl_verify
     import easyeda
     # A run from a pos file alone (no board) has nothing to fit onto.
@@ -589,8 +605,13 @@ def model_deriver(pcb: Path, parts_map: dict[str, dict], cache_dir: Path,
         fp, lcsc = fps.get(ref), parts_map.get(ref, {}).get("lcsc")
         if fp is None or not lcsc:
             return None
-        return cpl_verify.derive_rotation(
-            fp, easyeda.get(lcsc, cache_dir, fetch=fetch, pace_s=1.0))
+        errs: dict = {}
+        model = easyeda.get(lcsc, cache_dir, fetch=fetch, pace_s=1.0,
+                            errors=errs)
+        if errs:
+            derive.errors[ref] = next(iter(errs.values()))
+        return cpl_verify.derive_rotation(fp, model)
+    derive.errors = {}
     return derive
 
 
@@ -738,6 +759,20 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
                        f"{m['declared_populated']} populated, classes give "
                        f"{m['derived_populated']}"})
 
+    fetch_failed = [a["ref"] for a in audit if a["source"] == "fetch_failed"]
+    import easyeda
+    rate_limited = easyeda.rate_limited()
+    if fetch_failed:
+        why = rate_limited or "; ".join(sorted(
+            {a["fetch_error"] for a in audit if a.get("fetch_error")}))
+        violations.append({
+            "kind": "cpl_model_fetch_failed", "refs": fetch_failed,
+            "message": f"could not fetch the LCSC model for "
+                       f"{len(fetch_failed)} part(s) ({why}); their CPL "
+                       f"rotation fell back to the package table and is not "
+                       f"a model result - rerun once EasyEDA answers "
+                       f"(a rate limit clears in minutes) to fill {cache}"})
+
     corrected = [a for a in audit if a["correction"] != 0.0]
     import castellation
     # None = not known (no board file beside a supplied pos file)
@@ -767,6 +802,8 @@ def run(pcb: Path, out_dir: Path, pos: Path | None = None,
         "rotation_from_table": [a["ref"] for a in audit
                                 if a["source"] != "lcsc_model"],
         "easyeda_cache": str(cache),
+        "model_fetch_failed": fetch_failed,
+        "easyeda_rate_limited": rate_limited,
         "missing_lcsc": missing,
         "missing_lcsc_unplaced": missing_unplaced,
         "unsourced": unsourced,
@@ -803,7 +840,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-price-lookup", action="store_true",
                     help="skip the DigiKey/Mouser APIs even with keys set")
     ap.add_argument("--easyeda-cache", help="LCSC footprint model cache "
-                    "(default: <parts.json dir>/easyeda)")
+                    "(default: env.easyeda_cache)")
     ap.add_argument("--offline", action="store_true",
                     help="never fetch LCSC models; uncached parts use the table")
     ap.add_argument("--out", help="write JSON report here instead of stdout")

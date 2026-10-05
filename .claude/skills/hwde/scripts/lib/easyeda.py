@@ -16,11 +16,22 @@ the same sense as KiCad's board frame.
 
 `get(lcsc, cache_dir, fetch=...)` returns a parsed `Model` or None when the
 part has no data (not cached and fetch disabled, or the API had nothing).
+
+A fetch that fails is never "no data" to a caller that passes `errors`: the
+reason (HTTP status, or the network error) lands in `errors[lcsc]`; only a
+404 or an empty answer means "EasyEDA has no model for this part". An HTTP
+403 or 429 is EasyEDA's per-IP rate limit; the first one latches for the rest
+of the process (`rate_limited()`), says so once on stderr, and every later
+uncached part is skipped with that reason instead of asking again. There is
+no sleeping back-off here - a script stays bounded, and the remedy is a rerun
+once the limit clears (minutes), which finds the models already cached.
 """
 from __future__ import annotations
 
 import json
 import os
+import re
+import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -148,15 +159,53 @@ def _fetch_raw(lcsc: str) -> dict:
     return (data.get("result") or {}) if data.get("success") else {}
 
 
+RATE_LIMIT_CODES = (403, 429)
+# The first rate-limit reason this process met, or None. Module state on
+# purpose: bom_cpl and cpl_verify run in one dfm_check process and must
+# share it, so the second does not hammer an endpoint the first was refused by.
+_RATE_LIMITED: str | None = None
+
+
+def rate_limited() -> str | None:
+    """Why EasyEDA fetches stopped in this process, or None if they did not."""
+    return _RATE_LIMITED
+
+
+def reset_rate_limit() -> None:
+    global _RATE_LIMITED
+    _RATE_LIMITED = None
+
+
+def classify(exc: BaseException) -> tuple[int | None, str]:
+    """(HTTP status or None, a one-line reason) for a failed fetch."""
+    code = getattr(exc, "code", None)
+    if not isinstance(code, int):
+        code = getattr(exc, "status", None)
+    if not isinstance(code, int):
+        m = re.search(r"HTTP Error (\d{3})", str(exc))
+        code = int(m.group(1)) if m else None
+    if code in RATE_LIMIT_CODES:
+        return code, f"HTTP {code} from EasyEDA (rate limited)"
+    if code is not None:
+        return code, f"HTTP {code} from EasyEDA"
+    return None, f"network error: {type(exc).__name__}: {exc}"
+
+
 def cache_path(lcsc: str, cache_dir: Path) -> Path:
     return Path(cache_dir) / f"{lcsc.strip().upper()}.json"
 
 
 def get(lcsc: str, cache_dir: Path | None = None, fetch: bool = True,
-        pace_s: float = 0.0, fetcher=None) -> Model | None:
+        pace_s: float = 0.0, fetcher=None,
+        errors: dict | None = None) -> Model | None:
     """The part's model from cache, else (fetch=True) from EasyEDA, cached.
     A part the API has no footprint for returns None and is not cached, so a
-    later run asks again."""
+    later run asks again. A fetch that RAISES (network, 403) still returns
+    None, but when `errors` is given it records `errors[lcsc] = "<why>"`, so a
+    caller can tell "could not ask" from "EasyEDA has nothing". Once a 403/429
+    has latched the rate limit, an uncached part is not fetched at all: it
+    returns None with the skip recorded the same way."""
+    global _RATE_LIMITED
     lcsc = (lcsc or "").strip().upper()
     if not lcsc:
         return None
@@ -165,11 +214,25 @@ def get(lcsc: str, cache_dir: Path | None = None, fetch: bool = True,
         return parse(json.loads(path.read_text(encoding="utf-8")))
     if not fetch:
         return None
+    if _RATE_LIMITED:
+        if errors is not None:
+            errors[lcsc] = f"not fetched: {_RATE_LIMITED} earlier in this run"
+        return None
     if pace_s:
         time.sleep(pace_s)
     try:
         raw = (fetcher or _fetch_raw)(lcsc)
-    except Exception:  # noqa: BLE001 - network/API trouble = no data
+    except Exception as exc:  # noqa: BLE001 - reported, never "no model"
+        code, why = classify(exc)
+        if code == 404:
+            return None  # EasyEDA answered: it has no such part
+        if code in RATE_LIMIT_CODES:
+            _RATE_LIMITED = why
+            print(f"easyeda: {why} at {lcsc}; skipping every further model "
+                  f"fetch this run - rerun once the limit clears (minutes)",
+                  file=sys.stderr)
+        if errors is not None:
+            errors[lcsc] = why
         return None
     if not raw.get("packageDetail"):
         return None
