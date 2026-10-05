@@ -456,3 +456,29 @@ def test_bom_cpl_says_fetch_failed_not_none_and_fails_the_run(ws, tmp_path,
     vio = [v for v in rep["violations"]
            if v["kind"] == "cpl_model_fetch_failed"]
     assert len(vio) == 1 and "rate limited" in vio[0]["message"]
+
+
+def test_render_records_fetch_error_apart_from_no_model(ws, tmp_path,
+                                                        monkeypatch):
+    pcb, _ = ws
+    monkeypatch.setattr(easyeda.time, "sleep", lambda s: None)
+    easyeda.reset_rate_limit()
+
+    def forbidden(lcsc):
+        raise OSError("HTTP Error 403: rate limited")
+    monkeypatch.setattr(easyeda, "_fetch_raw", forbidden)
+    idx = cpl_render.render(pcb, _cpl(U1=90), LCSC, tmp_path / "empty",
+                            tmp_path / "r", fetch=True)
+    part = idx["parts"]["U1"]
+    assert part["has_model"] is False and "403" in part["fetch_error"]
+    assert idx["fetch_failed"] == ["U1"] and idx["rate_limited"]
+    assert "rerun" in idx["note"]
+    easyeda.reset_rate_limit()
+
+    monkeypatch.setattr(easyeda, "_fetch_raw", lambda lcsc: {})
+    idx = cpl_render.render(pcb, _cpl(U1=90), LCSC, tmp_path / "empty2",
+                            tmp_path / "r2", fetch=True)
+    assert idx["parts"]["U1"]["has_model"] is False
+    assert "fetch_error" not in idx["parts"]["U1"]
+    assert idx["fetch_failed"] == [] and "note" not in idx
+    easyeda.reset_rate_limit()
