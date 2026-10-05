@@ -29,6 +29,15 @@ Every entry needs a non-empty reason + approved and must name a known check
 (a typo must not silently disable a check). Declared-N/A checks do not run in
 either mode.
 
+Registering a check (TEST-12, docs/failure-modes.md section 4): the built-in
+suite is BUILTIN_CHECKS; every other check joins by dropping a fragment
+scripts/checks.d/<name>.yaml (format: checks.d/README.md), so no check row
+edits this file. load_checks() validates each fragment - name equal to the
+file stem, a <name>.py script beside checks.d/, known inputs only, every
+placeholder an input the args may use, no name taken twice - and raises
+CheckError on the first bad one: a broken fragment stops the suite loudly
+rather than dropping its check.
+
 Summary schema (stable - downstream consumers may rely on it):
     {"script": "verify_all", "board": "<name>", "status": pass|violations|error,
      "counts": {"total", "by_severity"{}, "by_source"{}, "by_check"{}},
@@ -59,9 +68,12 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import json
+import string
 import subprocess
 import sys
 from pathlib import Path
+
+import yaml
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE / "lib"))
@@ -69,10 +81,14 @@ import checklib  # noqa: E402
 import statelib  # noqa: E402
 
 SCRIPT = "verify_all"
+CHECKS_D = HERE / "checks.d"
+# the inputs a check may need; verify_all resolves each from the CLI
+INPUT_KEYS = ("constraints", "decoupling", "parts")
 
 # Each check: how to invoke it and which inputs it requires. `report` is the
-# per-check JSON filename under the reports dir.
-CHECKS = [
+# per-check JSON filename under the reports dir. New checks register through
+# checks.d fragments (load_checks), not here.
+BUILTIN_CHECKS = [
     {"name": "check_return_path", "needs": ["constraints"],
      "args": lambda a: ["--constraints", a["constraints"]]},
     {"name": "check_current", "needs": ["constraints"],
@@ -99,6 +115,91 @@ CHECKS = [
      "args": lambda a: ["--parts", a["parts"]] + (
          ["--constraints", a["constraints"]] if a.get("constraints") else [])},
 ]
+
+
+def _fields(tokens: list, where: str) -> set[str]:
+    """The {placeholder} names in a fragment's argument tokens."""
+    if not isinstance(tokens, list) or \
+            not all(isinstance(t, str) for t in tokens):
+        raise checklib.CheckError(f"{where} must be a list of strings")
+    try:
+        return {f for t in tokens for _, f, _, _ in string.Formatter().parse(t)
+                if f is not None}
+    except ValueError as exc:
+        raise checklib.CheckError(f"{where}: {exc}") from exc
+
+
+def _fragment_check(path: Path, taken: set[str]) -> dict:
+    """One checks.d fragment as a CHECKS entry, validated (module doc)."""
+    try:
+        doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        raise checklib.CheckError(f"{path}: unreadable: {exc}") from exc
+    if not isinstance(doc, dict):
+        raise checklib.CheckError(f"{path}: not a mapping")
+    extra = set(doc) - {"name", "needs", "args", "optional"}
+    if extra:
+        raise checklib.CheckError(f"{path}: unknown keys {sorted(extra)}")
+    name = doc.get("name")
+    if name != path.stem:
+        raise checklib.CheckError(
+            f"{path}: name {name!r} must equal the file stem {path.stem!r}")
+    if name in taken:
+        raise checklib.CheckError(f"{path}: check {name!r} already registered")
+    script = path.parent.parent / f"{name}.py"
+    if not script.is_file():
+        raise checklib.CheckError(f"{path}: script {script} missing")
+    needs = doc.get("needs") or []
+    optional = doc.get("optional") or {}
+    if not isinstance(needs, list) or not isinstance(optional, dict):
+        raise checklib.CheckError(
+            f"{path}: needs must be a list, optional a mapping")
+    bad = [k for k in [*needs, *optional] if k not in INPUT_KEYS]
+    if bad:
+        raise checklib.CheckError(
+            f"{path}: unknown inputs {bad} (known: {', '.join(INPUT_KEYS)})")
+    if set(needs) & set(optional):
+        raise checklib.CheckError(f"{path}: an input is both needed and "
+                                  "optional")
+    args = doc.get("args") or []
+    stray = _fields(args, f"{path}: args") - set(needs)
+    for key, tokens in optional.items():
+        stray |= _fields(tokens, f"{path}: optional.{key}") - {key}
+    if stray:
+        # an args placeholder must be a needed input (always present), an
+        # optional one only its own key (present when it is appended)
+        raise checklib.CheckError(
+            f"{path}: placeholders {sorted(stray)} name no input the "
+            "args may use")
+
+    def argv(a, args=args, optional=optional):
+        out = [t.format_map(a) for t in args]
+        for key, tokens in optional.items():
+            if a.get(key):
+                out += [t.format_map(a) for t in tokens]
+        return out
+    return {"name": name, "needs": list(needs), "args": argv,
+            "script": script}
+
+
+def load_checks(checks_d: Path = CHECKS_D) -> list[dict]:
+    """BUILTIN_CHECKS plus one entry per checks.d/*.yaml fragment, in file
+    name order."""
+    checks = list(BUILTIN_CHECKS)
+    taken = {c["name"] for c in checks}
+    for path in sorted(Path(checks_d).glob("*.yaml")):
+        check = _fragment_check(path, taken)
+        taken.add(check["name"])
+        checks.append(check)
+    return checks
+
+
+CHECKS = load_checks()
+
+
+def check_script(check: dict) -> Path:
+    """The script a CHECKS entry runs: a fragment's own, else <name>.py."""
+    return check.get("script") or HERE / f"{check['name']}.py"
 
 
 def load_not_applicable(constraints_path: str | None) -> dict:
@@ -147,7 +248,7 @@ def run_one(check: dict, inputs: dict, reports_dir: Path,
         report_path.unlink()
     except FileNotFoundError:
         pass
-    cmd = [sys.executable, str(HERE / f"{name}.py"), "--pcb", inputs["pcb"],
+    cmd = [sys.executable, str(check_script(check)), "--pcb", inputs["pcb"],
            *check["args"](inputs), "--out", str(report_path)]
     proc = subprocess.run(cmd, capture_output=True, text=True,
                           encoding="utf-8", errors="replace")
