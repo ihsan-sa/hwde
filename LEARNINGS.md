@@ -6486,3 +6486,21 @@ Generalise: a default path that may not exist must be checked for existence befo
 shadows a fallback, and a catch-all `except` that returns "no data" must still hand the
 error to a caller that reports a verdict from it. A `no_model` from a run that fetched
 nothing is a cache or network fault until proven otherwise - never chase pin 1 from it.
+
+## 2026-10-05 [easyeda2kicad][cpl][dfm] An EasyEDA 403 is a rate limit for the whole run: latch it, say it once, never call it no_model
+
+Re-running bom_cpl + dfm_check over 16 boards, the EasyEDA component endpoint 403'd after ~20
+fetches (per-IP, shared by everything on the box). `bom_cpl` still swallowed the error, so the
+part's rotation source read `none`/`table`, and dfm failed most parts as `cpl_no_model`; nothing
+said the network had refused, and the batch was void before anyone traced it.
+
+Now `easyeda.get` classifies a failed fetch (`HTTP 403/429 ... (rate limited)`, `HTTP <n>`,
+`network error: ...`; 404 and an empty answer stay "no model"), and the first 403/429 latches
+module state (`easyeda.rate_limited()`): one stderr line, and every later uncached part in the
+process is skipped as `not fetched: ...` instead of asked again - dfm runs bom_cpl and cpl_verify
+in one process, so the second never re-hammers. bom_cpl marks those parts `source: fetch_failed`
+(+ `fetch_error`) with one `cpl_model_fetch_failed` violation; dfm emits one `cpl_fetch_failed`
+error for the run. Remedy is a rerun once the limit clears; the cache keeps what did arrive.
+
+Gotcha: the latch is process state, so a test that mocks a 403 leaves every later test's fetch
+skipped. conftest's autouse `_easyeda_offline` fixture resets it (`easyeda.reset_rate_limit()`).

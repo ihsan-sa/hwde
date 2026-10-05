@@ -56,3 +56,8 @@ def _easyeda_offline(monkeypatch, tmp_path_factory):
     monkeypatch.setenv("HWDE_EASYEDA_OFFLINE", "1")
     monkeypatch.setenv("HWDE_EASYEDA_CACHE",
                        str(tmp_path_factory.mktemp("easyeda_empty")))
+    # The rate-limit latch is process state: one test's mocked 403 must not
+    # skip every later test's fetches.
+    mod = sys.modules.get("easyeda")
+    if mod is not None and hasattr(mod, "reset_rate_limit"):
+        mod.reset_rate_limit()
