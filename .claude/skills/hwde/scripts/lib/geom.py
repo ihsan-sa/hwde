@@ -745,6 +745,11 @@ class BoardGeom:
                     "name": _strs(name_node)[0] if name_node and _strs(name_node) else "",
                     "layers": declared,
                     "outline": Polygon(pts) if len(pts) >= 3 else Polygon(),
+                    # Keepout flags ({"footprints": "not_allowed", ...}); not
+                    # serialised. A rule area that only scopes a rule has all
+                    # of them "allowed".
+                    "flags": {_tok(k[0]): _tok(k[1]) for k in _kid(zone, "keepout")[1:]
+                              if _is_node(k) and len(k) > 1},
                 })
                 continue
             net = self._resolve_net(zone) or ""
