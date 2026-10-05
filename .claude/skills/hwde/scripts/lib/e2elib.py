@@ -451,13 +451,17 @@ def check_cost(bounds: dict, parts_json: Path | None) -> tuple[list, dict]:
                        note="no parts/parts.json in the workspace")], {}
     data = checklib.load_json(parts_json, "parts.json")
     total, unpriced, lines, priced = 0.0, [], 0, 0
-    for p in data.get("parts") or []:
+    # hwde writes {"parts": [...]}; the bare arm's prompt asks for a plain
+    # list of parts with a "unit price", so both shapes and names are read
+    rows = data if isinstance(data, list) else data.get("parts") or []
+    for p in rows:
         # parts.json has carried the refs under both names
         n = len(p.get("refs") or p.get("refdes") or [])
         if not n:
             continue
         lines += 1
-        unit = price_at(p.get("price_breaks"), qty * n, p.get("price"))
+        flat = p.get("price", p.get("unit_price"))
+        unit = price_at(p.get("price_breaks"), qty * n, flat)
         if unit is None:
             unpriced.append(p.get("lcsc") or p.get("mpn"))
             continue

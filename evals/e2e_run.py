@@ -43,6 +43,9 @@ After the run, bench.py --stage E2E scores /work's board OUTSIDE the
 sandbox, and one run record (with its findings: every check scoring below 1)
 is appended to --out as a JSON line.
 
+--model and --effort go to claude as its own flags (--effort low..max);
+left out, claude uses its defaults. The record keeps both.
+
 Stops: --max-budget-usd (default 40) is passed to claude, so a run that
 would cost more is cut off there and recorded with budget_stopped=true.
 --seeds N runs seeds 1..N one after another (the cost pilot) and stops
@@ -65,7 +68,8 @@ sourced:
 
 CLI:
   e2e_run.py --brief usbc_ldo --arm hwde (--seed 1 | --seeds 5) [--model M]
-             [--out evals/results.jsonl] [--runs-root DIR] [--timeout-s N]
+             [--effort low|medium|high|xhigh|max] [--out evals/results.jsonl]
+             [--runs-root DIR] [--timeout-s N]
              [--max-budget-usd 40] [--max-total-usd 200]
   e2e_run.py --probe PATH...   read each PATH inside the sandbox; prints
                                {path: readable} JSON (the sandbox's own test)
@@ -127,6 +131,9 @@ STRIP_ENV = ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN",
 
 class AuthError(Exception):
     """No usable credential: the run must not start."""
+
+
+EFFORTS = ["low", "medium", "high", "xhigh", "max"]   # claude --effort's
 
 
 def auth() -> dict:
@@ -391,6 +398,8 @@ def run(args) -> tuple[int, dict | None]:
            "--max-budget-usd", str(args.max_budget_usd)]
     if args.model:
         cmd += ["--model", args.model]
+    if args.effort:
+        cmd += ["--effort", args.effort]
     # key mode: the key goes in the environment only, since argv is world-
     # readable in /proc, and no ~/.claude file is bound
     add_env = {"ANTHROPIC_API_KEY": au["key"]} if au["mode"] == "key" else {}
@@ -418,6 +427,7 @@ def run(args) -> tuple[int, dict | None]:
         "hwde_commit": git_head(), "kicad": kicad_version(),
         "harness": "claude-code",
         "model": args.model or next(iter(res.get("modelUsage") or {}), None),
+        "effort": args.effort,
         "arm": args.arm, "fixture": f"e2e_{args.brief}", "seed": args.seed,
         "started": started.isoformat(timespec="seconds"), "wall_s": wall,
         "cost_usd": res.get("total_cost_usd"), "turns": res.get("num_turns"),
@@ -448,6 +458,9 @@ def main(argv=None) -> int:
     ap.add_argument("--seeds", type=int,
                     help="run seeds 1..N, stopping after a capped run")
     ap.add_argument("--model")
+    ap.add_argument("--effort", choices=EFFORTS,
+                    help="passed to claude as --effort; unset leaves "
+                         "claude's own default")
     ap.add_argument("--max-budget-usd", type=float, default=40.0,
                     help="one run's cap, passed to claude")
     ap.add_argument("--max-total-usd", type=float, default=200.0,

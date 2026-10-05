@@ -139,6 +139,13 @@ def test_cost_counts_refs_under_either_key_and_zero_priced_scores_zero(tmp_path)
     assert facts["bom_usd"] == pytest.approx(0.01)
     assert checks[0]["score"] == pytest.approx(0.5)
     assert checks[0]["priced_lines"] == 1 and facts["unpriced"] == ["REG"]
+    # the bare arm's shape: a top-level list, priced as unit_price
+    pj.write_text(json.dumps([
+        {"refs": ["R1", "R2"], "unit_price": 0.1},
+        {"refs": ["U1"], "price": 0.5}]), encoding="utf-8")
+    checks, facts = e2elib.check_cost(bounds, pj)
+    assert facts["bom_usd"] == pytest.approx(0.7)
+    assert checks[0]["priced_lines"] == 2
 
 
 @pytest.mark.parametrize("value,volts", [

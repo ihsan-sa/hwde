@@ -375,6 +375,22 @@ def test_key_mode_passes_the_key_in_the_environment_only(keyenv, monkeypatch):
     assert calls[1]["creds"] == creds and calls[1]["add_env"] == {}
 
 
+def test_effort_is_passed_to_claude_and_recorded(keyenv, monkeypatch):
+    tmp, creds = keyenv
+    creds.write_text("{}")
+    calls, argv = _fake_run(monkeypatch, tmp)
+    e2e_run.main(argv + ["--effort", "medium"])
+    cmd = calls[0]["cmd"]
+    assert cmd[cmd.index("--effort") + 1] == "medium"
+    rec = json.loads((tmp / "out.jsonl").read_text())
+    assert rec["effort"] == "medium"
+    # unset: no flag, so claude keeps its own default
+    e2e_run.main(argv + ["--seed", "2"])
+    assert "--effort" not in calls[1]["cmd"]
+    with pytest.raises(SystemExit):
+        e2e_run.main(argv + ["--effort", "huge"])
+
+
 def test_a_named_missing_key_file_starts_no_run(keyenv, monkeypatch):
     tmp, creds = keyenv
     creds.write_text("{}")
