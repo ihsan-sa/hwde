@@ -301,6 +301,10 @@ def test_smt_placed_without_a_placement_is_a_violation(tmp_path):
 
 # ================================================ known answers: rf-de-20m
 
+# Shipped rotation taken from the part's own LCSC model, not the table.
+RF_DE_MODEL_ROTATED = {"U101"}
+
+
 def test_rf_de_regenerates_without_a_local_filter(tmp_path):
     """The C9 known answer. A plain bom_cpl run on the shipped inputs must
     reproduce the shipped package - 59 placements, the nine DNP sites absent -
@@ -311,9 +315,21 @@ def test_rf_de_regenerates_without_a_local_filter(tmp_path):
     assert rep["n_parts"] == 68 and rep["n_placed"] == 59
     assert sorted(e["ref"] for e in rep["not_placed"]) == sorted(RF_DE_DNP)
 
-    for name in ("BOM.csv", "CPL.csv"):
-        assert _lf(tmp_path / name) == _lf(RF_DE / "fab" / name), \
-            f"{name} is not reproducible"
+    assert _lf(tmp_path / "BOM.csv") == _lf(RF_DE / "fab" / "BOM.csv"), \
+        "BOM.csv is not reproducible"
+    # Tests never read the LCSC model cache, so a part whose shipped rotation
+    # came from its own model (boards #26 regenerated U101 that way) falls
+    # back to the package table here. Only those pinned parts may differ, and
+    # only in Rotation; everything else must match the shipped CPL exactly.
+    offline = RF_DE_MODEL_ROTATED & {a["ref"] for a in rep["rotation_audit"]
+                                     if a["source"] != "lcsc_model"}
+    got, shipped = _rows(tmp_path / "CPL.csv"), _rows(RF_DE / "fab" / "CPL.csv")
+    assert [r["Designator"] for r in got] == \
+        [r["Designator"] for r in shipped], "CPL.csv is not reproducible"
+    for g, s in zip(got, shipped):
+        if g["Designator"] in offline:
+            g, s = dict(g, Rotation=None), dict(s, Rotation=None)
+        assert g == s, f"CPL.csv is not reproducible at {s['Designator']}"
 
     placed = _designators(tmp_path / "CPL.csv")
     assert len(placed) == 59
