@@ -291,6 +291,12 @@ secondary.
   gate reports. A gate that never ran is a finding. `--record` appends to
   `results/scorecard.jsonl`, and `--scorecard-report docs/design-evals.md`
   regenerates the table below from it.
+- **A corpus scorecard** (`bench.py --scorecard-corpus [ID...]`): the same
+  scorecard for the human-board corpus, read from the runs `human_corpus.py
+  run` already made, so it runs nothing. There is no ERC/DRC gate record on
+  a bare board, so that column is left out, and an area whose checks all
+  skipped is unscored rather than 100. `--record` writes
+  `results/corpus-scorecard.jsonl`; docs/human-corpus.md reads it.
 - **A suite score** with a cluster-bootstrap 95 % interval, overall and per
   area. The code is `scripts/lib/evalcard.py`.
 - **Brief detail variants** for the pilot briefs.
