@@ -246,3 +246,115 @@ def test_brief_variant_states_the_requirements_and_no_hidden_bound(variant):
     hidden = [bounds["layout"]["area_mm2_max"], bounds["cost"]["target_usd"]]
     for n in hidden:
         assert not re.search(rf"(?<![\d.]){re.escape(str(n))}(?![\d])", text), n
+
+
+# ------------------------------------------------------------ failure-modes coverage form
+
+def test_failure_modes_read_the_coverage_form(tmp_path):
+    p = tmp_path / "fm.yaml"
+    p.write_text(
+        "modes:\n"
+        "  - {id: A-1, coverage: {script: check_x, rule: 'k1,k2 (partial)'}}\n"
+        "  - {id: A-2, coverage: {script: check_y (partial), rule: '-'}}\n"
+        "  - {id: A-3, coverage: {script: check_x, rule: 'k3; dfm_check:dfm_k'}}\n"
+        "  - {id: A-4, coverage: {script: sim_run bench, rule: k9}}\n"
+        "  - {id: A-5, coverage: {script: '-', rule: '-'}}\n"
+        "  - {id: A-6, coverage: {script: check_x, rule: k1}}\n")
+    m = evalcard.load_failure_modes(p)
+    assert m == {("check_x", "k1"): "A-1", ("check_x", "k2"): "A-1",
+                 ("check_y", None): "A-2", ("check_x", "k3"): "A-3",
+                 ("dfm_check", "dfm_k"): "A-3"}
+    # a script name with a space and a '-' script map nothing; first claim wins
+    assert "A-4" not in m.values() and "A-5" not in m.values() and "A-6" not in m.values()
+
+
+def test_repo_failure_modes_map_the_corpus_kinds():
+    m = evalcard.load_failure_modes(REPO / "docs" / "failure-modes.yaml")
+    assert m[("dfm_check", "dfm_trace_width")].startswith("FAB-")
+    assert m[("check_silk", "silk_over_pad")].startswith("FAB-")
+    assert m[("check_mating", "mating_faces_inward")] == "MECH-01"
+
+
+# ------------------------------------------------------------ unscored areas
+
+def test_unscored_area_stays_out_of_composite_and_suite():
+    f = evalcard.finding("check_silk", {"severity": "error", "kind": "s"}, "real", None)
+    card = evalcard.board_card("b", [f], scored_areas={"manufacturing", "layout"})
+    assert card["areas"]["power"]["score"] is None
+    assert card["areas"]["manufacturing"]["score"] == 0.5
+    assert card["composite"] == 75.0          # mean of layout 1.0 and mfg 0.5 only
+    full = evalcard.board_card("c", [f])      # no scored_areas: every area counts
+    assert full["areas"]["power"]["score"] == 1.0 and full["composite"] == 90.0
+    suite = evalcard.suite_score([card, full])
+    assert suite["areas"]["power"]["n"] == 1 and suite["areas"]["layout"]["n"] == 2
+
+
+# ------------------------------------------------------------ bench --scorecard-corpus
+
+def _corpus(tmp_path, monkeypatch):
+    import human_corpus
+    man = tmp_path / "corpus.yaml"
+    man.write_text(
+        "boards:\n"
+        "  - {id: b1, url: 'https://github.com/o/r', domain: power, layers: 2,\n"
+        "     outcome: {label: product}}\n"
+        "  - {id: b2, url: 'https://github.com/o/r', domain: power, layers: 2}\n"
+        "  - {id: b3, url: 'https://github.com/o/s', domain: rf, layers: 4}\n"
+        "  - {id: gone, url: 'https://github.com/o/t', excluded: no licence}\n")
+    monkeypatch.setattr(human_corpus, "MANIFEST", man)
+    monkeypatch.setenv("HWDE_RESULTS_ROOT", str(tmp_path / "results"))
+    cache = tmp_path / "cache"
+    checks = {"check_silk": {"status": "violations"}, "check_mating": {"status": "pass"},
+              "check_diffpair": {"status": "error"}, "check_pdn": {"status": "skipped"}}
+    silk = {"check": "check_silk", "source": "check_silk", "severity": "error",
+            "kind": "silk_over_pad", "msg": "silk on pad"}
+    dfm = {"check": "dfm", "source": "check.dfm", "severity": "error",
+           "kind": "dfm_trace_width", "msg": "trace too thin"}
+    for bid, vs in (("b1", [silk]), ("b2", [])):
+        (cache / "runs" / bid).mkdir(parents=True)
+        (cache / "runs" / bid / "result.json").write_text(json.dumps({
+            "verify_summary": {"checks": checks, "violations": vs},
+            "dfm_report": {"status": "violations", "violations": [dfm]}}))
+    return cache
+
+
+def test_scorecard_corpus_scores_recorded_runs(tmp_path, monkeypatch):
+    cache = _corpus(tmp_path, monkeypatch)
+    out, _ = bench.run(["--scorecard-corpus", "--cache", str(cache), "--record"])
+    cards = {c["board"]: c for c in out["boards"]}
+    assert set(cards) == {"b1", "b2"}                  # excluded board never read
+    assert out["unscored"] == [{"board": "b3",
+                                "why": "no result.json; run human_corpus.py run"}]
+    b1 = cards["b1"]
+    assert b1["info"]["gates"].startswith("excluded")
+    assert not any(f["check"].startswith("gate_") for f in b1["top_findings"])
+    assert {f["check"] for f in b1["top_findings"]} == {"check_silk", "dfm_check"}
+    assert all(f["area"] == "manufacturing" for f in b1["top_findings"])
+    assert b1["by_failure_mode"] == {"FAB-01": 1, "FAB-09": 1}
+    # skipped (pdn) and errored (diffpair) checks leave their area unscored
+    assert b1["areas"]["power"]["score"] is None
+    assert b1["areas"]["signal_integrity"]["score"] is None
+    assert b1["areas"]["layout"]["score"] == 1.0
+    assert b1["info"]["skipped_checks"] == ["check_pdn"]
+    assert b1["info"]["check_errors"] == ["check_diffpair"]
+    assert b1["outcome"] == "product" and cards["b2"]["outcome"] == ""
+    assert cards["b2"]["composite"] > b1["composite"]
+    assert out["suite"]["composite"]["clusters"] == 1   # b1, b2 share a repo
+    rows = [json.loads(ln) for ln in
+            (tmp_path / "results" / "corpus-scorecard.jsonl").read_text().splitlines()]
+    assert [r["kind"] for r in rows] == ["board", "board", "suite"]
+    assert rows[-1]["unscored"][0]["board"] == "b3"
+    assert not (tmp_path / "results" / "scorecard.jsonl").exists()
+
+
+def test_scorecard_corpus_names_ids_and_refuses_strays(tmp_path, monkeypatch):
+    cache = _corpus(tmp_path, monkeypatch)
+    out, _ = bench.run(["--scorecard-corpus", "b2", "--cache", str(cache)])
+    assert [c["board"] for c in out["boards"]] == ["b2"]
+    assert not (tmp_path / "results").exists()          # no --record, no write
+    with pytest.raises(CheckError):                     # nothing recorded at all
+        bench.run(["--scorecard-corpus", "b3", "--cache", str(cache)])
+    with pytest.raises(CheckError):
+        bench.run(["--cache", str(cache), "--list"])
+    with pytest.raises(CheckError, match="unknown board"):
+        bench.run(["--scorecard-corpus", "nope", "--cache", str(cache)])
