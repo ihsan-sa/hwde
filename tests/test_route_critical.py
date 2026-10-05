@@ -337,6 +337,10 @@ def test_parse_dru_rules_and_net_floors(tmp_path):
         "aiee_clearance_floor", "aiee_pwr_width_VBUS", "aiee_hv_clearance"}
     base = next(r for r in rules if r["name"] == "aiee_clearance_floor")
     assert base["nets"] == [] and base["min_mm"] == 0.1524
+    assert base["condition"] is None and base["layer"] is None
+    hv = next(r for r in rules if r["name"] == "aiee_hv_clearance")
+    assert hv["condition"] == ("A.NetName == 'V48_RAW' || "
+                               "B.NetName == 'V48_RAW'")
     assert rc.dru_net_floors(dru, "track_width") == {"VBUS": 1.75}
     assert rc.dru_net_floors(dru, "clearance") == {"V48_RAW": 0.635}
     assert rc.dru_net_floors(None, "clearance") == {}

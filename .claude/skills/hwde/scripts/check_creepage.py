@@ -24,6 +24,32 @@ at layout (the P8 lumina-carrier digest hand-adjudicated exactly this class:
 severity "warning" with waiver_class="land_pattern_pitch" and
 same_footprint=true - never silently dropped; part-selection (P3) scope.
 
+Board-rule class (the board's own .kicad_dru, read from the .kicad_pcb's
+stem sibling the way kicad-cli loads it): a custom clearance rule scoped to
+ONE footprint - e.g. `(condition "A.intersectsCourtyard('U301') &&
+B.intersectsCourtyard('U301')")` - says the owner accepts that package's
+rating for copper at its own pins (a 0.5 mm-pitch gate driver whose
+switch-node pin sits 0.3 mm from its grounded pad). A violating item pair
+is demoted to severity "warning" with waiver_class="dru_footprint_scope",
+dru_rule and scope_ref - again never dropped - only when ALL of these hold:
+  - the rule is a `clearance` rule with no (layer ...) clause, and its
+    condition is nothing but `&&`-joined A./B. insideCourtyard,
+    intersectsCourtyard, intersectsFrontCourtyard, intersectsBackCourtyard
+    or memberOfFootprint terms naming one literal reference. Any other term
+    (net names, ||, !, wildcards) makes the rule unreadable here, so it is
+    not honoured and the IPC verdict stands;
+  - one item is a pad of that footprint, and the other is that
+    footprint's pad or a track, via or zone - never another footprint's
+    pad, so part-to-part spacing keeps the full IPC requirement;
+  - for courtyard terms, both ends of the gap lie inside that footprint's
+    declared courtyard (a missing courtyard honours nothing); for
+    memberOfFootprint on both A and B, both items are its pads;
+  - the gap still meets the rule's own minimum.
+What the demotion trusts: the owner's statement that the package is rated
+for these nets at its own pitch. It does not model KiCad's rule precedence:
+a later, differently-conditioned clearance rule that KiCad would apply to the
+same pair is not consulted.
+
 The corpus carries no >30 V nets, so this check is clean on all goldens; supply
 voltages via constraints.json to exercise it (synthetic HV fixtures are tested).
 
@@ -46,9 +72,11 @@ waiver is recorded in skipped_low_voltage_pairs).
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
+from shapely import affinity
 from shapely.ops import nearest_points
 from shapely.strtree import STRtree
 
@@ -146,6 +174,106 @@ def voltage_pair_list(cons: dict) -> list[tuple[str, str, float]]:
     return out
 
 
+# one condition term: A./B. + a footprint-scoping function + one literal ref
+_SCOPE_TERM_RE = re.compile(
+    r"^([AB])\.(insideCourtyard|intersectsCourtyard|intersectsFrontCourtyard|"
+    r"intersectsBackCourtyard|memberOfFootprint)\(\s*'([^'*?]+)'\s*\)$")
+_SCOPE_SIDE = {"intersectsFrontCourtyard": "front",
+               "intersectsBackCourtyard": "back"}
+
+
+def _strip_parens(s: str) -> str:
+    """Drop outer parens that wrap the WHOLE expression, repeatedly."""
+    s = s.strip()
+    while s.startswith("(") and s.endswith(")"):
+        depth = 0
+        for i, ch in enumerate(s):
+            depth += ch == "("
+            depth -= ch == ")"
+            if depth == 0 and i < len(s) - 1:
+                return s       # the first paren closes early: not a wrapper
+        s = s[1:-1].strip()
+    return s
+
+
+def parse_footprint_scope(condition: str | None) -> dict | None:
+    """A DRU condition that ONLY scopes to one footprint -> {ref, sides,
+    courtyard, both_member}; anything else -> None (not honoured)."""
+    if not condition or "||" in condition or "!" in condition:
+        return None
+    refs, sides, fns, member_ab = set(), set(), set(), set()
+    for term in _strip_parens(condition).split("&&"):
+        m = _SCOPE_TERM_RE.match(_strip_parens(term))
+        if not m:
+            return None
+        ab, fn, ref = m.groups()
+        refs.add(ref.strip())
+        fns.add(fn)
+        if fn in _SCOPE_SIDE:
+            sides.add(_SCOPE_SIDE[fn])
+        if fn == "memberOfFootprint":
+            member_ab.add(ab)
+    if len(refs) != 1 or len(sides) > 1:
+        return None
+    return {"ref": refs.pop(), "side": sides.pop() if sides else None,
+            "courtyard": any(f != "memberOfFootprint" for f in fns),
+            "both_member": member_ab == {"A", "B"}}
+
+
+def dru_footprint_scopes(pcb: Path) -> list[dict]:
+    """Footprint-scoped clearance rules from the board's .kicad_dru sibling,
+    each with its footprint's courtyard in the board frame. Parsed by
+    route_critical.parse_dru_rules (the one DRU reader). Missing DRU -> []."""
+    dru = Path(pcb).with_suffix(".kicad_dru")
+    if not dru.is_file():
+        return []
+    import route_critical as rc  # noqa: PLC0415 - lazy, heavy imports
+    rules = rc.parse_dru_rules(dru.read_text(encoding="utf-8"))
+    scopes = []
+    for rule in rules:
+        if rule["constraint"] != "clearance" or rule["layer"]:
+            continue
+        sc = parse_footprint_scope(rule["condition"])
+        if sc is not None:
+            scopes.append({**sc, "rule": rule["name"],
+                           "min_mm": rule["min_mm"]})
+    if not scopes:
+        return []
+    import placelib  # noqa: PLC0415 - only boards with a scoped rule pay
+    fps = placelib.PlaceModel(pcb).footprints
+    for sc in scopes:
+        fp = fps.get(sc["ref"])
+        sc["courtyard_poly"] = None
+        if fp is None or fp.courtyard_local is None:
+            continue
+        if sc["side"] and fp.side != sc["side"]:
+            continue
+        p = affinity.rotate(fp.courtyard_local, -fp.angle, origin=(0, 0))
+        sc["courtyard_poly"] = affinity.translate(p, fp.pos[0], fp.pos[1])
+    return scopes
+
+
+def scope_for(a, b, pa, pb, scopes) -> dict | None:
+    """The LAST (KiCad: later rule wins) footprint scope that governs this
+    item pair, per the module docstring's conditions; None if none does.
+    The caller still holds the gap to the scope's own min_mm."""
+    hit = None
+    for sc in scopes:
+        ref = sc["ref"]
+        own = [it[0] == "pad" and it[3] == ref for it in (a, b)]
+        foreign = any(it[0] == "pad" and it[3] != ref for it in (a, b))
+        if not any(own) or foreign:
+            continue
+        if sc["both_member"] and not all(own):
+            continue
+        if sc["courtyard"]:
+            cy = sc.get("courtyard_poly")
+            if cy is None or cy.distance(pa) > 1e-6 or cy.distance(pb) > 1e-6:
+                continue
+        hit = sc
+    return hit
+
+
 def _layer_items(bg: geom.BoardGeom, net: str, layer: str, cache: dict) -> list:
     """Copper items of `net` on `layer` as (type, geometry, descriptor, ref)."""
     key = (net, layer)
@@ -171,14 +299,41 @@ def _layer_items(bg: geom.BoardGeom, net: str, layer: str, cache: dict) -> list:
     return cache[key]
 
 
+def _same_fp(a, b) -> bool:
+    return (a[0] == "pad" and b[0] == "pad"
+            and bool(a[3]) and a[3] == b[3])
+
+
+def _waiver(a, b, pa, pb, dist: float, scopes):
+    """(waiver_class, extras, msg suffix) for one violating item pair, or
+    (None, {}, "") when it stays an error. Module docstring: both classes."""
+    if _same_fp(a, b):
+        # both pads of ONE footprint: the land pattern itself - not
+        # fixable by placement/routing; named waiver class, visible.
+        return ("land_pattern_pitch",
+                {"same_footprint": True, "waiver_class": "land_pattern_pitch"},
+                f"; land-pattern pitch (same footprint {a[3]}) - "
+                "part-selection scope, not layout")
+    sc = scope_for(a, b, pa, pb, scopes) if scopes else None
+    if sc is not None and dist + 1e-6 >= sc["min_mm"]:
+        return ("dru_footprint_scope",
+                {"waiver_class": "dru_footprint_scope",
+                 "dru_rule": sc["rule"], "scope_ref": sc["ref"],
+                 "dru_min_mm": sc["min_mm"]},
+                f"; at {sc['ref']}'s own pins, where board rule "
+                f"'{sc['rule']}' sets {sc['min_mm']:.2f} mm (package rating)")
+    return None, {}, ""
+
+
 def sweep_pair(bg: geom.BoardGeom, prim: str, sec: str, dv: float,
-               coating: str, cache: dict, prim_label: str):
+               coating: str, cache: dict, prim_label: str, scopes=()):
     """Item-level sweep of one net pair across all copper layers.
 
     Emits one violation PER violating item pair at the actual gap location
     (midpoint of the nearest points), spatially deduped within DEDUP_MM and
-    capped at MAX_EMIT_PER_PAIR_LAYER per (net pair, layer). Returns
-    (violations, per-(pair,layer) summaries)."""
+    capped at MAX_EMIT_PER_PAIR_LAYER per (net pair, layer); a waived gap
+    never dedups away an error beside it. Returns (violations, per-(pair,layer)
+    summaries)."""
     violations: list[dict] = []
     summaries: list[dict] = []
     for layer in bg.copper_layers:
@@ -208,50 +363,42 @@ def sweep_pair(bg: geom.BoardGeom, prim: str, sec: str, dv: float,
                 if dist + 1e-6 < req:
                     pa, pb = nearest_points(a[1], b[1])
                     mid = ((pa.x + pb.x) / 2.0, (pa.y + pb.y) / 2.0)
-                    hits.append((dist, mid, a, b, [row_a, row_b], req))
+                    hits.append((dist, mid, a, b, [row_a, row_b], req,
+                                 _waiver(a, b, pa, pb, dist, scopes)))
         n_under = len(hits)
         # dedup: tightest pair wins within DEDUP_MM (a track inside its own
-        # net's zone must not double-report the same physical gap)
+        # net's zone must not double-report the same physical gap). A kept
+        # error shadows anything; a kept waived hit shadows only its own
+        # class, so a waiver never hides an error beside it.
         hits.sort(key=lambda h: h[0])
         kept = []
         for h in hits:
-            if any((h[1][0] - k[1][0]) ** 2 + (h[1][1] - k[1][1]) ** 2
+            if any(k[6][0] in (None, h[6][0])
+                   and (h[1][0] - k[1][0]) ** 2 + (h[1][1] - k[1][1]) ** 2
                    <= DEDUP_MM ** 2 for k in kept):
                 continue
             kept.append(h)
         truncated = len(kept) > MAX_EMIT_PER_PAIR_LAYER
 
-        def _same_fp(a, b) -> bool:
-            return (a[0] == "pad" and b[0] == "pad"
-                    and bool(a[3]) and a[3] == b[3])
-
-        sf_under = sum(1 for h in hits if _same_fp(h[2], h[3]))
-        for dist, mid, a, b, rows, req in kept[:MAX_EMIT_PER_PAIR_LAYER]:
+        sf_under = sum(1 for h in hits if h[6][0] == "land_pattern_pitch")
+        dru_under = sum(1 for h in hits if h[6][0] == "dru_footprint_scope")
+        for dist, mid, a, b, rows, req, wv in kept[:MAX_EMIT_PER_PAIR_LAYER]:
             refs = [r for r in (a[3], b[3]) if r]
             msg = (f"{prim_label} to {sec} on {layer}: {dist:.3f} mm copper "
                    f"spacing < IPC-2221 {req:.2f} mm ({rows[0]}/{rows[1]}) "
-                   f"for {abs(dv):.0f} V")
-            extras = {}
-            severity = "error"
-            if _same_fp(a, b):
-                # both pads of ONE footprint: the land pattern itself - not
-                # fixable by placement/routing; named waiver class, visible.
-                severity = "warning"
-                extras = {"same_footprint": True,
-                          "waiver_class": "land_pattern_pitch"}
-                msg += (f"; land-pattern pitch (same footprint {a[3]}) - "
-                        "part-selection scope, not layout")
+                   f"for {abs(dv):.0f} V") + wv[2]
             violations.append(violation(
-                SCRIPT, severity, mid, layer, prim, refs, msg,
-                SCRIPT, kind="creepage", other_net=sec,
+                SCRIPT, "warning" if wv[0] else "error", mid, layer, prim,
+                refs, msg, SCRIPT, kind="creepage", other_net=sec,
                 delta_v=checklib.rnd(abs(dv)), spacing_mm=checklib.rnd(dist),
                 required_mm=req, rows=rows, item=a[2], other_item=b[2],
-                **extras))
+                **wv[1]))
         summaries.append({
             "other_net": sec, "layer": layer, "delta_v": checklib.rnd(abs(dv)),
             "pairs_checked": len(ia) * len(ib),
             "pairs_under_requirement": n_under,
             "same_footprint_under": sf_under,
+            "dru_footprint_scope_under": dru_under,
             # min gap among prefiltered candidates; None = all pairs on this
             # layer are farther apart than the largest possible requirement
             "min_gap_mm": checklib.rnd(min_gap) if min_gap is not None else None,
@@ -261,11 +408,12 @@ def sweep_pair(bg: geom.BoardGeom, prim: str, sec: str, dv: float,
 
 def check_net(bg: geom.BoardGeom, hv: str, v_hv: float, vmap: dict,
               coating: str = "none", overrides: frozenset = frozenset(),
-              cache: dict | None = None):
+              cache: dict | None = None, scopes=()):
     """Check the primary net `hv` against every other net that sits >30 V away.
     The violation is attributed to whichever net of the pair has the higher
     magnitude voltage (the one a fixer should move). Net pairs listed in
-    `overrides` (frozensets of two net names) are owned by voltage_pairs."""
+    `overrides` (frozensets of two net names) are owned by voltage_pairs;
+    `scopes` are dru_footprint_scopes() rows."""
     if hv not in bg.nets:
         raise CheckError(f"voltage net {hv!r} not on board")
     cache = {} if cache is None else cache
@@ -287,7 +435,7 @@ def check_net(bg: geom.BoardGeom, hv: str, v_hv: float, vmap: dict,
         if frozenset((hv, other)) in overrides:
             continue           # explicit voltage_pairs entry owns this pair
         vs, summ = sweep_pair(bg, hv, other, dv, coating, cache,
-                              f"{hv} ({v_hv:.0f} V)")
+                              f"{hv} ({v_hv:.0f} V)", scopes)
         violations.extend(vs)
         pair_summaries.extend(summ)
         checked += len(summ)   # (other_net, layer) combos with copper on both
@@ -315,6 +463,7 @@ def run(argv=None):
     vpairs = voltage_pair_list(cons)
     bg = geom.load_board(Path(args.pcb))
     bg.assert_fresh()
+    scopes = dru_footprint_scopes(Path(args.pcb))
 
     overrides = frozenset(frozenset((a, b)) for a, b, _v in vpairs)
     cache: dict = {}
@@ -330,7 +479,8 @@ def run(argv=None):
             skipped.append(net)
             continue
         vs, facts = check_net(bg, net, v, vmap, coating=coating,
-                              overrides=overrides, cache=cache)
+                              overrides=overrides, cache=cache,
+                              scopes=scopes)
         violations.extend(vs)
         if facts["pairs_checked"] or vs:
             checked.append(facts)
@@ -343,7 +493,7 @@ def run(argv=None):
             skipped.extend(n for n in absent if n not in skipped)
             continue
         vs, summ = sweep_pair(bg, a, b, v, coating, cache,
-                              f"{a} (pair {v:.0f} V)")
+                              f"{a} (pair {v:.0f} V)", scopes)
         violations.extend(vs)
         checked.append({"net": a, "other_net": b, "voltage": v,
                         "voltage_pair": True, "pairs_checked": len(summ),
@@ -364,7 +514,14 @@ def run(argv=None):
     payload = checklib.report(SCRIPT, args.pcb, violations, checked=checked,
                               skipped_absent_nets=skipped,
                               skipped_low_voltage_pairs=skipped_lv_pairs,
-                              coating=coating, **hint)
+                              coating=coating,
+                              dru_footprint_scopes=[
+                                  {"rule": s["rule"], "ref": s["ref"],
+                                   "min_mm": s["min_mm"],
+                                   "courtyard_found":
+                                       s["courtyard_poly"] is not None}
+                                  for s in scopes],
+                              **hint)
     return payload, args.out
 
 

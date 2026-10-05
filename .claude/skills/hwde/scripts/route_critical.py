@@ -331,22 +331,30 @@ _DRU_RULE_RE = re.compile(r'\(rule\s+"([^"]+)"(.*?)\n\)', re.S)
 _DRU_CONSTRAINT_RE = re.compile(
     r'\(constraint\s+(\w+)\s+\(min\s+([\d.]+)\s*mm\)\)')
 _DRU_NETNAME_RE = re.compile(r"\.NetName\s*==\s*'([^']+)'")
+_DRU_CONDITION_RE = re.compile(r'\(condition\s+"((?:[^"\\]|\\.)*)"\s*\)')
+_DRU_LAYER_RE = re.compile(r'\(layer\s+"?([^\s")]+)"?\s*\)')
 
 
 def parse_dru_rules(text: str) -> list[dict]:
     """Named (rule ...) blocks with a (min Xmm) constraint ->
-    [{name, constraint, min_mm, nets}]. nets = NetName literals in the
-    condition ([] for unconditioned/baseline rules). Only the shapes
-    rules_gen emits are recognized; anything else simply yields no row."""
+    [{name, constraint, min_mm, nets, condition, layer}]. nets = NetName
+    literals in the condition ([] for unconditioned/baseline rules);
+    condition = the raw condition string (None when absent); layer = the
+    (layer ...) clause token (None when absent). Only the shapes rules_gen
+    emits are recognized; anything else simply yields no row."""
     out: list[dict] = []
     for m in _DRU_RULE_RE.finditer(text or ""):
         name, body = m.group(1), m.group(2)
         c = _DRU_CONSTRAINT_RE.search(body)
         if not c:
             continue
+        cond = _DRU_CONDITION_RE.search(body)
+        lay = _DRU_LAYER_RE.search(body)
         out.append({"name": name, "constraint": c.group(1),
                     "min_mm": float(c.group(2)),
-                    "nets": sorted(set(_DRU_NETNAME_RE.findall(body)))})
+                    "nets": sorted(set(_DRU_NETNAME_RE.findall(body))),
+                    "condition": cond.group(1) if cond else None,
+                    "layer": lay.group(1) if lay else None})
     return out
 
 
