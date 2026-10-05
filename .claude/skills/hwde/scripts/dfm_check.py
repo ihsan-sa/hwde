@@ -39,7 +39,11 @@ Checks (all thresholds from reference/jlc_capabilities.yaml, keyed
            cap's cathode/+ on the board's, with the shipped CPL (fab dir's
            CPL.csv, else this run's). A wrong part, and a part with no model
            or no fit, is an ERROR (cpl_rotation / cpl_no_model); a model
-           centre off the board's by > 0.5 mm is a warning (cpl_offset).
+           centre off the board's by > 0.5 mm is a warning (cpl_offset). A
+           model fetch that FAILED (EasyEDA 403/429 rate limit, other HTTP
+           status, network) is one ERROR for the run, cpl_fetch_failed,
+           listing the parts and the reason - never cpl_no_model: rerun once
+           EasyEDA answers.
            Runs with --parts. The fab step's image pass (cpl_render.py + a
            vision agent -> cpl_visual.json beside the CPL, or --visual) sits
            beside it: a part the two disagree on, or one the image pass left
@@ -630,12 +634,29 @@ def check_placement(pcb: Path, cpl: Path, parts: Path | None,
     vis = (json.loads(visual.read_text(encoding="utf-8"))
            if visual is not None else None)
     rows = cpl_verify.merge_visual(rep["parts"], vis)
+    unfetched = [r for r in rows if r["verdict"] == "fetch_failed"]
+    if unfetched:
+        # One finding for the run, not one per part: the cause is the
+        # network or EasyEDA's rate limit, and so is the remedy.
+        import easyeda
+        why = easyeda.rate_limited() or "; ".join(sorted(
+            {r.get("fetch_error", "") for r in unfetched} - {""}))
+        refs = [r["ref"] for r in unfetched]
+        vios.append(checklib.violation(
+            CHECK, "error", None, None, None, refs,
+            f"could not fetch the LCSC model for {len(refs)} part(s) "
+            f"({why}), so their CPL rotation is unverified - not a pin-1 "
+            f"result; rerun once EasyEDA answers (a rate limit clears in "
+            f"minutes) to fill {rep['cache_dir']}", SOURCE,
+            kind="cpl_fetch_failed", reason=why,
+            rate_limited=bool(easyeda.rate_limited())))
     for r in rows:
         where = None
-        if r["verdict"] in cpl_verify.FAIL_VERDICTS:
+        if r["verdict"] == "fetch_failed":
+            pass
+        elif r["verdict"] in cpl_verify.FAIL_VERDICTS:
             kind = ("cpl_no_model" if r["verdict"] in
-                    ("no_model", "no_fit", "bottom_unverified",
-                     "fetch_failed")
+                    ("no_model", "no_fit", "bottom_unverified")
                     else "cpl_rotation")
             vios.append(checklib.violation(
                 CHECK, "error", where, None, None, [r["ref"]],
@@ -657,9 +678,12 @@ def check_placement(pcb: Path, cpl: Path, parts: Path | None,
                 kind="cpl_visual_disagree", agreement=r["agreement"]))
     return {"cpl": str(cpl), "visual": str(visual) if visual else None,
             "n_checked": rep["n_checked"], "failed": rep["failed"],
+            "fetch_failed": [r["ref"] for r in unfetched],
+            "rate_limited": rep.get("rate_limited"),
             "parts": [{k: r.get(k) for k in
                        ("ref", "lcsc", "verdict", "basis", "board_rot",
                         "cpl_rot", "expected_rot", "offset_mm", "why",
+                        "fetch_error",
                         "visual", "agreement")} for r in rows]}
 
 
@@ -817,7 +841,8 @@ DFM_FAMILIES = {
     "silk": ("dfm_silk_width", "dfm_silk_over_pad", "dfm_mask_dam",
              "dfm_pad_tented"),
     "polarity": ("cpl_polarity",),
-    "placement": ("cpl_rotation", "cpl_no_model", "cpl_offset"),
+    "placement": ("cpl_rotation", "cpl_no_model", "cpl_fetch_failed",
+                  "cpl_offset"),
     "placement_visual": ("cpl_visual_disagree",),
     "bom": ("dfm_bom_incomplete", "dfm_assembly_unplaced_smt",
             "dfm_assembly_qty_mismatch", "dfm_unplaced_in_package"),

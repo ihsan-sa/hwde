@@ -27,8 +27,10 @@ per LCSC number) and fits it onto the board footprint:
             shared pad numbers, no turn that fits, or a bottom-side part
             (JLC's bottom convention is not modelled) is a FAILURE, never a
             pass - `no_model`, `no_fit` or `bottom_unverified`. A model
-            fetch that errored (network, 403) is `fetch_failed`, never
-            `no_model`: it says nothing about the part or its pin 1.
+            fetch that errored (network, HTTP status) is `fetch_failed`,
+            never `no_model`: it says nothing about the part or its pin 1.
+            A 403/429 is EasyEDA's rate limit: later parts are not fetched
+            (also `fetch_failed`) and the report's `rate_limited` says why.
   offset    The model's pad centre vs the board's, both placed, is reported
             (`offset_mm`); over OFFSET_WARN_MM it is a warning only.
 
@@ -415,8 +417,9 @@ def verify(pcb: Path, cpl: dict[str, dict], lcsc: dict[str, str],
         row = check_part(fp, model, cpl[ref])
         if row["verdict"] == "no_model" and errors:
             row["verdict"] = "fetch_failed"
+            row["fetch_error"] = next(iter(errors.values()))
             row["why"] = (f"could not fetch the LCSC model for {code} "
-                          f"({next(iter(errors.values()))}); cache dir "
+                          f"({row['fetch_error']}); cache dir "
                           f"{cache_dir} - this is not a pin-1 result")
         rows.append(row)
     bad = [r for r in rows if r["verdict"] in FAIL_VERDICTS]
@@ -426,6 +429,10 @@ def verify(pcb: Path, cpl: dict[str, dict], lcsc: dict[str, str],
             "failed": [r["ref"] for r in bad],
             "offset_warnings": [r["ref"] for r in rows
                                 if r.get("offset_mm", 0) > OFFSET_WARN_MM],
+            "fetch_failed": [r["ref"] for r in rows
+                             if r["verdict"] == "fetch_failed"],
+            "rate_limited": easyeda.rate_limited(),
+            "cache_dir": str(cache_dir),
             "parts": rows}
 
 
