@@ -528,6 +528,7 @@ class BoardGeom:
         self._pads: list[Pad] = []
         self._zones: list[Zone] = []
         self.rule_areas: list[dict] = []  # keepout areas: {name, layers, outline}
+        self.footprints: dict[str, dict] = {}  # ref -> {"lib", "value"}
         self._parse_tracks(root)
         self._parse_vias(root)
         self._parse_footprints(root)
@@ -654,12 +655,17 @@ class BoardGeom:
             fnums = _nums(at) if at is not None else [0, 0, 0]
             fx, fy = fnums[0], fnums[1]
             fangle = fnums[2] if len(fnums) > 2 else 0.0
-            ref = "?"
+            ref, value = "?", None
             for prop in _kids(fp, "property"):
                 pv = _strs(prop)
                 if len(pv) >= 2 and pv[0] == "Reference":
                     ref = pv[1]
-                    break
+                elif len(pv) >= 2 and pv[0] == "Value":
+                    value = pv[1]
+            lib = _strs(fp)[0] if _strs(fp) else ""
+            # ref -> lib id + Value field (check_current bounds a resistor
+            # branch's current from these); the last duplicate ref wins
+            self.footprints[ref] = {"lib": lib, "value": value}
             for pad in _kids(fp, "pad"):
                 self._add_pad(pad, fx, fy, fangle, ref)
 

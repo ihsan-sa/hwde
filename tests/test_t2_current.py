@@ -600,3 +600,165 @@ def test_split_fcu_stitched_to_necked_bcu_fails(tmp_path_factory):
     necks = _kinds(vs, "pour_neckdown")
     assert {v["layer"] for v in necks} == {"F.Cu", "B.Cu"}
     assert all(v["severity"] == "error" for v in necks)
+
+
+
+
+# ---- plated pads join fills through their relief (PCB-0021-A GND) ----------
+# F.Cu GND F1 | F2 and B.Cu GND B1 | B2, one via in each pair: F1-B1 and
+# F2-B2. J1's plated pad sits in F2's and B1's thermal relief (0.6 mm gap,
+# one spoke each), so its centre is in neither fill: it alone joins the two.
+
+_RELIEF_FILLS = """  (zone (net "GND") (layer "F.Cu")
+    (polygon (pts (xy 0 0) (xy 20 0) (xy 20 10) (xy 0 10)))
+    (filled_polygon (layer "F.Cu")
+      (pts (xy 0 0) (xy 8 0) (xy 8 10) (xy 0 10)))
+    (filled_polygon (layer "F.Cu")
+      (pts (xy 12.6 0) (xy 20 0) (xy 20 10) (xy 12.6 10) (xy 12.6 5.2)
+           (xy 11.9 5.2) (xy 11.9 4.8) (xy 12.6 4.8))))
+  (zone (net "GND") (layer "B.Cu")
+    (polygon (pts (xy 0 0) (xy 20 0) (xy 20 10) (xy 0 10)))
+    (filled_polygon (layer "B.Cu")
+      (pts (xy 0 0) (xy 10.4 0) (xy 10.4 4.8) (xy 11.1 4.8) (xy 11.1 5.2)
+           (xy 10.4 5.2) (xy 10.4 10) (xy 0 10)))
+    (filled_polygon (layer "B.Cu")
+      (pts (xy 14 0) (xy 20 0) (xy 20 10) (xy 14 10))))
+  (via (at 4 5) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net "GND"))
+  (via (at 17 5) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net "GND"))
+"""
+
+_RELIEF_PAD = """  (footprint "t:J" (at 11.5 5)
+    (layer "F.Cu")
+    (property "Reference" "J1" (at 0 0 0))
+    (pad "1" thru_hole circle (at 0 0) (size 1 1) (drill 0.6)
+      (layers "*.Cu" "*.Mask") (net "GND")))
+"""
+
+
+def test_plated_pad_in_relief_joins_layers(tmp_path_factory):
+    """A plated pad whose fill stops at its thermal relief still joins the
+    fills it sits in on each layer (used to need the pad centre in fill)."""
+    bg = _board(tmp_path_factory, "relief", _RELIEF_FILLS + _RELIEF_PAD)
+    vs, _ = check_current.check_net(bg, ENTRY_GND)
+    assert _kinds(vs, "pour_neckdown") == []
+
+
+def test_relief_fills_without_pad_fail(tmp_path_factory):
+    """Control: without J1 the two halves meet nowhere."""
+    bg = _board(tmp_path_factory, "reliefnopad", _RELIEF_FILLS)
+    vs, _ = check_current.check_net(bg, ENTRY_GND)
+    assert {v["layer"] for v in _kinds(vs, "pour_neckdown")} == \
+        {"F.Cu", "B.Cu"}
+
+
+# ---- leaf branches (PCB-0021-A +SYS) ---------------------------------------
+# PWR F.Cu pour: a main block holding U1 and a 0.8 mm leg holding R1 pad 1,
+# cut apart on F.Cu and bridged by a 0.6 mm B.Cu strip and two single vias
+# 4 mm apart. At 2 A the leg, the strip and both 1-via transitions fail;
+# the leg only feeds R1 (470R 0603: at most sqrt(0.25/470) = 23 mA).
+
+_LEAF = """  (zone (net "PWR") (layer "F.Cu")
+    (polygon (pts (xy 0 0) (xy 16 0) (xy 16 10) (xy 0 10)))
+    (filled_polygon (layer "F.Cu")
+      (pts (xy 0 0) (xy 10 0) (xy 10 10) (xy 0 10)))
+    (filled_polygon (layer "F.Cu")
+      (pts (xy 13 4.6) (xy 16 4.6) (xy 16 5.4) (xy 13 5.4))))
+  (zone (net "PWR") (layer "B.Cu")
+    (polygon (pts (xy 9 4.7) (xy 14 4.7) (xy 14 5.3) (xy 9 5.3)))
+    (filled_polygon (layer "B.Cu")
+      (pts (xy 9 4.7) (xy 14 4.7) (xy 14 5.3) (xy 9 5.3))))
+  (via (at 9.5 5) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net "PWR"))
+  (via (at 13.5 5) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net "PWR"))
+  (footprint "t:U" (at 2 5)
+    (layer "F.Cu")
+    (property "Reference" "U1" (at 0 0 0))
+    (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") (net "PWR")))
+"""
+
+
+def _leaf_part(ref="R1", value="470R", lib="t:R0603"):
+    return f"""  (footprint "{lib}" (at 15.9 5)
+    (layer "F.Cu")
+    (property "Reference" "{ref}" (at 0 0 0))
+    (property "Value" "{value}" (at 0 0 0))
+    (pad "1" smd rect (at -0.4 0) (size 0.5 0.6) (layers "F.Cu") (net "PWR"))
+    (pad "2" smd rect (at 0.4 0) (size 0.5 0.6) (layers "F.Cu") (net "LED")))
+"""
+
+
+ENTRY_PWR = {"net": "PWR", "current_a": 2.0}
+
+
+def test_leaf_branch_judged_at_its_load(tmp_path_factory):
+    """The leg's neck and both transitions carry only R1's current: no
+    finding, each listed in facts["leaf_branches"] at R1's bound."""
+    bg = _board(tmp_path_factory, "leaf", _LEAF + _leaf_part())
+    vs, facts = check_current.check_net(bg, ENTRY_PWR)
+    assert _kinds(vs, "pour_neckdown") == []
+    assert _kinds(vs, "insufficient_transition_vias") == []
+    leaves = facts["leaf_branches"]
+    assert {b["kind"] for b in leaves} == {"pour_neckdown",
+                                           "insufficient_transition_vias"}
+    assert all(b["loads"] == ["R1"] for b in leaves)
+    assert all(b["current_a"] == pytest.approx(0.0231, abs=1e-3)
+               for b in leaves)
+
+
+def test_leaf_with_unbounded_part_keeps_budget(tmp_path_factory):
+    """A capacitor on the leg has no bound: the leg is judged at 2 A."""
+    bg = _board(tmp_path_factory, "leafcap",
+                _LEAF + _leaf_part("C1", "10uF", "t:C0603"))
+    vs, facts = check_current.check_net(bg, ENTRY_PWR)
+    assert _kinds(vs, "pour_neckdown")
+    assert len(_kinds(vs, "insufficient_transition_vias")) == 2
+    assert all(v["current_a"] == 2.0 for v in _kinds(vs, "pour_neckdown"))
+    assert "leaf_branches" not in facts
+
+
+def test_leaf_with_second_path_keeps_budget(tmp_path_factory):
+    """A track from the leg back to the main block makes the leg a possible
+    bypass of the neck: no bound, the findings stay at 2 A."""
+    track = (
+        '  (segment (start 9.9 8) (end 14.5 8) (width 0.3) (layer "F.Cu") (net "PWR"))\n'
+        '  (segment (start 14.5 8) (end 14.5 5.2) (width 0.3) (layer "F.Cu") (net "PWR"))\n')
+    bg = _board(tmp_path_factory, "leafloop", _LEAF + _leaf_part() + track)
+    vs, facts = check_current.check_net(bg, ENTRY_PWR)
+    assert _kinds(vs, "pour_neckdown")
+    assert len(_kinds(vs, "insufficient_transition_vias")) == 2
+    assert "leaf_branches" not in facts
+
+
+def test_leaf_reaching_real_load_still_fails(tmp_path_factory):
+    """Negative: the leg feeds R1 and also U2, a part with no bound, so it
+    is on the real power path and the neck and transitions fail at 2 A."""
+    u2 = """  (footprint "t:SOT23" (at 14.5 5)
+    (layer "F.Cu")
+    (property "Reference" "U2" (at 0 0 0))
+    (property "Value" "LDO" (at 0 0 0))
+    (pad "1" smd rect (at 0 0) (size 0.5 0.6) (layers "F.Cu") (net "PWR")))
+"""
+    bg = _board(tmp_path_factory, "leafreal", _LEAF + _leaf_part() + u2)
+    vs, facts = check_current.check_net(bg, ENTRY_PWR)
+    necks = _kinds(vs, "pour_neckdown")
+    assert necks and all(v["current_a"] == 2.0 and v["severity"] == "error"
+                         for v in necks)
+    assert len(_kinds(vs, "insufficient_transition_vias")) == 2
+    assert "leaf_branches" not in facts
+
+
+def test_leaf_reaching_no_pad_keeps_budget(tmp_path_factory):
+    """Copper that reaches no pad is not known to be a leaf (a synthetic
+    or unfinished board): no bound, the findings stay at 2 A."""
+    bg = _board(tmp_path_factory, "leafbare", _LEAF)
+    vs, facts = check_current.check_net(bg, ENTRY_PWR)
+    assert _kinds(vs, "pour_neckdown")
+    assert len(_kinds(vs, "insufficient_transition_vias")) == 2
+    assert "leaf_branches" not in facts
+
+
+@pytest.mark.parametrize("value,ohms", [
+    ("470R", 470.0), ("4k7", 4700.0), ("10k", 1e4), ("2.2K", 2200.0),
+    ("1M", 1e6), ("100", 100.0), ("4R7", 4.7), ("10kOhm 1%", 1e4),
+    ("0R", 0.0), ("R100", None), ("", None), ("DNP", None)])
+def test_parse_ohms(value, ohms):
+    assert check_current.parse_ohms(value) == ohms
