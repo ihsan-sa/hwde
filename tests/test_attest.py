@@ -409,6 +409,29 @@ def test_null_hash_is_binding(tmp_path):
     assert any("input parts" in p for p in v["problems"])
 
 
+def test_attestation_predating_place_waivers_kind(tmp_path):
+    """place_waivers joined invalidation.yaml after boards were attested
+    (2026-10-05). An attestation that does not bind it stays valid while the
+    board has no place-waivers.json, and is invalid once one appears."""
+    ws = green_ws(tmp_path)
+    att, _ = releaselib.build(ws)
+    assert "place_waivers" in att["inputs"]
+    att = {k: v for k, v in att.items() if k != "attestation_sha256"}
+    att["inputs"] = {k: v for k, v in att["inputs"].items()
+                     if k != "place_waivers"}
+    att["input_paths"] = {k: v for k, v in att["input_paths"].items()
+                          if k != "place_waivers"}
+    att["attestation_sha256"] = releaselib.seal(att)
+    releaselib.write_attestation(ws, att)
+    assert releaselib.verify(ws)["valid"], releaselib.verify(ws)["problems"]
+    (ws / "reports" / "place-waivers.json").write_text(
+        '{"waivers": []}', encoding="utf-8")
+    v = releaselib.verify(ws)
+    assert not v["valid"]
+    assert "input place_waivers: not bound by the attestation" \
+        in v["problems"]
+
+
 def test_gate_regression_and_revoked_approval_invalidate(tmp_path):
     ws = green_ws(tmp_path)
     att, _ = releaselib.build(ws)
@@ -899,6 +922,11 @@ def test_waivers_found_in_a_workspace_outside_any_boards_dir(tmp_path):
     pcb = ws / "kicad" / "myboard.kicad_pcb"
     pcb.write_text("", encoding="utf-8")
     assert releaselib.waivers_for_input(pcb) == side
+    # the place gate asks for its own sidecar by name, never verify's
+    assert releaselib.waivers_for_input(pcb, "place-waivers.json") is None
+    place = ws / "reports" / "place-waivers.json"
+    place.write_text("{}", encoding="utf-8")
+    assert releaselib.waivers_for_input(pcb, "place-waivers.json") == place
     # no sidecar anywhere -> None, as before
     side.unlink()
     assert releaselib.waivers_for_input(pcb) is None
