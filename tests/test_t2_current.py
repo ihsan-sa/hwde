@@ -249,7 +249,8 @@ def test_sole_path_labeled_bridge(tmp_path_factory):
 
 def test_zone_parallel_path_not_bridge(tmp_path_factory):
     """A segment paralleled by the net's own pour (via through-vias at both
-    ends) is not a bridge when the graph includes zone fills."""
+    ends) is not a bridge when the graph includes zone fills, and since both
+    ends sit on the pour it is dropped as a pour tap, not reported."""
     body = _DIRECT + (
         '  (via (at 2 5) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") '
         '(net "PWR"))\n'
@@ -261,10 +262,75 @@ def test_zone_parallel_path_not_bridge(tmp_path_factory):
       (pts (xy 0 0) (xy 20 0) (xy 20 10) (xy 0 10))))
 """)
     bg = _board(tmp_path_factory, "zonepar", body)
-    vs, _ = check_current.check_net(bg, {"net": "PWR", "current_a": 2.0})
+    vs, facts = check_current.check_net(bg, {"net": "PWR", "current_a": 2.0})
+    assert _kinds(vs, "undersized_track") == []
+    assert facts["pour_taps"] == [[8.0, 5.0]]
+    assert facts["bridge_labeled"] is True
+
+
+# ---- pour taps (PCB-0018-A PHASE/LS_SRC class) -----------------------------
+# A 10 A pour on F.Cu holds the FET pad Q1.1; a 0.25 mm signal tap leaves it.
+
+_TAP_POUR = """  (zone (net "PH") (layer "F.Cu")
+    (polygon (pts (xy 0 0) (xy 10 0) (xy 10 10) (xy 0 10)))
+    (filled_polygon (layer "F.Cu")
+      (pts (xy 0 0) (xy 10 0) (xy 10 10) (xy 0 10))))
+  (footprint "t:Q" (at 5 5)
+    (layer "F.Cu")
+    (property "Reference" "Q1" (at 0 0 0))
+    (pad "1" smd rect (at 0 0) (size 2 2) (layers "F.Cu") (net "PH")))
+  (footprint "t:R" (at 15 5)
+    (layer "F.Cu")
+    (property "Reference" "R1" (at 0 0 0))
+    (pad "1" smd rect (at 0 0) (size 0.8 0.8) (layers "F.Cu") (net "PH")))
+"""
+
+ENTRY_PH = {"net": "PH", "current_a": 10.0}
+
+
+def test_tap_inside_own_pour_dropped(tmp_path_factory):
+    """A thin track whose both ends sit in the pour that carries the current
+    (pad to pad across it) is shunted by it: no finding."""
+    body = _TAP_POUR + (
+        '  (segment (start 5 5) (end 5 8) (width 0.25) (layer "F.Cu") '
+        '(net "PH"))\n')
+    bg = _board(tmp_path_factory, "pourtap", body)
+    vs, facts = check_current.check_net(bg, ENTRY_PH)
+    assert _kinds(vs, "undersized_track") == []
+    assert len(facts["pour_taps"]) == 1
+
+
+def test_stub_inside_pad_dropped(tmp_path_factory):
+    """A non-bridge stub drawn wholly over its pad adds no section."""
+    body = _TAP_POUR + (
+        '  (segment (start 15 5) (end 18 5) (width 0.25) (layer "F.Cu") '
+        '(net "PH"))\n'
+        '  (segment (start 15 5) (end 18 5) (width 0.25) (layer "B.Cu") '
+        '(net "PH"))\n'
+        '  (via (at 18 5) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") '
+        '(net "PH"))\n'
+        '  (segment (start 15 5) (end 15.2 5) (width 0.25) (layer "F.Cu") '
+        '(net "PH"))\n')
+    bg = _board(tmp_path_factory, "padstub", body)
+    vs, facts = check_current.check_net(bg, ENTRY_PH)
     thin = _kinds(vs, "undersized_track")
-    assert len(thin) == 1
-    assert thin[0]["bridge"] is False
+    # the two 3 mm legs stay: they leave the pad copper and no pour shunts them
+    assert sorted(v["layer"] for v in thin) == ["B.Cu", "F.Cu"]
+    assert all(v["pos"] == [16.5, 5.0] for v in thin)
+    assert facts["pour_taps"] == [[15.1, 5.0]]
+
+
+def test_sole_path_tap_out_of_pour_still_fails(tmp_path_factory):
+    """The same tap leaving the pour to reach R1 is the only path there: a
+    genuine bridge keeps its error, whatever it feeds."""
+    body = _TAP_POUR + (
+        '  (segment (start 5 5) (end 15 5) (width 0.25) (layer "F.Cu") '
+        '(net "PH"))\n')
+    bg = _board(tmp_path_factory, "bridgetap", body)
+    vs, facts = check_current.check_net(bg, ENTRY_PH)
+    [v] = _kinds(vs, "undersized_track")
+    assert v["bridge"] is True and v["severity"] == "error"
+    assert "pour_taps" not in facts
 
 
 def test_no_undersized_no_bridge_fact(tmp_path_factory):
@@ -410,3 +476,127 @@ def test_cli_exit_codes(tmp_path_factory, plane_fed_bg):
          "--constraints", str(cons2)], capture_output=True, text=True)
     assert proc2.returncode == 2
     assert json.loads(proc2.stdout)["status"] == "error"
+
+
+# ---- pad-exit necks (PCB-0019-A SW_L1/SW_L2 class) -------------------------
+# A 0.5 mm-pitch pin row: 0.85 x 0.24 mm pads at y 4.5 / 5.0 / 5.5, the middle
+# one on SW. At 1.0 A the requirement is 0.5 mm, which cannot fit between the
+# neighbours; the track leaves the pad narrower and widens after a via.
+
+def _pin_row(mid_size="0.85 0.24"):
+    return f"""  (footprint "t:QFN" (at 5 5)
+    (layer "F.Cu")
+    (property "Reference" "U3" (at 0 0 0))
+    (pad "1" smd rect (at 0 -0.5) (size 0.85 0.24) (layers "F.Cu") (net "A"))
+    (pad "2" smd rect (at 0 0) (size {mid_size}) (layers "F.Cu") (net "SW"))
+    (pad "3" smd rect (at 0 0.5) (size 0.85 0.24) (layers "F.Cu") (net "B")))
+"""
+
+
+def _exit(neck_end_x: float, neck_w: float = 0.3) -> str:
+    """Neck from the pad centre to x=neck_end_x, a via there, then a full
+    0.5 mm track on B.Cu to x=1."""
+    return (
+        f'  (segment (start 5 5) (end {neck_end_x} 5) (width {neck_w}) '
+        '(layer "F.Cu") (net "SW"))\n'
+        f'  (via (at {neck_end_x} 5) (size 0.6) (drill 0.3) '
+        '(layers "F.Cu" "B.Cu") (net "SW"))\n'
+        f'  (segment (start {neck_end_x} 5) (end 1 5) (width 0.5) '
+        '(layer "B.Cu") (net "SW"))\n')
+
+
+ENTRY_SW = {"net": "SW", "current_a": 1.0}
+
+
+def test_pad_exit_neck_accepted(tmp_path_factory):
+    """0.30 mm off a 0.24 mm pad, ~0.3 mm clear of the pad before the via:
+    the neck the pin pitch forces is not a finding (PCB-0019-A SW_L1)."""
+    bg = _board(tmp_path_factory, "padexit", _pin_row() + _exit(4.0))
+    vs, facts = check_current.check_net(bg, ENTRY_SW)
+    assert _kinds(vs, "undersized_track") == []
+    [info] = facts["pad_exit_necks"]
+    assert info["pad"] == "U3.2" and info["pad_width_mm"] == 0.24
+    assert info["length_mm"] <= check_current.PAD_EXIT_MAX_MM
+
+
+def test_long_pad_exit_neck_still_fails(tmp_path_factory):
+    """The same neck run 2.5 mm past the pad is a routed trace, not an
+    escape: it must meet the full width."""
+    bg = _board(tmp_path_factory, "padexitlong", _pin_row() + _exit(2.0))
+    vs, facts = check_current.check_net(bg, ENTRY_SW)
+    assert len(_kinds(vs, "undersized_track")) == 1
+    assert "pad_exit_necks" not in facts
+
+
+def test_neck_narrower_than_pad_still_fails(tmp_path_factory):
+    """0.20 mm off a 0.24 mm pad adds a tighter section than the pad."""
+    bg = _board(tmp_path_factory, "padexitthin",
+                _pin_row() + _exit(4.0, neck_w=0.2))
+    vs, _ = check_current.check_net(bg, ENTRY_SW)
+    assert len(_kinds(vs, "undersized_track")) == 1
+
+
+def test_neck_off_wide_pad_still_fails(tmp_path_factory):
+    """A pad as wide as the requirement forces nothing: a short 0.3 mm stub
+    off a 1 x 1 mm pad is still undersized."""
+    bg = _board(tmp_path_factory, "padexitwide",
+                _pin_row(mid_size="1 1") + _exit(4.0))
+    vs, _ = check_current.check_net(bg, ENTRY_SW)
+    assert len(_kinds(vs, "undersized_track")) == 1
+
+
+# ---- via-stitched pours (PCB-0017-B GND class) -----------------------------
+# F.Cu GND split into two islands with a via each; whether that is a neck
+# depends on the B.Cu GND fill the vias land in. 2 A needs 1.1 mm.
+
+_SPLIT_FCU = """  (zone (net "GND") (layer "F.Cu")
+    (polygon (pts (xy 0 0) (xy 15 0) (xy 15 5) (xy 0 5)))
+    (filled_polygon (layer "F.Cu")
+      (pts (xy 0 0) (xy 6 0) (xy 6 5) (xy 0 5)))
+    (filled_polygon (layer "F.Cu")
+      (pts (xy 9 0) (xy 15 0) (xy 15 5) (xy 9 5))))
+  (via (at 3 2.5) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net "GND"))
+  (via (at 12 2.5) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net "GND"))
+"""
+
+_BCU_SOLID = """  (zone (net "GND") (layer "B.Cu")
+    (polygon (pts (xy 0 0) (xy 15 0) (xy 15 5) (xy 0 5)))
+    (filled_polygon (layer "B.Cu")
+      (pts (xy 0 0) (xy 15 0) (xy 15 5) (xy 0 5))))
+"""
+
+# B.Cu dumbbell: the stitched path itself chokes through a 0.2 mm strip
+_BCU_NECKED = """  (zone (net "GND") (layer "B.Cu")
+    (polygon (pts (xy 0 0) (xy 15 0) (xy 15 5) (xy 0 5)))
+    (filled_polygon (layer "B.Cu")
+      (pts (xy 0 0) (xy 5 0) (xy 5 2.4) (xy 10 2.4) (xy 10 0) (xy 15 0)
+           (xy 15 5) (xy 10 5) (xy 10 2.6) (xy 5 2.6) (xy 5 5) (xy 0 5))))
+"""
+
+ENTRY_GND = {"net": "GND", "current_a": 2.0}
+
+
+def test_split_fcu_stitched_to_solid_bcu_passes(tmp_path_factory):
+    """Each F.Cu island reaches the one B.Cu pour through its via: no neck
+    (used to report ~0.00 mm on the F.Cu fill)."""
+    bg = _board(tmp_path_factory, "stitched", _SPLIT_FCU + _BCU_SOLID)
+    vs, _ = check_current.check_net(bg, ENTRY_GND)
+    assert _kinds(vs, "pour_neckdown") == []
+
+
+def test_split_fcu_without_other_layer_fails(tmp_path_factory):
+    """No other fill to stitch through: the split is a real break."""
+    bg = _board(tmp_path_factory, "splitonly", _SPLIT_FCU)
+    vs, _ = check_current.check_net(bg, ENTRY_GND)
+    [neck] = _kinds(vs, "pour_neckdown")
+    assert neck["layer"] == "F.Cu"
+
+
+def test_split_fcu_stitched_to_necked_bcu_fails(tmp_path_factory):
+    """Stitching only helps when the other layer carries the width: a B.Cu
+    path that necks to 0.2 mm leaves both fills flagged."""
+    bg = _board(tmp_path_factory, "stitchneck", _SPLIT_FCU + _BCU_NECKED)
+    vs, _ = check_current.check_net(bg, ENTRY_GND)
+    necks = _kinds(vs, "pour_neckdown")
+    assert {v["layer"] for v in necks} == {"F.Cu", "B.Cu"}
+    assert all(v["severity"] == "error" for v in necks)
