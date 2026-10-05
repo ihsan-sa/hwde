@@ -185,14 +185,17 @@ def test_thermal_low_power_passes(tmp_path_factory):
 
 
 def _thermal_2l_board(tmp_path_factory, name, *, vias="", fp_vias="",
-                      pours=("F.Cu", "B.Cu")):
+                      pours=("F.Cu", "B.Cu"), half=15.0):
     """40 x 40 mm 2-layer board: a 3 x 3 mm exposed pad U9 at (20, 20), GND
-    pours 30 x 30 mm on `pours`, plus optional board vias / footprint PTH."""
+    pours 2*half square (30 x 30 mm) on `pours`, plus optional board vias /
+    footprint PTH."""
+    lo, hi = 20 - half, 20 + half
+    sq = f"(xy {lo} {lo}) (xy {hi} {lo}) (xy {hi} {hi}) (xy {lo} {hi})"
     zones = "".join(
         f'  (zone (net "GND") (layer "{lyr}")\n'
-        '    (polygon (pts (xy 5 5) (xy 35 5) (xy 35 35) (xy 5 35)))\n'
+        f'    (polygon (pts {sq}))\n'
         f'    (filled_polygon (layer "{lyr}")\n'
-        '      (pts (xy 5 5) (xy 35 5) (xy 35 35) (xy 5 35))))\n'
+        f'      (pts {sq})))\n'
         for lyr in pours)
     text = f"""(kicad_pcb (version 20260206) (generator "test")
   (general (thickness 1.6))
@@ -267,6 +270,63 @@ def test_thermal_2l_no_vias_still_fails(tmp_path_factory, pours):
     assert facts["theta_ja"] == pytest.approx(facts["theta_area_cw"])
     assert any(v["kind"] == "thermal_area" for v in vs)
     assert any(v["kind"] == "thermal_vias" for v in vs)
+
+
+THERMAL_VIA = ('  (via (at {x:.2f} {y:.2f}) (size 0.6) (drill 0.3) '
+               '(layers "F.Cu" "B.Cu") (net "GND"))\n')
+
+
+def test_thermal_2l_vias_without_back_pour_get_no_credit(tmp_path_factory):
+    """Vias that end on their own lands (no back pour) carry heat nowhere."""
+    vias = _via_grid(THERMAL_VIA, base=20.0)
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lnoback", vias=vias,
+                           pours=("F.Cu",))
+    vs, facts = check_thermal.check_part(bg, AMP_2L)
+    assert facts["vias_near_part"] == 16
+    assert facts["back_pour_reached"] is False
+    assert facts["theta_ja"] == pytest.approx(facts["theta_area_cw"])
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "add thermal vias into a back-side GND pour" in err[0]["msg"]
+
+
+def test_thermal_2l_too_few_vias_says_add_vias(tmp_path_factory):
+    """One via into the back pour helps a little; the fix is more vias."""
+    vias = THERMAL_VIA.format(x=20.0, y=20.0)
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lonevia", vias=vias)
+    vs, facts = check_thermal.check_part(bg, AMP_2L)
+    assert facts["back_pour_reached"] is True
+    assert facts["theta_ja"] < facts["theta_area_cw"]       # credited
+    assert facts["theta_best_2l_cw"] * 1.5 < 85             # fixable on 2L
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "add thermal vias into a back-side GND pour" in err[0]["msg"]
+    assert "1 thermal via(s)" in err[0]["msg"]
+
+
+def test_thermal_2l_over_power_fails_despite_vias(tmp_path_factory):
+    """3 W into 16 vias + full pours: credited, still over, and past the best
+    2-layer case, so the remedy is not 'more vias'."""
+    vias = _via_grid(THERMAL_VIA, base=20.0)
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lhot", vias=vias)
+    vs, facts = check_thermal.check_part(bg, dict(AMP_2L, power_w=3.0))
+    assert facts["theta_ja"] < facts["theta_area_cw"]       # vias credited
+    assert facts["theta_best_2l_cw"] == pytest.approx(38.5, abs=1.0)
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "even the best 2-layer case" in err[0]["msg"]
+    assert "move to 4 layers" in err[0]["msg"]
+
+
+def test_thermal_2l_full_via_array_small_pours_says_grow(tmp_path_factory):
+    """A full via array into small pours: the fix is copper, not vias."""
+    offs = [i * 0.65 - 1.625 for i in range(6)]   # 6 x 6 at 0.65 mm
+    vias = "".join(THERMAL_VIA.format(x=20 + dx, y=20 + dy)
+                   for dx in offs for dy in offs)
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lsmall", vias=vias,
+                           half=4.0)            # 8 x 8 mm both sides
+    vs, facts = check_thermal.check_part(bg, dict(AMP_2L, power_w=1.2))
+    assert facts["vias_near_part"] == check_thermal.VIA_BENEFIT_CAP
+    assert facts["back_pour_reached"] is True
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "grow the top and back GND pours" in err[0]["msg"]
 
 
 # ============================================================ pure: pdn
