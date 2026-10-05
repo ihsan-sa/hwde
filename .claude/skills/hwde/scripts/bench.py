@@ -71,6 +71,9 @@ CLI: bench.py --list
               --from-dir research=<ws>/research --freeze-args '{"task": "<t>"}'
               --grade "<owner verdict on the extraction>"
      bench.py --corpus WORK [--boards A,B] [--rerun A,B] [--boards-root DIR]
+     bench.py --scorecard WS [WS ...] | --scorecard all [--boards-root DIR]
+              [--record] [--top N]
+     bench.py --scorecard-report MD
 
 --corpus is the one mode that DOES run the live pipeline: place_seed,
 place_anneal and route_auto (Freerouting) on a copy of every board in the
@@ -79,6 +82,20 @@ finishes; a board with a result.json is skipped unless --rerun names it
 (lib/benchcorpus.py has the steps; docs/placement-benchmark.md is the
 report).  Its completion and runtime numbers are informational, never a
 composite.
+
+--scorecard scores finished board workspaces with no brief (docs/design-
+evals.md is the contract, lib/evalcard.py the code): it re-runs every
+offline verify check (verify_all.CHECKS) on the board, reads its recorded
+ERC/DRC/DFM gate verdicts (state.json, reports/gate-*.json), and returns
+per board five area scores (schematic, layout, signal_integrity, power,
+manufacturing), a composite and the findings ranked most-likely-real first, each with a `fix` line;
+plus a suite score with 95 % cluster-bootstrap intervals.  `all` means
+every board at phase P9 or later in the boards repo.  Checks run 2 at a
+time.  --record appends one line per board (scores, counts and the top
+--top findings, not every finding) and one for the suite to
+results/scorecard.jsonl (HWDE_RESULTS_ROOT overrides the root).
+--scorecard-report MD rewrites the markdown between the SCORECARD markers in
+MD (docs/design-evals.md) from the last recorded suite in that store.
 
 Exit 0 scored (no regression), 1 known-answer miss or composite regression,
 2 error/drifted fixture/missing toolchain for a live-only stage.
@@ -101,6 +118,7 @@ for p in (SCRIPTS, SCRIPTS / "lib"):
 import benchcorpus  # noqa: E402
 import benchlib  # noqa: E402
 import checklib  # noqa: E402
+import evalcard  # noqa: E402
 from checklib import CheckError  # noqa: E402
 
 SCRIPT = "bench"
@@ -956,6 +974,109 @@ def do_corpus(args) -> dict:
     return {"script": SCRIPT, "status": "pass", "corpus": summary}
 
 
+def _scorecard_workspaces(args) -> list[Path]:
+    import env
+    import score_checks
+    if args.scorecard == ["all"]:
+        root = Path(args.boards_root) if args.boards_root else env.boards_root()
+        jobs, why = score_checks.board_jobs(root)
+        if why:
+            raise CheckError(why)
+        return [Path(j["inputs"]["pcb"]).parents[1] for j in jobs]
+    if args.boards_root:
+        raise CheckError("--boards-root only goes with --scorecard all")
+    out = []
+    for w in args.scorecard:
+        ws = Path(w)
+        if not (ws / "kicad").is_dir():
+            raise CheckError(f"{ws} is not a board workspace (no kicad/)")
+        out.append(ws)
+    return out
+
+
+def scorecard_one(ws: Path, triage: list, prec: dict, modes: dict,
+                  top: int, n_jobs: int = 2) -> dict:
+    """Score one finished workspace: fresh offline checks + recorded gates."""
+    import concurrent.futures
+    import gate
+    import score_checks
+    import verify_all
+    pcbs = sorted((ws / "kicad").glob("*.kicad_pcb"))
+    if len(pcbs) != 1:
+        raise CheckError(f"{ws}: expected one kicad/*.kicad_pcb, found {len(pcbs)}")
+    inputs = {"pcb": str(pcbs[0]), **score_checks.sidecars(ws / "kicad")}
+    if (ws / "parts").is_dir():
+        inputs["parts"] = str(ws / "parts")
+    waivers = score_checks.load_waivers(ws)
+    calls = [(c["name"], score_checks.check_argv(c, inputs)) for c in verify_all.CHECKS]
+    run_ = [(n, a) for n, a in calls if a is not None]
+    with concurrent.futures.ProcessPoolExecutor(max_workers=n_jobs) as ex:
+        res = list(ex.map(score_checks._run_check, [n for n, _ in run_],
+                          [a for _, a in run_]))
+    findings, errors = [], []
+    for (name, _), r in zip(run_, res):
+        if r["status"] == "error":
+            errors.append({"check": name, "error": r.get("error")})
+            continue
+        for v in r["violations"]:
+            if (v.get("source") or v.get("check")) != name:
+                continue
+            verdict = next((t["verdict"] for t in triage if t["board"] == ws.name
+                            and score_checks.triage_matches(t, name, v)), None)
+            if verdict is None:
+                verdict = "waived" if any(gate.waiver_matches(w, v) for w in waivers) \
+                    else "untriaged"
+            findings.append(evalcard.finding(name, v, verdict, prec.get(name), modes))
+    for v in evalcard.gate_findings(ws):
+        findings.append(evalcard.finding(v["check"], v, "untriaged",
+                                         prec.get(v["check"]), modes))
+    info = {"skipped_checks": [n for n, a in calls if a is None],
+            "check_errors": errors}
+    return evalcard.board_card(ws.name, findings, info, top=top)
+
+
+REPORT_BEGIN = "<!-- SCORECARD:BEGIN (bench.py --scorecard-report writes this) -->"
+REPORT_END = "<!-- SCORECARD:END -->"
+
+
+def do_scorecard_report(md: Path) -> dict:
+    try:
+        table = evalcard.report_md(evalcard.read_store("scorecard"))
+    except ValueError as exc:
+        raise CheckError(str(exc)) from None
+    text = md.read_text(encoding="utf-8")
+    if REPORT_BEGIN not in text or REPORT_END not in text:
+        raise CheckError(f"{md} has no SCORECARD markers")
+    head, rest = text.split(REPORT_BEGIN, 1)
+    tail = rest.split(REPORT_END, 1)[1]
+    md.write_text(f"{head}{REPORT_BEGIN}\n{table}{REPORT_END}{tail}",
+                  encoding="utf-8")
+    return {"script": SCRIPT, "status": "pass", "wrote": str(md)}
+
+
+def do_scorecard(args) -> dict:
+    import score_checks
+    wss = _scorecard_workspaces(args)
+    triage = score_checks.load_triage(score_checks.TRIAGE)
+    prec = evalcard.precisions()
+    modes = evalcard.load_failure_modes(evalcard.REPO / "docs" / "failure-modes.yaml")
+    cards = [scorecard_one(ws, triage, prec, modes, args.top) for ws in wss]
+    suite = evalcard.suite_score(cards)
+    if args.record:
+        for c in cards:
+            evalcard.append("scorecard", {**evalcard.run_key(c["board"]),
+                                          "kind": "board",
+                                          **{k: v for k, v in c.items()
+                                             if k != "findings"}})
+        evalcard.append("scorecard", {**evalcard.run_key("suite:" + ",".join(
+            sorted(c["board"] for c in cards))), "kind": "suite", **suite})
+    for c in cards:
+        del c["findings"]   # the ranked top list is the readable part
+    return {"script": SCRIPT, "status": "pass", "suite": suite, "boards": cards,
+            "precision_source": str(evalcard.SCORECARD_HISTORY.name)
+            if prec else None}
+
+
 def run(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--list", action="store_true",
@@ -1010,11 +1131,26 @@ def run(argv=None):
     ap.add_argument("--boards", help="--corpus: only these boards (comma list)")
     ap.add_argument("--rerun", help="--corpus: re-run these boards even if "
                     "they have a result.json (comma list)")
-    ap.add_argument("--boards-root", help="--corpus: boards repo (default "
-                    "env.boards_root())")
+    ap.add_argument("--boards-root", help="--corpus / --scorecard all: boards "
+                    "repo (default env.boards_root())")
+    ap.add_argument("--scorecard", nargs="+", metavar="WS",
+                    help="score finished board workspaces (or 'all')")
+    ap.add_argument("--record", action="store_true",
+                    help="--scorecard: append the results to results/")
+    ap.add_argument("--top", type=int, default=10,
+                    help="--scorecard: findings listed per board (default 10)")
+    ap.add_argument("--scorecard-report", metavar="MD",
+                    help="rewrite MD's scorecard table from results/")
     ap.add_argument("--out")
     args = ap.parse_args(argv)
 
+    if args.scorecard_report:
+        return do_scorecard_report(Path(args.scorecard_report)), args.out
+    if args.scorecard:
+        return do_scorecard(args), args.out
+    for flag, val in (("--record", args.record),):
+        if val:
+            raise CheckError(f"{flag} only makes sense with --scorecard")
     if args.corpus:
         return do_corpus(args), args.out
     for flag, val in (("--boards", args.boards), ("--rerun", args.rerun),

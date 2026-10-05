@@ -525,13 +525,15 @@ def _source_exists(file: str, roots=()) -> bool:
     A `boards/<ws>/...` source cites a board workspace, which lives in the
     boards repo (env.boards_root()), not in the skill: it resolves there, and
     when that repo is not cloned it cannot be checked, so it is not reported
-    missing. <ws> may be a board's bare name from before its workspace was
-    renamed <PN>_<name>; boardreg.resolve finds it through the register."""
+    missing. An empty root counts as not cloned: a check run without the
+    boards repo points HWDE_BOARDS_ROOT at an empty dir. <ws> may be a
+    board's bare name from before its workspace was renamed <PN>_<name>;
+    boardreg.resolve finds it through the register."""
     if not file or file != file.strip():
         return False
     if file.startswith("boards/"):
         broot = _boards_root()
-        if not broot.is_dir():
+        if not broot.is_dir() or not any(broot.iterdir()):
             return True
         ws, _, rest = file[len("boards/"):].partition("/")
         try:

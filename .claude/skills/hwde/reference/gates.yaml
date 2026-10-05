@@ -107,7 +107,8 @@ gates:
       (check_route_style: arcs, off-45 segments and needless jogs, warnings
       only - a score, not a gate, until U11 sets rules), connector mating
       (check_mating: the place gate's mating rules again, so a later edit
-      cannot turn a connector round unnoticed). Fails on any error-severity
+      cannot turn a connector round unnoticed), plus every check a
+      scripts/checks.d/<name>.yaml fragment registers. Fails on any error-severity
       finding; warnings are surfaced for human review, not auto-failed.
       Human-approved residuals can be waived via the verify-waivers.json
       sidecar (gate.py --waivers; every entry needs reason + approved) so a

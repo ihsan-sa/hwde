@@ -1,0 +1,279 @@
+# PCB-0013-A_bb-amp U22 promotion pass, 2026-10-04. Rulings by perms on the owner's
+# standing redirect (#ai-ee 1791102051.529859); packet design/u22-ruling-packet.md.
+# Apply: learnings.py resolve --workspace <boards>/PCB-0013-A_bb-amp --batch <this file>
+version: 1
+rulings:
+- entry: 2026-08-16-research-task-interface-in-1-1-verified
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id001
+  - reference/knowledge/records/in-aggressor-separation.yaml
+  - reference/knowledge/records/in-bias-current-return-path.yaml
+  - reference/knowledge/records/in-bias-return-sizing.yaml
+  - >-
+    reference/knowledge/records/in-leakage-symmetry-and-guarding.yaml
+  - reference/knowledge/records/in-path-symmetry-sets-cmrr.yaml
+  - reference/knowledge/records/in-terminal-thermal-emf.yaml
+  targets: *id001
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: 2026-08-16-research-task-block-inamp-1-6-verified
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id002
+  - >-
+    reference/knowledge/records/inamp-gain-partition-first-stage.yaml
+  - >-
+    reference/knowledge/records/inamp-gain-pin-and-input-node-parasitics.yaml
+  - >-
+    reference/knowledge/records/inamp-headroom-escape-gain-in-difference-amp.yaml
+  - >-
+    reference/knowledge/records/inamp-internal-node-headroom-inequalities.yaml
+  - >-
+    reference/knowledge/records/inamp-internal-node-saturation.yaml
+  - >-
+    reference/knowledge/records/inamp-ref-pin-drive-impedance.yaml
+  - >-
+    reference/knowledge/records/inamp-supply-decoupling-and-local-ground.yaml
+  targets: *id002
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: 2026-08-16-research-task-block-inamp-2-2-verified
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id003
+  - >-
+    reference/knowledge/records/inamp-cmrr-over-frequency-and-source-imbalance.yaml
+  - >-
+    reference/knowledge/records/inamp-input-network-differential-cap-dominance.yaml
+  targets: *id003
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: 2026-08-16-research-task-interface-in-2-7-verified
+  status: promoted
+  kind: knowledge_record
+  level: L0
+  artifacts: &id004
+  - reference/knowledge/records/in-bias-current-return-path.yaml
+  - >-
+    reference/knowledge/records/in-bias-return-failure-signature.yaml
+  - >-
+    reference/knowledge/records/in-bias-return-resistor-sizing-ad8226.yaml
+  - reference/knowledge/records/in-cable-shield-termination.yaml
+  - reference/knowledge/records/in-constraints-emission.yaml
+  - reference/knowledge/records/in-input-path-equivalence.yaml
+  - reference/knowledge/records/in-terminal-selection.yaml
+  targets: *id004
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. The task's records are in the library: approved where verified before
+    U22 (Q1), verified where the U22 second read ran (Q3).
+- entry: 2026-08-16-meas-ac-rms-is-frequency-weighted-which
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. integrated noise without .noise; root L3939's ten traps do not include
+    it
+  triage:
+    now: L0
+    target: L3
+    owner: agents/sim-analyst.md
+    status: open
+    note: 'Owner and fix: agents/sim-analyst.md bench recipe.'
+- entry: 2026-08-16-pad-every-dc-ac-sweep-the-first
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. first point junk / at= on last point errors
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/sim_run.py
+    status: open
+    note: 'Owner and fix: scripts/sim_run.py (pad sweeps by default).'
+- entry: 2026-08-16-a-behavioural-op-amp-needs-its-anti
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. template owner shared with #5 and adc #17
+  triage:
+    now: L0
+    target: L3
+    owner: agents/sim-analyst.md
+    status: open
+    note: 'Owner and fix: NEW reference/sim/opamp_behavioural.cir.'
+- entry: 2026-08-16-a-series-isolation-resistor-only-isolates-when
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. verified precision-buffer-capacitive-load-isolation (R_O x C_LOAD,
+    R_ISO) + -riso-settling-stability-collision, envelope topology_kind: unity-follower
+- entry: 2026-08-16-build-the-in-amp-from-its-own
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. REF-impedance defect becomes a gate failure
+  triage:
+    now: L0
+    target: L3
+    owner: agents/sim-analyst.md
+    status: open
+    note: >-
+      Owner and fix: NEW reference/sim/opamp_behavioural.cir (3-op-amp in-amp
+      variant).
+- entry: 2026-08-16-a-datasheet-stability-curve-is-taken-at
+  status: promoted
+  kind: root_learnings
+  level: L0
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. not covered by the records' unity-follower envelope wording
+  triage:
+    now: L0
+    target: L0
+    owner: agents/datasheet-extractor.md
+    status: open
+    note: >-
+      Owner and fix: agents/datasheet-extractor.md (record the gain a curve is
+      taken at).
+- entry: 2026-08-17-outline-bbox-is-a-bbox-not-a
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K4-adjacent, distinct: bbox read as size inverted the scarce axis
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/board_init.py
+    status: open
+    note: 'Owner and fix: scripts/board_init.py (report outline_wh_mm).'
+- entry: 2026-08-17-outline-fit-clips-to-the-current-outline
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K4-adjacent, distinct: content_bounds intersects with the current
+    outline -> grow first
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/board_edit.py
+    status: open
+    note: >-
+      Owner and fix: scripts/board_edit.py (warn when content exceeds the outline).
+- entry: 2026-08-17-the-kf128-top-view-teeth-are-the
+  status: declined
+  kind: duplicate
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. K1: confirms root L2902; the rotate 180 model note is folded into
+    the K1 root row
+- entry: 2026-08-17-a-connector-s-pole-order-against-the
+  status: promoted
+  kind: root_learnings
+  level: L0
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. pole order vs IC pin order is a free P4 fix; measure both ways
+  triage:
+    now: L0
+    target: L0
+    owner: agents/schematic-block.md
+    status: open
+    note: 'Owner and fix: agents/schematic-block.md.'
+- entry: >-
+    2026-08-17-diff-pairs-conflates-route-these-symmetrically-with
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. PIPELINE BUG seen in four phases; the 1.37 mm class width ships silently
+  triage:
+    now: L0
+    target: L3
+    owner: reference/constraints_schema.md
+    status: open
+    note: >-
+      Owner and fix: reference/constraints_schema.md + scripts/rules_gen.py +
+      scripts/check_diffpair.py (symmetry_only).
+- entry: 2026-08-17-a-late-pin-change-must-sweep-every
+  status: promoted
+  kind: root_learnings
+  level: L2
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. process rule with a checkable core
+  triage:
+    now: L0
+    target: L2
+    owner: scripts/netlist_audit.py
+    status: open
+    note: >-
+      Owner and fix: scripts/netlist_audit.py (artifacts that STATE pin order
+      agree with the netlist).
+- entry: 2026-08-17-kicad-draws-text-box-overflow-instead-of
+  status: promoted
+  kind: root_learnings
+  level: L3
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. no gate sees it
+  triage:
+    now: L0
+    target: L3
+    owner: scripts/schlib.py
+    status: open
+    note: >-
+      Owner and fix: scripts/schlib.py (size text boxes to content).
+- entry: 2026-08-20-envelope-authoring-not-citation-accuracy-is-where
+  status: promoted
+  kind: root_learnings
+  level: L0
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. root L4280 is the principle ruling; "runs backwards" is a new failure
+    signature
+  triage:
+    now: L0
+    target: L0
+    owner: agents/research-second-reader.md
+    status: open
+    note: >-
+      Owner and fix: agents/research-second-reader.md (read the envelope's DIRECTION
+      first).
+- entry: 2026-08-20-a-blind-re-read-is-worth-running
+  status: promoted
+  kind: root_learnings
+  level: L0
+  reason: >-
+    Ruled 2026-10-04 by perms on the owner's standing redirect (#ai-ee 1791102051.529859),
+    U22 Q4. prices the repair; keep as prose
+  triage:
+    now: L0
+    target: L0
+    owner: agents/research-second-reader.md
+    status: n/a
+    note: >-
+      Owner and fix: n/a (process), agents/research-second-reader.md.
