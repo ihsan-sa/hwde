@@ -80,7 +80,8 @@ CLI:
              [--name NAME] [--build-qty N] [--ws-name WS] [--boards N]
              [--no-price-lookup] [--easyeda-cache DIR] [--offline]
              [--out report.json]
-The model cache defaults to <parts.json dir>/easyeda; --offline (or
+The model cache is $HWDE_EASYEDA_CACHE, else <parts.json dir>/easyeda if it
+exists, else ~/.cache/hwde/easyeda; --offline (or
 HWDE_EASYEDA_OFFLINE=1) never fetches, so an uncached part uses the table.
 Exit 0 ok / 1 assembly violations (incomplete BOM, unplaced smt_placed part,
 declared-quantity mismatch) / 2 error.
@@ -803,7 +804,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-price-lookup", action="store_true",
                     help="skip the DigiKey/Mouser APIs even with keys set")
     ap.add_argument("--easyeda-cache", help="LCSC footprint model cache "
-                    "(default: <parts.json dir>/easyeda)")
+                    "(default: env.easyeda_cache)")
     ap.add_argument("--offline", action="store_true",
                     help="never fetch LCSC models; uncached parts use the table")
     ap.add_argument("--out", help="write JSON report here instead of stdout")

@@ -153,10 +153,13 @@ def cache_path(lcsc: str, cache_dir: Path) -> Path:
 
 
 def get(lcsc: str, cache_dir: Path | None = None, fetch: bool = True,
-        pace_s: float = 0.0, fetcher=None) -> Model | None:
+        pace_s: float = 0.0, fetcher=None,
+        errors: dict | None = None) -> Model | None:
     """The part's model from cache, else (fetch=True) from EasyEDA, cached.
     A part the API has no footprint for returns None and is not cached, so a
-    later run asks again."""
+    later run asks again. A fetch that RAISES (network, 403) still returns
+    None, but when `errors` is given it records `errors[lcsc] = "<why>"`, so a
+    caller can tell "could not ask" from "EasyEDA has nothing"."""
     lcsc = (lcsc or "").strip().upper()
     if not lcsc:
         return None
@@ -169,7 +172,9 @@ def get(lcsc: str, cache_dir: Path | None = None, fetch: bool = True,
         time.sleep(pace_s)
     try:
         raw = (fetcher or _fetch_raw)(lcsc)
-    except Exception:  # noqa: BLE001 - network/API trouble = no data
+    except Exception as exc:  # noqa: BLE001 - network/API trouble = no data
+        if errors is not None:
+            errors[lcsc] = f"{type(exc).__name__}: {exc}"
         return None
     if not raw.get("packageDetail"):
         return None

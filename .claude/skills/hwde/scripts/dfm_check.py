@@ -634,7 +634,8 @@ def check_placement(pcb: Path, cpl: Path, parts: Path | None,
         where = None
         if r["verdict"] in cpl_verify.FAIL_VERDICTS:
             kind = ("cpl_no_model" if r["verdict"] in
-                    ("no_model", "no_fit", "bottom_unverified")
+                    ("no_model", "no_fit", "bottom_unverified",
+                     "fetch_failed")
                     else "cpl_rotation")
             vios.append(checklib.violation(
                 CHECK, "error", where, None, None, [r["ref"]],

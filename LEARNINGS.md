@@ -6468,3 +6468,21 @@ SILK GOTCHA from the same pass: `add_text` at size 0.7 draws a `text_height` DRC
 board setup enforces a 0.8 mm silk minimum. `check_silk` does NOT catch it (it is lenient
 by design and never the oracle); `kicad-cli pcb drc` does. Size every scripted silk string
 at >= the board's own minimum and verify with kc drc.
+
+## 2026-10-04 [fab][cpl][easyeda2kicad] cpl_verify's default model cache was a board-local dir no board has, and a failed fetch read as no_model - twelve false pin-1 failures
+
+Re-running the fab step on PCB-0016-B from a host worktree, dfm_check failed all 12 parts
+with `cpl_no_model` although `~/.cache/hwde/easyeda` held every model. `default_cache`
+returned `<parts.json dir>/easyeda` whenever a parts.json was given, whether or not that dir
+existed, and `easyeda.get` swallowed the resulting fetch error into `None`, which
+`analyse` reports as `no_model`. Setting `HWDE_EASYEDA_CACHE` hid it.
+
+Now `env.easyeda_cache(board_dir)` resolves env var, then `<board_dir>/easyeda` only if it
+exists, then `~/.cache/hwde/easyeda`; a fetch that raises records its error and the row is
+`fetch_failed` (a failing verdict, kind `cpl_no_model`) with the error and cache dir in
+`why`. `no_model` now means only "EasyEDA answered and has nothing".
+
+Generalise: a default path that may not exist must be checked for existence before it
+shadows a fallback, and a catch-all `except` that returns "no data" must still hand the
+error to a caller that reports a verdict from it. A `no_model` from a run that fetched
+nothing is a cache or network fault until proven otherwise - never chase pin 1 from it.
