@@ -213,3 +213,41 @@ def test_manifest_rows_are_well_formed():
         assert len(b["commit"]) == 40 and b["pcb"].endswith(".kicad_pcb"), b["id"]
         if b.get("pair"):
             assert b["pair"]["with"] in ids and b["pair"]["role"] in ("before", "after"), b["id"]
+
+
+def test_run_copies_past_a_dangling_symlink(tmp_path, monkeypatch):
+    b = _board(commit="c" * 40, pcb="hw/x.kicad_pcb")
+    src = hc.checkout_dir(tmp_path, b) / "hw"
+    src.mkdir(parents=True)
+    (src / "x.kicad_pcb").write_text(PCB6)
+    (src / "x.kicad_dru").symlink_to(src / "missing.kicad_dru")
+    seen = []
+    monkeypatch.setattr(hc, "gate", lambda cmd, envv, timeout: seen.append(cmd) or {"exit": 0})
+    hc.run_board(tmp_path, b, {}, 10)
+    kicad = tmp_path / "runs" / "b1" / "kicad"
+    assert (kicad / "x.kicad_pcb").exists()
+    assert not (kicad / "x.kicad_dru").exists()
+    assert seen
+
+
+def test_fetch_keeps_a_spaced_path_when_a_second_board_widens_the_checkout(tmp_path, monkeypatch):
+    repo = tmp_path / "src"
+    for d in ("A B/x", "C D/y"):
+        (repo / d).mkdir(parents=True)
+        (repo / d / "b.kicad_pcb").write_text(PCB6)
+    run = lambda *a: hc.subprocess.run(["git", "-C", str(repo), *a], check=True,
+                                       capture_output=True)
+    run("init", "-q")
+    run("-c", "user.name=t", "-c", "user.email=t@t", "add", ".")
+    run("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "c")
+    run("config", "uploadpack.allowAnySHA1InWant", "true")
+    sha = hc.subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], check=True,
+                            capture_output=True, text=True).stdout.strip()
+    monkeypatch.setattr(hc, "slug", lambda url: "o/r")
+    cache = tmp_path / "cache"
+    first = _board(id="b1", url=repo.as_uri(), commit=sha, pcb="A B/x/b.kicad_pcb")
+    second = _board(id="b2", url=repo.as_uri(), commit=sha, pcb="C D/y/b.kicad_pcb")
+    assert hc.fetch_board(cache, first) == ""
+    assert hc.fetch_board(cache, second) == ""
+    assert (hc.checkout_dir(cache, first) / first["pcb"]).exists()
+    assert (hc.checkout_dir(cache, second) / second["pcb"]).exists()
