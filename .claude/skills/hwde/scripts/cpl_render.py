@@ -15,7 +15,10 @@ For every part in the CPL it draws, in board coordinates:
 A part is right when the red pin-1 dot sits on the cyan pad 1 (and the red K/+
 label on the board's). Parts go several to an image (--per-image, default 9),
 one titled crop each. A part with no model is drawn with the board only and a
-"NO LCSC MODEL" title, so the image pass sees it as unverifiable.
+"NO LCSC MODEL" title, so the image pass sees it as unverifiable. A part whose
+model fetch failed (an EasyEDA 403/429 or a network error) is a separate case:
+it is titled "FETCH FAILED", and the fix is to rerun, not to treat it as no
+model.
 
 The images feed the fab step's vision agent (agents/dfm.md), which writes
 cpl_visual.json; cpl_verify.merge_visual / dfm_check put that beside the
@@ -26,8 +29,11 @@ CLI:
                 [--parts parts.json] [--cache-dir DIR] [--offline]
                 [--per-image N] [--out index.json]
 Writes cpl_render_<n>.png and index.json ({"images": [{"file", "refs"}],
-"parts": {ref: {"lcsc", "cpl_rot", "polar", "has_model"}}}).
-Exit 0 / 2 error.
+"parts": {ref: {"lcsc", "cpl_rot", "polar", "has_model"[, "fetch_error"]}}}
+plus "fetch_failed" [refs], "rate_limited" and a rerun "note" when a fetch
+failed). "polar" is null for a part whose fetch failed, since it can't be judged
+without the model.
+Exit 0 / 1 fetch failed (index.json still written) / 2 error.
 """
 from __future__ import annotations
 
@@ -120,6 +126,7 @@ def render(pcb: Path, cpl: dict[str, dict], lcsc: dict[str, str],
                                    "has_model": model is not None}
             failed = model is None and bool(errors)
             if failed:
+                index["parts"][ref]["polar"] = None
                 index["parts"][ref]["fetch_error"] = next(iter(errors.values()))
                 index["fetch_failed"].append(ref)
             b = board_shapes(fp)

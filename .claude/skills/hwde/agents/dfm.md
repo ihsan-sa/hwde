@@ -57,8 +57,9 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
    "claude-sonnet-5-5", "parts": {"U3": {"pin1": "match", "polarity":
    "n/a", "note": ""}, ...}}`, one line for EVERY designator in index.json;
    a "NO LCSC MODEL" crop is "unclear"; a "FETCH FAILED" crop (script
-   exits 1, index.json note) is "unclear" too, and the fix
-   is to rerun cpl_render in a few minutes, not to treat it as no model. Do not edit its verdicts -
+   exits 1, index.json note) is "unclear" too, and the fix is to rerun
+   cpl_render in a few minutes, not to treat it as no model. Do not edit
+   its verdicts -
    dfm_check merges them in the next step.
 4. Gate: `scripts/gate.py --gate dfm kicad/<board>.kicad_pcb` - runs
    dfm_check on a scratch export: copper (trace/clearance/edge), drill
