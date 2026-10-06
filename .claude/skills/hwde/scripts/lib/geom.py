@@ -203,7 +203,10 @@ class Pad:
     layers: tuple[str, ...]  # copper layers occupied
     # Drill geometry (T6, P7A-4): (w, h) mm - circle drills store (d, d),
     # `(drill oval w h)` stores (w, h); None for SMD pads. drill_offset is
-    # the pad-local `(drill ... (offset x y))`, rotated with the pad.
+    # the pad-local `(drill ... (offset x y))`, rotated with the pad. KiCad
+    # keeps the HOLE at the pad's (at), `center`, and moves the COPPER by the
+    # offset (pcbnew PAD::GetOffset, checked in SWIG 2026-10-04), whatever
+    # the token's name suggests: poly is offset, drill_poly is not.
     drill: Optional[tuple[float, float]] = None
     drill_offset: tuple[float, float] = (0.0, 0.0)
     # KiCad's "Castellated pad" fabrication property, `(property
@@ -212,9 +215,20 @@ class Pad:
     castellated: bool = False
 
     @cached_property
+    def copper_center(self) -> tuple[float, float]:
+        """Centre of the pad's copper: `center` moved by the drill offset,
+        turned with the pad the same -angle way drill_poly's shape is."""
+        ox, oy = self.drill_offset
+        if not ox and not oy:
+            return self.center
+        o = affinity.rotate(Point(ox, oy), -self.angle, origin=(0, 0),
+                            use_radians=False)
+        return (self.center[0] + o.x, self.center[1] + o.y)
+
+    @cached_property
     def poly(self) -> Polygon:
         return _pad_polygon(self.shape, self.size[0], self.size[1],
-                            self.rratio, self.center, self.angle)
+                            self.rratio, self.copper_center, self.angle)
 
     @cached_property
     def drill_poly(self) -> Polygon:
@@ -239,7 +253,6 @@ class Pad:
             half = (h - w) / 2.0
             g = LineString([(0, -half), (0, half)]).buffer(
                 w / 2.0, quad_segs=_QUAD_SEGS)
-        g = affinity.translate(g, self.drill_offset[0], self.drill_offset[1])
         g = affinity.rotate(g, -self.angle, origin=(0, 0), use_radians=False)
         return affinity.translate(g, self.center[0], self.center[1])
 
@@ -528,6 +541,7 @@ class BoardGeom:
         self._pads: list[Pad] = []
         self._zones: list[Zone] = []
         self.rule_areas: list[dict] = []  # keepout areas: {name, layers, outline}
+        self.footprints: dict[str, dict] = {}  # ref -> {"lib", "value"}
         self._parse_tracks(root)
         self._parse_vias(root)
         self._parse_footprints(root)
@@ -654,12 +668,17 @@ class BoardGeom:
             fnums = _nums(at) if at is not None else [0, 0, 0]
             fx, fy = fnums[0], fnums[1]
             fangle = fnums[2] if len(fnums) > 2 else 0.0
-            ref = "?"
+            ref, value = "?", None
             for prop in _kids(fp, "property"):
                 pv = _strs(prop)
                 if len(pv) >= 2 and pv[0] == "Reference":
                     ref = pv[1]
-                    break
+                elif len(pv) >= 2 and pv[0] == "Value":
+                    value = pv[1]
+            lib = _strs(fp)[0] if _strs(fp) else ""
+            # ref -> lib id + Value field (check_current bounds a resistor
+            # branch's current from these); the last duplicate ref wins
+            self.footprints[ref] = {"lib": lib, "value": value}
             for pad in _kids(fp, "pad"):
                 self._add_pad(pad, fx, fy, fangle, ref)
 
@@ -732,6 +751,11 @@ class BoardGeom:
                     "name": _strs(name_node)[0] if name_node and _strs(name_node) else "",
                     "layers": declared,
                     "outline": Polygon(pts) if len(pts) >= 3 else Polygon(),
+                    # Keepout flags ({"footprints": "not_allowed", ...}); not
+                    # serialised. A rule area that only scopes a rule has all
+                    # of them "allowed".
+                    "flags": {_tok(k[0]): _tok(k[1]) for k in _kid(zone, "keepout")[1:]
+                              if _is_node(k) and len(k) > 1},
                 })
                 continue
             net = self._resolve_net(zone) or ""

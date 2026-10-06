@@ -157,27 +157,67 @@ def build_fr_cmd(java: Path, jar: Path, dsn: Path, ses: Path,
 
 
 def run_freerouting(java: Path, jar: Path, dsn: Path, ses: Path, *,
-                    rung: dict | None = None, timeout: int = 600,
+                    rung: dict | None = None, timeout: int = 3600,
+                    stall_s: int = 900, cmd: list[str] | None = None,
                     log_file: Path | None = None) -> dict:
-    """One Freerouting run. Returns parse_fr_log() facts + process info."""
-    cmd = build_fr_cmd(java, jar, dsn, ses, rung)
+    """One Freerouting run. Returns parse_fr_log() facts + process info.
+
+    `timeout` is the HARD wall-clock cap; `stall_s` kills a run that has
+    produced no output (and no growth of the .ses) for that long. A 4-layer
+    board takes ~5 min per pass, so a run that keeps logging passes is let be
+    until the hard cap; a silent wedged JVM ends after `stall_s`."""
+    import threading
+    import time
+    cmd = cmd or build_fr_cmd(java, jar, dsn, ses, rung)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, cwd=str(dsn.parent))
+    chunks: list[bytes] = []
+    last = [time.monotonic()]
+
+    def _pump():
+        for line in iter(proc.stdout.readline, b""):
+            chunks.append(line)
+            last[0] = time.monotonic()
+
+    t = threading.Thread(target=_pump, daemon=True)
+    t.start()
+    start = time.monotonic()
+    ses_size = -1
+    timed_out = False
+    kill_reason = None
     try:
-        cp = subprocess.run(cmd, capture_output=True, text=True,
-                            encoding="utf-8", errors="replace",
-                            timeout=timeout, cwd=str(dsn.parent))
-        out = (cp.stdout or "") + "\n" + (cp.stderr or "")
-        timed_out = False
-        rc = cp.returncode
-    except subprocess.TimeoutExpired as exc:
-        out = ((exc.stdout or b"").decode("utf-8", "replace")
-               if isinstance(exc.stdout, bytes) else (exc.stdout or ""))
-        timed_out = True
-        rc = 124
+        while proc.poll() is None:
+            time.sleep(min(0.2, max(0.01, stall_s / 10)))
+            now = time.monotonic()
+            try:
+                sz = ses.stat().st_size
+            except OSError:
+                sz = -1
+            if sz != ses_size:
+                ses_size = sz
+                last[0] = max(last[0], now)
+            if now - start > timeout:
+                kill_reason = "hard"
+            elif now - last[0] > stall_s:
+                kill_reason = "stall"
+            if kill_reason:
+                proc.kill()
+                timed_out = True
+                break
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+        proc.wait()
+        t.join(5)
+        proc.stdout.close()
+    out = b"".join(chunks).decode("utf-8", "replace")
+    rc = 124 if timed_out else proc.returncode
     if log_file is not None:
         log_file.write_text(out, encoding="utf-8")
     facts = parse_fr_log(out)
     facts.update({"rc": rc, "timed_out": timed_out,
-                  "ses_written": ses.is_file(), "cmd": cmd})
+                  "ses_written": ses.is_file(), "cmd": cmd,
+                  "kill_reason": kill_reason})
     return facts
 
 

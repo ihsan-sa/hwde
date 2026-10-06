@@ -307,8 +307,11 @@ def run(argv: list[str] | None = None):
     ap.add_argument("--power-layers", default="auto",
                     help='"auto" | none | comma list, e.g. "In1.Cu,In2.Cu"')
     ap.add_argument("--max-rungs", type=int, default=len(routelib.DEFAULT_LADDER))
-    ap.add_argument("--timeout-s", type=int, default=600,
-                    help="per-rung Freerouting process timeout")
+    ap.add_argument("--timeout-s", type=int, default=3600,
+                    help="per-rung Freerouting HARD wall-clock cap")
+    ap.add_argument("--stall-s", type=int, default=900,
+                    help="kill a rung with no output/.ses growth this long "
+                         "(a 4-layer pass takes ~5 min)")
     ap.add_argument("--work-dir", default=None)
     ap.add_argument("--out-report", default=None)
     ap.add_argument("--probe", action="store_true")
@@ -323,7 +326,7 @@ def run(argv: list[str] | None = None):
 
     if args.probe:
         facts = route_probe(pcb, passes=args.probe_passes,
-                            timeout_s=args.timeout_s,
+                            timeout_s=min(args.timeout_s, 600),
                             work_dir=Path(args.work_dir) if args.work_dir else None)
         payload = {"script": "route_auto", "status": "pass", "board": str(pcb),
                    "probe": True,
@@ -373,6 +376,7 @@ def run(argv: list[str] | None = None):
         ses = work / f"rung{i}.ses"
         facts = routelib.run_freerouting(
             java, jar, dsn, ses, rung=rung, timeout=args.timeout_s,
+            stall_s=args.stall_s,
             log_file=work / f"rung{i}.log")
         entry = {"rung": i, "options": rung,
                  "unrouted": facts.get("unrouted"),
@@ -380,6 +384,7 @@ def run(argv: list[str] | None = None):
                  "final_score": facts.get("final_score"),
                  "passes": len(facts.get("passes", [])),
                  "timed_out": facts.get("timed_out"),
+                 "kill_reason": facts.get("kill_reason"),
                  "ses_written": facts.get("ses_written")}
         rungs.append(entry)
         if facts.get("ses_written") and facts.get("unrouted") is not None:
@@ -440,7 +445,7 @@ def run(argv: list[str] | None = None):
         finish_facts = _krt_finish(cli, staged, work, drc,
                                    refill=has_zones,
                                    parity=sch.is_file(),
-                                   timeout_s=args.timeout_s)
+                                   timeout_s=min(args.timeout_s, 600))
         if finish_facts and finish_facts.get("kept"):
             drc = finish_facts.pop("drc")
     if not fr_ok and not (finish_facts and finish_facts.get("kept")):

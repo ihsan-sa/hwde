@@ -26,7 +26,11 @@ per LCSC number) and fits it onto the board footprint:
   no data   No LCSC number, no cached or fetchable model, fewer than two
             shared pad numbers, no turn that fits, or a bottom-side part
             (JLC's bottom convention is not modelled) is a FAILURE, never a
-            pass - `no_model`, `no_fit` or `bottom_unverified`.
+            pass - `no_model`, `no_fit` or `bottom_unverified`. A model
+            fetch that errored (network, HTTP status) is `fetch_failed`,
+            never `no_model`: it says nothing about the part or its pin 1.
+            A 403/429 is EasyEDA's rate limit: later parts are not fetched
+            (also `fetch_failed`) and the report's `rate_limited` says why.
   offset    The model's pad centre vs the board's, both placed, is reported
             (`offset_mm`); over OFFSET_WARN_MM it is a warning only.
 
@@ -41,8 +45,8 @@ CLI:
                 [--parts parts.json] [--cache-dir DIR] [--offline]
                 [--visual fab/cpl_visual.json] [--out report.json]
 LCSC numbers come from the board's footprint fields, overridden by parts.json.
-The cache defaults to <parts.json dir>/easyeda (else $HWDE_EASYEDA_CACHE or
-~/.cache/hwde/easyeda); --offline (or HWDE_EASYEDA_OFFLINE=1) never fetches.
+The cache is $HWDE_EASYEDA_CACHE, else <parts.json dir>/easyeda when that
+dir exists, else ~/.cache/hwde/easyeda (env.easyeda_cache); --offline (or HWDE_EASYEDA_OFFLINE=1) never fetches.
 Exit 0 every part verified / 1 a part is wrong or unverified / 2 error.
 """
 from __future__ import annotations
@@ -68,7 +72,7 @@ import easyeda  # noqa: E402
 OFFSET_WARN_MM = 0.5
 ROT_TOL_DEG = 1.0
 FAIL_VERDICTS = ("wrong_rotation", "wrong_polarity", "no_model", "no_fit",
-                 "bottom_unverified")
+                 "bottom_unverified", "fetch_failed")
 
 # ------------------------------------------------------------ board side
 
@@ -381,11 +385,9 @@ def offline() -> bool:
 
 
 def default_cache(parts_json: Path | None) -> Path:
-    if os.environ.get("HWDE_EASYEDA_CACHE"):
-        return Path(os.environ["HWDE_EASYEDA_CACHE"])
-    if parts_json is not None:
-        return Path(parts_json).parent / "easyeda"
-    return easyeda.DEFAULT_CACHE
+    import env
+    return env.easyeda_cache(
+        Path(parts_json).parent if parts_json is not None else None)
 
 
 def lcsc_map(pcb: Path, parts_json: Path | None) -> dict[str, str]:
@@ -408,9 +410,18 @@ def verify(pcb: Path, cpl: dict[str, dict], lcsc: dict[str, str],
             rows.append({"ref": ref, "verdict": "no_fit",
                          "why": "CPL designator is not on the board"})
             continue
-        model = easyeda.get(lcsc.get(ref, ""), cache_dir, fetch=fetch,
-                            pace_s=1.0)
-        rows.append(check_part(fp, model, cpl[ref]))
+        code = lcsc.get(ref, "")
+        errors: dict = {}
+        model = easyeda.get(code, cache_dir, fetch=fetch, pace_s=1.0,
+                            errors=errors)
+        row = check_part(fp, model, cpl[ref])
+        if row["verdict"] == "no_model" and errors:
+            row["verdict"] = "fetch_failed"
+            row["fetch_error"] = next(iter(errors.values()))
+            row["why"] = (f"could not fetch the LCSC model for {code} "
+                          f"({row['fetch_error']}); cache dir "
+                          f"{cache_dir} - this is not a pin-1 result")
+        rows.append(row)
     bad = [r for r in rows if r["verdict"] in FAIL_VERDICTS]
     return {"script": "cpl_verify", "board": Path(pcb).name,
             "status": "violations" if bad else "pass",
@@ -418,6 +429,10 @@ def verify(pcb: Path, cpl: dict[str, dict], lcsc: dict[str, str],
             "failed": [r["ref"] for r in bad],
             "offset_warnings": [r["ref"] for r in rows
                                 if r.get("offset_mm", 0) > OFFSET_WARN_MM],
+            "fetch_failed": [r["ref"] for r in rows
+                             if r["verdict"] == "fetch_failed"],
+            "rate_limited": easyeda.rate_limited(),
+            "cache_dir": str(cache_dir),
             "parts": rows}
 
 

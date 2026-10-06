@@ -41,9 +41,16 @@ KINDS = ("castellated_drill", "castellated_off_outline",
          "castellated_pad_extension", "castellated_to_other_edge",
          "castellated_to_corner", "castellated_board_size",
          "castellated_thickness", "castellated_unmarked")
-# A turn sharper than this between outline segments is a corner; arcs are
-# sampled finely enough that their steps stay well under it.
+# A turn sharper than this at one outline vertex is a sharp corner. geom
+# samples an Edge.Cuts arc into 16 chords, so a rounded corner never turns
+# this much at any one vertex: it is found as a stretch of small same-way
+# turns instead (_runs), adding up to CORNER_DEG or more within a radius of
+# CORNER_MAX_R_MM. A wider curve (a round board, a sweeping edge) stays a run.
 CORNER_DEG = 20.0
+CORNER_MAX_R_MM = 5.0
+_STRAIGHT_DEG = 0.5  # below this a vertex is straight (noding, float noise)
+# a rounded corner turning more than 150 deg has no useful virtual corner
+_HALF_ROUND_COS = math.cos(math.radians(150.0))
 _REF = re.compile(r'\(property\s+"Reference"\s+"([^"]*)"')
 _PROP = re.compile(r"\(property\s+pad_prop_castellated\s*\)")
 
@@ -94,27 +101,126 @@ def holes(bg) -> list[tuple[float, float, float]]:
     return [_hole(p) for p in pads(bg) if p.drill is not None]
 
 
-def _runs(face) -> list[LineString]:
-    """The outline split at its corners into straight (or smoothly curved)
-    runs, plus the corner points."""
-    pts = list(face.exterior.coords)[:-1]
+def _turns(pts) -> list[float]:
+    """Signed turn in degrees at each vertex of a closed ring (no repeat)."""
     n = len(pts)
-    corners = []
+    out = []
     for i in range(n):
         a, b, c = pts[i - 1], pts[i], pts[(i + 1) % n]
         h1 = math.atan2(b[1] - a[1], b[0] - a[0])
         h2 = math.atan2(c[1] - b[1], c[0] - b[0])
-        turn = abs((math.degrees(h2 - h1) + 180.0) % 360.0 - 180.0)
-        if turn > CORNER_DEG:
-            corners.append(i)
-    if not corners:
-        return [LineString(pts + [pts[0]])], []
+        out.append((math.degrees(h2 - h1) + 180.0) % 360.0 - 180.0)
+    return out
+
+
+def _corner_spans(pts) -> list[tuple[int, int]]:
+    """(first, last) vertex index of each corner, in ring order. A sharp
+    corner is one vertex (first == last). A rounded corner is the stretch of
+    vertices a sampled Edge.Cuts arc leaves: consecutive small turns the same
+    way, from the tangent point on one edge to the tangent point on the
+    next. last may be below first when the stretch wraps past vertex 0."""
+    n = len(pts)
+    turn = _turns(pts)
+
+    def kind(i):
+        a = abs(turn[i])
+        if a > CORNER_DEG:
+            return "sharp"
+        if a < _STRAIGHT_DEG:
+            return "straight"
+        return "+" if turn[i] > 0 else "-"
+
+    kinds = [kind(i) for i in range(n)]
+    smooth = {"+", "-"}
+
+    def joined(i):
+        """Vertex i and i+1 lie on one tight curve: both turn the same small
+        way and the chord between them is an arc sample's, not a straight
+        edge's (chord / turn is the radius it implies)."""
+        j = (i + 1) % n
+        if kinds[i] not in smooth or kinds[j] != kinds[i]:
+            return False
+        step = math.radians(max(abs(turn[i]), abs(turn[j])))
+        return math.dist(pts[i], pts[j]) <= CORNER_MAX_R_MM * step
+
+    link = [joined(i) for i in range(n)]
+    if all(link):
+        return []  # one curve all the way round: a round board has no corner
+    # start the scan where a stretch begins so none wraps past the start
+    s0 = next(i for i in range(n) if not link[i - 1])
+    spans = []
+    k = 0
+    while k < n:
+        i = (s0 + k) % n
+        if kinds[i] == "sharp":
+            spans.append((i, i))
+            k += 1
+            continue
+        if kinds[i] not in smooth:
+            k += 1
+            continue
+        m = k
+        while m + 1 < n and link[(s0 + m) % n]:
+            m += 1
+        idx = [(s0 + q) % n for q in range(k, m + 1)]
+        total = abs(sum(turn[q] for q in idx))
+        length = sum(math.dist(pts[idx[q]], pts[idx[q + 1]])
+                     for q in range(len(idx) - 1))
+        if total >= CORNER_DEG and (
+                length / math.radians(total) <= CORNER_MAX_R_MM):
+            spans.append((idx[0], idx[-1]))
+        k = m + 1
+    return sorted(spans)
+
+
+def _virtual_corner(pts, i: int, j: int):
+    """Where the edges meeting a rounded corner (vertices i..j) would cross
+    if the corner were sharp: the corner a drawing dimensions, and the one
+    JLC's hole-to-corner rule is measured from. None when the two edges are
+    near parallel (a half-round end has no such point)."""
+    n = len(pts)
+    (ax, ay), (bx, by) = pts[i - 1], pts[i]
+    (cx, cy), (dx, dy) = pts[j], pts[(j + 1) % n]
+    ux, uy, vx, vy = bx - ax, by - ay, dx - cx, dy - cy
+    den = ux * vy - uy * vx
+    if (ux * vx + uy * vy) < _HALF_ROUND_COS * math.hypot(ux, uy) * math.hypot(
+            vx, vy):
+        return None
+    s = ((cx - bx) * vy - (cy - by) * vx) / den
+    return Point(bx + s * ux, by + s * uy)
+
+
+def _runs(face) -> tuple[list[LineString], list, list[LineString]]:
+    """The outline split at its corners: the edge runs between corners, the
+    corner points, and the arcs of the rounded corners as cut.
+
+    A sharp corner's point is its vertex. A rounded corner's point is the
+    virtual sharp corner its two edges meet at, so rounding a corner never
+    moves where the 3 mm is counted from; a half-round end with no such
+    point counts from its arc. The arcs are edges too: a hole cut into one,
+    or within 1 mm of one, breaks the other-edge rule like any edge."""
+    pts = list(face.exterior.coords)[:-1]
+    n = len(pts)
+    spans = _corner_spans(pts)
+    if not spans:
+        return [LineString(pts + [pts[0]])], [], []
+
+    def path(i, j):
+        return [pts[m % n] for m in range(i, (j if j >= i else j + n) + 1)]
+
+    corners, arcs = [], []
+    for i, j in spans:
+        if i == j:
+            corners.append(Point(pts[i]))
+            continue
+        arcs.append(LineString(path(i, j)))
+        corners.append(_virtual_corner(pts, i, j) or arcs[-1])
     runs = []
-    for k, i in enumerate(corners):
-        j = corners[(k + 1) % len(corners)]
-        seg = [pts[m % n] for m in range(i, (j if j > i else j + n) + 1)]
-        runs.append(LineString(seg))
-    return runs, [Point(pts[i]) for i in corners]
+    for k, (_, j) in enumerate(spans):
+        nxt = spans[(k + 1) % len(spans)][0]
+        # one corner only: its run goes all the way round back to it
+        runs.append(LineString(path(j, nxt + n if len(spans) == 1 else nxt)))
+    return runs, corners, arcs
 
 
 def _chord(poly, c: Point, d: tuple[float, float]) -> float:
@@ -165,7 +271,7 @@ def check(bg, rules: dict, thickness_mm: float | None = None) -> tuple[list, dic
                 "closed outline")
         return vios, facts
 
-    runs, corners = _runs(face)
+    runs, corners, arcs = _runs(face)
     lo_d = float(rules["min_drill_mm"])
     lo_ring = float(rules["min_annular_ring_mm"])
     lo_ext = float(rules["min_pad_extension_mm"])
@@ -191,8 +297,11 @@ def check(bg, rules: dict, thickness_mm: float | None = None) -> tuple[list, dic
                 distance_mm=checklib.rnd(off))
             continue
         on_edge.append(p)
-        run = min(runs, key=lambda r: r.distance(c))
-        others = [r for r in runs if r is not run]
+        # the edge the hole sits on: a run, or a rounded corner's arc when the
+        # hole is cut into the corner itself; every other run and corner arc
+        # is an "other edge"
+        run = min(runs + arcs, key=lambda r: r.distance(c))
+        others = [r for r in runs + arcs if r is not run]
         if others:
             de = min(r.distance(c) for r in others) - d / 2.0
             if de < lo_edge - 1e-6:

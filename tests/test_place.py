@@ -298,6 +298,30 @@ def test_outline_and_edge_rules(tmp_path_factory):
     assert not any(r == ("H1",) for _k, r in kinds)   # board_only exempt
 
 
+def _rule_area(name: str, footprints: str) -> str:
+    return (f'  (zone (net 0) (net_name "") (layers "F.Cu") (name "{name}")\n'
+            f'    (keepout (tracks allowed) (vias allowed) (pads allowed)\n'
+            f'      (copperpour allowed) (footprints {footprints}))\n'
+            f'    (polygon (pts (xy 8 8) (xy 12 8) (xy 12 12) (xy 8 12))))\n')
+
+
+def test_rule_area_scoping_only_is_not_a_keepout(tmp_path_factory):
+    # a rule area that only scopes a track-width rule (all flags allowed)
+    # must not flag parts inside it
+    body = _fp("A1", 10, 10) + _rule_area("sig_branch_X", "allowed")
+    m = _model(tmp_path_factory, "ra_allowed", body)
+    v = placelib.legality_violations(m, {})
+    assert not any(x["kind"] == "keepout_violation" for x in v)
+
+
+def test_rule_area_forbidding_footprints_is_a_keepout(tmp_path_factory):
+    body = _fp("A1", 10, 10) + _rule_area("no_parts", "not_allowed")
+    m = _model(tmp_path_factory, "ra_forbid", body)
+    v = placelib.legality_violations(m, {})
+    assert any(x["kind"] == "keepout_violation" and x["refs"] == ["A1"]
+               for x in v)
+
+
 def test_keepout_and_missing_courtyard(tmp_path_factory):
     body = _fp("A1", 10, 10) + _fp("N1", 25, 10, courtyard=None,
                                    pads=_pad("1", 0, 0, "X"))

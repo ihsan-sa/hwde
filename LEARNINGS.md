@@ -6469,6 +6469,93 @@ board setup enforces a 0.8 mm silk minimum. `check_silk` does NOT catch it (it i
 by design and never the oracle); `kicad-cli pcb drc` does. Size every scripted silk string
 at >= the board's own minimum and verify with kc drc.
 
+## 2026-10-04 [fab][cpl][easyeda2kicad] cpl_verify's default model cache was a board-local dir no board has, and a failed fetch read as no_model - twelve false pin-1 failures
+
+Re-running the fab step on PCB-0016-B from a host worktree, dfm_check failed all 12 parts
+with `cpl_no_model` although `~/.cache/hwde/easyeda` held every model. `default_cache`
+returned `<parts.json dir>/easyeda` whenever a parts.json was given, whether or not that dir
+existed, and `easyeda.get` swallowed the resulting fetch error into `None`, which
+`analyse` reports as `no_model`. Setting `HWDE_EASYEDA_CACHE` hid it.
+
+Now `env.easyeda_cache(board_dir)` resolves env var, then `<board_dir>/easyeda` only if it
+exists, then `~/.cache/hwde/easyeda`; a fetch that raises records its error and the row is
+`fetch_failed` (a failing verdict, kind `cpl_no_model`) with the error and cache dir in
+`why`. `no_model` now means only "EasyEDA answered and has nothing".
+
+Generalise: a default path that may not exist must be checked for existence before it
+shadows a fallback, and a catch-all `except` that returns "no data" must still hand the
+error to a caller that reports a verdict from it. A `no_model` from a run that fetched
+nothing is a cache or network fault until proven otherwise - never chase pin 1 from it.
+
+## 2026-10-05 [easyeda2kicad][cpl][dfm] An EasyEDA 403 is a rate limit for the whole run: latch it, say it once, never call it no_model
+
+Re-running bom_cpl + dfm_check over 16 boards, the EasyEDA component endpoint 403'd after ~20
+fetches (per-IP, shared by everything on the box). `bom_cpl` still swallowed the error, so the
+part's rotation source read `none`/`table`, and dfm failed most parts as `cpl_no_model`; nothing
+said the network had refused, and the batch was void before anyone traced it.
+
+Now `easyeda.get` classifies a failed fetch (`HTTP 403/429 ... (rate limited)`, `HTTP <n>`,
+`network error: ...`; 404 and an empty answer stay "no model"), and the first 403/429 latches
+module state (`easyeda.rate_limited()`): one stderr line, and every later uncached part in the
+process is skipped as `not fetched: ...` instead of asked again - dfm runs bom_cpl and cpl_verify
+in one process, so the second never re-hammers. bom_cpl marks those parts `source: fetch_failed`
+(+ `fetch_error`) with one `cpl_model_fetch_failed` violation; dfm emits one `cpl_fetch_failed`
+error for the run. Remedy is a rerun once the limit clears; the cache keeps what did arrive.
+
+Gotcha: the latch is process state, so a test that mocks a 403 leaves every later test's fetch
+skipped. conftest's autouse `_easyeda_offline` fixture resets it (`easyeda.reset_rate_limit()`).
+
+## 2026-10-04 [connector][verify][mate-pins] Pair mated pins by where they touch, not by pin number
+check_mate_pins.py pairs a stacked mate's pads by overlaying the two pad patterns on their centres:
+KiCad stores a B.Cu footprint as placed, so pads that touch sit at the same top-view offset. Pin
+numbers do not survive the trip - on the lumina carrier and par (PCB-0004-A J4 male on F.Cu, PCB-0005-A
+J4 female on B.Cu) carrier pin 19 meets par pin 20, and a pin-number compare reports a clean pair as
+crossed. Gotchas: JLC footprints name headers `HDR-TH_<n>P-P2.54-V-M` (male) and `-V-F` (female), not
+PinHeader/PinSocket, so a KiCad-only family regex misses every shipped board; two boards name one
+signal differently (ADC0_CONN vs ADC0), which a pair's `net_map` covers rather than a fuzzy match;
+and PCB-0011-A J2/J3 (same 5-pin male header, +3V3 vs /IO3 on pin 3) still carries the MECH-06 fault.
+
+## 2026-10-04 [verify][scorecard][bom] A check's "input missing" warning is a scorecard false positive on every bare golden board
+score_checks counts every finding a check emits on the golden corpus as a false positive, whatever
+its severity, and the golden boards are bare board dirs with no fab files or parts.json. So
+check_bom_sync's first cut, which warned when BOM/CPL or parts.json were absent, scored 6 FPs and no
+real hit. A skipped leg now goes in the report's `skipped` list, not in `violations`. Also,
+`exclude_from_pos_files` alone does not mean hand_install: fiducials, printed NFC coils and pogo
+pads carry it with `exclude_from_bom`/`board_only`, and bom_cpl classes those board_feature.
+
+## 2026-10-06 [route_auto][freerouting][timeout] Freerouting 2.2.4 takes ~5 min per pass on a 4-layer board, so a fixed per-rung timeout kills a healthy run
+PCB-0023-A (4-layer): route_auto's old 600 s wall-clock timeout per rung fired after two passes and the run was lost; a subagent then ran the passes by hand (~$1, 30 min). `routelib.run_freerouting` now streams the process output and kills on STALL (`--stall-s`, default 900 s with no output and no .ses growth) or at a HARD cap (`--timeout-s`, default 3600 s). A run that keeps logging passes is never killed by the stall rule; the report carries `kill_reason` (stall|hard).
+
+## 2026-10-04 [check_current][gates] A neck or via transition that feeds only a resistor carries that resistor's current, not the rail's - and a plated pad's centre is never in its fill
+PCB-0021-A (lipo-boost) failed +SYS at 2 A on a 0.8 mm pour leg and its single-via
+transitions, but the leg fed nothing but R6 (470R 0603), which can pass at most
+sqrt(0.25 W / 470 R) = 23 mA. check_current now re-judges a still-failing neck or via
+cluster at the most its far side can draw: only a two-pad chip resistor with a parseable
+Value and an imperial size in its footprint id is bounded; any other part, and copper that
+reaches no pad at all, keeps the full budget. Passing re-judgements are listed in
+facts["leaf_branches"]. On the bench this cleared 17 one-via pull-up/divider taps on
+lumina-carrier and one on pd-trigger.
+
+Two join gaps turned up on the way. A through-hole pad's centre sits in no fill, because
+the fill stops at its thermal relief, so a centre test never let a THT pad (USB-C shield
+tabs, J4 on PCB-0021-A) join F.Cu to B.Cu; it now joins the fill touching its copper
+within 1 mm. A fill can also end on a via's ring short of its centre (the +SYS B.Cu strip
+stops at y 56.8, the via sits at 56.85), so vias join by their copper disk. Together these
+cleared pd-trigger's 1.62 mm F.Cu GND advisory neck beside J1, whose shield barrels carry
+the current to B.Cu.
+
+## 2026-10-06 [check_current][gates][stitch] A stitch via is not a layer transition - count a pour-to-pour hop per pour pair
+check_current clustered every via of a net (<= 2 mm) and asked each cluster for ceil(I / via_amps)
+vias. On PCB-0023-A (GaN inverter) /SW was one pour on all four layers, stitched by ~120 vias on a
+grid wider than 2 mm, so 112 one-via clusters each asked for 24 vias at 12 A: 112 errors, and 112
+of the board's 135 pending waivers. A stitch via (no track touches it, every pad it touches sits in
+the pour on that layer, fill on >= 2 layers) now leaves the cluster rule. Each pair of fill pieces
+on two layers is judged once instead, counting every via and plated hole that joins them, and a
+pair is skipped when one piece is a dead end (no pad or track, all its barrels in the group). Do
+not drop stitches outright: the same board's VBUS crosses F.Cu -> B.Cu -> F.Cu through two 3-via
+stitch groups, and those are real findings. A track hop or a via under a pad with no pour around
+it still counts per cluster.
+
 ## 2026-10-04 [place_edit][silk][swig][check_silk] Refdes hide/shrink/re-layer is now `set_text` - the stroke floor is 0.15, not check_silk's 0.12
 Dense 0603 rows (PCB-0020-A) left 8 refdes `silk_misattributed` with no legal spot within 1 mm
 of their own pads, and place_edit had no op to hide or shrink one. It now carries
