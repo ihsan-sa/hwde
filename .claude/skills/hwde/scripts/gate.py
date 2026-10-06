@@ -67,6 +67,11 @@ U5 additions (codex H9 - durable waivers):
    WORKSPACE reports/ dir (releaselib.waivers_for_input; LEARNINGS
    2026-08-08 - a waiver file in the obvious place was silently ignored).
 
+2026-10-05: the place gate applies <workspace>/reports/place-waivers.json by
+default too (WAIVER_SIDECARS). Before, only the verify tool looked for a
+sidecar, so PCB-0018-A's 14 documented place waivers were never read and its
+place gate failed every one of them.
+
 U16 additions (the bb-buck defect - running a gate and recording it were two
 steps and only the first was enforced, so a board reached P9 with six passing
 gate reports on disk and `gates: {}` in state.json):
@@ -112,6 +117,14 @@ EXPECTED_SCRIPT = {"erc": "kc", "drc": "kc", "verify": "verify_all",
                    "sim": "sim_run"}
 
 MAX_REPORT_AGE_H = 24.0
+
+# The waiver sidecar each gate tool applies when no --waivers is given,
+# resolved workspace-first by releaselib.waivers_for_input. invalidation.yaml
+# hashes the same file into that gate's inputs (`waivers`, `place_waivers`),
+# so freshness binds the file the gate actually applied. Tools absent here
+# take waivers only through --waivers.
+WAIVER_SIDECARS = {"verify": "verify-waivers.json",
+                   "place": "place-waivers.json"}
 
 
 def validate_report(gate_name: str, gate: dict, report,
@@ -605,8 +618,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", help="write gate result JSON here instead of stdout")
     ap.add_argument("--commit", metavar="MSG",
                     help="git commit the workspace on gate pass with this message")
-    ap.add_argument("--waivers", help="waiver sidecar JSON (default: <input "
-                    "dir>/reports/verify-waivers.json for the verify gate)")
+    ap.add_argument("--waivers", help="waiver sidecar JSON (default: the "
+                    "workspace reports/verify-waivers.json for verify gates, "
+                    "reports/place-waivers.json for the place gate)")
     ap.add_argument("--workspace", help="workspace whose state.json records "
                     "this result (default: the first parent of the input "
                     "holding a state.json; U16)")
@@ -653,11 +667,12 @@ def main(argv: list[str] | None = None) -> int:
         waivers = None
         if args.waivers:
             waivers = load_waivers(Path(args.waivers))
-        elif gate.get("tool") == "verify" and eff_input is not None:
-            # U5: shared resolution with attest - the input's own reports/
-            # dir first (T6 default), then the board workspace reports/ dir
-            # (the silently-ignored-waivers footgun, LEARNINGS 2026-08-08)
-            sidecar = releaselib.waivers_for_input(Path(eff_input))
+        elif gate.get("tool") in WAIVER_SIDECARS and eff_input is not None:
+            # U5: shared resolution with attest - the board workspace
+            # reports/ dir first, then the input's own reports/ dir (the
+            # silently-ignored-waivers footgun, LEARNINGS 2026-08-08)
+            sidecar = releaselib.waivers_for_input(
+                Path(eff_input), WAIVER_SIDECARS[gate["tool"]])
             if sidecar is not None:
                 waivers = load_waivers(sidecar)
 
