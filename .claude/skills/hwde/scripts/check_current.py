@@ -14,7 +14,11 @@ Per net in constraints.json["power"] with a budgeted current:
 Stitch vias (PCB-0023-A /SW: one pour on four layers, ~120 stitch vias, 112
 one-via "transitions" each asked for 24 vias at 12 A). A via is a STITCH
 when no same-net track touches it, every same-net pad it touches sits in the
-net's fill on that layer, and it touches fill on >= 2 layers. A cluster made
+net's fill on that layer, the via itself touches fill on every layer where it
+touches such a pad, and it touches fill on >= 2 layers. The third test is for
+a via inside a thermal-relief pad: the pad reaches its pour through spokes,
+but the via's own copper on that layer is the pad, so the pad's current
+crosses that one via (PCB-0023-A D201). A cluster made
 only of stitches is not judged as a transition. Instead every fill piece
 pair on two layers is judged once, counting every via and plated
 through-hole joining those two pieces (the per-path count of a pour-to-pour
@@ -384,8 +388,10 @@ def via_pieces(bg: geom.BoardGeom, net: str, pieces: dict) -> list:
     """Per via of `net` (bg.vias_of order): (is_stitch, frozenset of the
     (layer, piece index) fill pieces its copper touches). A via is a stitch
     when no same-net track touches it, every same-net pad it touches sits in
-    the net's fill on that layer, and it touches fill on >= 2 layers - it
-    only joins pour to pour (module docstring, stitch vias)."""
+    the net's fill on that layer, the via touches fill on each layer where
+    it touches such a pad (not a via in a thermal-relief pad), and it
+    touches fill on >= 2 layers - it only joins pour to pour (module
+    docstring, stitch vias)."""
     out = []
     for v in bg.vias_of(net):
         touched = frozenset(
@@ -393,12 +399,13 @@ def via_pieces(bg: geom.BoardGeom, net: str, pieces: dict) -> list:
             if p.intersects(v.poly))
         tracked = any(t.poly.intersects(v.poly)
                       for l in v.layers for t in bg.tracks_of(net, l))
+        on_fill = {l for l, _ in touched}
         loose_pad = any(
             p.poly.intersects(v.poly)
-            and not any(q.intersects(p.poly) for q in pieces.get(l, ()))
+            and (l not in on_fill
+                 or not any(q.intersects(p.poly) for q in pieces.get(l, ())))
             for l in v.layers for p in bg.pads_of(net, l))
-        stitch = (not tracked and not loose_pad
-                  and len({l for l, _ in touched}) >= 2)
+        stitch = not tracked and not loose_pad and len(on_fill) >= 2
         out.append((stitch, touched))
     return out
 
@@ -625,8 +632,8 @@ def _copper_graph(bg: geom.BoardGeom, net: str, walls: dict | None = None,
         return [int(i) for i in tree.query(item.poly, predicate="intersects")
                 if nodes[int(i)][0] in item.layers]
     links = [v for v in bg.vias_of(net) if id(v) not in skip]
-    links += [p for p in bg.pads_of(net)
-              if p.drill is not None and len(p.layers) > 1]
+    links += [p for p in bg.pads_of(net) if id(p) not in skip
+              and p.drill is not None and len(p.layers) > 1]
     for it in links:
         hole = Point(getattr(it, "at", None) or it.center)
         if walls and any(l in walls and walls[l].contains(hole)
@@ -718,12 +725,12 @@ def neck_leaf_bound(bg: geom.BoardGeom, net: str, layer: str, fill,
 
 
 def cluster_leaf_bound(bg: geom.BoardGeom, net: str, group: list):
-    """(amps, refs) a via cluster can carry at most, when cutting its vias
-    leaves one side with unbounded loads and every other side reaching it
-    through exactly one of the cluster's vias; else None (module
-    docstring, leaf branches)."""
+    """(amps, refs) a via cluster or stitch bundle (vias and plated pads)
+    can carry at most, when cutting its barrels leaves one side with
+    unbounded loads and every other side reaching it through exactly one
+    of them; else None (module docstring, leaf branches)."""
     nodes, find, hits = _copper_graph(bg, net,
-                                      skip=frozenset(id(v) for v in group))
+                                      skip=frozenset(id(b) for b in group))
     ends = [{find(i) for i in hits(v)} for v in group]
     touched = set().union(*ends)
     refs_of = {c: set() for c in touched}
@@ -951,7 +958,7 @@ def check_net(bg: geom.BoardGeom, entry: dict):
         amps = budget if ov is None else ov
         need = max(1, math.ceil(amps / via_amps))
         leaf = cluster_leaf_bound(bg, net, group) \
-            if len(group) < need and not bundle else None
+            if len(group) < need else None
         if leaf is not None and leaf[0] < amps:
             # every side but one feeds only bounded loads: their sum
             amps = leaf[0]
