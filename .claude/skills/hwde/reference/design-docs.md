@@ -3,11 +3,15 @@
 `report_gen.py` assembles state.json + digests + reports + renders
 into the design doc; without pdflatex it degrades to .tex-only (check_env
 warns). Only the FINAL design doc is filed in the document register: run that
-one with `--file`. It files into the board's own folder of the library, the
-project `Boards/<PN> <name>` when the boards register gives the part number,
-else `Boards/Unregistered`; `DOC_PROJECT=<project>` overrides that (never the
-bare group `Boards`, which cc-docs refuses). Its title leads with the part
-number (`PCB-0022-B nfc-card design doc`), so a new revision never files over
+one with `--file`. When the library already holds this board's document of
+that kind (found read-only in cc-docs' register: its source under the board's
+`reports/<kind>/`, or its last revision describing the part number), the
+filing reuses that document's project and exact title, so a rebuild from any
+worktree is its next revision and never a new number. Else it files into the
+project `Boards` (002), or `DOC_PROJECT=<project>`; a per-board
+`Boards/<PN> <name>` is refused by cc-docs while 002 is a project named
+`Boards` outside any group. A new title leads with the part number
+(`PCB-0022-B nfc-card design doc`), so a new board revision never files over
 the last one's documents. Never export DOC_PROJECT for the
 session, or every run files. An unchanged rebuild
 files nothing. Every filed document also carries the board's fab set as

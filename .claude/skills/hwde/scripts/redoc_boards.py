@@ -5,9 +5,10 @@ A one-shot for the boards repo: after its workspaces carry their part numbers,
 each design doc is rebuilt from the workspace as it stands (report_gen.py -
 state.json, reports, renders; no LLM step runs) so the PDF prints the PN
 under its title and in every footer, and is filed with
-`cc-docs file --describes <PN>` into the board's own library folder, the
-project "Boards/<PN> <name>" (report_gen.board_project; DOC_PROJECT set in
-the environment overrides it). cc-docs files a new revision only when the
+`cc-docs file --describes <PN>` as the next revision of the board's filed
+document (report_gen.doc_target: its project and title), else into the
+project "Boards" (report_gen.board_project; DOC_PROJECT set in the
+environment overrides it). cc-docs files a new revision only when the
 content changed, so a second run files nothing (the board reports
 `unchanged`). The skip is keyed on the library too, so a rehearsal with
 --library leaves the live run free to file. Each filing also puts the
@@ -81,12 +82,17 @@ def run(args) -> tuple[dict, str | None]:
         elif args.dry_run:
             st = report_gen.load_state(ws)
             subdir, suffix = report_gen.KINDS[args.kind][:2]
-            row["cc_docs"] = report_gen.cc_docs_args(
+            cmd = report_gen.cc_docs_args(
                 ws, st["board"], ws / "reports" / subdir
                 / f"{st['board']}-{suffix}.pdf", kind=args.kind)
+            row["cc_docs"] = cmd
+            row["project"] = cmd[cmd.index("--project") + 1]
             row["attach"] = [n for _, n in report_gen.fab_attachments(ws)]
         else:
             try:
+                board = (report_gen.read_json(ws, "state.json") or {}).get("board")
+                if board:   # where the filing goes: the filed document's project
+                    row["project"] = report_gen.doc_target(ws, board, args.kind)[0]
                 payload, code = report_gen.run(str(ws), file_doc=True,
                                                kind=args.kind)
                 row.update(status=payload["status"], pdf=payload["pdf"],

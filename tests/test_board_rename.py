@@ -153,10 +153,9 @@ def test_redoc_dry_run_names_the_part_number(tmp_path, capsys):
     args = row["cc_docs"]
     assert row["pn"] == "PCB-0001-A"
     assert args[args.index("--describes") + 1] == "PCB-0001-A"
-    # the board's own library folder (owner, #ai-ee: "Each PCB should get a
-    # folder in the library with the name of the PCB")
-    assert row["project"] == "Boards/PCB-0001-A blinky2"
-    assert args[args.index("--project") + 1] == "Boards/PCB-0001-A blinky2"
+    # nothing filed yet: the Boards project (002)
+    assert row["project"] == "Boards"
+    assert args[args.index("--project") + 1] == "Boards"
     code = redoc_boards.main(["nope", "--root", str(root), "--dry-run"])
     out = json.loads(capsys.readouterr().out)
     assert code == 1 and out["boards"][0]["error"] == "no workspace"
@@ -250,12 +249,24 @@ def test_redoc_keeps_report_when_one_board_fails(tmp_path, capsys, monkeypatch):
                  "filed": "002-0001 x.pdf", "unchanged": False,
                  "attached": []}, 0)
     monkeypatch.setattr(redoc_boards.report_gen, "run", flaky)
+    # blinky2's design doc is already filed (a scratch register): its row
+    # names that document's project, the one the filing will reuse
+    lib = tmp_path / "docs-lib"
+    lib.mkdir()
+    (lib / "register.json").write_text(json.dumps({"documents": {
+        "002-0017": {"number": "002-0017", "project": "002",
+                     "title": "blinky2 design document",
+                     "source": "/old/blinky2/reports/design_doc/b.tex",
+                     "revisions": [{"rev": "A"}]}}}), encoding="utf-8")
+    monkeypatch.setenv("CC_DOCS_ROOT", str(lib))
     code = redoc_boards.main(["--root", str(root)])
     out = json.loads(capsys.readouterr().out)
     by_board = {b["board"]: b for b in out["boards"]}
     assert by_board["PCB-0002-A"]["error"] == "RuntimeError: kicad-cli timed out"
     assert "status" not in by_board["PCB-0002-A"]
+    assert by_board["PCB-0002-A"]["project"] == "Boards"   # no board in its state
     assert by_board["PCB-0001-A"]["status"] == "pass"
+    assert by_board["PCB-0001-A"]["project"] == "002"
     assert code == 1
 
 

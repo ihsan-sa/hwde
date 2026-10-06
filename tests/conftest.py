@@ -40,9 +40,15 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(autouse=True)
-def _never_file_documents(monkeypatch):
+def _never_file_documents(monkeypatch, tmp_path_factory):
     for k in [k for k in os.environ if k.startswith("DOC_")]:
         monkeypatch.delenv(k)
+    # report_gen looks the board's filed documents up in cc-docs' register:
+    # never the owner's, so a test reads an empty one unless it writes its own
+    monkeypatch.delenv("CC_DOCS_ROOT", raising=False)
+    if "report_gen" in sys.modules:
+        monkeypatch.setattr(sys.modules["report_gen"], "DOCS_HOME",
+                            tmp_path_factory.mktemp("no-docs-register"))
     dirs = [d for d in os.environ.get("PATH", "").split(os.pathsep)
             if d and not os.access(os.path.join(d, "cc-docs"), os.X_OK)]
     monkeypatch.setenv("PATH", os.pathsep.join(dirs))
