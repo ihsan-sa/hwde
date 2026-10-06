@@ -180,14 +180,20 @@ def parts_changes(ws: Path, commits: list[dict]) -> list[dict]:
     return out
 
 
+SNAP_PREFIXES = ("pre-", "post-", "pre_", "post_")
+
+
 def snapshots(ws: Path, commits: list[dict]) -> list[str]:
     """Workspace-relative routing/pre-*.kicad_pcb and post-*.kicad_pcb, in
-    the order the run made them (first commit that holds each; the rest by name)."""
+    the order the run made them (first commit that holds each; the rest by name).
+    pre_*/post_* are accepted too: the routing step of PCB-0023-A saved those,
+    and report_gen must render workspaces that already exist. Canonical is the
+    hyphen."""
     d = ws / "routing"
     if not d.is_dir():
         return []
     names = sorted(f"routing/{p.name}" for p in d.iterdir() if p.is_file()
-                   and p.suffix == ".kicad_pcb" and p.name.startswith(("pre-", "post-")))
+                   and p.suffix == ".kicad_pcb" and p.name.startswith(SNAP_PREFIXES))
     first = {}
     for i, c in enumerate(commits):
         for f in c["files"]:

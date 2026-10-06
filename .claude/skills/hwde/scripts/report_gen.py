@@ -70,7 +70,7 @@ its part number (lib/boardreg.py resolves the last two).
 `highlight` (a few pages: the brief's opening, the board's facts, top and
 bottom renders, the BOM and the schematic's first page, the decisions that
 changed the board, how often the run went back, gates and cost) or `full`
-(the design doc plus a render of every routing/pre-* and post-* snapshot,
+(the design doc plus a render of every routing/pre-* and post-* (or pre_*, post_*) snapshot,
 every state.json decision with its why, the run's history - phase timeline,
 backtracks, part choices and the kicad/parts.json changes git shows, commits
 by hour, COMPARISON.md and the placement and routing notes - and a figure of
@@ -1230,7 +1230,7 @@ class DocBuilder:
         self.record("hl_checks", "included", ", ".join(used))
 
     def sec_renders(self) -> None:
-        """Full doc: one top render per routing snapshot the run left (routing/pre-*, post-*), in the order it made them."""
+        """Full doc: one top render per routing snapshot the run left (routing/pre-*, post-*; pre_*, post_* too), in the order it made them."""
         self.start("Routing Renders")
         used = []
         self.body.append(latex_escape(
@@ -1259,6 +1259,10 @@ class DocBuilder:
                 used.append(png)
         if not snaps:
             self.body.append(latex_escape(" The run kept no routing snapshots."))
+            if self.passed("P7"):
+                self.warn("no routing snapshots found (routing/pre-*.kicad_pcb, "
+                          "post-*.kicad_pcb) for a routed board - the full doc has "
+                          "no routing renders")
         self.record("renders", "included" if used else "missing",
                     ", ".join(used[:4]) or "routing/ snapshots")
 

@@ -76,7 +76,9 @@ rules as routing constraints; cite the record id when you apply one.
   and made two nets unroutable on F.Cu).
 - Freerouting's own success signal is untrusted - only kicad-cli DRC gates.
 - Snapshot before plane_repair/route_cleanup (ask via state.py snapshot or
-  confirm the orchestrator did).
+  confirm the orchestrator did). Board copies kept for the design doc go in
+  `routing/` named `pre-<step>.kicad_pcb` / `post-<step>.kicad_pcb` (hyphen:
+  report_gen renders them; `pre_`/`post_` is only read for old workspaces).
 
 ## Output contract (end your final message with exactly this block)
 FILES: <board + route/ artifacts>
