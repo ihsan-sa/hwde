@@ -6522,3 +6522,6 @@ check_bom_sync's first cut, which warned when BOM/CPL or parts.json were absent,
 real hit. A skipped leg now goes in the report's `skipped` list, not in `violations`. Also,
 `exclude_from_pos_files` alone does not mean hand_install: fiducials, printed NFC coils and pogo
 pads carry it with `exclude_from_bom`/`board_only`, and bom_cpl classes those board_feature.
+
+## 2026-10-06 [route_auto][freerouting][timeout] Freerouting 2.2.4 takes ~5 min per pass on a 4-layer board, so a fixed per-rung timeout kills a healthy run
+PCB-0023-A (4-layer): route_auto's old 600 s wall-clock timeout per rung fired after two passes and the run was lost; a subagent then ran the passes by hand (~$1, 30 min). `routelib.run_freerouting` now streams the process output and kills on STALL (`--stall-s`, default 900 s with no output and no .ses growth) or at a HARD cap (`--timeout-s`, default 3600 s). A run that keeps logging passes is never killed by the stall rule; the report carries `kill_reason` (stall|hard).

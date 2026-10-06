@@ -419,3 +419,47 @@ def test_dsn_apply_net_rules_moves_a_floored_net_to_its_own_class():
     assert "(width 200)" in default and "GND" in default
     # nothing floored -> the DSN comes back unchanged
     assert routelib.dsn_apply_net_rules(_DSN_CLASS, {}, {}) == (_DSN_CLASS, [])
+
+
+# --- run_freerouting: stall-based timeout (2026-10-06) -----------------------
+
+def _fake_fr(tmp_path, body):
+    script = tmp_path / "fake_fr.py"
+    script.write_text(body, encoding="utf-8")
+    dsn = tmp_path / "b.dsn"
+    dsn.write_text("x", encoding="utf-8")
+    return [sys.executable, "-u", str(script)], dsn, tmp_path / "b.ses"
+
+
+def test_run_freerouting_slow_but_progressing_is_not_killed(tmp_path):
+    # 4 passes 0.5 s apart = 2 s total, longer than the 1 s stall budget but
+    # never silent for that long: must finish, not be killed.
+    cmd, dsn, ses = _fake_fr(tmp_path, (
+        "import time\n"
+        "for i in range(1, 5):\n"
+        "    time.sleep(0.5)\n"
+        "    print(f'INFO  [X] Auto-router pass #{i} on board b was completed"
+        " in 0.5 seconds with the score of {900+i}.0 ({5-i} unrouted)')\n"
+        "print('INFO  [X] Auto-router session completed: started with 5 "
+        "unrouted nets, completed in 2 seconds, final score: 905.0')\n"
+        "open('b.ses', 'w').write('ses')\n"))
+    facts = routelib.run_freerouting(None, None, dsn, ses, cmd=cmd,
+                                     timeout=30, stall_s=1)
+    assert not facts["timed_out"] and facts["rc"] == 0
+    assert facts["ses_written"] and len(facts["passes"]) == 4
+
+
+def test_run_freerouting_silent_hang_is_killed_on_stall(tmp_path):
+    cmd, dsn, ses = _fake_fr(tmp_path, (
+        "import time\nprint('start')\ntime.sleep(60)\n"))
+    facts = routelib.run_freerouting(None, None, dsn, ses, cmd=cmd,
+                                     timeout=30, stall_s=1)
+    assert facts["timed_out"] and facts["kill_reason"] == "stall"
+
+
+def test_run_freerouting_hard_cap_ends_a_chatty_run(tmp_path):
+    cmd, dsn, ses = _fake_fr(tmp_path, (
+        "import time\nwhile True:\n    print('tick')\n    time.sleep(0.2)\n"))
+    facts = routelib.run_freerouting(None, None, dsn, ses, cmd=cmd,
+                                     timeout=2, stall_s=60)
+    assert facts["timed_out"] and facts["kill_reason"] == "hard"
