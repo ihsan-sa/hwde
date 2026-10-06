@@ -11,6 +11,25 @@ Per net in constraints.json["power"] with a budgeted current:
  - layer transitions: net vias are clustered (<= 2 mm) and each cluster needs
    ceil(I / via_amps) vias (default 0.5 A per via, per spec).
 
+Stitch vias (PCB-0023-A /SW: one pour on four layers, ~120 stitch vias, 112
+one-via "transitions" each asked for 24 vias at 12 A). A via is a STITCH
+when no same-net track touches it, every same-net pad it touches is in the
+net's pour on that layer (the fill covers >= PAD_IN_POUR_FRAC of the pad's
+area), the via itself touches fill on every layer where it touches such a
+pad, and it touches fill on >= 2 layers. A thermal-relief pad is not in the
+pour: it reaches the pour only through spokes, so its current crosses the
+via, even when part of the via's ring straddles the relief gap into the
+fill (PCB-0023-A D201). A cluster made
+only of stitches is not judged as a transition. Instead every fill piece
+pair on two layers is judged once, counting every via and plated
+through-hole joining those two pieces (the per-path count of a pour-to-pour
+hop, same ceil(I / via_amps) threshold, override at the group centroid,
+extras stitch=true). A pair is skipped when one piece is a dead end - no pad
+or track touches it and every barrel on it joins the other piece - because
+then it only parallels the other pour and no load current crosses into it
+and back out. A cluster with any via a track or a loose pad feeds keeps the
+per-cluster rule, so a track that changes layers is judged as before.
+
 Pad-exit necks (PCB-0019-A SW_L1/SW_L2: 0.30 mm off a TPS63001's 0.24 mm
 pads at 0.5 mm pitch, where a 0.5 mm track breaks clearance to the next pin,
 so no layout clears the finding). A run of undersized same-net, same-layer
@@ -179,6 +198,7 @@ PLANE_HINT_SINGLE_VIA_FRAC = 0.8  # plane_fed_candidate hint threshold
 PAD_EXIT_MAX_MM = 1.0          # longest accepted pad-exit neck (docstring)
 TOUCH_MM = 1e-3                # end-to-end / end-on-pad contact tolerance
 THT_JOIN_MM = 1.0              # plated pad joins fill this far out (relief)
+PAD_IN_POUR_FRAC = 0.9         # fill covers this much of a pad "in the pour"
 
 
 def width_1oz_10c(current_a: float) -> float:
@@ -355,6 +375,99 @@ def _pieces(fill, radius: float) -> list:
     return [] if eroded.is_empty else list(getattr(eroded, "geoms", [eroded]))
 
 
+def fill_pieces(bg: geom.BoardGeom, net: str) -> dict[str, list]:
+    """{layer: [polygon, ...]} - the net's merged zone fill on each layer,
+    split into its connected pieces (abutting zones merge into one)."""
+    out = {}
+    for layer in bg.layers_with_zone(net):
+        fill = bg.zone_fill(net, layer)
+        if not fill.is_empty:
+            out[layer] = list(getattr(fill, "geoms", [fill]))
+    return out
+
+
+def via_pieces(bg: geom.BoardGeom, net: str, pieces: dict) -> list:
+    """Per via of `net` (bg.vias_of order): (is_stitch, frozenset of the
+    (layer, piece index) fill pieces its copper touches). A via is a stitch
+    when no same-net track touches it, every same-net pad it touches is in
+    the net's pour on that layer (fill covers >= PAD_IN_POUR_FRAC of it, so
+    not a thermal-relief pad), the via touches fill on each layer where it
+    touches such a pad, and it touches fill on >= 2 layers - it only joins
+    pour to pour (module docstring, stitch vias)."""
+    fill = {l: unary_union(ps) for l, ps in pieces.items()}
+
+    def in_pour(p, l) -> bool:
+        f = fill.get(l)
+        return f is not None and p.poly.area > 0 and \
+            f.intersection(p.poly).area >= PAD_IN_POUR_FRAC * p.poly.area
+
+    out = []
+    for v in bg.vias_of(net):
+        touched = frozenset(
+            (l, i) for l in v.layers for i, p in enumerate(pieces.get(l, ()))
+            if p.intersects(v.poly))
+        tracked = any(t.poly.intersects(v.poly)
+                      for l in v.layers for t in bg.tracks_of(net, l))
+        on_fill = {l for l, _ in touched}
+        loose_pad = any(
+            p.poly.intersects(v.poly)
+            and (l not in on_fill or not in_pour(p, l))
+            for l in v.layers for p in bg.pads_of(net, l))
+        stitch = not tracked and not loose_pad and len(on_fill) >= 2
+        out.append((stitch, touched))
+    return out
+
+
+def pth_pieces(bg: geom.BoardGeom, net: str, pieces: dict) -> list:
+    """(pad, frozenset of touched fill pieces) per plated multi-layer pad
+    of `net`: its barrel joins pours like a via does."""
+    return [(p, frozenset(
+        (l, i) for l in p.layers for i, q in enumerate(pieces.get(l, ()))
+        if q.intersects(p.poly)))
+        for p in bg.pads_of(net) if p.drill is not None and len(p.layers) > 1]
+
+
+def anchored_pieces(bg: geom.BoardGeom, net: str, pieces: dict) -> set:
+    """Fill pieces that a same-net pad or track touches on their layer:
+    the only places load current can enter or leave a pour."""
+    out = set()
+    for l, polys in pieces.items():
+        cop = [p.poly for p in bg.pads_of(net, l)] + \
+            [t.poly for t in bg.tracks_of(net, l)]
+        out |= {(l, i) for i, q in enumerate(polys)
+                if any(q.intersects(c) for c in cop)}
+    return out
+
+
+def stitch_bundles(links: list, judged: set, anchored: set) -> list[list]:
+    """Groups of barrels (vias, then plated pads; `links` holds (via or
+    pad, touched pieces) for each) that join the same two fill pieces on
+    different layers - the path a pour-to-pour current takes. Returned as
+    lists of those vias and pads, once per distinct group (one through-via set joining 3+
+    layers is one group), and only when a member is in `judged` (stitch
+    vias left out of the cluster rule). A pair is skipped when one of its
+    pieces is a dead end: no pad or track touches it and every barrel on it
+    is in the group, so no load current can cross into it and back out."""
+    pairs: dict[frozenset, list[int]] = {}
+    on_piece: dict[tuple, set[int]] = {}
+    for i, (_, touched) in enumerate(links):
+        for a in touched:
+            on_piece.setdefault(a, set()).add(i)
+            for b in touched:
+                if a < b and a[0] != b[0]:
+                    pairs.setdefault(frozenset((a, b)), []).append(i)
+    seen, out = set(), []
+    for pair, members in pairs.items():
+        key = frozenset(members)
+        if key in seen or not key & judged:
+            continue
+        if any(pc not in anchored and on_piece[pc] <= key for pc in pair):
+            continue
+        seen.add(key)
+        out.append([links[i][0] for i in members])
+    return out
+
+
 def _neck_graph(bg: geom.BoardGeom, net: str, layer: str, fill,
                 others: dict | None):
     """(attachment vias, components) for one fill; components(radius)
@@ -527,8 +640,8 @@ def _copper_graph(bg: geom.BoardGeom, net: str, walls: dict | None = None,
         return [int(i) for i in tree.query(item.poly, predicate="intersects")
                 if nodes[int(i)][0] in item.layers]
     links = [v for v in bg.vias_of(net) if id(v) not in skip]
-    links += [p for p in bg.pads_of(net)
-              if p.drill is not None and len(p.layers) > 1]
+    links += [p for p in bg.pads_of(net) if id(p) not in skip
+              and p.drill is not None and len(p.layers) > 1]
     for it in links:
         hole = Point(getattr(it, "at", None) or it.center)
         if walls and any(l in walls and walls[l].contains(hole)
@@ -620,12 +733,12 @@ def neck_leaf_bound(bg: geom.BoardGeom, net: str, layer: str, fill,
 
 
 def cluster_leaf_bound(bg: geom.BoardGeom, net: str, group: list):
-    """(amps, refs) a via cluster can carry at most, when cutting its vias
-    leaves one side with unbounded loads and every other side reaching it
-    through exactly one of the cluster's vias; else None (module
-    docstring, leaf branches)."""
+    """(amps, refs) a via cluster or stitch bundle (vias and plated pads)
+    can carry at most, when cutting its barrels leaves one side with
+    unbounded loads and every other side reaching it through exactly one
+    of them; else None (module docstring, leaf branches)."""
     nodes, find, hits = _copper_graph(bg, net,
-                                      skip=frozenset(id(v) for v in group))
+                                      skip=frozenset(id(b) for b in group))
     ends = [{find(i) for i in hits(v)} for v in group]
     touched = set().union(*ends)
     refs_of = {c: set() for c in touched}
@@ -825,11 +938,30 @@ def check_net(bg: geom.BoardGeom, entry: dict):
                     kind="pour_neckdown", neck_mm=checklib.rnd(width),
                     required_mm=checklib.rnd(req), current_a=amps, **extras))
 
-    # ---- transition via count (per-cluster override via centroid)
-    clusters = cluster_vias(bg.vias_of(net))
+    # ---- transition via count (per-cluster override via centroid);
+    # all-stitch clusters are judged per pour pair instead (docstring)
+    vias = bg.vias_of(net)
+    pieces = fill_pieces(bg, net) if vias else {}
+    links = via_pieces(bg, net, pieces)
+    stitch_ids = {id(v) for v, (s, _) in zip(vias, links) if s}
+    clusters = cluster_vias(vias)
+    judged = []                          # (vias / plated pads, stitch bundle?)
+    pooled: set[int] = set()             # via indices left to the pair rule
+    index = {id(v): i for i, v in enumerate(vias)}
     for group in clusters:
-        cx = sum(v.at[0] for v in group) / len(group)
-        cy = sum(v.at[1] for v in group) / len(group)
+        if all(id(v) in stitch_ids for v in group):
+            pooled |= {index[id(v)] for v in group}
+        else:
+            judged.append((group, False))
+    if pooled:
+        barrels = [(v, t) for v, (_, t) in zip(vias, links)] + \
+            pth_pieces(bg, net, pieces)
+        judged += [(g, True) for g in stitch_bundles(
+            barrels, pooled, anchored_pieces(bg, net, pieces))]
+    for group, bundle in judged:
+        at = [getattr(b, "at", None) or b.center for b in group]
+        cx = sum(x for x, _ in at) / len(at)
+        cy = sum(y for _, y in at) / len(at)
         ov = region_current(entry, (cx, cy))
         amps = budget if ov is None else ov
         need = max(1, math.ceil(amps / via_amps))
@@ -848,10 +980,17 @@ def check_net(bg: geom.BoardGeom, entry: dict):
             leaf = None
         if len(group) < need:
             advisory = plane_fed and ov is None
-            msg = (f"{net} layer transition at ({cx:.2f}, {cy:.2f}) has "
-                   f"{len(group)} via(s); {amps:.2f} A needs {need} "
-                   f"(>= 1 via per {via_amps} A)")
-            extras = {}
+            if bundle:
+                msg = (f"{net} pour-to-pour transition near ({cx:.2f}, "
+                       f"{cy:.2f}) has {len(group)} via(s) or plated "
+                       f"hole(s) joining the same two pours; {amps:.2f} A "
+                       f"needs {need} "
+                       f"(>= 1 via per {via_amps} A)")
+            else:
+                msg = (f"{net} layer transition at ({cx:.2f}, {cy:.2f}) has "
+                       f"{len(group)} via(s); {amps:.2f} A needs {need} "
+                       f"(>= 1 via per {via_amps} A)")
+            extras = {"stitch": True} if bundle else {}
             if leaf is not None:
                 msg += (f"; leaf branch: {', '.join(leaf[1])} draw at most "
                         f"{amps:.3f} A")
@@ -872,6 +1011,9 @@ def check_net(bg: geom.BoardGeom, entry: dict):
              "min_track_mm_by_layer": {l: checklib.rnd(w)
                                        for l, w in min_seen.items()},
              "via_clusters": len(clusters)}
+    if stitch_ids:
+        facts["stitch_vias"] = len(stitch_ids)
+        facts["stitch_bundles"] = sum(1 for _, b in judged if b)
     if undersized or pour_taps:
         facts["bridge_labeled"] = True
     if pour_taps:

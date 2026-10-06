@@ -1,9 +1,9 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
-# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02; row 355 2026-10-04; row 356 2026-10-04; rows 357-417 U22 2026-10-04; row 418 2026-10-04; row 419 2026-10-05; row 422 2026-10-06; row 423 2026-10-06)
+# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02; row 355 2026-10-04; row 356 2026-10-04; rows 357-417 U22 2026-10-04; row 418 2026-10-04; row 419 2026-10-05; row 422 2026-10-06; row 423 2026-10-06; row 424 2026-10-06)
 
-One row per `LEARNINGS.md` entry (423 of them; the last starts at
-line 6529), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (424 of them; the last starts at
+line 6547), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -35,17 +35,17 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-10-04 (rows 357-417 added, U22; row 418 2026-10-04; row 419 2026-10-05; row 420 2026-10-05; row 421 2026-10-04; row 422 2026-10-06; row 423 2026-10-06), all 423 rows
+Recomputed from the table on 2026-10-04 (rows 357-417 added, U22; row 418 2026-10-04; row 419 2026-10-05; row 420 2026-10-05; row 421 2026-10-04; row 422 2026-10-06; row 423 2026-10-06; row 424 2026-10-06), all 424 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
 | L0 | 182 | 25 |
 | L1 | 23 | 26 |
-| L2 | 73 | 152 |
+| L2 | 74 | 153 |
 | L3 | 145 | 220 |
 
-184 entries want to climb at least one level. Status: **done 191**,
+184 entries want to climb at least one level. Status: **done 192**,
 **open 205**, **n/a 11**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
@@ -542,3 +542,4 @@ the row's Now level and status in the same commit as the code.
 | 421 | 6518 | A check's "input missing" warning is a scorecard false positive on every bare golden board | [verify][scorecard][bom] | L2 | L2 | scripts/check_bom_sync.py | done | A skipped leg goes in the report's `skipped` list, not in `violations`, so bare golden boards score no false positive. |
 | 422 | 6526 | Freerouting takes ~5 min per pass on a 4-layer board; a fixed per-rung | [route_auto][freerouting][timeout] | L3 | L3 | scripts/lib/routelib.py | done | run_freerouting kills only on a stall (no output and no .ses growth for --stall-s, 900 s) or at the --timeout-s hard cap (3600 s), and records kill_reason per rung; tests/test_route_auto.py pins slow-but-alive, silent hang, .ses growth, hard cap and interrupt. |
 | 423 | 6529 | A neck or via transition that feeds only a resistor carries that resis | [check_current][gates] | L2 | L2 | scripts/check_current.py | done | check_current re-judges a failing neck or via cluster at the summed sqrt(P/R) of the chip resistors past it (facts leaf_branches); THT pads and via disks join fills. Tests: tests/test_t2_current.py. |
+| 424 | 6547 | A stitch via is not a layer transition - count a pour-to-pour hop per pour pair | [check_current][gates][stitch] | L2 | L2 | scripts/check_current.py | done | check_current judges an all-stitch via cluster per fill-piece pair (every via and plated hole joining the two pours, dead-end pieces skipped) instead of per cluster; tests/test_t2_current.py pins the four-layer stitch array, the track hop beside it and the pour-to-pour hop. |
