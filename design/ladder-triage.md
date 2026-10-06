@@ -35,17 +35,17 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-10-04 (rows 357-417 added, U22; row 418 2026-10-04; row 419 2026-10-05; row 420 2026-10-05), all 420 rows
+Recomputed from the table on 2026-10-04 (rows 357-417 added, U22; row 418 2026-10-04; row 419 2026-10-05; row 420 2026-10-05; row 421 2026-10-04), all 421 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
 | L0 | 182 | 25 |
 | L1 | 23 | 26 |
-| L2 | 71 | 150 |
+| L2 | 72 | 151 |
 | L3 | 144 | 219 |
 
-184 entries want to climb at least one level. Status: **done 188**,
+184 entries want to climb at least one level. Status: **done 189**,
 **open 205**, **n/a 11**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
@@ -539,3 +539,4 @@ the row's Now level and status in the same commit as the code.
 | 418 | 6472 | cpl_verify's default model cache was a board-local dir no board has; a failed fetch read as no_model | [fab][cpl][easyeda2kicad] | L3 | L3 | scripts/lib/env.py | done | `env.easyeda_cache` resolves HWDE_EASYEDA_CACHE, then the board's easyeda/ if it exists, then ~/.cache/hwde/easyeda; a raised fetch becomes the failing verdict `fetch_failed` (with the error), never `no_model`; tests/test_cpl_verify.py pins both. |
 | 419 | 6490 | An EasyEDA 403 is a rate limit for the whole run: latch it, say it onc | [easyeda2kicad][cpl][dfm] | L3 | L3 | scripts/lib/easyeda.py | done | `easyeda.get` classifies a failed fetch (HTTP status / network) and latches the first 403/429 for the process (`rate_limited()`), skipping later fetches; bom_cpl marks those parts `source: fetch_failed` with one `cpl_model_fetch_failed` violation, dfm one `cpl_fetch_failed` error; tests/test_cpl_verify.py pins all three. |
 | 420 | 6508 | Pair mated pins by where they touch, not by pin number | [connector][verify][mate-pins] | L2 | L2 | scripts/check_mate_pins.py | done | check_mate_pins pairs a mate's pads by overlaying the two pad patterns, so a mirrored or crossed pin is an error whatever the pin numbers say; its tests and the MECH-06 seeded fault pin it. |
+| 421 | 6518 | A check's "input missing" warning is a scorecard false positive on every bare golden board | [verify][scorecard][bom] | L2 | L2 | scripts/check_bom_sync.py | done | A skipped leg goes in the report's `skipped` list, not in `violations`, so bare golden boards score no false positive. |

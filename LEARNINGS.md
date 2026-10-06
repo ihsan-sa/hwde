@@ -6514,3 +6514,11 @@ crossed. Gotchas: JLC footprints name headers `HDR-TH_<n>P-P2.54-V-M` (male) and
 PinHeader/PinSocket, so a KiCad-only family regex misses every shipped board; two boards name one
 signal differently (ADC0_CONN vs ADC0), which a pair's `net_map` covers rather than a fuzzy match;
 and PCB-0011-A J2/J3 (same 5-pin male header, +3V3 vs /IO3 on pin 3) still carries the MECH-06 fault.
+
+## 2026-10-04 [verify][scorecard][bom] A check's "input missing" warning is a scorecard false positive on every bare golden board
+score_checks counts every finding a check emits on the golden corpus as a false positive, whatever
+its severity, and the golden boards are bare board dirs with no fab files or parts.json. So
+check_bom_sync's first cut, which warned when BOM/CPL or parts.json were absent, scored 6 FPs and no
+real hit. A skipped leg now goes in the report's `skipped` list, not in `violations`. Also,
+`exclude_from_pos_files` alone does not mean hand_install: fiducials, printed NFC coils and pogo
+pads carry it with `exclude_from_bom`/`board_only`, and bom_cpl classes those board_feature.
