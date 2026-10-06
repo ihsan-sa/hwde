@@ -7,15 +7,19 @@ Four contracts are pinned here:
   2. A ruling is real: promoted means an artifact that EXISTS was written, and
      both promotion and decline carry a kind plus a reason. The queue is the
      record, so a resolution that cannot be read back is not a resolution.
-  3. A root promotion moves the entry AND its triage row together - the two
-     files the suite checks against each other are never hand-copied.
+  3. A root promotion writes the entry AND its triage row together, as one
+     new learnings.d/ file - and two branches that each add a lesson merge
+     cleanly either way round, with no count or row list to hand-edit.
   4. rf-de-20m's 66-entry backlog is processed end to end (the U6 acceptance):
      every entry promoted or explicitly declined, and the queue lints clean.
 """
 from __future__ import annotations
 
 import json
+import os
+import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -208,17 +212,19 @@ def test_validate_is_clean_on_a_freshly_compiled_queue(tmp_path, capsys):
 
 
 # ---------------------------------------------------------------------------
-# 3. root promotion moves the entry and its triage row together
+# 3. root promotion writes one lesson file, carrying its triage row
 # ---------------------------------------------------------------------------
 @pytest.fixture()
 def root_pair(tmp_path):
-    """Copies of the two files a root promotion writes, so the test never
-    appends to the repo's own LEARNINGS.md."""
+    """Copies of the archive and its register plus an empty learnings.d/, so
+    the test never writes into the repo's own root learnings."""
     root = tmp_path / "LEARNINGS.md"
     tri = tmp_path / "ladder-triage.md"
     shutil.copy2(ROOT / "LEARNINGS.md", root)
     shutil.copy2(ROOT / "design" / "ladder-triage.md", tri)
-    return root, tri
+    lessons = tmp_path / "learnings.d"
+    lessons.mkdir()
+    return root, tri, lessons
 
 
 def _triage_rows(path: Path) -> list[list[str]]:
@@ -232,57 +238,183 @@ def _triage_rows(path: Path) -> list[list[str]]:
     return rows
 
 
-def test_root_promotion_appends_the_entry_and_a_matching_row(tmp_path,
-                                                             root_pair, capsys):
-    root, tri = root_pair
+def test_root_promotion_writes_one_lesson_file_with_its_row(tmp_path,
+                                                            root_pair, capsys):
+    root, tri, lessons = root_pair
     ws = _ws(tmp_path, ENTRY_A)
     _run(["compile", "--workspace", str(ws)], capsys)
     eid = "2026-08-14-locking-an-anchor-orphans-its-group"
-    before = len(_triage_rows(tri))
+    archive, register = root.read_bytes(), tri.read_bytes()
 
     moved = learnlib.promote_to_root(
         ws, eid, {"now": "L0", "target": "L2",
                   "owner": "scripts/lib/placelib.py", "status": "open",
                   "note": "build_clusters drops the group"},
-        root=root, triage_file=tri)
+        root=root, triage_file=tri, lessons_dir=lessons)
 
-    text = root.read_text(encoding="utf-8")
-    assert "Locking an anchor orphans its group" in text
+    path = lessons / f"{eid}.md"
+    assert moved["file"] == f"learnings.d/{eid}.md" and path.is_file()
+    text = path.read_text(encoding="utf-8")
+    assert text.startswith("## 2026-08-14 [P6][placement] Locking an anchor")
     assert f"Promoted from {ws.as_posix()}/LEARNINGS.md" in text
     assert "scripts/place_seed.py reported 4 clusters" in text  # body verbatim
-
-    rows = _triage_rows(tri)
-    assert len(rows) == before + 1
-    last = rows[-1]
-    assert int(last[0]) == moved["n"] == len(rows)
-    # the row's line number must be where the entry actually starts
-    entries = learnlib._root_entries(text)
-    assert int(last[1]) == entries[moved["n"] - 1][0] == moved["line"]
-    assert last[4] == "L0" and last[5] == "L2"
-    assert last[6] == "scripts/lib/placelib.py" and last[7] == "open"
+    lesson, problems = learnlib.parse_lesson(path)
+    assert problems == []
+    assert lesson["triage"] == {"now": "L0", "target": "L2",
+                                "owner": "scripts/lib/placelib.py",
+                                "status": "open",
+                                "note": "build_clusters drops the group"}
+    # the archive and its register are frozen: the promotion touched neither
+    assert root.read_bytes() == archive and tri.read_bytes() == register
 
 
 def test_root_promotion_refuses_a_duplicate_and_a_bad_row(tmp_path, root_pair,
                                                           capsys):
-    root, tri = root_pair
+    root, tri, lessons = root_pair
     ws = _ws(tmp_path, ENTRY_A)
     _run(["compile", "--workspace", str(ws)], capsys)
     eid = "2026-08-14-locking-an-anchor-orphans-its-group"
     good = {"now": "L0", "target": "L2", "owner": "scripts/lib/placelib.py",
             "status": "open", "note": ""}
-    learnlib.promote_to_root(ws, eid, good, root=root, triage_file=tri)
+    learnlib.promote_to_root(ws, eid, good, root=root, triage_file=tri,
+                             lessons_dir=lessons)
 
-    with pytest.raises(ValueError, match="already carries"):
-        learnlib.promote_to_root(ws, eid, good, root=root, triage_file=tri)
+    with pytest.raises(ValueError, match="already carry"):
+        learnlib.promote_to_root(ws, eid, good, root=root, triage_file=tri,
+                                 lessons_dir=lessons)
+    other = tmp_path / "other.d"
     with pytest.raises(ValueError, match="does not exist"):
         learnlib.promote_to_root(ws, eid, {**good, "owner": "scripts/nope.py"},
-                                 root=tmp_path / "other.md", triage_file=tri)
+                                 root=root, triage_file=tri, lessons_dir=other)
     with pytest.raises(ValueError, match="levels"):
         learnlib.promote_to_root(ws, eid, {**good, "target": "L9"},
-                                 root=tmp_path / "other.md", triage_file=tri)
+                                 root=root, triage_file=tri, lessons_dir=other)
     with pytest.raises(ValueError, match="triage.status"):
         learnlib.promote_to_root(ws, eid, {**good, "status": ""},
-                                 root=tmp_path / "other.md", triage_file=tri)
+                                 root=root, triage_file=tri, lessons_dir=other)
+    assert not other.exists()                 # a refusal writes nothing
+    assert len(learnlib.lesson_files(lessons)) == 1
+
+
+def test_parse_lesson_names_what_is_wrong(tmp_path):
+    """The kept case and each suppressed one, on their own files."""
+    d = tmp_path / "learnings.d"
+    d.mkdir()
+    head = "## 2026-10-06 [fab][dfm] A tented via is still bare\n"
+    row = "Triage: now L0 | target L2 | owner scripts/dfm.py | status open"
+    stem = "2026-10-06-a-tented-via-is-still-bare"
+    cases = {
+        f"{stem}.md": (f"{head}body\n\n{row}\n", None),
+        "2026-10-06-wrong-name.md": (f"{head}body\n\n{row}\n", "name it"),
+        f"{stem}-2.md": (f"{head}body\n", "last line"),
+        f"{stem}-3.md": (
+            f"{head}body\n\n{row.replace('status open', 'status done')}\n",
+            "not at target"),
+        f"{stem}-4.md": (
+            f"{head}## 2026-10-06 [fab] Another\n\n{row}\n", "headings"),
+        "notes.md": ("# just notes\n", "first line"),
+    }
+    for name, (text, _) in cases.items():
+        (d / name).write_text(text, encoding="utf-8", newline="\n")
+    (d / "README.md").write_text("# not a lesson\n", encoding="utf-8")
+    assert "README.md" not in [p.name for p in learnlib.lesson_files(d)]
+    for name, (_, expected) in cases.items():
+        lesson, problems = learnlib.parse_lesson(d / name)
+        if expected is None:
+            assert problems == []
+            assert lesson["triage"]["owner"] == "scripts/dfm.py"
+            assert lesson["body"] == "body"       # the row is not body text
+        else:
+            assert any(expected in p for p in problems), (name, problems)
+
+
+def _git(repo: Path, *args: str, check: bool = True):
+    env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull,
+           "GIT_CONFIG_NOSYSTEM": "1", "GIT_AUTHOR_NAME": "t",
+           "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+           "GIT_COMMITTER_EMAIL": "t@t"}
+    return subprocess.run(["git", "-C", str(repo), *args], env=env,
+                          capture_output=True, text=True, check=check)
+
+
+def _two_lesson_branches(tmp_path: Path, capsys) -> Path:
+    """A repo whose main holds the real archive, register and learnings.d/,
+    and branches a and b off it, each adding one lesson the way the promotion
+    pass does."""
+    repo = tmp_path / "repo"
+    (repo / "design").mkdir(parents=True)
+    shutil.copy2(ROOT / "LEARNINGS.md", repo / "LEARNINGS.md")
+    shutil.copy2(ROOT / "design" / "ladder-triage.md",
+                 repo / "design" / "ladder-triage.md")
+    shutil.copytree(ROOT / "learnings.d", repo / "learnings.d")
+    _git(repo, "init", "-q", "-b", "main")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "base")
+    for branch, entry in (("a", ENTRY_A), ("b", ENTRY_B)):
+        _git(repo, "checkout", "-q", "-b", branch, "main")
+        ws = _ws(tmp_path / branch, entry)
+        _run(["compile", "--workspace", str(ws)], capsys)
+        eid = learnlib.load_queue(ws)["entries"][0]["entry"]
+        learnlib.promote_to_root(
+            ws, eid, {"now": "L0", "target": "L2",
+                      "owner": "scripts/check_current.py", "status": "open"},
+            root=repo / "LEARNINGS.md",
+            triage_file=repo / "design" / "ladder-triage.md",
+            lessons_dir=repo / "learnings.d")
+        _git(repo, "add", "-A")
+        _git(repo, "commit", "-q", "-m", f"lesson {branch}")
+    return repo
+
+
+def _summary(repo: Path) -> dict:
+    return learnlib.triage_summary(repo / "design" / "ladder-triage.md",
+                                   repo / "LEARNINGS.md", repo / "learnings.d")
+
+
+@pytest.mark.parametrize("first,second", [("a", "b"), ("b", "a")])
+def test_two_lesson_prs_land_in_either_order_without_a_hand_edit(
+        tmp_path, capsys, first, second):
+    """The lander squashes each PR onto main (on GitHub, which ignores
+    .gitattributes merge drivers); the second PR then needs at most a plain
+    merge of main, with no conflict, and the landed tree passes the register
+    checks with no count edited by hand."""
+    repo = _two_lesson_branches(tmp_path, capsys)
+    _git(repo, "checkout", "-q", "main")
+    base = _summary(repo)
+    _git(repo, "merge", "-q", "--squash", first)
+    _git(repo, "commit", "-q", "-m", f"land {first}")
+    _git(repo, "checkout", "-q", second)
+    merged = _git(repo, "merge", "-q", "--no-edit", "main", check=False)
+    assert merged.returncode == 0, merged.stdout + merged.stderr
+    _git(repo, "checkout", "-q", "main")
+    landed = _git(repo, "merge", "-q", "--squash", second, check=False)
+    assert landed.returncode == 0, landed.stdout + landed.stderr
+    _git(repo, "commit", "-q", "-m", f"land {second}")
+
+    after = _summary(repo)
+    assert after["problems"] == []
+    assert after["rows"] == after["learnings_entries"] == base["rows"] + 2
+    assert after["lessons"] == base["lessons"] + 2
+    assert after["by_status"]["open"] == base["by_status"]["open"] + 2
+
+
+def test_two_appends_at_the_archive_end_do_conflict(tmp_path):
+    """The control: the old way - both PRs appending to LEARNINGS.md's end -
+    conflicts on that same merge, so the clean merge above is the design's
+    doing, not the harness's."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    shutil.copy2(ROOT / "LEARNINGS.md", repo / "LEARNINGS.md")
+    _git(repo, "init", "-q", "-b", "main")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "base")
+    for branch, entry in (("a", ENTRY_A), ("b", ENTRY_B)):
+        _git(repo, "checkout", "-q", "-b", branch, "main")
+        with (repo / "LEARNINGS.md").open("a", encoding="utf-8") as f:
+            f.write("\n" + entry)
+        _git(repo, "commit", "-q", "-am", f"append {branch}")
+    merged = _git(repo, "merge", "-q", "--no-edit", "a", check=False)
+    assert merged.returncode != 0 and "CONFLICT" in merged.stdout
 
 
 def test_a_failed_root_promotion_does_not_strand_the_rest_of_the_pass(
@@ -341,8 +473,12 @@ def test_rf_de_root_promotions_are_in_the_register():
     entries = learnlib._root_entries(
         (ROOT / "LEARNINGS.md").read_text(encoding="utf-8"))
     for r in rows:
-        n = int(r["resolution"]["artifacts"][0].split("#")[1])
-        assert n in register and n <= len(entries), r["entry"]
+        cited = r["resolution"]["artifacts"][0]
+        if "#" in cited:                  # an archive entry, cited by its row
+            n = int(cited.split("#")[1])
+            assert n in register and n <= len(entries), r["entry"]
+        else:                             # a learnings.d/ lesson file
+            assert (ROOT / cited).is_file(), r["entry"]
 
 
 def test_every_run_recipe_ends_with_the_compile_step():
@@ -400,8 +536,39 @@ def test_init_writes_the_standard_shape_and_never_overwrites(tmp_path, capsys):
 
 
 def test_triage_summary_is_recomputed_from_the_table():
+    """Every lesson has exactly one row, and the counts exist only as the
+    script's output: the register states none of them by hand, because a
+    hand-kept count is the line every lesson PR conflicted on."""
     summary = learnlib.triage_summary()
+    assert summary["problems"] == []
     assert summary["rows"] == summary["learnings_entries"]
+    assert summary["archive_entries"] + summary["lessons"] == summary["rows"]
+    assert sum(summary["by_status"].values()) == summary["rows"]
+    assert sum(v["now"] for v in summary["levels"].values()) == summary["rows"]
     header = (ROOT / "design" / "ladder-triage.md").read_text(encoding="utf-8")
-    assert f"all {summary['rows']} rows" in header, (
-        "the register header's counts are stale - run `learnings.py triage`")
+    header = header[:header.index("## Register")]
+    stale = re.findall(r"all \d+ rows|\*\*(?:done|open) \d+\*\*|\(\d+ of them"
+                       r"|^\| L[0-3] \| \d+ \| \d+ \|", header, re.M)
+    assert not stale, f"hand-kept counts in the register header: {stale}"
+
+
+def test_triage_summary_counts_a_new_lesson_and_flags_a_bad_one(root_pair):
+    root, tri, lessons = root_pair
+    base = learnlib.triage_summary(tri, root, lessons)
+    assert base["lessons"] == 0 and base["problems"] == []
+    (lessons / "2026-10-06-a-tented-via-is-still-bare.md").write_text(
+        "## 2026-10-06 [fab] A tented via is still bare\nbody\n\n"
+        "Triage: now L0 | target L2 | owner scripts/dfm.py | status open\n",
+        encoding="utf-8", newline="\n")
+    one = learnlib.triage_summary(tri, root, lessons)
+    assert one["rows"] == one["learnings_entries"] == base["rows"] + 1
+    assert one["by_status"]["open"] == base["by_status"]["open"] + 1
+    assert one["open_by_owner"]["scripts/dfm.py"] == \
+        base["open_by_owner"].get("scripts/dfm.py", 0) + 1
+    assert one["climbing"] == base["climbing"] + 1
+    (lessons / "2026-10-06-no-row.md").write_text(
+        "## 2026-10-06 [fab] No row\nbody\n", encoding="utf-8")
+    two = learnlib.triage_summary(tri, root, lessons)
+    assert two["rows"] == one["rows"]
+    assert two["learnings_entries"] == one["rows"] + 1
+    assert any("last line" in p for p in two["problems"])

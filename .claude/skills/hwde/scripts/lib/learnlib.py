@@ -7,7 +7,7 @@ separate promotion pass moves each entry to its level on the knowledge ladder
 item / root LEARNINGS) or declines it with a reason.
 
 The workspace file format (enforced by parse_entries, the same shape the root
-LEARNINGS.md uses so a promotion is a verbatim copy):
+lesson files use so a promotion is a verbatim copy):
 
     # LEARNINGS - <board> (<what the board is>)
     <preamble sections are allowed until the first dated entry>
@@ -364,10 +364,10 @@ def validate_queue(ws: Path) -> tuple[list[str], list[str]]:
 def apply_ruling(queue: dict, ruling: dict, ws: Path) -> dict:
     """Apply ONE ruling to the queue (in place). Returns a per-entry result.
 
-    A `root_learnings` promotion also performs the move: the entry is appended
-    verbatim to the repo LEARNINGS.md and its triage row to
-    design/ladder-triage.md, because those two files are checked against each
-    other by the suite and hand-copying is how they drift apart."""
+    A `root_learnings` promotion also performs the move: the entry is written
+    verbatim to a new lesson file in the repo's learnings.d/, its triage row
+    as the file's last line, because an entry and its row are checked against
+    each other by the suite and hand-copying is how they drift apart."""
     eid = ruling["entry"]
     row = next((r for r in queue["entries"] if r["entry"] == eid), None)
     if row is None:
@@ -390,14 +390,13 @@ def apply_ruling(queue: dict, ruling: dict, ws: Path) -> dict:
     extra: dict = {}
     if kind == "root_learnings":
         # A batch is a whole promotion pass: one bad ruling must not strand
-        # the rulings that already wrote to LEARNINGS.md, so the failure is
+        # the rulings that already wrote lesson files, so the failure is
         # reported per entry and the rest of the pass continues.
         try:
             moved = promote_to_root(ws, eid, ruling.get("triage") or {})
         except (ValueError, OSError) as exc:
             return {"entry": eid, "applied": False, "why": str(exc)}
-        artifacts = [f"LEARNINGS.md#{moved['n']}",
-                     f"design/ladder-triage.md#{moved['n']}"] + artifacts
+        artifacts = [moved["file"]] + artifacts
         extra = {"root": moved}
 
     if ruling.get("targets"):
@@ -412,19 +411,121 @@ def apply_ruling(queue: dict, ruling: dict, ws: Path) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# root promotion: LEARNINGS.md + design/ladder-triage.md, together
+# root promotion: one lesson file in learnings.d/, carrying its triage row
 # ---------------------------------------------------------------------------
+# LEARNINGS.md is a closed archive (entries 1-425): its line numbers are cited
+# by the remediation refs and by the archive's own Register rows, so it never
+# grows again. Every new lesson is its own file, `learnings.d/<id>.md`, whose
+# last line is its triage row. Two PRs that each add a lesson add two
+# different files and touch nothing else, so they merge either way round
+# without a conflict - on GitHub's squash merge too, which ignores any
+# .gitattributes merge driver. No count is kept by hand anywhere:
+# `learnings.py triage` prints them.
+LESSONS = REPO / "learnings.d"
+LESSONS_README = "README.md"
+TRIAGE_RE = re.compile(r"^Triage: now (\S+) \| target (\S+) \| owner (.+?) "
+                       r"\| status (\S+)(?: \| note (.*))?$")
+
+
 def _root_entries(text: str) -> list[tuple[int, str]]:
     return [(i, m.group(3)) for i, ln in
             enumerate(text.splitlines(), 1) if (m := ENTRY_RE.match(ln))]
 
 
-def triage_row(n: int, line: int, title: str, tags: list[str], now: str,
-               target: str, owner: str, status: str, note: str) -> str:
-    """The Register row `test_triage_rows_are_well_formed` will read back."""
-    cells = [str(n), str(line), title[:70], "".join(f"[{t}]" for t in tags),
-             now, target, owner, status, note]
-    return "| " + " | ".join(c.replace("|", "/").strip() for c in cells) + " |"
+def triage_line(now: str, target: str, owner: str, status: str,
+                note: str = "") -> str:
+    """A lesson file's last line - the row `parse_lesson` reads back."""
+    cells = [f"now {now}", f"target {target}", f"owner {owner}",
+             f"status {status}"]
+    if note.strip():
+        cells.append(f"note {note}")
+    return "Triage: " + " | ".join(c.replace("|", "/").strip() for c in cells)
+
+
+def triage_problems(triage: dict) -> list[str]:
+    """What is wrong with one triage row, archive or lesson alike."""
+    out = []
+    for field in ("now", "target", "owner", "status"):
+        if not (triage.get(field) or "").strip():
+            out.append(f"triage.{field} is empty")
+    if out:
+        return out
+    if triage["now"] not in LEVELS or triage["target"] not in LEVELS:
+        out.append(f"triage levels must be one of {LEVELS}")
+    elif triage["status"] == "done" and triage["now"] != triage["target"]:
+        out.append("status 'done' but not at target")
+    if triage["status"] not in ("done", "open", "n/a") and not re.fullmatch(
+            r"planned-[TU]\d+", triage["status"]):
+        out.append(f"bad triage status {triage['status']!r}")
+    return out
+
+
+def lesson_files(lessons_dir: Path | None = None) -> list[Path]:
+    d = Path(lessons_dir) if lessons_dir else LESSONS
+    if not d.is_dir():
+        return []
+    return sorted(p for p in d.glob("*.md") if p.name != LESSONS_README)
+
+
+def parse_lesson(path: Path) -> tuple[dict, list[str]]:
+    """(lesson, problems). A lesson file is ONE dated `## ` heading on its
+    first line, a body, and a last non-blank line `Triage: now Lx | target Lx
+    | owner P | status S [| note N]`. Its name is `<date>-<slug>.md` (a `-N`
+    suffix allowed), so the name is the stable key a citation uses."""
+    path = Path(path)
+    lines = path.read_text(encoding="utf-8").splitlines()
+    problems: list[str] = []
+    heads = [ln for ln in lines if ln.startswith("## ")]
+    m = ENTRY_RE.match(lines[0]) if lines else None
+    if not m:
+        return {"file": path.name}, [f"{path.name}: first line is not a "
+                                     "`## YYYY-MM-DD [tag] title` heading"]
+    if len(heads) != 1:
+        problems.append(f"{path.name}: {len(heads)} `## ` headings - one "
+                        "lesson per file")
+    date, tags, title = m.group(1), TAG_RE.findall(m.group(2)), m.group(3).strip()
+    base = f"{date}-{slug(title)}"
+    if not re.fullmatch(re.escape(base) + r"(?:-\d+)?", path.stem):
+        problems.append(f"{path.name}: name it {base}.md (from its heading)")
+    body_lines = list(lines[1:])
+    while body_lines and not body_lines[-1].strip():
+        body_lines.pop()
+    tm = TRIAGE_RE.match(body_lines[-1]) if body_lines else None
+    triage = None
+    if not tm:
+        problems.append(f"{path.name}: last line is not `Triage: now Lx | "
+                        "target Lx | owner P | status S | note N`")
+    else:
+        triage = {"now": tm.group(1), "target": tm.group(2),
+                  "owner": tm.group(3).strip(), "status": tm.group(4),
+                  "note": (tm.group(5) or "").strip()}
+        problems += [f"{path.name}: {p}" for p in triage_problems(triage)]
+        body_lines.pop()
+    if not path.read_text(encoding="utf-8").isascii():
+        problems.append(f"{path.name}: non-ASCII text")
+    return {"file": path.name, "date": date, "tags": tags, "title": title,
+            "body": "\n".join(body_lines).strip("\n"),
+            "triage": triage}, problems
+
+
+def archive_rows(triage_file: Path | None = None) -> list[dict]:
+    """The Register table of design/ladder-triage.md: one row per archive
+    entry, `| n | learnings_line | entry | tags | now | target | owner |
+    status | note |`. n and line are frozen with the archive."""
+    tri = Path(triage_file) if triage_file else TRIAGE
+    rows = []
+    for ln in tri.read_text(encoding="utf-8").splitlines():
+        if not ln.startswith("|"):
+            continue
+        cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+        if len(cells) < 8 or not cells[0].isdigit():
+            continue
+        rows.append({"n": int(cells[0]), "line": int(cells[1]),
+                     "entry": cells[2], "tags": cells[3], "now": cells[4],
+                     "target": cells[5], "owner": cells[6],
+                     "status": cells[7],
+                     "note": cells[8] if len(cells) > 8 else ""})
+    return rows
 
 
 def _need_root_files(root: Path, tri: Path) -> None:
@@ -439,28 +540,24 @@ def _need_root_files(root: Path, tri: Path) -> None:
 
 def promote_to_root(ws: Path, entry_id: str, triage: dict,
                     root: Path | None = None,
-                    triage_file: Path | None = None) -> dict:
-    """Append the workspace entry verbatim to the repo LEARNINGS.md and its
-    row to the triage register. Refuses a duplicate title and non-ASCII."""
+                    triage_file: Path | None = None,
+                    lessons_dir: Path | None = None) -> dict:
+    """Write the workspace entry verbatim, with its triage row as the last
+    line, to a new lesson file `learnings.d/<id>.md`. Refuses a lesson the
+    archive or another lesson file already carries, and non-ASCII."""
     ws = Path(ws)
     root = Path(root) if root else ROOT_LEARNINGS
     tri = Path(triage_file) if triage_file else TRIAGE
+    lessons = Path(lessons_dir) if lessons_dir else LESSONS
 
     entries, _ = parse_entries(learnings_path(ws).read_text(encoding="utf-8"))
     e = next((x for x in entries if x["entry"] == entry_id), None)
     if e is None:
         raise ValueError(f"{entry_id}: not in {learnings_path(ws)}")
 
-    for field in ("now", "target", "owner", "status"):
-        if not triage.get(field):
-            raise ValueError(f"{entry_id}: root promotion needs triage.{field}")
-    if triage["now"] not in LEVELS or triage["target"] not in LEVELS:
-        raise ValueError(f"{entry_id}: triage levels must be one of {LEVELS}")
-    if triage["status"] == "done" and triage["now"] != triage["target"]:
-        raise ValueError(f"{entry_id}: status 'done' but not at target")
-    if triage["status"] not in ("done", "open", "n/a") and not re.fullmatch(
-            r"planned-[TU]\d+", triage["status"]):
-        raise ValueError(f"{entry_id}: bad triage status {triage['status']!r}")
+    bad = triage_problems(triage)
+    if bad:
+        raise ValueError(f"{entry_id}: {bad[0]}")
     if not _exists(triage["owner"]) and "/" in triage["owner"]:
         raise ValueError(f"{entry_id}: triage owner {triage['owner']} "
                          "does not exist")
@@ -469,64 +566,70 @@ def promote_to_root(ws: Path, entry_id: str, triage: dict,
     body = e["body"].strip("\n")
     provenance = (f"Promoted from {ws.as_posix()}/LEARNINGS.md "
                   f"(promotion pass {today()}).")
-    block = f"{header}\n{provenance}\n{body}\n"
+    row = triage_line(triage["now"], triage["target"], triage["owner"],
+                      triage["status"], triage.get("note", ""))
+    block = f"{header}\n{provenance}\n{body}\n\n{row}\n"
     if not block.isascii():
         raise ValueError(f"{entry_id}: non-ASCII text cannot be promoted")
 
     _need_root_files(root, tri)
-    text = root.read_text(encoding="utf-8")
-    if header in text:
-        raise ValueError(f"{entry_id}: {root.name} already carries this entry")
-    if not text.endswith("\n"):
-        text += "\n"
-    text += "\n" + block
-    root.write_text(text, encoding="utf-8", newline="\n")
-
-    rows = _root_entries(text)
-    n, line = len(rows), rows[-1][0]
-    row = triage_row(n, line, e["title"], e["tags"], triage["now"],
-                     triage["target"], triage["owner"], triage["status"],
-                     triage.get("note", ""))
-    ttext = tri.read_text(encoding="utf-8")
-    if not ttext.endswith("\n"):
-        ttext += "\n"
-    tri.write_text(ttext + row + "\n", encoding="utf-8", newline="\n")
-    return {"n": n, "line": line, "row": row}
+    carried = [root.read_text(encoding="utf-8")] + [
+        p.read_text(encoding="utf-8") for p in lesson_files(lessons)]
+    if any(header in t.splitlines() for t in carried):
+        raise ValueError(f"{entry_id}: the root learnings already carry "
+                         "this entry")
+    base = f"{e['date']}-{slug(e['title'])}"
+    path, k = lessons / f"{base}.md", 1
+    while path.exists():
+        k += 1
+        path = lessons / f"{base}-{k}.md"
+    lessons.mkdir(parents=True, exist_ok=True)
+    path.write_text(block, encoding="utf-8", newline="\n")
+    return {"file": f"{lessons.name}/{path.name}", "row": row}
 
 
 def triage_summary(triage_file: Path | None = None,
-                   root: Path | None = None) -> dict:
-    """Recompute the register header's counts from the table itself - the U0
-    summary went stale the first time rows were appended without it."""
+                   root: Path | None = None,
+                   lessons_dir: Path | None = None) -> dict:
+    """Every count the register used to keep by hand, computed from the
+    archive's table plus the lesson files' own triage lines. Nothing in
+    design/ladder-triage.md restates these numbers, so nothing goes stale."""
     tri = Path(triage_file) if triage_file else TRIAGE
     root = Path(root) if root else ROOT_LEARNINGS
     if not (tri.is_file() and root.is_file()):
-        return {"rows": 0, "learnings_entries": 0, "last_entry_line": 0,
-                "levels": {}, "status": {}, "climbing": 0,
+        return {"rows": 0, "learnings_entries": 0, "archive_entries": 0,
+                "lessons": 0, "levels": {}, "by_status": {}, "climbing": 0,
+                "open_by_owner": {}, "problems": [],
                 "absent": "no root LEARNINGS.md / triage register here "
                           "(vendored copy of the skill)"}
-    rows = []
-    for ln in tri.read_text(encoding="utf-8").splitlines():
-        if not ln.startswith("|"):
-            continue
-        cells = [c.strip() for c in ln.strip().strip("|").split("|")]
-        if len(cells) < 8 or not cells[0].isdigit():
-            continue
-        rows.append({"n": int(cells[0]), "now": cells[4], "target": cells[5],
-                     "owner": cells[6], "status": cells[7]})
-    entries = _root_entries(root.read_text(encoding="utf-8"))
+    rows = archive_rows(tri)
+    archive = _root_entries(root.read_text(encoding="utf-8"))
+    problems: list[str] = []
+    files = lesson_files(lessons_dir)
+    for p in files:
+        lesson, bad = parse_lesson(p)
+        problems += bad
+        if lesson.get("triage"):
+            rows.append(lesson["triage"])
     levels = {lv: {"now": sum(1 for r in rows if r["now"] == lv),
                    "target": sum(1 for r in rows if r["target"] == lv)}
               for lv in LEVELS}
     status: dict[str, int] = {}
+    owners: dict[str, int] = {}
     for r in rows:
         key = r["status"] if r["status"] in ("done", "open", "n/a") else "planned"
         status[key] = status.get(key, 0) + 1
-    return {"rows": len(rows), "learnings_entries": len(entries),
-            "last_entry_line": entries[-1][0] if entries else 0,
-            "levels": levels, "status": status,
+        if r["status"] == "open":
+            owners[r["owner"]] = owners.get(r["owner"], 0) + 1
+    return {"rows": len(rows), "learnings_entries": len(archive) + len(files),
+            "archive_entries": len(archive), "lessons": len(files),
+            "levels": levels, "by_status": status,
             "climbing": sum(1 for r in rows
-                            if LEVELS.index(r["target"]) > LEVELS.index(r["now"]))}
+                            if r["now"] in LEVELS and r["target"] in LEVELS
+                            and LEVELS.index(r["target"]) > LEVELS.index(r["now"])),
+            "open_by_owner": dict(sorted(owners.items(),
+                                         key=lambda kv: (-kv[1], kv[0]))),
+            "problems": problems}
 
 
 def sweep(boards_dir: Path) -> list[dict]:

@@ -46,7 +46,7 @@ A promotion WRITES SOMEWHERE. Pick the level, make the edit, then record it:
 | `knowledge_record` | `reference/knowledge/records/<id>.yaml` (U4) |
 | `remediation` | `reference/remediations/<check_id>.md` (T4) |
 | `bench_item` | a bench fixture or a `--baseline` case |
-| `root_learnings` | the repo `LEARNINGS.md` + its `design/ladder-triage.md` row |
+| `root_learnings` | a new lesson file `learnings.d/<id>.md`, its triage row as its last line |
 
     learnings.py resolve --workspace ~/dev/boards/<b> --entry <id> \
       --status promoted --kind script_check --level L2 \

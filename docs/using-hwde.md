@@ -38,9 +38,9 @@ corpus is real. It is still a system a human engineer drives and signs off:
   any board whose `fab/order.json` already records an order, refuses after an
   ambiguous create attempt until a human clears it, and requires a fresh quote,
   a matching normalized design hash, and a typed confirmation token.
-- Known limits per stage are listed in the skill playbook and in `LEARNINGS.md`;
-  the maturity of each piece of knowledge is tracked in
-  `design/ladder-triage.md`.
+- Known limits per stage are listed in the skill playbook, in `LEARNINGS.md`
+  and in `learnings.d/`; the maturity of each piece of knowledge is tracked in
+  `design/ladder-triage.md` and in each lesson file's triage line.
 
 ## Authority map
 
@@ -56,7 +56,7 @@ here wins.
 | What goes stale when something changes | `.claude/skills/hwde/reference/invalidation.yaml` |
 | Per-board truth (phase, gates, decisions, holds, artifacts) | `~/dev/boards/<name>/state.json` |
 | Fab capability, stackups, pricing assumptions | `.claude/skills/hwde/reference/jlc_capabilities.yaml`, `stackups.yaml`, `jlc_pricing.yaml` |
-| Non-obvious gotchas, dated and tagged | `LEARNINGS.md` (index: `design/ladder-triage.md`) |
+| Non-obvious gotchas, dated and tagged | `LEARNINGS.md` (closed archive) + `learnings.d/` (one file per lesson); ladder: `design/ladder-triage.md` |
 | Build state of the skill itself | `PROGRESS.md` |
 | Original architecture and rationale | `SPEC.md` - **historical**, not normative |
 

@@ -90,8 +90,9 @@ raise by design) and re-records every touched baseline in the SAME commit.
    the session consumed ruled (`learnings.py resolve` - kind
    `knowledge_record` is how a queue entry becomes a record) and the queue
    linted: `learnings.py validate --workspace <ws>`.
-4. Root LEARNINGS entries + `design/ladder-triage.md` rows for the
-   session's durable lessons (same session, the discipline test enforces).
+4. Root lessons for the session's durable gotchas: one `learnings.d/`
+   file each, its triage row as its last line (`learnings.d/README.md`;
+   same session, the discipline test enforces).
 5. Regression: `bench.py --compare` on the stage's OTHER frozen fixtures -
    exit 1 on any of them = fix before closing, never close red.
 6. Commit artifact edits + manifest + baselines + LEARNINGS/triage together
