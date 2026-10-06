@@ -33,8 +33,11 @@ since the last filing, builds the PDF and files it in the library as the next
 revision of 003-0001. It commits nothing; the README, `gallery.tex`, the PDF,
 any new picture and `filed.json` (the hash of what was last filed) are left
 ready to commit. Run it after a boards-repo change that adds or changes a
-board. `tests/test_showcase_gallery.py` fails when the register lists a board
-with a routed layout that the committed showcase does not show.
+board. `./gallery.py --check` exits 1 and names the board under `not_shown`
+when the register lists a board with a routed layout that the committed
+showcase does not show. hwde's test suite only warns about such a board,
+because the boards repo finishes boards on its own clock and must not turn
+hwde's landing check red; `HWDE_LINT_SHIPPED=1` makes that test fail instead.
 
 ## Remaking any of this
 
