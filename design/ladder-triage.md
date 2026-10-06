@@ -1,9 +1,9 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
-# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02; row 355 2026-10-04; row 356 2026-10-04; rows 357-417 U22 2026-10-04; row 418 2026-10-04; row 419 2026-10-05)
+# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02; row 355 2026-10-04; row 356 2026-10-04; rows 357-417 U22 2026-10-04; row 418 2026-10-04; row 419 2026-10-05; row 422 2026-10-06)
 
-One row per `LEARNINGS.md` entry (419 of them; the last starts at
-line 6490), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (422 of them; the last starts at
+line 6526), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -35,7 +35,7 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-10-04 (rows 357-417 added, U22; row 418 2026-10-04; row 419 2026-10-05; row 420 2026-10-05; row 421 2026-10-04), all 421 rows
+Recomputed from the table on 2026-10-04 (rows 357-417 added, U22; row 418 2026-10-04; row 419 2026-10-05; row 420 2026-10-05; row 421 2026-10-04; row 422 2026-10-06), all 422 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
@@ -43,9 +43,9 @@ Recomputed from the table on 2026-10-04 (rows 357-417 added, U22; row 418 2026-1
 | L0 | 182 | 25 |
 | L1 | 23 | 26 |
 | L2 | 72 | 151 |
-| L3 | 144 | 219 |
+| L3 | 145 | 220 |
 
-184 entries want to climb at least one level. Status: **done 189**,
+184 entries want to climb at least one level. Status: **done 190**,
 **open 205**, **n/a 11**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
@@ -540,3 +540,4 @@ the row's Now level and status in the same commit as the code.
 | 419 | 6490 | An EasyEDA 403 is a rate limit for the whole run: latch it, say it onc | [easyeda2kicad][cpl][dfm] | L3 | L3 | scripts/lib/easyeda.py | done | `easyeda.get` classifies a failed fetch (HTTP status / network) and latches the first 403/429 for the process (`rate_limited()`), skipping later fetches; bom_cpl marks those parts `source: fetch_failed` with one `cpl_model_fetch_failed` violation, dfm one `cpl_fetch_failed` error; tests/test_cpl_verify.py pins all three. |
 | 420 | 6508 | Pair mated pins by where they touch, not by pin number | [connector][verify][mate-pins] | L2 | L2 | scripts/check_mate_pins.py | done | check_mate_pins pairs a mate's pads by overlaying the two pad patterns, so a mirrored or crossed pin is an error whatever the pin numbers say; its tests and the MECH-06 seeded fault pin it. |
 | 421 | 6518 | A check's "input missing" warning is a scorecard false positive on every bare golden board | [verify][scorecard][bom] | L2 | L2 | scripts/check_bom_sync.py | done | A skipped leg goes in the report's `skipped` list, not in `violations`, so bare golden boards score no false positive. |
+| 422 | 6526 | Freerouting takes ~5 min per pass on a 4-layer board; a fixed per-rung | [route_auto][freerouting][timeout] | L3 | L3 | scripts/lib/routelib.py | done | run_freerouting kills only on a stall (no output and no .ses growth for --stall-s, 900 s) or at the --timeout-s hard cap (3600 s), and records kill_reason per rung; tests/test_route_auto.py pins slow-but-alive, silent hang, .ses growth, hard cap and interrupt. |
