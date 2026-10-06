@@ -600,3 +600,138 @@ def test_split_fcu_stitched_to_necked_bcu_fails(tmp_path_factory):
     necks = _kinds(vs, "pour_neckdown")
     assert {v["layer"] for v in necks} == {"F.Cu", "B.Cu"}
     assert all(v["severity"] == "error" for v in necks)
+
+
+# ---- stitch vias are not layer transitions (PCB-0023-A /SW, 2026-10-06) ----
+# /SW was one pour on all four layers of a GaN inverter, stitched by ~120
+# vias >2 mm apart. Every stitch via was its own 1-via "layer transition"
+# needing 24 vias at 12 A: 112 errors, all model artefacts. A via that only
+# joins same-net pours is now judged with every other via joining the same
+# two pours, and not at all when one pour is a dead end; a via a track or a
+# loose pad feeds still counts on its own.
+
+def _board4(tmp_path_factory, name: str, body: str) -> geom.BoardGeom:
+    text = f"""(kicad_pcb
+  (version 20260206) (generator "test")
+  (general (thickness 1.6))
+  (layers (0 "F.Cu" signal) (4 "In1.Cu" signal) (6 "In2.Cu" signal)
+    (2 "B.Cu" signal) (25 "Edge.Cuts" user))
+  (setup)
+  (gr_rect (start 0 0) (end 20 10) (stroke (width 0.1)) (fill no)
+    (layer "Edge.Cuts"))
+{body})
+"""
+    p = tmp_path_factory.mktemp(name) / f"{name}.kicad_pcb"
+    p.write_text(text, encoding="utf-8")
+    return geom.load_board(p)
+
+
+def _pour(net: str, layer: str, x1: float = 12) -> str:
+    return (f'  (zone (net "{net}") (layer "{layer}")\n'
+            f'    (polygon (pts (xy 0 0) (xy {x1} 0) (xy {x1} 10) (xy 0 10)))\n'
+            f'    (filled_polygon (layer "{layer}")\n'
+            f'      (pts (xy 0 0) (xy {x1} 0) (xy {x1} 10) (xy 0 10))))\n')
+
+
+def _via(x: float, y: float, net: str = "/SW") -> str:
+    return (f'  (via (at {x} {y}) (size 0.6) (drill 0.3) '
+            f'(layers "F.Cu" "B.Cu") (net "{net}"))\n')
+
+
+def _smd(ref: str, x: float, y: float, layer: str, net: str = "/SW") -> str:
+    return (f'  (footprint "t:Q" (at {x} {y}) (layer "{layer}")\n'
+            f'    (property "Reference" "{ref}" (at 0 0 0))\n'
+            f'    (pad "1" smd rect (at 0 0) (size 1 1) (layers "{layer}") '
+            f'(net "{net}")))\n')
+
+
+_ALL4 = "".join(_pour("/SW", l) for l in ("F.Cu", "In1.Cu", "In2.Cu", "B.Cu"))
+# eight 1-via stitch clusters, rows 6 mm apart, 2.5 mm pitch
+_ROW = [(x, y) for y in (2, 8) for x in (1, 3.5, 6, 8.5)]
+_STITCH8 = "".join(_via(x, y) for x, y in _ROW)
+_STITCH4 = "".join(_via(x, y) for x, y in _ROW[:4])
+# a /SW track that really hops F.Cu -> B.Cu through one via, off the pours
+_HOP = ('  (segment (start 14 5) (end 16 5) (width 0.5) (layer "F.Cu") '
+        '(net "/SW"))\n' + _via(16, 5) +
+        '  (segment (start 16 5) (end 19 5) (width 0.5) (layer "B.Cu") '
+        '(net "/SW"))\n')
+SW_12A = {"net": "/SW", "current_a": 12.0, "via_amps": 0.5}
+
+
+def test_stitch_vias_on_four_layers_are_not_transitions(tmp_path_factory):
+    """Both terminals on the F.Cu pour; In1/In2/B.Cu pours only parallel
+    it through the stitch array: zero transition findings at 12 A."""
+    bg = _board4(tmp_path_factory, "stitch4",
+                 _ALL4 + _STITCH8 + _smd("Q1", 11, 5, "F.Cu")
+                 + _smd("L1", 5, 5, "F.Cu"))
+    vs, facts = check_current.check_net(bg, dict(SW_12A))
+    assert _kinds(vs, "insufficient_transition_vias") == []
+    assert facts["stitch_vias"] == 8 and facts["via_clusters"] == 8
+
+
+def test_track_layer_hop_still_flagged_beside_stitch_array(tmp_path_factory):
+    """Same /SW net: the stitch array stays silent, the via a track uses to
+    change layers is still a 1-via transition needing 24 vias."""
+    bg = _board4(tmp_path_factory, "stitchhop",
+                 _ALL4 + _STITCH8 + _smd("Q1", 11, 5, "F.Cu")
+                 + _smd("L1", 5, 5, "F.Cu") + _HOP)
+    vs, _ = check_current.check_net(bg, dict(SW_12A))
+    [hop] = _kinds(vs, "insufficient_transition_vias")
+    assert hop["pos"] == [16.0, 5.0] and hop["severity"] == "error"
+    assert hop["vias"] == 1 and hop["required"] == 24
+    assert "stitch" not in hop
+
+
+def test_pour_to_pour_hop_counts_the_whole_stitch_array(tmp_path_factory):
+    """Terminals on F.Cu and B.Cu: the load current crosses the array, so
+    every via joining those two pours is counted together (threshold
+    unchanged: 1 via per 0.5 A)."""
+    body = (_ALL4 + _STITCH8 + _smd("Q1", 11, 5, "F.Cu")
+            + _smd("L1", 5, 5, "B.Cu"))
+    bg = _board4(tmp_path_factory, "stitchfb", body)
+    vs, _ = check_current.check_net(
+        bg, {"net": "/SW", "current_a": 3.0, "via_amps": 0.5})
+    assert _kinds(vs, "insufficient_transition_vias") == []   # 8 >= 6
+    vs, _ = check_current.check_net(bg, dict(SW_12A))
+    [hop] = _kinds(vs, "insufficient_transition_vias")
+    assert hop["stitch"] is True and hop["severity"] == "error"
+    assert hop["vias"] == 8 and hop["required"] == 24
+
+
+def test_plated_holes_count_toward_a_pour_to_pour_hop(tmp_path_factory):
+    """Four stitch vias at 3 A (need 6) fail; two plated through-holes
+    joining the same two pours make up the count."""
+    base = (_ALL4 + _STITCH4 + _smd("Q1", 11, 5, "F.Cu")
+            + _smd("L1", 5, 5, "B.Cu"))
+    entry = {"net": "/SW", "current_a": 3.0, "via_amps": 0.5}
+    vs, _ = check_current.check_net(_board4(tmp_path_factory, "pth0", base),
+                                    entry)
+    [hop] = _kinds(vs, "insufficient_transition_vias")
+    assert hop["stitch"] is True and hop["vias"] == 4
+    pth = ''.join(
+        f'  (footprint "t:J" (at {x} 8) (layer "F.Cu")\n'
+        f'    (property "Reference" "J{i}" (at 0 0 0))\n'
+        f'    (pad "1" thru_hole circle (at 0 0) (size 1.2 1.2) (drill 0.6)'
+        f' (layers "*.Cu") (net "/SW")))\n' for i, x in ((1, 2), (2, 7)))
+    vs, _ = check_current.check_net(
+        _board4(tmp_path_factory, "pth2", base + pth), entry)
+    assert _kinds(vs, "insufficient_transition_vias") == []
+
+
+def test_via_in_a_loose_pad_is_a_transition(tmp_path_factory):
+    """A pad with no pour around it on its own layer feeds its via: that via
+    is a layer transition, not a stitch. The same pad sitting in an F.Cu
+    pour turns the via into a stitch to dead-end pours."""
+    body = (_pour("/SW", "In1.Cu") + _pour("/SW", "B.Cu")
+            + _smd("Q1", 5, 5, "F.Cu") + _via(5, 5))
+    entry = {"net": "/SW", "current_a": 1.0, "via_amps": 0.5}
+    vs, facts = check_current.check_net(
+        _board4(tmp_path_factory, "loosepad", body), entry)
+    [hop] = _kinds(vs, "insufficient_transition_vias")
+    assert hop["pos"] == [5.0, 5.0] and "stitch" not in hop
+    assert "stitch_vias" not in facts
+    vs, facts = check_current.check_net(
+        _board4(tmp_path_factory, "pourpad", body + _pour("/SW", "F.Cu")),
+        entry)
+    assert _kinds(vs, "insufficient_transition_vias") == []
+    assert facts["stitch_vias"] == 1

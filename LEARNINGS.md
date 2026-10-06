@@ -6522,3 +6522,15 @@ check_bom_sync's first cut, which warned when BOM/CPL or parts.json were absent,
 real hit. A skipped leg now goes in the report's `skipped` list, not in `violations`. Also,
 `exclude_from_pos_files` alone does not mean hand_install: fiducials, printed NFC coils and pogo
 pads carry it with `exclude_from_bom`/`board_only`, and bom_cpl classes those board_feature.
+
+## 2026-10-06 [check_current][gates][stitch] A stitch via is not a layer transition - count a pour-to-pour hop per pour pair
+check_current clustered every via of a net (<= 2 mm) and asked each cluster for ceil(I / via_amps)
+vias. On PCB-0023-A (GaN inverter) /SW was one pour on all four layers, stitched by ~120 vias on a
+grid wider than 2 mm, so 112 one-via clusters each asked for 24 vias at 12 A: 112 errors, and 112
+of the board's 135 pending waivers. A stitch via (no track touches it, every pad it touches sits in
+the pour on that layer, fill on >= 2 layers) now leaves the cluster rule. Each pair of fill pieces
+on two layers is judged once instead, counting every via and plated hole that joins them, and a
+pair is skipped when one piece is a dead end (no pad or track, all its barrels in the group). Do
+not drop stitches outright: the same board's VBUS crosses F.Cu -> B.Cu -> F.Cu through two 3-via
+stitch groups, and those are real findings. A track hop or a via under a pad with no pour around
+it still counts per cluster.
