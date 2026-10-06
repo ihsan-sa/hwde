@@ -1,9 +1,9 @@
 # Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
 # U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
-# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02; row 355 2026-10-04; row 356 2026-10-04; rows 357-417 U22 2026-10-04; row 418 2026-10-04)
+# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02; row 355 2026-10-04; row 356 2026-10-04; rows 357-417 U22 2026-10-04; row 418 2026-10-04; row 419 2026-10-05; row 422 2026-10-04)
 
-One row per `LEARNINGS.md` entry (418 of them; the last starts at
-line 6472), placed on the maturity ladder from
+One row per `LEARNINGS.md` entry (422 of them; the last starts at
+line 6526), placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
 must own - it.
 
@@ -35,17 +35,17 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-10-04 (rows 357-417 added, U22; row 418 2026-10-04), all 418 rows
+Recomputed from the table on 2026-10-04 (rows 357-417 added, U22; row 418 2026-10-04; row 419 2026-10-05; row 420 2026-10-05; row 421 2026-10-04; row 422 2026-10-04), all 422 rows
 (`learnings.py triage` prints these numbers - recompute rather than edit them):
 
 | Level | now | target |
 |---|---|---|
 | L0 | 182 | 25 |
 | L1 | 23 | 26 |
-| L2 | 71 | 150 |
-| L3 | 142 | 217 |
+| L2 | 73 | 152 |
+| L3 | 144 | 219 |
 
-184 entries want to climb at least one level. Status: **done 186**,
+184 entries want to climb at least one level. Status: **done 190**,
 **open 205**, **n/a 11**, planned 16
 (T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
 U3/U5/U8 1 each).
@@ -536,4 +536,8 @@ the row's Now level and status in the same commit as the code.
 | 415 | 6354 | An unavoidable layer-change crossing stops being an ERROR when the cro | [P7][check_return_path][routing] | L2 | L2 | scripts/check_return_path.py | open | Owner and fix: scripts/check_return_path.py. |
 | 416 | 6391 | `CONN-TH_2P-P5.00_WJ500V-5.08-2P` draws its silk entry arrows on the O | [P8][footprint][silk][review] | L0 | L2 | scripts/fp_verify.py | open | K1 lead: check a connector's mating face from a DIMENSIONED vendor drawing matched to the fab outline, never from silk or a render (U22 Q2); a 180 rotation of a 2-pin part swaps its nets; KF128's 3D model carries rotate 180; no scripted op owns footprint-instance graphics (mirror gap). Owner and fix: scripts/fp_verify.py (mating-face asymmetry check) + NEW reference/part_errata.yaml. The +Y facing is ruled correct (Q2). |
 | 417 | 6441 | Guard-ring leakage is set by what is INSIDE the ring - and the cheapes | [P7][guard-ring][silk][drc] | L0 | L0 | agents/router.md | open | Owner and fix: agents/router.md. |
-| 418 | 6472 | A neck or via transition that feeds only a resistor carries that resis | [check_current][gates] | L2 | L2 | scripts/check_current.py | done | check_current re-judges a failing neck or via cluster at the summed sqrt(P/R) of the chip resistors past it (facts leaf_branches); THT pads and via disks join fills. Tests: tests/test_t2_current.py. |
+| 418 | 6472 | cpl_verify's default model cache was a board-local dir no board has; a failed fetch read as no_model | [fab][cpl][easyeda2kicad] | L3 | L3 | scripts/lib/env.py | done | `env.easyeda_cache` resolves HWDE_EASYEDA_CACHE, then the board's easyeda/ if it exists, then ~/.cache/hwde/easyeda; a raised fetch becomes the failing verdict `fetch_failed` (with the error), never `no_model`; tests/test_cpl_verify.py pins both. |
+| 419 | 6490 | An EasyEDA 403 is a rate limit for the whole run: latch it, say it onc | [easyeda2kicad][cpl][dfm] | L3 | L3 | scripts/lib/easyeda.py | done | `easyeda.get` classifies a failed fetch (HTTP status / network) and latches the first 403/429 for the process (`rate_limited()`), skipping later fetches; bom_cpl marks those parts `source: fetch_failed` with one `cpl_model_fetch_failed` violation, dfm one `cpl_fetch_failed` error; tests/test_cpl_verify.py pins all three. |
+| 420 | 6508 | Pair mated pins by where they touch, not by pin number | [connector][verify][mate-pins] | L2 | L2 | scripts/check_mate_pins.py | done | check_mate_pins pairs a mate's pads by overlaying the two pad patterns, so a mirrored or crossed pin is an error whatever the pin numbers say; its tests and the MECH-06 seeded fault pin it. |
+| 421 | 6518 | A check's "input missing" warning is a scorecard false positive on every bare golden board | [verify][scorecard][bom] | L2 | L2 | scripts/check_bom_sync.py | done | A skipped leg goes in the report's `skipped` list, not in `violations`, so bare golden boards score no false positive. |
+| 422 | 6526 | A neck or via transition that feeds only a resistor carries that resis | [check_current][gates] | L2 | L2 | scripts/check_current.py | done | check_current re-judges a failing neck or via cluster at the summed sqrt(P/R) of the chip resistors past it (facts leaf_branches); THT pads and via disks join fills. Tests: tests/test_t2_current.py. |

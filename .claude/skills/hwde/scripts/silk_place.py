@@ -8,10 +8,24 @@ lumina-carrier wo-silklegibility order, 116 refdes):
      (0 deg above/below + 90 deg left/right) plus the lib_refdes_norm
      default target (pad_top - 0.25 - text_height/2, local x 0) - the
      default IS the answer for most parts, deviate only on collision;
-  2. score = (min(clearance, 0.30), -distance_to_own_pads_and_silk):
-     stop paying for clearance beyond 0.30 mm, then maximise closeness;
+     plus the label's CURRENT spot (first, so a settled label wins ties);
+  2. accept only spots check_silk passes, judged by check_silk's own
+     functions and text model (rule_verdict: over_pad + attribution), so
+     anything placed here passes check_silk; then score = (tier,
+     min(clearance, 0.30), -own_off) where tier 2 = no other part nearer
+     than the label's own pads, 1 = merely passes ("attribution beats
+     closeness", LEARNINGS 2026-08-09 [silk_place][check_silk]);
   3. process the MOST CROWDED parts first (descending neighbour count
-     within 4 mm) - largest-first orphans the boxed-in small caps.
+     within 4 mm) - largest-first orphans the boxed-in small caps. Every
+     target's CURRENT label stays an obstacle until that target is
+     decided, so an earlier label never lands on one that stays put.
+
+Pad obstacles are the pads' MASK apertures (copper grown by the board's
+pad_to_mask_clearance or a part's solder_mask_margin): KiCad's "silkscreen
+clipped by solder mask" test measures silk against those. A label with no
+spot that passes check_silk is reported unplaceable (residual, with the
+fix: hide it and keep it on the fab layer, or shrink it) and left where it
+is - never moved to a spot check_silk would flag.
 
 Text box: per-char advance 0.845*size + stroke, height size + stroke
 (placelib.text_box, measured constants - 0.75 and 1.0 per char are both
@@ -41,13 +55,15 @@ from pathlib import Path
 
 from shapely.geometry import Point, Polygon, box
 from shapely.ops import unary_union
-from shapely import affinity
+from shapely import STRtree, affinity
 
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS / "lib"))
 sys.path.insert(0, str(SCRIPTS))
 
+import check_silk  # noqa: E402
 import checklib  # noqa: E402
+import geom  # noqa: E402
 import placelib  # noqa: E402
 from checklib import CheckError  # noqa: E402
 from geom import _is_node, _kid, _kids, _nums, _pts, _rot, _strs, _tok  # noqa: E402
@@ -69,22 +85,31 @@ def _fp_abs(pos, deg, local):
 
 
 def parse_board(pcb: Path):
-    """-> (ref_texts {ref: {...}}, silk {side: [geoms]}, gr_texts [...]).
+    """-> (ref_texts {ref: {...}}, silk {side: [(geom, owner)]},
+    mask_margin {ref: mm}).
 
     ref_texts: local position + ABSOLUTE angle + font of every Reference
     property; silk: footprint silk graphics + board gr_* silk items as
-    absolute shapely geoms per side."""
+    absolute shapely geoms per side; mask_margin: how far each part's pad
+    mask apertures grow past its copper (KiCad's clipped-by-mask test is
+    silk vs those apertures)."""
     import sexpdata
     tree = sexpdata.loads(pcb.read_text(encoding="utf-8"))
     ref_texts: dict[str, dict] = {}
     silk = {"front": [], "back": []}
+    mask_margin: dict[str, float] = {}
+    setup = _kid(tree, "setup")
+    ptm = _kid(setup, "pad_to_mask_clearance") if setup is not None else None
+    board_margin = _nums(ptm)[0] if ptm is not None and _nums(ptm) else 0.0
 
     def _silk_side(layer):
         return "front" if layer == "F.SilkS" else \
             "back" if layer == "B.SilkS" else None
 
-    def _font(node):
-        size, thick = 1.0, 0.15
+    def _font_xy(node):
+        """(size_x, size_y, thickness) - check_silk measures height off
+        size_y, so the rule geometry needs both."""
+        sx, sy, thick = 1.0, 1.0, 0.15
         eff = _kid(node, "effects")
         if eff is not None:
             font = _kid(eff, "font")
@@ -93,13 +118,18 @@ def parse_board(pcb: Path):
                 if s is not None:
                     ns = _nums(s)
                     if ns:
-                        size = ns[0]
+                        sx = ns[0]
+                        sy = ns[1] if len(ns) > 1 else ns[0]
                 t = _kid(font, "thickness")
                 if t is not None:
                     nt = _nums(t)
                     if nt:
                         thick = nt[0]
-        return size, thick
+        return sx, sy, thick
+
+    def _font(node):
+        sx, _, thick = _font_xy(node)
+        return sx, thick
 
     def _hidden(node):
         # (hide yes) hides, (hide no) does not - test the VALUE (LEARNINGS)
@@ -161,14 +191,23 @@ def parse_board(pcb: Path):
                 lay = _kid(prop, "layer")
                 layer = _strs(lay)[0] if lay is not None and _strs(lay) \
                     else "F.SilkS"
-                size, thick = _font(prop)
+                size, size_y, thick = _font_xy(prop)
                 ref_texts[ref] = {
                     "local": (pn[0], pn[1]),
                     "deg": pn[2] if len(pn) > 2 else 0.0,   # ABSOLUTE
-                    "layer": layer, "size": size, "thickness": thick,
-                    "hidden": _hidden(prop),
+                    "layer": layer, "size": size, "size_y": size_y,
+                    "thickness": thick, "hidden": _hidden(prop),
                 }
                 break
+        # solder-mask aperture growth for this part's pads: the largest
+        # footprint- or pad-level (solder_mask_margin) override, else the
+        # board's (pad_to_mask_clearance) - conservative per part
+        margins = [_nums(m)[0] for m in
+                   [_kid(fp, "solder_mask_margin")]
+                   + [_kid(p, "solder_mask_margin") for p in _kids(fp, "pad")]
+                   if m is not None and _nums(m)]
+        if ref is not None:
+            mask_margin[ref] = max(margins) if margins else board_margin
         # footprint silk graphics -> absolute geoms
         for head in ("fp_line", "fp_rect", "fp_circle", "fp_poly", "fp_arc"):
             for g in _kids(fp, head):
@@ -228,7 +267,7 @@ def parse_board(pcb: Path):
             geo = _graphic_geom(g, head)
             if geo is not None and not geo.is_empty:
                 silk[side].append((geo, None))
-    return ref_texts, silk
+    return ref_texts, silk, mask_margin
 
 
 # ---------------------------------------------------------------- geometry
@@ -284,9 +323,13 @@ def _candidates(fp, info, own_pads_local_top):
     return cands
 
 
-def _clearance(boxp, obstacles, cap):
-    """min distance to obstacles (bounds-prefiltered); None on intersection."""
+def _clearance(boxp, obstacles, cap, tree=None):
+    """min distance to obstacles (bounds-prefiltered, through `tree` - an
+    STRtree over `obstacles` - when given); None on intersection."""
     bx0, by0, bx1, by1 = boxp.bounds
+    if tree is not None:
+        near = tree.query(box(bx0 - cap, by0 - cap, bx1 + cap, by1 + cap))
+        obstacles = [obstacles[int(i)] for i in near]
     clear = cap
     for ob in obstacles:
         ox0, oy0, ox1, oy1 = ob.bounds
@@ -301,10 +344,53 @@ def _clearance(boxp, obstacles, cap):
     return clear
 
 
+UNPLACEABLE_FIX = ("hide this reference on silk and keep it on the fab "
+                   "layer for assembly, or shrink the refdes text to 0.8 mm "
+                   "(check_silk's legibility floor) and re-run")
+
+
+def rule_verdict(ref, info, x, y, deg, side_pads, boxes):
+    """check_silk's verdict on this refdes at (x, y, deg), from check_silk's
+    own functions and text model -> (failure | None, own_off, attribution).
+
+    Two rules: silk_over_pad (the label over a pad's mask opening) and
+    silk_misattributed (too far from its own pads and too near another
+    part's). A spot that fails either is never accepted, so anything this
+    solver places passes check_silk."""
+    g = check_silk.text_geom(ref, x, y, deg, info["size"],
+                             info.get("size_y", info["size"]),
+                             info["thickness"])
+    att = check_silk.attribution(ref, g, boxes)
+    own_off = att[0] if att is not None else 0.0
+    pads, tree = side_pads
+    for i in sorted(int(j) for j in tree.query(g)):
+        hit, _ = check_silk.over_pad(g, pads[i])
+        if hit:
+            return (f"covers pad {pads[i].ref}.{pads[i].number} "
+                    "(silk_over_pad)", own_off, att)
+    if att is not None and att[3]:
+        _, nearest_ref, nearest_d, _ = att
+        return (f"{own_off:.2f} mm beyond its own pads and {nearest_d:.2f} "
+                f"mm from {nearest_ref} (silk_misattributed)", own_off, att)
+    return None, own_off, att
+
+
+def _unplaceable(ref, collision_free, nearest_fail):
+    """Residual entry for a label with no spot that passes check_silk."""
+    if not collision_free:
+        why = ("no collision-free candidate within +3.0 mm push (channel "
+               "narrower than the label)")
+    else:
+        why = (f"none of {collision_free} collision-free spots passes "
+               f"check_silk; the closest is {nearest_fail[1]}")
+    return {"ref": ref, "reason": why, "unplaceable": True,
+            "suggest": UNPLACEABLE_FIX}
+
+
 def solve(pcb: Path, refs: list[str] | None, min_clear: float):
     """-> (ops, results, residual, skipped) - pure geometry, no board writes."""
     model = placelib.PlaceModel(pcb)
-    ref_texts, silk = parse_board(pcb)
+    ref_texts, silk, mask_margin = parse_board(pcb)
     outline = model.outline
 
     targets = []
@@ -340,13 +426,18 @@ def solve(pcb: Path, refs: list[str] | None, min_clear: float):
     targets.sort(key=lambda r: (-crowd(r), r))
     target_set = set(targets)
 
-    # static obstacles per side: pads (through pads on both), silk graphics
-    # (a part's own geoms are excluded per-candidate), non-target labels
+    # static obstacles per side: pad MASK APERTURES (through pads on both;
+    # copper grown by the mask margin - what KiCad's "silkscreen clipped by
+    # solder mask" test measures), silk graphics (a part's own geoms are
+    # excluded per-candidate), non-target labels
     static = {"front": [], "back": []}
     own_geoms: dict[str, list] = {r: [] for r in model.footprints}
     for ref in sorted(model.footprints):
         fp = model.footprints[ref]
+        grow = mask_margin.get(ref, 0.0)
         for i, pp in enumerate(_pad_polys_abs(fp)):
+            if grow > 0:
+                pp = pp.buffer(grow, join_style=2)
             through = fp.pads[i].through
             for side in ("front", "back"):
                 if side == fp.side or through:
@@ -364,43 +455,71 @@ def solve(pcb: Path, refs: list[str] | None, min_clear: float):
         static[side].append((_current_box(ref, model.footprints[ref], info),
                              ref))
 
+    # check_silk's own view of the board: its pad shapes and pad-extent
+    # boxes, so every candidate is judged by the checker's rules verbatim
+    bg = geom.load_board(pcb)
+    rule_boxes = check_silk.pad_extent_boxes(bg)
+    rule_pads = {}
+    for side, letter in (("front", "F"), ("back", "B")):
+        pads = [p for p in bg.pads_of() if letter in check_silk.pad_side(p)]
+        rule_pads[side] = (pads, STRtree([p.poly for p in pads]))
+
     ops, results, residual = [], [], []
+    # every target's CURRENT label is an obstacle until that target is
+    # decided, so an earlier label never lands on one that ends up staying
+    pending = {r: _current_box(r, model.footprints[r], ref_texts[r])
+               for r in targets}
     placed_boxes = {"front": [], "back": []}
+    side_of = {r: "front" if ref_texts[r]["layer"].startswith("F.")
+               else "back" for r in targets}
     for ref in targets:
         fp = model.footprints[ref]
         info = ref_texts[ref]
-        side = "front" if info["layer"].startswith("F.") else "back"
+        side = side_of[ref]
+        del pending[ref]
         obstacles = [g for g, owner in static[side] if owner != ref] \
-            + own_geoms[ref] + placed_boxes[side]
-        own = unary_union(own_geoms[ref]) if own_geoms[ref] \
-            else ext_of[ref]
+            + own_geoms[ref] + placed_boxes[side] \
+            + [b for r, b in pending.items() if side_of[r] == side]
+        obstacle_tree = STRtree(obstacles)
         pad_top = min((p.local[1]
                        - (abs(math.sin(math.radians(p.rot))) * p.size[0]
                           + abs(math.cos(math.radians(p.rot))) * p.size[1]) / 2
                        for p in fp.pads), default=None)
-        best, best_score = None, None
-        for (x, y, deg) in _candidates(fp, info, pad_top):
+        cur = _fp_abs(fp.pos, fp.angle, info["local"])
+        best, best_score, nearest_fail = None, None, None
+        collision_free = 0
+        for (x, y, deg) in [(cur[0], cur[1], info["deg"])] \
+                + _candidates(fp, info, pad_top):
             b = placelib.text_box(ref, info["size"], info["thickness"],
                                   x, y, deg)
             if not b.within(outline):
                 continue
-            clear = _clearance(b, obstacles, CLEAR_CAP)
+            clear = _clearance(b, obstacles, CLEAR_CAP, obstacle_tree)
             if clear is None or clear <= max(min_clear, HARD_FLOOR):
                 continue
-            score = (round(min(clear, CLEAR_CAP), 3),
-                     -round(b.distance(own), 3))
+            collision_free += 1
+            fail, own_off, att = rule_verdict(ref, info, x, y, deg,
+                                              rule_pads[side], rule_boxes)
+            if fail is not None:
+                if nearest_fail is None or own_off < nearest_fail[0]:
+                    nearest_fail = (own_off, fail)
+                continue
+            if att is None:              # padless part: closeness only
+                own_off = b.distance(ext_of[ref])
+            # a label no other part is nearer to outranks one that merely
+            # passes; then clearance (capped), then closeness to own pads
+            tier = 2 if att is None or att[1] is None else 1
+            score = (tier, round(min(clear, CLEAR_CAP), 3),
+                     -round(own_off, 3))
             if best_score is None or score > best_score:
                 best, best_score = (x, y, deg, b), score
         if best is None:
-            residual.append({"ref": ref, "reason":
-                             "no collision-free candidate within +3.0 mm "
-                             "push (channel narrower than the label)"})
+            residual.append(_unplaceable(ref, collision_free, nearest_fail))
             # current box stays; count it as an obstacle for later labels
             placed_boxes[side].append(_current_box(ref, fp, info))
             continue
         x, y, deg, b = best
         placed_boxes[side].append(b)
-        cur = _fp_abs(fp.pos, fp.angle, info["local"])
         moved = (abs(cur[0] - x) > 1e-3 or abs(cur[1] - y) > 1e-3
                  or place_edit_angdiff(info["deg"], deg) > 0.05)
         if moved:
@@ -409,7 +528,7 @@ def solve(pcb: Path, refs: list[str] | None, min_clear: float):
                         "deg": checklib.rnd(deg)})
         beyond = b.distance(_pad_extent_abs(fp))
         results.append({"ref": ref, "moved": moved,
-                        "clearance_mm": best_score[0],
+                        "clearance_mm": best_score[1],
                         "beyond_extent_mm": checklib.rnd(beyond)})
     return ops, results, residual, skipped, model, ref_texts
 
@@ -494,13 +613,16 @@ def run(argv: list[str] | None = None):
 
     violations = [checklib.violation(
         SCRIPT, "warning", None, None, None, [r["ref"]],
-        f"{r['ref']}: {r['reason']}", SCRIPT, kind="silk_residual")
+        f"{r['ref']}: unplaceable - {r['reason']}; label left where it is. "
+        f"Fix: {r['suggest']}", SCRIPT, kind="silk_residual",
+        suggest=r["suggest"])
         for r in residual]
 
     facts = {
         "targets": len(results) + len(residual),
         "moved": len(ops),
         "residual": residual,
+        "unplaceable": [r["ref"] for r in residual],
         "skipped": skipped,
         "min_silk_clearance": min_clear,
         "median_beyond_extent_mm_before": _median(before),

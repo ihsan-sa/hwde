@@ -58,6 +58,57 @@ Written by `human_corpus.py table`; docs/human-corpus.md says how to read it. ve
 | [tokay-lite-rev3.1](#tokay-lite-rev3.1) | 4-layer | 4 |  | violations | 46 / 218 | violations | 38 / 40 |
 | [ottercast-audio-v2](#ottercast-audio-v2) | 4-layer | 4 |  | violations | 23 / 290 | violations | 152 / 160 |
 | [mackerel-68k](#mackerel-68k) | 4-layer | 4 |  | violations | 20 / 10 | violations | 7 / 8 |
+| [moteus-c1-r1.1](#moteus-c1-r1.1) | motor | 4 |  | violations | 47 / 175 | violations | 380 / 385 |
+| [moteus-c1-r1.2](#moteus-c1-r1.2) | motor | 4 |  | violations | 47 / 177 | violations | 381 / 386 |
+| [moteus-x1-r1](#moteus-x1-r1) | motor | 6 |  | error | 3 / 238 | violations | 1874 / 1878 |
+| [rp2040-motor-driver](#rp2040-motor-driver) | motor | 4 |  | violations | 20 / 15 | violations | 173 / 175 |
+| [rp2040-motor-base](#rp2040-motor-base) | motor | 4 |  | error | 66 / 5 | violations | 21 / 23 |
+| [pcb-motor-stator](#pcb-motor-stator) | motor | 2 |  | violations | 0 / 6 | violations | 192 / 192 |
+| [bldc-motor-power](#bldc-motor-power) | motor | 4 |  | violations | 2 / 15 | violations | 462 / 462 |
+| [wisweep-driver](#wisweep-driver) | motor | 4 |  | error | 18 / 61 | violations | 89 / 120 |
+| [catsniffer](#catsniffer) | rf | 4 | product | error | 5 / 106 | violations | 40 / 44 |
+| [solar-meshtastic-node](#solar-meshtastic-node) | rf | 4 |  | violations | 22 / 6 | violations | 14 / 16 |
+| [mikoto](#mikoto) | rf | 4 |  | violations | 2 / 63 | violations | 67 / 69 |
+| [tallytime](#tallytime) | rf | 4 |  | violations | 40 / 6 | violations | 308 / 321 |
+| [analog-toolkit](#analog-toolkit) | analog | 4 |  | violations | 5 / 101 | violations | 310 / 312 |
+| [cats-diode-ladder-vcf](#cats-diode-ladder-vcf) | analog | 2 |  | violations | 19 / 2 | violations | 12 / 25 |
+| [nudac](#nudac) | analog | 4 |  | violations | 1 / 64 | violations | 281 / 283 |
+| [gameboy-hifi-audio](#gameboy-hifi-audio) | analog | 4 |  | violations | 26 / 23 | pass | 0 / 2 |
+| [eurorack-pmod-r3.2](#eurorack-pmod-r3.2) | analog | 4 |  | violations | 264 / 28 | violations | 106 / 120 |
+| [eurorack-pmod-r3.5](#eurorack-pmod-r3.5) | analog | 6 |  | violations | 21 / 36 | violations | 350 / 355 |
+| [winterbloom-helium](#winterbloom-helium) | analog | 2 | product | violations | 100 / 95 | violations | 73 / 139 |
+| [winterbloom-speak-to-me](#winterbloom-speak-to-me) | analog | 4 | product | violations | 84 / 7 | violations | 35 / 67 |
+| [pslab](#pslab) | analog | 4 | product | violations | 26 / 210 | violations | 264 / 266 |
+| [winterbloom-micronova](#winterbloom-micronova) | power | 2 | product | violations | 44 / 50 | violations | 15 / 18 |
+| [pico-ice-rev3](#pico-ice-rev3) | mcu-usb | 4 | product | violations | 13 / 38 | violations | 34 / 42 |
+| [jetson-nano-baseboard](#jetson-nano-baseboard) | 4-layer | 8 |  | error | 177 / 451 | no report (exit 2) | 0 / 0 |
+| [hdmi-mipi-bridge](#hdmi-mipi-bridge) | 4-layer | 4 |  | error | 36 / 124 | violations | 1674 / 1677 |
+| [d1600e-psu-breakout](#d1600e-psu-breakout) | power | 4 |  | violations | 89 / 257 | violations | 2607 / 2609 |
+| [esp32-evb-rev-l](#esp32-evb-rev-l) | mcu-usb | 2 | product | error | 7 / 176 | violations | 193 / 197 |
+| [otterpill-v1.4](#otterpill-v1.4) | mcu-usb | 2 | product | violations | 13 / 127 | violations | 73 / 76 |
+| [pd-injector](#pd-injector) | power | 2 |  | violations | 0 / 14 | violations | 39 / 41 |
+| [opengps](#opengps) | rf | 6 |  | pass | 0 / 0 | violations | 1 / 1 |
+| [byrandev-nrf52840](#byrandev-nrf52840) | rf | 2 |  | error | 7 / 72 | violations | 10 / 12 |
+| [stm32-nrf24-node-revb](#stm32-nrf24-node-revb) | rf | 2 |  | error | 9 / 50 | violations | 15 / 17 |
+| [gnss-7-seg-clock](#gnss-7-seg-clock) | rf | 2 |  | violations | 22 / 10 | violations | 3 / 5 |
+| [meshsat-aprs](#meshsat-aprs) | rf | 4 |  | violations | 33 / 148 | violations | 49 / 85 |
+| [meshsat-rfjunction](#meshsat-rfjunction) | rf | 2 |  | pass | 0 / 0 | pass | 0 / 1 |
+| [sincos-interpolator](#sincos-interpolator) | analog | 2 |  | violations | 15 / 3 | violations | 4 / 5 |
+| [guitar-pedal-stm32](#guitar-pedal-stm32) | analog | 4 |  | violations | 2 / 107 | violations | 15 / 18 |
+| [winterbloom-hydrogen](#winterbloom-hydrogen) | analog | 2 |  | violations | 52 / 49 | violations | 57 / 93 |
+| [temperature-logger](#temperature-logger) | analog | 4 |  | violations | 5 / 168 | violations | 26 / 34 |
+| [moteus-c1-r1.0](#moteus-c1-r1.0) | motor | 4 |  | violations | 49 / 178 | violations | 378 / 383 |
+| [jiran-ble-lite](#jiran-ble-lite) | mcu-usb | 2 |  | violations | 15 / 8 | violations | 372 / 373 |
+| [anotter-sensor-hub](#anotter-sensor-hub) | mcu-usb | 2 |  | violations | 3 / 60 | violations | 10 / 12 |
+| [pico-ice-rev2](#pico-ice-rev2) | mcu-usb | 4 |  | violations | 94 / 35 | violations | 40 / 53 |
+| [eurorack-pmod-r3.3](#eurorack-pmod-r3.3) | analog | 4 |  | violations | 264 / 27 | violations | 101 / 116 |
+| [pico-evb](#pico-evb) | mcu-usb | 2 |  | violations | 1 / 124 | violations | 6 / 9 |
+| [esp32-p4-pc-rev-c](#esp32-p4-pc-rev-c) | 4-layer | 4 |  | violations | 33 / 170 | violations | 47 / 51 |
+| [kria-k26-devboard](#kria-k26-devboard) | 4-layer | 8 |  | error | 384 / 666 | no report (exit 2) | 0 / 0 |
+| [scalenode-cm4-baseboard](#scalenode-cm4-baseboard) | 4-layer | 4 |  | error | 47 / 170 | violations | 3990 / 4003 |
+| [gmsl-serializer](#gmsl-serializer) | 4-layer | 4 |  | error | 56 / 130 | violations | 77 / 90 |
+| [sdi-mipi-bridge](#sdi-mipi-bridge) | 4-layer | 6 |  | violations | 121 / 275 | violations | 3720 / 3736 |
+| [usb-c-fusb302-pi](#usb-c-fusb302-pi) | power | 4 |  | violations | 193 / 11 | violations | 88 / 89 |
 
 ## Error findings by kind
 
@@ -65,26 +116,26 @@ How many boards each kind of error finding fires on: a kind that fires on most b
 
 | check / kind | boards |
 |---|---|
-| check_silk / silk_over_pad | 42 |
-| check.dfm / dfm_hole_to_hole | 33 |
-| check.dfm / dfm_clearance | 28 |
-| check.dfm / dfm_copper_to_edge | 27 |
-| check.dfm / dfm_silk_over_pad | 25 |
-| check.dfm / dfm_annular_ring | 24 |
-| check.dfm / dfm_hole_to_edge | 9 |
-| check.dfm / dfm_open_outline | 7 |
-| check_mating / mating_zone_blocked | 7 |
-| check_diffpair / diffpair_skew | 6 |
-| check.dfm / pad_net_mismatch | 4 |
-| check_diffpair / diffpair_uncoupled | 4 |
+| check_silk / silk_over_pad | 88 |
+| check.dfm / dfm_hole_to_hole | 71 |
+| check.dfm / dfm_copper_to_edge | 57 |
+| check.dfm / dfm_clearance | 56 |
+| check.dfm / dfm_silk_over_pad | 49 |
+| check.dfm / dfm_annular_ring | 42 |
+| check.dfm / dfm_hole_to_edge | 16 |
+| check.dfm / dfm_pad_tented | 12 |
+| check_diffpair / diffpair_skew | 12 |
+| check_mating / mating_zone_blocked | 12 |
+| check.dfm / dfm_open_outline | 10 |
+| check.dfm / dfm_trace_width | 10 |
+| check_diffpair / diffpair_uncoupled | 9 |
+| check.dfm / pad_net_mismatch | 8 |
+| check.dfm / dfm_hole_size | 6 |
+| check_mating / mating_mouth_inset | 4 |
 | castellation / castellated_unmarked | 3 |
-| check.dfm / dfm_hole_size | 3 |
-| check.dfm / dfm_trace_width | 3 |
 | castellation / castellated_pad_extension | 2 |
-| check.dfm / dfm_pad_tented | 2 |
+| check.dfm / dfm_missing_layer | 2 |
 | check_mating / mating_faces_inward | 2 |
-| check.dfm / dfm_missing_layer | 1 |
-| check_mating / mating_mouth_inset | 1 |
 
 ## Per-board findings
 
@@ -1864,3 +1915,1803 @@ verify_all checks: check_creepage skipped, check_current skipped, check_decoupli
 | error | check.dfm / dfm_annular_ring | annular ring 0.0875 mm below JLC minimum 0.1 mm | @ (201.1, 24.5) |
 
 13 more in `runs/mackerel-68k/reports/`.
+
+### moteus-c1-r1.1
+
+https://github.com/mjbots/moteus at `8f747f4ac448`, `hw/c1/r1.1/moteus_c1.kicad_pcb`, Apache-2.0, motor, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "+   +" on B.SilkS covers pad ?.1 (0.12 mm2) | ? @ (140.2, 84.9) |
+| error | check_silk / silk_over_pad | silk "+   +" on B.SilkS covers pad ?.1 (0.12 mm2) | ? @ (144.5, 84.9) |
+| error | check_silk / silk_over_pad | silk "B" on B.SilkS covers pad ?.1 (0.14 mm2) | ? @ (149.6, 84.9) |
+| error | check_silk / silk_over_pad | silk "-  -" on B.SilkS covers pad ?.1 (0.13 mm2) | ? @ (154.7, 84.9) |
+| error | check_silk / silk_over_pad | silk "C" on B.SilkS covers pad ?.1 (0.14 mm2) | ? @ (139.4, 84.9) |
+| error | check_silk / silk_over_pad | silk "A" on B.SilkS covers pad ?.1 (0.12 mm2) | ? @ (159.8, 84.9) |
+| error | check_silk / silk_over_pad | silk "(c) 2023" on F.SilkS covers pad ?.22 (0.11 mm2) | ? @ (148.6, 102.2) |
+| error | check_silk / silk_over_pad | silk "(c) 2023" on F.SilkS covers pad ?.23 (0.13 mm2) | ? @ (148.9, 102.6) |
+| error | check_silk / silk_over_pad | silk "(c) 2023" on F.SilkS covers pad ?.24 (0.13 mm2) | ? @ (149.3, 102.9) |
+| error | check_silk / silk_over_pad | silk "(c) 2023" on F.SilkS covers pad ?.25 (0.12 mm2) | ? @ (149.6, 103.3) |
+| error | check_silk / silk_over_pad | silk "B" on F.SilkS covers pad ?.1 (0.16 mm2) | ? @ (150.4, 84.9) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.5 (0.25 mm2) | ? @ (153.3, 86.7) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.6 (0.25 mm2) | ? @ (152.6, 86.7) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.7 (0.25 mm2) | ? @ (152.0, 86.7) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.8 (0.25 mm2) | ? @ (151.3, 86.7) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.1" on F.SilkS covers pad ?.25 (0.10 mm2) | ? @ (149.6, 103.3) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.1" on F.SilkS covers pad ?.26 (0.13 mm2) | ? @ (150.0, 103.6) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.1" on F.SilkS covers pad ?.27 (0.13 mm2) | ? @ (150.3, 104.0) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.1" on F.SilkS covers pad ?.28 (0.13 mm2) | ? @ (150.7, 104.3) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.1" on F.SilkS covers pad ?.33 (0.13 mm2) | ? @ (153.0, 104.3) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.1" on F.SilkS covers pad ?.34 (0.13 mm2) | ? @ (153.4, 104.0) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.1" on F.SilkS covers pad ?.35 (0.09 mm2) | ? @ (153.7, 103.6) |
+| error | check_silk / silk_over_pad | silk "A" on F.SilkS covers pad ?.1 (0.16 mm2) | ? @ (160.6, 84.9) |
+| error | check_silk / silk_over_pad | silk "G" on F.SilkS covers pad ?.2 (0.18 mm2) | ? @ (162.3, 102.4) |
+| error | check_silk / silk_over_pad | silk "G" on F.SilkS covers pad ?.1 (0.28 mm2) | ? @ (162.3, 103.4) |
+
+582 more in `runs/moteus-c1-r1.1/reports/`.
+
+### moteus-c1-r1.2
+
+https://github.com/mjbots/moteus at `8f747f4ac448`, `hw/c1/r1.2/moteus_c1.kicad_pcb`, Apache-2.0, motor, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "+   +" on B.SilkS covers pad ?.1 (0.12 mm2) | ? @ (140.2, 84.9) |
+| error | check_silk / silk_over_pad | silk "+   +" on B.SilkS covers pad ?.1 (0.12 mm2) | ? @ (144.5, 84.9) |
+| error | check_silk / silk_over_pad | silk "B" on B.SilkS covers pad ?.1 (0.14 mm2) | ? @ (149.6, 84.9) |
+| error | check_silk / silk_over_pad | silk "-  -" on B.SilkS covers pad ?.1 (0.13 mm2) | ? @ (154.7, 84.9) |
+| error | check_silk / silk_over_pad | silk "C" on B.SilkS covers pad ?.1 (0.14 mm2) | ? @ (139.4, 84.9) |
+| error | check_silk / silk_over_pad | silk "A" on B.SilkS covers pad ?.1 (0.12 mm2) | ? @ (159.8, 84.9) |
+| error | check_silk / silk_over_pad | silk "(c) 2024" on F.SilkS covers pad ?.22 (0.11 mm2) | ? @ (148.6, 102.2) |
+| error | check_silk / silk_over_pad | silk "(c) 2024" on F.SilkS covers pad ?.23 (0.13 mm2) | ? @ (148.9, 102.6) |
+| error | check_silk / silk_over_pad | silk "(c) 2024" on F.SilkS covers pad ?.24 (0.13 mm2) | ? @ (149.3, 102.9) |
+| error | check_silk / silk_over_pad | silk "(c) 2024" on F.SilkS covers pad ?.25 (0.12 mm2) | ? @ (149.6, 103.3) |
+| error | check_silk / silk_over_pad | silk "B" on F.SilkS covers pad ?.1 (0.16 mm2) | ? @ (150.4, 84.9) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.5 (0.25 mm2) | ? @ (153.3, 86.7) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.6 (0.25 mm2) | ? @ (152.6, 86.7) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.7 (0.25 mm2) | ? @ (152.0, 86.7) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.8 (0.25 mm2) | ? @ (151.3, 86.7) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.2" on F.SilkS covers pad ?.25 (0.10 mm2) | ? @ (149.6, 103.3) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.2" on F.SilkS covers pad ?.26 (0.13 mm2) | ? @ (150.0, 103.6) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.2" on F.SilkS covers pad ?.27 (0.13 mm2) | ? @ (150.3, 104.0) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.2" on F.SilkS covers pad ?.28 (0.13 mm2) | ? @ (150.7, 104.3) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.2" on F.SilkS covers pad ?.33 (0.13 mm2) | ? @ (153.0, 104.3) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.2" on F.SilkS covers pad ?.34 (0.13 mm2) | ? @ (153.4, 104.0) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.2" on F.SilkS covers pad ?.35 (0.09 mm2) | ? @ (153.7, 103.6) |
+| error | check_silk / silk_over_pad | silk "A" on F.SilkS covers pad ?.1 (0.16 mm2) | ? @ (160.6, 84.9) |
+| error | check_silk / silk_over_pad | silk "G" on F.SilkS covers pad ?.2 (0.18 mm2) | ? @ (162.3, 102.4) |
+| error | check_silk / silk_over_pad | silk "G" on F.SilkS covers pad ?.1 (0.28 mm2) | ? @ (162.3, 103.4) |
+
+585 more in `runs/moteus-c1-r1.2/reports/`.
+
+### moteus-x1-r1
+
+https://github.com/mjbots/moteus at `8f747f4ac448`, `hw/x1/r1/moteus_x1.kicad_pcb`, Apache-2.0, motor, 6 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair error, check_mating violations, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "FAN" on F.SilkS covers pad M1.1 (0.16 mm2) | M1 @ (126.6, 76.6) |
+| error | check_silk / silk_over_pad | silk "moteus-x1 r1" on F.SilkS covers pad R9.2 (0.28 mm2) | R9 @ (137.7, 102.8) |
+| error | check_mating / mating_zone_blocked | J3 (wire_to_board_side): SWD1 sit in the plug's insertion zone in front of its mouth (12.0 mm plug + 3.0 mm grip) | J3, SWD1 @ (114.5, 114.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0310 mm below JLC minimum 0.0889 mm on F.Cu | @ (125.6, 108.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0821 mm below JLC minimum 0.0889 mm on F.Cu | @ (124.5, 113.2) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0410 mm below JLC minimum 0.0889 mm on F.Cu | @ (128.5, 118.6) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0410 mm below JLC minimum 0.0889 mm on F.Cu | @ (134.2, 98.5) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0374 mm below JLC minimum 0.0889 mm on F.Cu | @ (134.1, 98.6) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0374 mm below JLC minimum 0.0889 mm on F.Cu | @ (134.1, 99.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0160 mm below JLC minimum 0.0889 mm on F.Cu | @ (134.2, 99.5) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0118 mm below JLC minimum 0.0889 mm on F.Cu | @ (139.1, 90.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0118 mm below JLC minimum 0.0889 mm on F.Cu | @ (139.1, 91.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0246 mm below JLC minimum 0.0889 mm on F.Cu | @ (137.8, 91.2) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0160 mm below JLC minimum 0.0889 mm on F.Cu | @ (137.9, 91.5) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0246 mm below JLC minimum 0.0889 mm on F.Cu | @ (137.9, 91.6) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0118 mm below JLC minimum 0.0889 mm on F.Cu | @ (137.6, 91.8) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0118 mm below JLC minimum 0.0889 mm on F.Cu | @ (139.1, 91.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0160 mm below JLC minimum 0.0889 mm on F.Cu | @ (137.7, 92.1) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0160 mm below JLC minimum 0.0889 mm on F.Cu | @ (135.3, 98.5) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0118 mm below JLC minimum 0.0889 mm on F.Cu | @ (136.2, 98.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0246 mm below JLC minimum 0.0889 mm on F.Cu | @ (135.3, 98.6) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0118 mm below JLC minimum 0.0889 mm on F.Cu | @ (134.5, 98.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0160 mm below JLC minimum 0.0889 mm on F.Cu | @ (135.1, 99.0) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0118 mm below JLC minimum 0.0889 mm on F.Cu | @ (135.0, 99.1) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0005 mm below JLC minimum 0.0889 mm on F.Cu | @ (134.4, 99.2) |
+
+2094 more in `runs/moteus-x1-r1/reports/`.
+
+### rp2040-motor-driver
+
+https://github.com/Twisted-Fields/rp2040-motor-controller at `d51dc5441ad7`, `driver_module/driver_module.kicad_pcb`, CERN-OHL-P-2.0, motor, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_diffpair / diffpair_skew | diff pair /A_P//A_N length skew 31.79 mm (~225 ps, eps_r 4.5); limit 5.0 mm | /A_P @ (131.0, 117.0) |
+| error | check_diffpair / diffpair_skew | diff pair /C_P//C_N length skew 21.49 mm (~152 ps, eps_r 4.5); limit 5.0 mm | /C_P @ (146.2, 91.7) |
+| error | check_silk / silk_over_pad | silk "H" on B.SilkS covers pad TP74.1 (0.72 mm2) | TP74 @ (152.2, 101.9) |
+| error | check_silk / silk_over_pad | silk "GND" on B.SilkS covers pad TP94.1 (0.89 mm2) | TP94 @ (177.3, 91.8) |
+| error | check_silk / silk_over_pad | silk "L" on B.SilkS covers pad C70.1 (0.81 mm2) | C70 @ (146.5, 109.2) |
+| error | check_silk / silk_over_pad | silk "Many thanks to Daniel Theobald and our supporters on " on B.SilkS covers pad D5.2 (0.40 mm2) | D5 @ (141.9, 84.7) |
+| error | check_silk / silk_over_pad | silk "L" on B.SilkS covers pad C9.2 (0.74 mm2) | C9 @ (140.4, 85.3) |
+| error | check_silk / silk_over_pad | silk "       open collective for funding this work!" on B.SilkS covers pad R28.2 (0.73 mm2) | R28 @ (151.2, 89.1) |
+| error | check_silk / silk_over_pad | silk "       open collective for funding this work!" on B.SilkS covers pad R1.1 (0.73 mm2) | R1 @ (154.3, 89.1) |
+| error | check_silk / silk_over_pad | silk "       open collective for funding this work!" on B.SilkS covers pad U2.5 (0.62 mm2) | U2 @ (144.3, 87.9) |
+| error | check_silk / silk_over_pad | silk "       open collective for funding this work!" on B.SilkS covers pad U2.6 (0.62 mm2) | U2 @ (145.5, 87.9) |
+| error | check_silk / silk_over_pad | silk "       open collective for funding this work!" on B.SilkS covers pad U2.7 (0.62 mm2) | U2 @ (146.8, 87.9) |
+| error | check_silk / silk_over_pad | silk "       open collective for funding this work!" on B.SilkS covers pad U2.8 (0.62 mm2) | U2 @ (148.1, 87.9) |
+| error | check_silk / silk_over_pad | silk "       open collective for funding this work!" on B.SilkS covers pad R8.1 (0.73 mm2) | R8 @ (149.7, 88.4) |
+| error | check_silk / silk_over_pad | silk "       open collective for funding this work!" on B.SilkS covers pad D6.2 (0.40 mm2) | D6 @ (152.8, 89.2) |
+| error | check_silk / silk_over_pad | silk "  Motor Control Module" on F.SilkS covers pad J4.9 (1.34 mm2) | J4 @ (130.8, 113.0) |
+| error | check_silk / silk_over_pad | silk "  Motor Control Module" on F.SilkS covers pad J4.10 (1.34 mm2) | J4 @ (130.8, 115.5) |
+| error | check_silk / silk_over_pad | silk "everyone." on F.SilkS covers pad U3.9 (0.36 mm2) | U3 @ (116.9, 98.3) |
+| error | check_silk / silk_over_pad | silk "everyone." on F.SilkS covers pad U3.9 (0.36 mm2) | U3 @ (116.9, 99.4) |
+| error | check_silk / silk_over_pad | silk "everyone." on F.SilkS covers pad U3.9 (0.36 mm2) | U3 @ (116.9, 100.5) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0017 mm below JLC minimum 0.1016 mm on F.Cu | @ (145.2, 114.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0413 mm below JLC minimum 0.1016 mm on B.Cu | @ (143.4, 106.6) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0540 mm below JLC minimum 0.1016 mm on B.Cu | @ (149.5, 108.0) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0687 mm below JLC minimum 0.1016 mm on B.Cu | @ (145.1, 107.6) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0831 mm below JLC minimum 0.1016 mm on B.Cu | @ (146.3, 107.6) |
+
+185 more in `runs/rp2040-motor-driver/reports/`.
+
+### rp2040-motor-base
+
+https://github.com/Twisted-Fields/rp2040-motor-controller at `d51dc5441ad7`, `RP2040_base/RP2040_base.kicad_pcb`, CERN-OHL-P-2.0, motor, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style error, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_diffpair / diffpair_uncoupled | diff pair /CAN0_P//CAN0_N has 11.44 mm of /CAN0_P running uncoupled (> 1.62 mm from its partner); limit 5.0 mm | /CAN0_P @ (87.5, 121.2) |
+| error | check_silk / silk_over_pad | silk "12" on B.SilkS covers pad JP13.3 (0.38 mm2) | JP13 @ (148.2, 129.5) |
+| error | check_silk / silk_over_pad | silk "Please clone this board!" on B.SilkS covers pad TP55.1 (0.72 mm2) | TP55 @ (122.8, 122.2) |
+| error | check_silk / silk_over_pad | silk "Please clone this board!" on B.SilkS covers pad TP51.1 (0.69 mm2) | TP51 @ (125.0, 122.1) |
+| error | check_silk / silk_over_pad | silk "Motor 1 Extra Filter" on B.SilkS covers pad J3.3 (3.10 mm2) | J3 @ (98.1, 70.3) |
+| error | check_silk / silk_over_pad | silk "Motor 2 Extra Filter" on B.SilkS covers pad R6.1 (1.38 mm2) | R6 @ (106.6, 117.3) |
+| error | check_silk / silk_over_pad | silk "Motor 2 Extra Filter" on B.SilkS covers pad R6.2 (1.38 mm2) | R6 @ (104.7, 117.3) |
+| error | check_silk / silk_over_pad | silk "Motor 2 Extra Filter" on B.SilkS covers pad C9.1 (1.26 mm2) | C9 @ (103.1, 117.7) |
+| error | check_silk / silk_over_pad | silk "Motor 2 Extra Filter" on B.SilkS covers pad C9.2 (0.91 mm2) | C9 @ (101.2, 117.7) |
+| error | check_silk / silk_over_pad | silk "Motor 2 Extra Filter" on B.SilkS covers pad JP5.1 (0.50 mm2) | JP5 @ (112.0, 116.8) |
+| error | check_silk / silk_over_pad | silk "Motor 2 Extra Filter" on B.SilkS covers pad JP5.2 (0.50 mm2) | JP5 @ (113.3, 116.8) |
+| error | check_silk / silk_over_pad | silk "The smallest change can be the beginning of something big." on B.SilkS covers pad J9.1 (2.39 mm2) | J9 @ (123.8, 126.0) |
+| error | check_silk / silk_over_pad | silk "The smallest change can be the beginning of something big." on B.SilkS covers pad J9.2 (1.98 mm2) | J9 @ (126.3, 126.0) |
+| error | check_silk / silk_over_pad | silk "The smallest change can be the beginning of something big." on B.SilkS covers pad TP12.1 (0.55 mm2) | TP12 @ (120.5, 125.8) |
+| error | check_silk / silk_over_pad | silk "We need your help. Fork the design and make it yours." on B.SilkS covers pad U2.20 (0.93 mm2) | U2 @ (119.3, 131.5) |
+| error | check_silk / silk_over_pad | silk "Designed by Sequoia Hope Alexander For Twisted Fields" on B.SilkS covers pad J19.2 (1.55 mm2) | J19 @ (184.2, 94.2) |
+| error | check_silk / silk_over_pad | silk "Designed by Sequoia Hope Alexander For Twisted Fields" on B.SilkS covers pad J19.4 (1.55 mm2) | J19 @ (186.7, 94.2) |
+| error | check_silk / silk_over_pad | silk "Designed by Sequoia Hope Alexander For Twisted Fields" on B.SilkS covers pad J19.6 (1.55 mm2) | J19 @ (189.2, 94.2) |
+| error | check_silk / silk_over_pad | silk "Designed by Sequoia Hope Alexander For Twisted Fields" on B.SilkS covers pad J19.8 (1.55 mm2) | J19 @ (191.8, 94.2) |
+| error | check_silk / silk_over_pad | silk "Designed by Sequoia Hope Alexander For Twisted Fields" on B.SilkS covers pad J19.10 (1.55 mm2) | J19 @ (194.3, 94.2) |
+| error | check_silk / silk_over_pad | silk "Designed by Sequoia Hope Alexander For Twisted Fields" on B.SilkS covers pad U33.9 (0.38 mm2) | U33 @ (157.4, 94.7) |
+| error | check_silk / silk_over_pad | silk "Designed by Sequoia Hope Alexander For Twisted Fields" on B.SilkS covers pad U33.9 (0.38 mm2) | U33 @ (158.4, 94.7) |
+| error | check_silk / silk_over_pad | silk "Designed by Sequoia Hope Alexander For Twisted Fields" on B.SilkS covers pad U33.9 (0.38 mm2) | U33 @ (159.4, 94.7) |
+| error | check_silk / silk_over_pad | silk "Designed by Sequoia Hope Alexander For Twisted Fields" on B.SilkS covers pad U33.9 (2.50 mm2) | U33 @ (158.4, 94.0) |
+| error | check_silk / silk_over_pad | silk "Designed by Sequoia Hope Alexander For Twisted Fields" on B.SilkS covers pad U1.12 (1.55 mm2) | U1 @ (109.2, 94.2) |
+
+69 more in `runs/rp2040-motor-base/reports/`.
+
+### pcb-motor-stator
+
+https://github.com/ziteh/pcb-motor at `dafc018e6b77`, `pcb-stator-radial/pcb-stator-radial.kicad_pcb`, MIT, motor, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk pass, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check.dfm / dfm_clearance | copper clearance 0.0873 mm below JLC minimum 0.127 mm on F.Cu | @ (133.6, 64.4) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0873 mm below JLC minimum 0.127 mm on F.Cu | @ (133.1, 64.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0874 mm below JLC minimum 0.127 mm on F.Cu | @ (131.9, 66.5) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0874 mm below JLC minimum 0.127 mm on F.Cu | @ (130.7, 68.4) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0874 mm below JLC minimum 0.127 mm on F.Cu | @ (129.7, 70.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0874 mm below JLC minimum 0.127 mm on F.Cu | @ (128.8, 72.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0874 mm below JLC minimum 0.127 mm on F.Cu | @ (128.0, 74.4) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0875 mm below JLC minimum 0.127 mm on F.Cu | @ (127.4, 76.5) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0875 mm below JLC minimum 0.127 mm on F.Cu | @ (126.9, 78.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0875 mm below JLC minimum 0.127 mm on F.Cu | @ (126.6, 80.9) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0876 mm below JLC minimum 0.127 mm on F.Cu | @ (126.4, 83.0) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0875 mm below JLC minimum 0.127 mm on F.Cu | @ (126.3, 85.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0875 mm below JLC minimum 0.127 mm on F.Cu | @ (126.4, 87.5) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0875 mm below JLC minimum 0.127 mm on F.Cu | @ (126.6, 89.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0874 mm below JLC minimum 0.127 mm on F.Cu | @ (127.0, 91.8) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0874 mm below JLC minimum 0.127 mm on F.Cu | @ (127.5, 94.0) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0874 mm below JLC minimum 0.127 mm on F.Cu | @ (128.2, 96.1) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0874 mm below JLC minimum 0.127 mm on F.Cu | @ (129.0, 98.1) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0874 mm below JLC minimum 0.127 mm on F.Cu | @ (129.9, 100.1) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0873 mm below JLC minimum 0.127 mm on F.Cu | @ (131.0, 102.1) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0873 mm below JLC minimum 0.127 mm on F.Cu | @ (132.1, 103.9) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0873 mm below JLC minimum 0.127 mm on F.Cu | @ (133.4, 105.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0873 mm below JLC minimum 0.127 mm on F.Cu | @ (134.9, 107.4) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0873 mm below JLC minimum 0.127 mm on F.Cu | @ (136.4, 109.0) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0873 mm below JLC minimum 0.127 mm on F.Cu | @ (138.0, 110.5) |
+
+173 more in `runs/pcb-motor-stator/reports/`.
+
+### bldc-motor-power
+
+https://github.com/brenocq/bldc-motor at `b74fb1d7a463`, `electronics/BLDCM-Power/BLDCM-Power.kicad_pcb`, MIT, motor, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_diffpair / diffpair_uncoupled | diff pair /CAN.DP//CAN.DN has 9.46 mm of /CAN.DP running uncoupled (> 0.85 mm from its partner); limit 5.0 mm | /CAN.DP @ (160.1, 102.4) |
+| error | check_silk / silk_over_pad | silk "CAN" on F.SilkS covers pad R11.1 (0.34 mm2) | R11 @ (161.8, 101.6) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (147.5, 96.0) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (148.4, 95.6) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (147.9, 95.8) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (146.1, 88.4) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (135.4, 102.4) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (138.3, 94.6) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (137.2, 103.4) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (135.9, 103.4) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (148.5, 89.5) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (137.7, 101.9) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (143.9, 88.2) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (139.9, 90.2) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (136.5, 103.9) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (136.6, 103.9) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (138.8, 97.5) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (147.2, 88.7) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (137.8, 93.2) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (148.3, 88.9) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (138.2, 100.5) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (149.9, 88.5) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (150.0, 89.2) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (145.3, 91.9) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.1016 mm on F.Cu | @ (147.5, 90.3) |
+
+454 more in `runs/bldc-motor-power/reports/`.
+
+### wisweep-driver
+
+https://github.com/slimcdk/wisweep at `f22ec65c9bee`, `electronics/driver-board.kicad_pcb`, MIT, motor, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair error, check_mating violations, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "5-36V" on B.SilkS covers pad J10.SH (1.07 mm2) | J10 @ (43.3, 63.1) |
+| error | check_silk / silk_over_pad | silk "WiSweep" on B.SilkS covers pad J1.1 (5.16 mm2) | J1 @ (65.8, 49.6) |
+| error | check_silk / silk_over_pad | silk "WiSweep" on B.SilkS covers pad J1.2 (5.16 mm2) | J1 @ (65.8, 47.6) |
+| error | check_silk / silk_over_pad | silk "IO9 " on F.SilkS covers pad SW2.1 (1.24 mm2) | SW2 @ (61.2, 32.2) |
+| error | check_silk / silk_over_pad | silk "D1" on F.SilkS covers pad C1.2 (0.28 mm2) | C1 @ (48.0, 49.5) |
+| error | check_silk / silk_over_pad | silk "J6" on F.SilkS covers pad C12.2 (0.60 mm2) | C12 @ (55.7, 61.5) |
+| error | check_silk / silk_over_pad | silk "J6" on F.SilkS covers pad C13.2 (0.63 mm2) | C13 @ (57.2, 61.5) |
+| error | check_silk / silk_over_pad | silk "C5" on F.SilkS covers pad U3.1 (0.19 mm2) | U3 @ (44.1, 37.2) |
+| error | check_silk / silk_over_pad | silk "SW2" on F.SilkS covers pad R1.2 (0.33 mm2) | R1 @ (58.5, 34.4) |
+| error | check_silk / silk_over_pad | silk line on F.SilkS covers pad J10. (0.11 mm2) | J10 @ (45.5, 63.7) |
+| error | check_silk / silk_over_pad | silk "C7" on F.SilkS covers pad U3.53 (0.34 mm2) | U3 @ (44.0, 36.2) |
+| error | check_silk / silk_over_pad | silk "J7" on F.SilkS covers pad R12.1 (0.33 mm2) | R12 @ (57.5, 40.5) |
+| error | check_silk / silk_over_pad | silk "J7" on F.SilkS covers pad R12.2 (0.33 mm2) | R12 @ (57.5, 41.5) |
+| error | check_silk / silk_over_pad | silk "J2" on F.SilkS covers pad R8.1 (0.33 mm2) | R8 @ (57.5, 47.0) |
+| error | check_silk / silk_over_pad | silk "J2" on F.SilkS covers pad R8.2 (0.33 mm2) | R8 @ (57.5, 48.0) |
+| error | check_silk / silk_over_pad | silk "C24" on B.SilkS covers pad J6.4 (1.24 mm2) | J6 @ (59.5, 63.5) |
+| error | check_mating / mating_zone_blocked | J2 (wire_to_board_side): C18 sit in the plug's insertion zone in front of its mouth (12.0 mm plug + 3.0 mm grip) | C18, J2 @ (72.3, 47.5) |
+| error | check_mating / mating_zone_blocked | J7 (wire_to_board_side): H3 sit in the plug's insertion zone in front of its mouth (12.0 mm plug + 3.0 mm grip) | H3, J7 @ (72.3, 41.0) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0400 mm below JLC minimum 0.1016 mm on F.Cu | @ (58.1, 58.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0251 mm below JLC minimum 0.1016 mm on In1.Cu | @ (55.7, 58.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0233 mm below JLC minimum 0.1016 mm on In1.Cu | @ (55.6, 59.2) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0251 mm below JLC minimum 0.1016 mm on In1.Cu | @ (54.8, 58.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0455 mm below JLC minimum 0.1016 mm on In1.Cu | @ (55.1, 59.2) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0233 mm below JLC minimum 0.1016 mm on In1.Cu | @ (55.6, 59.8) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0069 mm below JLC minimum 0.1016 mm on In1.Cu | @ (54.6, 59.1) |
+
+174 more in `runs/wisweep-driver/reports/`.
+
+### catsniffer
+
+https://github.com/ElectronicCats/CatSniffer at `6da5050fefde`, `hardware/CatSniffer.kicad_pcb`, CERN-OHL-1.2, rf, 4 layers.
+
+Outcome: **product** (store page https://electroniccats.com/store/catsniffer/ (linked from the README))
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair error, check_mating violations, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "CatSniffer V3.2" on F.SilkS covers pad C34.2 (0.76 mm2) | C34 @ (147.3, 106.8) |
+| error | check_silk / silk_over_pad | silk "CatSniffer V3.2" on F.SilkS covers pad C36.2 (0.77 mm2) | C36 @ (145.8, 106.8) |
+| error | check_silk / silk_over_pad | silk poly on B.SilkS covers pad U8.49 (0.13 mm2) | U8 @ (143.1, 112.9) |
+| error | check_silk / silk_over_pad | silk poly on B.SilkS covers pad U8.49 (0.12 mm2) | U8 @ (143.1, 114.0) |
+| error | check_silk / silk_over_pad | silk poly on B.SilkS covers pad U8.49 (0.18 mm2) | U8 @ (143.1, 109.4) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0128 mm below JLC minimum 0.1016 mm on F.Cu | @ (99.1, 111.2) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0600 mm below JLC minimum 0.1016 mm on F.Cu | @ (102.6, 106.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0600 mm below JLC minimum 0.1016 mm on F.Cu | @ (103.2, 109.4) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0599 mm below JLC minimum 0.1016 mm on F.Cu | @ (121.0, 111.0) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0579 mm below JLC minimum 0.1016 mm on B.Cu | @ (133.8, 104.0) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0755 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (94.2, 108.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2700 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (105.3, 108.1) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0755 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (104.1, 116.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1750 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (122.6, 118.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0755 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (124.5, 104.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0755 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (157.0, 111.0) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0755 mm from board edge, JLC minimum 0.3 mm on In1.Cu | @ (126.0, 109.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0755 mm from board edge, JLC minimum 0.3 mm on In2.Cu | @ (123.4, 109.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0755 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (125.5, 109.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2250 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (119.3, 119.5) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4500 mm below JLC minimum 0.5 mm | @ (106.7, 104.5) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4497 mm below JLC minimum 0.5 mm | @ (110.2, 115.3) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4832 mm below JLC minimum 0.5 mm | @ (112.2, 112.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4500 mm below JLC minimum 0.5 mm | @ (113.1, 104.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4531 mm below JLC minimum 0.5 mm | @ (113.6, 105.1) |
+
+130 more in `runs/catsniffer/reports/`.
+
+### solar-meshtastic-node
+
+https://github.com/h0lad/SolarMeshtasticNode at `84a856f61c05`, `pcb/MeshtasticNode_BQ25185.kicad_pcb`, CERN-OHL-S-2.0, rf, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "S2" on F.SilkS covers pad D3.1 (0.63 mm2) | D3 @ (157.8, 100.4) |
+| error | check_silk / silk_over_pad | silk "S1" on F.SilkS covers pad D2.1 (0.62 mm2) | D2 @ (157.8, 102.9) |
+| error | check_silk / silk_over_pad | silk "ISET" on F.SilkS covers pad R4.2 (1.14 mm2) | R4 @ (170.5, 95.3) |
+| error | check_silk / silk_over_pad | silk "ILIM" on F.SilkS covers pad R3.2 (1.20 mm2) | R3 @ (170.5, 97.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J8.1 (2.05 mm2) | J8 @ (160.9, 107.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J8.2 (1.79 mm2) | J8 @ (162.9, 107.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J7.1 (2.05 mm2) | J7 @ (154.0, 43.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J7.2 (1.79 mm2) | J7 @ (156.0, 43.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J7.3 (1.79 mm2) | J7 @ (158.0, 43.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J7.4 (1.79 mm2) | J7 @ (160.0, 43.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J4.1 (2.05 mm2) | J4 @ (141.3, 48.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J4.2 (1.79 mm2) | J4 @ (143.3, 48.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J4.3 (1.79 mm2) | J4 @ (145.3, 48.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J4.4 (1.79 mm2) | J4 @ (147.3, 48.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J5.1 (2.05 mm2) | J5 @ (154.0, 48.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J5.2 (1.79 mm2) | J5 @ (156.0, 48.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J5.3 (1.79 mm2) | J5 @ (158.0, 48.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J5.4 (1.79 mm2) | J5 @ (160.0, 48.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J2.1 (2.05 mm2) | J2 @ (171.6, 107.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J2.2 (1.79 mm2) | J2 @ (173.6, 107.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J1.1 (2.05 mm2) | J1 @ (140.3, 107.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J1.2 (1.79 mm2) | J1 @ (142.3, 107.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0500 mm below JLC minimum 0.1016 mm on In2.Cu | @ (164.2, 95.1) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0500 mm below JLC minimum 0.1016 mm on In2.Cu | @ (164.2, 95.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2005 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (143.9, 79.4) |
+
+19 more in `runs/solar-meshtastic-node/reports/`.
+
+### mikoto
+
+https://github.com/zhiayang/mikoto at `86318f6c6949`, `mikoto.kicad_pcb`, Apache-2.0, rf, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "VH" on B.SilkS covers pad TP7.1 (0.56 mm2) | TP7 @ (-0.5, -2.5) |
+| error | check_silk / silk_over_pad | silk "VBUS" on B.SilkS covers pad TP8.1 (1.00 mm2) | TP8 @ (-4.7, -4.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-5.6, -15.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0305 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-6.2, -1.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0500 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-2.4, -10.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0500 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-0.4, -9.7) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0500 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-1.2, -10.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0500 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-1.6, -9.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0500 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-0.2, -10.2) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0500 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (0.4, -9.4) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0305 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (5.9, -3.1) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0500 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (1.2, -9.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0500 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (1.8, -10.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0500 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (2.4, -10.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (5.6, -15.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on In1.Cu | @ (-5.6, -15.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on In1.Cu | @ (-2.4, -10.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0305 mm from board edge, JLC minimum 0.3 mm on In1.Cu | @ (-0.3, -1.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on In1.Cu | @ (2.4, -10.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on In1.Cu | @ (5.6, -15.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on In2.Cu | @ (-5.6, -15.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on In2.Cu | @ (-3.6, -7.1) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on In2.Cu | @ (5.6, -15.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2700 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (-7.0, -0.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (-5.6, -15.3) |
+
+109 more in `runs/mikoto/reports/`.
+
+### tallytime
+
+https://github.com/micro-henry/tallytime-hardware at `31e8794abc12`, `tallytime.kicad_pcb`, CERN-OHL-S-2.0, rf, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating violations, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "LTC_TX" on B.SilkS covers pad TP8.1 (0.65 mm2) | TP8 @ (88.5, 47.1) |
+| error | check_silk / silk_over_pad | silk "@plushugh" on B.SilkS covers pad J2.3 (2.27 mm2) | J2 @ (65.0, 66.2) |
+| error | check_silk / silk_over_pad | silk "MOSI" on F.SilkS covers pad U4.14 (1.64 mm2) | U4 @ (52.0, 44.5) |
+| error | check_silk / silk_over_pad | silk "LDO" on F.SilkS covers pad U6.2 (0.42 mm2) | U6 @ (90.5, 36.9) |
+| error | check_silk / silk_over_pad | silk "TXD" on F.SilkS covers pad R15.1 (0.33 mm2) | R15 @ (43.0, 63.9) |
+| error | check_silk / silk_over_pad | silk "TXD" on F.SilkS covers pad R15.2 (0.22 mm2) | R15 @ (43.0, 62.9) |
+| error | check_silk / silk_over_pad | silk "I2C DISPLAY: CHANGE JUMPERS DIRECTION" on F.SilkS covers pad H1.1 (0.50 mm2) | H1 @ (33.3, 31.7) |
+| error | check_silk / silk_over_pad | silk "I2C DISPLAY: CHANGE JUMPERS DIRECTION" on F.SilkS covers pad H1.1 (0.50 mm2) | H1 @ (35.0, 32.4) |
+| error | check_silk / silk_over_pad | silk "I2C DISPLAY: CHANGE JUMPERS DIRECTION" on F.SilkS covers pad H1.1 (0.50 mm2) | H1 @ (36.7, 31.7) |
+| error | check_silk / silk_over_pad | silk "STDBY" on F.SilkS covers pad R25.1 (0.33 mm2) | R25 @ (70.3, 28.6) |
+| error | check_silk / silk_over_pad | silk "CHRG" on F.SilkS covers pad R27.1 (0.33 mm2) | R27 @ (72.3, 37.0) |
+| error | check_silk / silk_over_pad | silk "CHRG" on F.SilkS covers pad U7.4 (0.73 mm2) | U7 @ (73.0, 35.8) |
+| error | check_silk / silk_over_pad | silk "CHRG" on F.SilkS covers pad U7.5 (0.73 mm2) | U7 @ (73.0, 34.8) |
+| error | check_silk / silk_over_pad | silk "3V3" on F.SilkS covers pad U4.3 (1.14 mm2) | U4 @ (52.0, 60.5) |
+| error | check_silk / silk_over_pad | silk "-> ON" on F.SilkS covers pad SW6.MP (0.70 mm2) | SW6 @ (92.6, 26.0) |
+| error | check_silk / silk_over_pad | silk "DIO5" on F.SilkS covers pad U4.11 (1.70 mm2) | U4 @ (58.0, 44.5) |
+| error | check_silk / silk_over_pad | silk "DIO2" on F.SilkS covers pad U4.7 (1.66 mm2) | U4 @ (60.0, 60.5) |
+| error | check_silk / silk_over_pad | silk "DOUT" on F.SilkS covers pad J13.1 (0.96 mm2) | J13 @ (53.0, 30.6) |
+| error | check_silk / silk_over_pad | silk "DOUT" on F.SilkS covers pad J13.2 (0.94 mm2) | J13 @ (51.8, 30.6) |
+| error | check_silk / silk_over_pad | silk "DIO3" on F.SilkS covers pad U4.8 (1.70 mm2) | U4 @ (62.0, 60.5) |
+| error | check_silk / silk_over_pad | silk "ESD" on F.SilkS covers pad U3.1 (0.75 mm2) | U3 @ (78.5, 35.9) |
+| error | check_silk / silk_over_pad | silk "ESD" on F.SilkS covers pad U3.6 (0.58 mm2) | U3 @ (78.5, 38.1) |
+| error | check_silk / silk_over_pad | silk "SCLK" on F.SilkS covers pad U4.12 (1.77 mm2) | U4 @ (56.0, 44.5) |
+| error | check_silk / silk_over_pad | silk "CHRG" on F.SilkS covers pad D5.1 (0.87 mm2) | D5 @ (69.8, 31.7) |
+| error | check_silk / silk_over_pad | silk "CHRG" on F.SilkS covers pad D6.1 (0.87 mm2) | D6 @ (67.8, 31.7) |
+
+342 more in `runs/tallytime/reports/`.
+
+### analog-toolkit
+
+https://github.com/Jana-Marie/analog-toolkit at `c97bcc3512fb`, `analog-toolkit.kicad_pcb`, CERN-OHL-S-2.0, analog, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating violations, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "STM32G474 Analog toolkit r3" on B.SilkS covers pad J1. (0.33 mm2) | J1 @ (106.1, 104.1) |
+| error | check_silk / silk_over_pad | silk "STM32G474 Analog toolkit r3" on B.SilkS covers pad J1.S1 (1.37 mm2) | J1 @ (106.6, 102.7) |
+| error | check_silk / silk_over_pad | silk "STM32G474 Analog toolkit r3" on B.SilkS covers pad J1.S1 (1.01 mm2) | J1 @ (102.4, 102.7) |
+| error | check_mating / mating_mouth_inset | J1 (usb_c) cannot be mated: its mouth is 1.4 mm inside the -x edge (limit 1.0 mm) | J1 @ (105.0, 107.0) |
+| error | check_mating / mating_zone_blocked | J1 (usb_c): J3 sit in the plug's insertion zone in front of its mouth (20.0 mm plug + 3.0 mm grip) | J1, J3 @ (88.9, 107.0) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0903 mm below JLC minimum 0.1016 mm on B.Cu | @ (102.1, 105.5) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0903 mm below JLC minimum 0.1016 mm on B.Cu | @ (102.1, 109.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2005 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (126.1, 118.0) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2005 mm from board edge, JLC minimum 0.3 mm on In1.Cu | @ (125.0, 117.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2005 mm from board edge, JLC minimum 0.3 mm on In2.Cu | @ (125.3, 117.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2005 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (125.5, 117.8) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4767 mm below JLC minimum 0.5 mm | @ (105.4, 104.8) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3436 mm below JLC minimum 0.5 mm | @ (105.4, 109.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3052 mm below JLC minimum 0.5 mm | @ (117.2, 131.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3520 mm below JLC minimum 0.5 mm | @ (118.1, 125.0) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4129 mm below JLC minimum 0.5 mm | @ (118.4, 131.8) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4372 mm below JLC minimum 0.5 mm | @ (118.4, 123.8) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3602 mm below JLC minimum 0.5 mm | @ (118.8, 125.0) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3507 mm below JLC minimum 0.5 mm | @ (118.8, 123.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4414 mm below JLC minimum 0.5 mm | @ (119.2, 125.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3504 mm below JLC minimum 0.5 mm | @ (119.5, 123.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4810 mm below JLC minimum 0.5 mm | @ (120.6, 127.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3092 mm below JLC minimum 0.5 mm | @ (122.6, 132.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4333 mm below JLC minimum 0.5 mm | @ (124.2, 129.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4610 mm below JLC minimum 0.5 mm | @ (125.8, 128.6) |
+
+393 more in `runs/analog-toolkit/reports/`.
+
+### cats-diode-ladder-vcf
+
+https://github.com/mzuelch/CATs-Eurosynth at `ee70506817f1`, `Modules/HAGIWO/VCF Diode Ladder Filter/Electronics/Main/VCF Diode Ladder Filter.kicad_pcb`, MIT, analog, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style pass, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "R1" on B.SilkS covers pad ?.1 (0.19 mm2) | ? @ (55.9, 59.3) |
+| error | check_silk / silk_over_pad | silk "R1" on B.SilkS covers pad ?.2 (0.19 mm2) | ? @ (54.9, 59.3) |
+| error | check_silk / silk_over_pad | silk "R19" on B.SilkS covers pad ?.1 (0.19 mm2) | ? @ (60.1, 63.0) |
+| error | check_silk / silk_over_pad | silk "R19" on B.SilkS covers pad ?.2 (0.19 mm2) | ? @ (59.1, 63.0) |
+| error | check_silk / silk_over_pad | silk "R2" on B.SilkS covers pad ?.1 (0.33 mm2) | ? @ (6.9, 48.3) |
+| error | check_silk / silk_over_pad | silk "R2" on B.SilkS covers pad ?.2 (0.33 mm2) | ? @ (5.8, 48.3) |
+| error | check_silk / silk_over_pad | silk "Red" on B.SilkS covers pad ?.1 (0.26 mm2) | ? @ (9.9, 62.2) |
+| error | check_silk / silk_over_pad | silk poly on B.SilkS covers pad ?.-12V (2.27 mm2) | ? @ (12.7, 62.2) |
+| error | check_silk / silk_over_pad | silk poly on B.SilkS covers pad ?.-12V (2.27 mm2) | ? @ (15.2, 62.2) |
+| error | check_silk / silk_over_pad | silk "R12" on B.SilkS covers pad ?.1 (0.19 mm2) | ? @ (50.7, 53.6) |
+| error | check_silk / silk_over_pad | silk "R12" on B.SilkS covers pad ?.2 (0.19 mm2) | ? @ (49.7, 53.6) |
+| error | check_silk / silk_over_pad | silk "R18" on B.SilkS covers pad ?.1 (0.19 mm2) | ? @ (50.7, 51.6) |
+| error | check_silk / silk_over_pad | silk "R18" on B.SilkS covers pad ?.2 (0.19 mm2) | ? @ (49.7, 51.6) |
+| error | check_silk / silk_over_pad | silk "R3" on B.SilkS covers pad ?.1 (0.33 mm2) | ? @ (5.8, 47.0) |
+| error | check_silk / silk_over_pad | silk "R3" on B.SilkS covers pad ?.2 (0.33 mm2) | ? @ (6.9, 47.0) |
+| error | check_silk / silk_over_pad | silk "R15" on B.SilkS covers pad ?.1 (0.19 mm2) | ? @ (47.8, 50.1) |
+| error | check_silk / silk_over_pad | silk "R15" on B.SilkS covers pad ?.2 (0.19 mm2) | ? @ (46.8, 50.1) |
+| error | check_silk / silk_over_pad | silk "R23" on B.SilkS covers pad ?.1 (0.19 mm2) | ? @ (69.8, 72.4) |
+| error | check_silk / silk_over_pad | silk "R23" on B.SilkS covers pad ?.2 (0.19 mm2) | ? @ (68.8, 72.4) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1429 mm2) on F.Silkscreen - pad of ? | ? @ (5.1, 87.5) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1429 mm2) on F.Silkscreen - pad of ? | ? @ (14.0, 84.0) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1429 mm2) on F.Silkscreen - pad of ? | ? @ (22.9, 87.5) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1087 mm2) on B.Silkscreen - pad of ? | ? @ (5.8, 47.0) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1202 mm2) on B.Silkscreen - pad of ? | ? @ (5.8, 48.3) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1822 mm2) on B.Silkscreen - pad of ? | ? @ (6.9, 48.3) |
+
+21 more in `runs/cats-diode-ladder-vcf/reports/`.
+
+### nudac
+
+https://github.com/danchouzhou/NuDAC at `4fda6b3c1b6c`, `kicad/NuDAC.kicad_pcb`, MIT, analog, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_diffpair / diffpair_skew | diff pair /Codec/MIC+//Codec/MIC- length skew 17.33 mm (~123 ps, eps_r 4.5); limit 5.0 mm | /Codec/MIC+ @ (51.8, 3.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2766 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (30.5, 11.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2766 mm from board edge, JLC minimum 0.3 mm on In1.Cu | @ (29.8, 11.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2766 mm from board edge, JLC minimum 0.3 mm on In2.Cu | @ (28.8, 11.7) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (19.2, 2.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (10.7, 11.0) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (22.4, 18.4) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (16.6, 19.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (28.5, 10.1) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (28.5, 2.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (40.8, 2.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (41.6, 19.0) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (40.3, 20.0) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (43.0, 2.7) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (45.2, 3.0) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (46.7, 14.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (44.3, 19.0) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2790 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (54.7, 3.0) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2766 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (49.5, 10.3) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3107 mm below JLC minimum 0.5 mm | @ (23.9, 9.1) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4821 mm below JLC minimum 0.5 mm | @ (23.9, 9.1) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4213 mm below JLC minimum 0.5 mm | @ (24.1, 9.7) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4184 mm below JLC minimum 0.5 mm | @ (24.1, 9.7) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4140 mm below JLC minimum 0.5 mm | @ (24.1, 12.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4184 mm below JLC minimum 0.5 mm | @ (24.1, 12.2) |
+
+323 more in `runs/nudac/reports/`.
+
+### gameboy-hifi-audio
+
+https://github.com/cajunpanda/gameboy-hifi-audio at `941eabcddd73`, `hardware/agb/agb-hifi-audio-pcb/agb-hifi-audio-pcb.kicad_pcb`, MIT, analog, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U1.12 (0.32 mm2) | U1 @ (106.9, 115.7) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U1.13 (0.32 mm2) | U1 @ (106.1, 115.7) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U1.14 (0.32 mm2) | U1 @ (105.3, 115.7) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U1.15 (0.32 mm2) | U1 @ (104.5, 115.7) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U1.16 (0.32 mm2) | U1 @ (103.7, 115.7) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U1.17 (0.32 mm2) | U1 @ (102.9, 115.7) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U1.52 (0.39 mm2) | U1 @ (108.0, 115.7) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (104.3, 114.0) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (105.3, 114.0) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (106.2, 114.0) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U2.29 (0.14 mm2) | U2 @ (104.3, 113.1) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U2.29 (0.14 mm2) | U2 @ (105.3, 113.1) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U2.29 (3.06 mm2) | U2 @ (105.3, 113.1) |
+| error | check_silk / silk_over_pad | silk "AGB" on F.SilkS covers pad U2.29 (0.14 mm2) | U2 @ (106.2, 113.1) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad R19.1 (0.44 mm2) | R19 @ (98.1, 114.2) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad R19.2 (0.44 mm2) | R19 @ (99.2, 114.2) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (104.3, 114.0) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (105.3, 114.0) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (106.2, 114.0) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (104.3, 113.1) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (105.3, 113.1) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad U2.29 (5.76 mm2) | U2 @ (105.3, 113.1) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (106.2, 113.1) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (104.3, 112.2) |
+| error | check_silk / silk_over_pad | silk "HiFi Audio" on F.SilkS covers pad U2.29 (0.20 mm2) | U2 @ (105.3, 112.2) |
+
+26 more in `runs/gameboy-hifi-audio/reports/`.
+
+### eurorack-pmod-r3.2
+
+https://github.com/apfaudio/eurorack-pmod at `ddb9aa92fab7`, `hardware/eurorack-pmod-r3.2/eurorack-pmod-pcb.kicad_pcb`, CERN-OHL-S-2.0, analog, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "Mit      aus Friedrichshain" on B.SilkS covers pad ?.1 (0.38 mm2) | ? @ (10.2, 87.7) |
+| error | check_silk / silk_over_pad | silk "Mit      aus Friedrichshain" on B.SilkS covers pad ?.1 (0.38 mm2) | ? @ (10.2, 90.0) |
+| error | check_silk / silk_over_pad | silk "Mit      aus Friedrichshain" on B.SilkS covers pad ?.1 (0.25 mm2) | ? @ (10.7, 88.8) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.9 (2.27 mm2) | ? @ (2.0, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.10 (2.27 mm2) | ? @ (-0.5, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.3 (2.27 mm2) | ? @ (2.0, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.4 (2.27 mm2) | ? @ (-0.5, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.5 (2.27 mm2) | ? @ (2.0, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.6 (2.27 mm2) | ? @ (-0.5, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.7 (2.27 mm2) | ? @ (2.0, 98.4) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.8 (2.27 mm2) | ? @ (-0.5, 98.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.9 (2.27 mm2) | ? @ (2.0, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.10 (2.27 mm2) | ? @ (-0.5, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.3 (2.27 mm2) | ? @ (2.0, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.4 (2.27 mm2) | ? @ (-0.5, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.5 (2.27 mm2) | ? @ (2.0, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.6 (2.27 mm2) | ? @ (-0.5, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.7 (2.27 mm2) | ? @ (2.0, 98.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.8 (2.27 mm2) | ? @ (-0.5, 98.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.20 mm2) | ? @ (-17.0, 40.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (-18.3, 40.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (-19.2, 40.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.33 mm2) | ? @ (5.9, 33.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.20 mm2) | ? @ (3.2, 33.5) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.15 mm2) | ? @ (3.7, 33.5) |
+
+387 more in `runs/eurorack-pmod-r3.2/reports/`.
+
+### eurorack-pmod-r3.5
+
+https://github.com/apfaudio/eurorack-pmod at `ddb9aa92fab7`, `hardware/eurorack-pmod-r3.5/eurorack-pmod-pcb.kicad_pcb`, CERN-OHL-S-2.0, analog, 6 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating violations, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "~{RED!}" on F.SilkS covers pad F2.1 (1.31 mm2) | F2 @ (-3.0, 108.5) |
+| error | check_silk / silk_over_pad | silk "~{RED!}" on F.SilkS covers pad F2.2 (1.31 mm2) | F2 @ (-4.9, 108.5) |
+| error | check_silk / silk_over_pad | silk "HW R3.5 06.25" on B.SilkS covers pad H1.1 (0.36 mm2) | H1 @ (7.3, 23.8) |
+| error | check_silk / silk_over_pad | silk "HW R3.5 06.25" on B.SilkS covers pad H1.1 (0.38 mm2) | H1 @ (7.8, 24.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J2.9 (2.27 mm2) | J2 @ (2.0, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J2.10 (2.27 mm2) | J2 @ (-0.5, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J1.3 (2.27 mm2) | J1 @ (1.2, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J1.4 (2.27 mm2) | J1 @ (-1.3, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J1.5 (2.27 mm2) | J1 @ (1.2, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J1.6 (2.27 mm2) | J1 @ (-1.3, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J1.7 (2.27 mm2) | J1 @ (1.2, 98.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J1.8 (2.27 mm2) | J1 @ (-1.3, 98.4) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad J2.9 (2.27 mm2) | J2 @ (2.0, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad J2.10 (2.27 mm2) | J2 @ (-0.5, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad J1.3 (2.27 mm2) | J1 @ (1.2, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad J1.4 (2.27 mm2) | J1 @ (-1.3, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad J1.5 (2.27 mm2) | J1 @ (1.2, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad J1.6 (2.27 mm2) | J1 @ (-1.3, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad J1.7 (2.27 mm2) | J1 @ (1.2, 98.4) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad J1.8 (2.27 mm2) | J1 @ (-1.3, 98.4) |
+| error | check_mating / mating_mouth_inset | J3 (fpc_ffc) cannot be mated: its mouth is 10.2 mm inside the +x edge (limit 1.5 mm) | J3 @ (-1.6, 53.2) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2651 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-18.2, 11.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2651 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-19.1, 13.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2810 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-18.9, 20.1) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2810 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (-19.1, 27.3) |
+
+387 more in `runs/eurorack-pmod-r3.5/reports/`.
+
+### winterbloom-helium
+
+https://github.com/wntrblm/Helium at `1cecf97abaad`, `hardware/board/board.kicad_pcb`, CERN-OHL-P-2.0, analog, 2 layers.
+
+Outcome: **product** (store page https://winterbloom.com/shop/helium (linked from the README))
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "OUT A3" on F.SilkS covers pad ?.2 (1.54 mm2) | ? @ (139.8, 76.4) |
+| error | check_silk / silk_over_pad | silk "OUT B3" on F.SilkS covers pad ?.2 (1.54 mm2) | ? @ (139.8, 100.9) |
+| error | check_silk / silk_over_pad | silk "POS" on F.SilkS covers pad ?.2 (0.84 mm2) | ? @ (139.8, 76.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.56 mm2) | ? @ (142.2, 76.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.56 mm2) | ? @ (139.8, 76.4) |
+| error | check_silk / silk_over_pad | silk "NEG" on F.SilkS covers pad ?.1 (0.85 mm2) | ? @ (138.1, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.56 mm2) | ? @ (138.1, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.56 mm2) | ? @ (135.7, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.56 mm2) | ? @ (142.2, 125.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.56 mm2) | ? @ (139.8, 125.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.56 mm2) | ? @ (138.1, 125.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.56 mm2) | ? @ (135.7, 125.7) |
+| error | check_silk / silk_over_pad | silk "POS" on F.SilkS covers pad ?.2 (0.80 mm2) | ? @ (139.8, 150.1) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.56 mm2) | ? @ (142.2, 150.1) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.56 mm2) | ? @ (139.8, 150.1) |
+| error | check_silk / silk_over_pad | silk "NEG" on F.SilkS covers pad ?.1 (0.82 mm2) | ? @ (138.1, 150.1) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.56 mm2) | ? @ (138.1, 150.1) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.56 mm2) | ? @ (135.7, 150.1) |
+| error | check_silk / silk_over_pad | silk "OUT C3" on F.SilkS covers pad ?.2 (1.54 mm2) | ? @ (139.8, 125.7) |
+| error | check_silk / silk_over_pad | silk "NEG" on F.SilkS covers pad ?.1 (0.86 mm2) | ? @ (138.1, 76.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.56 mm2) | ? @ (138.1, 76.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.56 mm2) | ? @ (135.7, 76.4) |
+| error | check_silk / silk_over_pad | silk "POS" on F.SilkS covers pad ?.2 (0.83 mm2) | ? @ (139.8, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.56 mm2) | ? @ (142.2, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.56 mm2) | ? @ (139.8, 100.9) |
+
+309 more in `runs/winterbloom-helium/reports/`.
+
+### winterbloom-speak-to-me
+
+https://github.com/wntrblm/Speak_to_Me at `65988dcd5a19`, `hardware/board/board.kicad_pcb`, CERN-OHL-P-2.0, analog, 4 layers.
+
+Outcome: **product** (store page https://winterbloom.com/store/speak-to-me (linked from the README))
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating violations, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "*" on F.SilkS covers pad U3.1 (0.54 mm2) | U3 @ (89.0, 132.2) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C2.1 (1.65 mm2) | C2 @ (84.7, 139.5) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C2.2 (1.65 mm2) | C2 @ (84.7, 141.5) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C4.1 (1.65 mm2) | C4 @ (86.7, 129.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C4.2 (1.65 mm2) | C4 @ (88.7, 129.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C12.1 (0.97 mm2) | C12 @ (101.0, 115.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C12.2 (0.97 mm2) | C12 @ (101.0, 117.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C13.1 (0.97 mm2) | C13 @ (94.5, 109.1) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C13.2 (0.97 mm2) | C13 @ (94.5, 107.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C14.1 (0.97 mm2) | C14 @ (101.0, 110.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C14.2 (0.97 mm2) | C14 @ (101.0, 108.2) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D1.1 (1.56 mm2) | D1 @ (86.7, 125.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D1.2 (1.56 mm2) | D1 @ (86.7, 127.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D2.1 (1.65 mm2) | D2 @ (79.8, 107.5) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D2.2 (1.65 mm2) | D2 @ (76.8, 107.5) |
+| error | check_silk / silk_over_pad | silk poly on F.SilkS covers pad D2.1 (0.85 mm2) | D2 @ (79.8, 107.5) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D3.1 (1.65 mm2) | D3 @ (82.2, 122.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D3.2 (1.65 mm2) | D3 @ (82.2, 119.7) |
+| error | check_silk / silk_over_pad | silk poly on F.SilkS covers pad D3.1 (0.85 mm2) | D3 @ (82.2, 122.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R1.1 (0.88 mm2) | R1 @ (86.7, 141.1) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R1.2 (0.88 mm2) | R1 @ (86.7, 139.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R5.1 (0.88 mm2) | R5 @ (84.7, 150.2) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R5.2 (0.88 mm2) | R5 @ (84.7, 148.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R9.1 (0.88 mm2) | R9 @ (101.0, 113.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R9.2 (0.88 mm2) | R9 @ (101.0, 111.9) |
+
+133 more in `runs/winterbloom-speak-to-me/reports/`.
+
+### pslab
+
+https://github.com/fossasia/pslab-hardware at `404aae216963`, `schematics/PSLab.kicad_pcb`, Apache-2.0, analog, 4 layers.
+
+Outcome: **product** (shop https://pslab.io/shop/ (linked from the README); the revision on sale is not stated)
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (7.64 mm2) | ? @ (113.9, 97.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (7.64 mm2) | ? @ (113.9, 97.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (7.64 mm2) | ? @ (190.2, 49.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (7.64 mm2) | ? @ (190.2, 49.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (7.64 mm2) | ? @ (115.2, 49.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (7.64 mm2) | ? @ (115.2, 49.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (7.64 mm2) | ? @ (196.5, 97.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (7.64 mm2) | ? @ (196.5, 97.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.59 mm2) | ? @ (197.0, 90.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (1.53 mm2) | ? @ (144.7, 69.0) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.50 mm2) | ? @ (146.1, 52.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.50 mm2) | ? @ (145.7, 59.0) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.50 mm2) | ? @ (175.2, 85.0) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.89 mm2) | ? @ (197.0, 90.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (1.48 mm2) | ? @ (103.4, 88.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.81 mm2) | ? @ (148.1, 73.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.37 (0.53 mm2) | ? @ (151.4, 72.6) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.38 (0.53 mm2) | ? @ (151.4, 73.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.39 (0.51 mm2) | ? @ (151.4, 74.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.81 mm2) | ? @ (148.1, 73.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.37 (0.53 mm2) | ? @ (151.4, 72.6) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.38 (0.53 mm2) | ? @ (151.4, 73.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.39 (0.51 mm2) | ? @ (151.4, 74.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.50 mm2) | ? @ (129.6, 74.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.50 mm2) | ? @ (132.1, 67.6) |
+
+477 more in `runs/pslab/reports/`.
+
+### winterbloom-micronova
+
+https://github.com/wntrblm/Micronova at `263c7df7b15b`, `hardware/board/board.kicad_pcb`, CERN-OHL-P-2.0, power, 2 layers.
+
+Outcome: **product** (store page https://winterbloom.com/shop/micronova (linked from the README))
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (3.18 mm2) | ? @ (133.4, 117.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (2.54 mm2) | ? @ (130.8, 117.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (3.18 mm2) | ? @ (146.4, 117.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (2.54 mm2) | ? @ (143.8, 117.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.60 mm2) | ? @ (77.0, 106.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (2.33 mm2) | ? @ (89.6, 112.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (2.33 mm2) | ? @ (86.4, 112.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.63 mm2) | ? @ (76.9, 109.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.63 mm2) | ? @ (78.9, 109.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (3.78 mm2) | ? @ (88.0, 116.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (3.14 mm2) | ? @ (85.5, 116.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.3 (3.14 mm2) | ? @ (82.9, 116.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.65 mm2) | ? @ (94.5, 112.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.65 mm2) | ? @ (96.5, 112.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (3.78 mm2) | ? @ (75.5, 116.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (3.14 mm2) | ? @ (73.0, 116.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.3 (3.14 mm2) | ? @ (70.5, 116.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (0.88 mm2) | ? @ (114.0, 109.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (0.88 mm2) | ? @ (112.2, 109.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (0.88 mm2) | ? @ (122.2, 109.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (0.88 mm2) | ? @ (124.0, 109.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (0.88 mm2) | ? @ (109.0, 109.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (0.88 mm2) | ? @ (107.2, 109.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (1.65 mm2) | ? @ (81.5, 112.3) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (1.65 mm2) | ? @ (83.5, 112.3) |
+
+87 more in `runs/winterbloom-micronova/reports/`.
+
+### pico-ice-rev3
+
+https://github.com/tinyvision-ai-inc/pico-ice at `00e13360969d`, `Board/Rev3/pico-ice.kicad_pcb`, MIT, mcu-usb, 4 layers.
+
+Outcome: **product** (store https://lectronz.com/stores/tinyvision-ai-store (linked from the README); the revision on sale is not stated)
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "~{SS}" on B.SilkS covers pad U5.4 (0.69 mm2) | U5 @ (77.3, 82.3) |
+| error | check_silk / silk_over_pad | silk "~{Rst}" on B.SilkS covers pad U2.5 (0.75 mm2) | U2 @ (68.5, 124.6) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on B.SilkS covers pad C13.1 (0.33 mm2) | C13 @ (76.2, 99.0) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on B.SilkS covers pad C13.2 (0.33 mm2) | C13 @ (77.1, 99.0) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on B.SilkS covers pad U4.1 (0.06 mm2) | U4 @ (76.2, 100.0) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on B.SilkS covers pad U4.2 (0.06 mm2) | U4 @ (76.8, 100.0) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on F.SilkS covers pad C25.1 (0.33 mm2) | C25 @ (77.7, 92.5) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on F.SilkS covers pad C25.2 (0.33 mm2) | C25 @ (77.7, 93.5) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on F.SilkS covers pad C24.1 (0.20 mm2) | C24 @ (76.7, 92.5) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on F.SilkS covers pad C24.2 (0.20 mm2) | C24 @ (76.7, 93.5) |
+| error | check_silk / silk_over_pad | silk poly on B.SilkS covers pad U3.57 (0.25 mm2) | U3 @ (73.6, 114.7) |
+| error | check_silk / silk_over_pad | silk poly on B.SilkS covers pad U3.57 (0.25 mm2) | U3 @ (72.4, 114.7) |
+| error | check_silk / silk_over_pad | silk poly on B.SilkS covers pad U3.57 (0.25 mm2) | U3 @ (71.1, 114.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0909 mm below JLC minimum 0.1016 mm on F.Cu | @ (67.3, 77.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0221 mm below JLC minimum 0.1016 mm on In2.Cu | @ (79.0, 120.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0221 mm below JLC minimum 0.1016 mm on In2.Cu | @ (79.0, 123.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4320 mm below JLC minimum 0.5 mm | @ (66.1, 109.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4388 mm below JLC minimum 0.5 mm | @ (66.3, 115.5) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4291 mm below JLC minimum 0.5 mm | @ (67.9, 109.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4302 mm below JLC minimum 0.5 mm | @ (68.5, 82.3) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4436 mm below JLC minimum 0.5 mm | @ (68.5, 110.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3858 mm below JLC minimum 0.5 mm | @ (68.5, 109.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4663 mm below JLC minimum 0.5 mm | @ (69.1, 81.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4401 mm below JLC minimum 0.5 mm | @ (69.4, 100.0) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4790 mm below JLC minimum 0.5 mm | @ (69.4, 100.0) |
+
+68 more in `runs/pico-ice-rev3/reports/`.
+
+### jetson-nano-baseboard
+
+https://github.com/antmicro/jetson-nano-baseboard at `d8d0b2d71ab4`, `jetson-nano-baseboard.kicad_pcb`, Apache-2.0, 4-layer, 8 layers.
+
+dfm_check wrote no report: CheckError: no capability entry '8layer_1oz' (have: 2layer_1oz, 2layer_2oz, 4layer_1oz, 4layer_2oz, 6layer_1oz)
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating violations, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style error, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R131.1 (0.36 mm2) | R131 @ (117.7, 115.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R131.2 (0.36 mm2) | R131 @ (117.7, 114.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C26.1 (0.36 mm2) | C26 @ (116.7, 115.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad C26.2 (0.36 mm2) | C26 @ (116.7, 114.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R11.1 (0.36 mm2) | R11 @ (114.7, 114.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R11.2 (0.36 mm2) | R11 @ (114.7, 115.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R98.1 (0.36 mm2) | R98 @ (112.7, 114.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R98.2 (0.36 mm2) | R98 @ (112.7, 115.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R99.1 (0.36 mm2) | R99 @ (113.7, 114.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R99.2 (0.36 mm2) | R99 @ (113.7, 115.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R81.1 (0.36 mm2) | R81 @ (115.7, 114.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad R81.2 (0.36 mm2) | R81 @ (115.7, 115.7) |
+| error | check_silk / silk_over_pad | silk "L9" on F.SilkS covers pad L9.1 (0.57 mm2) | L9 @ (101.8, 114.5) |
+| error | check_silk / silk_over_pad | silk "C6" on F.SilkS covers pad C6.1 (0.29 mm2) | C6 @ (139.9, 107.0) |
+| error | check_silk / silk_over_pad | silk "C6" on F.SilkS covers pad C7.1 (0.23 mm2) | C7 @ (140.9, 107.0) |
+| error | check_silk / silk_over_pad | silk "C7" on F.SilkS covers pad C7.1 (0.29 mm2) | C7 @ (140.9, 107.0) |
+| error | check_silk / silk_over_pad | silk "C7" on F.SilkS covers pad C8.1 (0.23 mm2) | C8 @ (141.9, 107.0) |
+| error | check_silk / silk_over_pad | silk "C8" on F.SilkS covers pad C8.1 (0.29 mm2) | C8 @ (141.9, 107.0) |
+| error | check_silk / silk_over_pad | silk "C8" on F.SilkS covers pad C12.1 (0.23 mm2) | C12 @ (142.9, 107.0) |
+| error | check_silk / silk_over_pad | silk "C12" on F.SilkS covers pad C12.1 (0.29 mm2) | C12 @ (142.9, 107.0) |
+| error | check_silk / silk_over_pad | silk "C14" on F.SilkS covers pad C14.2 (0.29 mm2) | C14 @ (94.3, 119.1) |
+| error | check_silk / silk_over_pad | silk "C27" on F.SilkS covers pad C27.2 (0.33 mm2) | C27 @ (112.8, 120.6) |
+| error | check_silk / silk_over_pad | silk "C32" on F.SilkS covers pad C32.2 (0.30 mm2) | C32 @ (117.1, 105.9) |
+| error | check_silk / silk_over_pad | silk "C33" on F.SilkS covers pad C33.1 (0.35 mm2) | C33 @ (118.4, 106.0) |
+| error | check_silk / silk_over_pad | silk "C39" on F.SilkS covers pad C39.1 (0.29 mm2) | C39 @ (135.9, 107.0) |
+
+603 more in `runs/jetson-nano-baseboard/reports/`.
+
+### hdmi-mipi-bridge
+
+https://github.com/antmicro/hdmi-mipi-bridge at `6c683289a319`, `antmicro-hdmi-mipi-bridge-hw.kicad_pcb`, Apache-2.0, 4-layer, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style error, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "R15" on F.SilkS covers pad ?.2 (0.62 mm2) | ? @ (169.6, 103.4) |
+| error | check_silk / silk_over_pad | silk "C52" on F.SilkS covers pad ?.2 (0.67 mm2) | ? @ (163.2, 107.0) |
+| error | check_silk / silk_over_pad | silk "C9" on F.SilkS covers pad ?.2 (0.47 mm2) | ? @ (139.3, 107.0) |
+| error | check_silk / silk_over_pad | silk "FB10" on F.SilkS covers pad ?.2 (0.38 mm2) | ? @ (163.8, 116.8) |
+| error | check_silk / silk_over_pad | silk "C14" on F.SilkS covers pad ?.1 (0.26 mm2) | ? @ (143.4, 106.2) |
+| error | check_silk / silk_over_pad | silk "C21" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (129.5, 111.3) |
+| error | check_silk / silk_over_pad | silk "FB12" on F.SilkS covers pad ?.1 (0.20 mm2) | ? @ (147.0, 110.7) |
+| error | check_silk / silk_over_pad | silk "FB12" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (147.0, 109.8) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (139.3, 102.7) |
+| error | check_silk / silk_over_pad | silk "R2" on F.SilkS covers pad ?.2 (0.56 mm2) | ? @ (145.6, 103.3) |
+| error | check_silk / silk_over_pad | silk "R12" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (144.3, 104.6) |
+| error | check_silk / silk_over_pad | silk "C5" on F.SilkS covers pad ?.2 (0.29 mm2) | ? @ (140.1, 108.2) |
+| error | check_silk / silk_over_pad | silk "C37" on F.SilkS covers pad ?.2 (0.30 mm2) | ? @ (168.4, 106.1) |
+| error | check_silk / silk_over_pad | silk "R1" on F.SilkS covers pad ?.2 (0.62 mm2) | ? @ (145.6, 101.8) |
+| error | check_silk / silk_over_pad | silk "C41" on F.SilkS covers pad ?.2 (0.70 mm2) | ? @ (165.5, 120.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (163.4, 102.8) |
+| error | check_silk / silk_over_pad | silk "FB4" on F.SilkS covers pad ?.2 (0.40 mm2) | ? @ (139.8, 116.8) |
+| error | check_silk / silk_over_pad | silk "R14" on F.SilkS covers pad ?.2 (0.58 mm2) | ? @ (169.6, 101.9) |
+| error | check_silk / silk_over_pad | silk "C39" on F.SilkS covers pad ?.1 (0.23 mm2) | ? @ (147.0, 110.7) |
+| error | check_silk / silk_over_pad | silk "C39" on F.SilkS covers pad ?.2 (0.23 mm2) | ? @ (147.0, 109.8) |
+| error | check_silk / silk_over_pad | silk "C44" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (153.6, 111.4) |
+| error | check_silk / silk_over_pad | silk "R25" on F.SilkS covers pad ?.2 (0.31 mm2) | ? @ (168.4, 104.8) |
+| error | check_silk / silk_over_pad | silk "R20" on B.SilkS covers pad ?.2 (0.54 mm2) | ? @ (154.0, 113.7) |
+| error | check_silk / silk_over_pad | silk "C3" on B.SilkS covers pad ?.2 (0.27 mm2) | ? @ (139.3, 110.1) |
+| error | check_silk / silk_over_pad | silk "R3" on B.SilkS covers pad ?.2 (0.34 mm2) | ? @ (130.6, 112.2) |
+
+1812 more in `runs/hdmi-mipi-bridge/reports/`.
+
+### d1600e-psu-breakout
+
+https://github.com/antmicro/d1600e-psu-breakout at `3802831dcd6c`, `d1600e-psu-breakout-board.kicad_pcb`, Apache-2.0, power, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "R15" on F.SilkS covers pad ?.2 (0.29 mm2) | ? @ (167.9, 96.0) |
+| error | check_silk / silk_over_pad | silk "R16" on F.SilkS covers pad ?.1 (0.32 mm2) | ? @ (169.1, 96.0) |
+| error | check_silk / silk_over_pad | silk "R33" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (148.8, 100.5) |
+| error | check_silk / silk_over_pad | silk "Q6" on F.SilkS covers pad ?.1 (0.25 mm2) | ? @ (113.7, 89.7) |
+| error | check_silk / silk_over_pad | silk "Q7" on F.SilkS covers pad ?.2 (0.20 mm2) | ? @ (130.9, 89.9) |
+| error | check_silk / silk_over_pad | silk "R31" on F.SilkS covers pad ?.2 (0.26 mm2) | ? @ (144.8, 98.5) |
+| error | check_silk / silk_over_pad | silk "Q9" on F.SilkS covers pad ?.1 (0.25 mm2) | ? @ (162.8, 89.5) |
+| error | check_silk / silk_over_pad | silk "Q8" on F.SilkS covers pad ?.1 (0.34 mm2) | ? @ (146.4, 89.5) |
+| error | check_silk / silk_over_pad | silk "Q8" on F.SilkS covers pad ?.2 (0.12 mm2) | ? @ (147.7, 90.1) |
+| error | check_silk / silk_over_pad | silk "C30" on F.SilkS covers pad ?.1 (0.34 mm2) | ? @ (126.4, 86.9) |
+| error | check_silk / silk_over_pad | silk "C30" on F.SilkS covers pad ?.2 (0.21 mm2) | ? @ (127.4, 86.9) |
+| error | check_silk / silk_over_pad | silk "R18" on F.SilkS covers pad ?.1 (0.29 mm2) | ? @ (171.2, 96.0) |
+| error | check_silk / silk_over_pad | silk "R17" on F.SilkS covers pad ?.2 (0.29 mm2) | ? @ (170.2, 96.0) |
+| error | check_silk / silk_over_pad | silk "R14" on F.SilkS covers pad ?.1 (0.32 mm2) | ? @ (166.8, 96.0) |
+| error | check_silk / silk_over_pad | silk "R35" on F.SilkS covers pad ?.1 (0.32 mm2) | ? @ (101.2, 92.0) |
+| error | check_silk / silk_over_pad | silk "R13" on F.SilkS covers pad ?.2 (0.29 mm2) | ? @ (165.8, 96.0) |
+| error | check_silk / silk_over_pad | silk "C28" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (109.1, 86.8) |
+| error | check_silk / silk_over_pad | silk "C28" on F.SilkS covers pad ?.2 (0.18 mm2) | ? @ (110.1, 86.8) |
+| error | check_silk / silk_over_pad | silk "D2" on F.SilkS covers pad ?.1 (0.39 mm2) | ? @ (180.2, 107.0) |
+| error | check_silk / silk_over_pad | silk "FB3" on F.SilkS covers pad ?.2 (0.54 mm2) | ? @ (183.2, 107.8) |
+| error | check_silk / silk_over_pad | silk "U14" on F.SilkS covers pad ?.2 (0.29 mm2) | ? @ (155.6, 101.8) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.33 mm2) | ? @ (165.2, 92.1) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (164.3, 92.1) |
+| error | check_silk / silk_over_pad | silk "R41" on F.SilkS covers pad ?.1 (0.32 mm2) | ? @ (96.4, 133.3) |
+| error | check_silk / silk_over_pad | silk "TP_S18" on F.SilkS covers pad ?.1 (0.57 mm2) | ? @ (115.6, 131.4) |
+
+2930 more in `runs/d1600e-psu-breakout/reports/`.
+
+### esp32-evb-rev-l
+
+https://github.com/OLIMEX/ESP32-EVB at `a3ec2f448109`, `HARDWARE/REV-L/ESP32-EVB_Rev_L.kicad_pcb`, Apache-2.0, mcu-usb, 2 layers.
+
+Outcome: **product** (product page https://www.olimex.com/Products/IoT/ESP32/ESP32-EVB/ (linked from the README); the revision on sale is not stated)
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair error, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "+5V_ ONLY!!!" on B.SilkS covers pad ?.- (4.57 mm2) | ? @ (134.2, 117.9) |
+| error | check_silk / silk_over_pad | silk "o" on F.SilkS covers pad ?.1 (0.90 mm2) | ? @ (124.7, 106.6) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (1.03 mm2) | ? @ (91.7, 71.5) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.GND1 (1.13 mm2) | ? @ (71.8, 136.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.Fid1 (0.78 mm2) | ? @ (142.7, 132.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.GND1 (0.95 mm2) | ? @ (141.0, 135.5) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.GND1 (0.91 mm2) | ? @ (142.6, 136.3) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4184 mm below JLC minimum 0.5 mm | @ (73.8, 87.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (74.3, 86.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4409 mm below JLC minimum 0.5 mm | @ (75.3, 107.1) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4184 mm below JLC minimum 0.5 mm | @ (76.3, 95.1) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4184 mm below JLC minimum 0.5 mm | @ (76.8, 95.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (77.1, 90.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4184 mm below JLC minimum 0.5 mm | @ (77.6, 113.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (77.9, 90.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (78.4, 94.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (78.9, 123.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (80.3, 97.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4727 mm below JLC minimum 0.5 mm | @ (81.0, 88.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (81.2, 89.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (82.5, 94.7) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (84.3, 85.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (85.7, 86.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3360 mm below JLC minimum 0.5 mm | @ (89.7, 97.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4727 mm below JLC minimum 0.5 mm | @ (91.4, 108.6) |
+
+355 more in `runs/esp32-evb-rev-l/reports/`.
+
+### otterpill-v1.4
+
+https://github.com/Jana-Marie/OtterPill at `f0e7371ea885`, `HW v1.4/OtterPill.kicad_pcb`, CERN-OHL-S-2.0, mcu-usb, 2 layers.
+
+Outcome: **product** (Tindie page https://www.tindie.com/products/jan_henrik/otterpill/ (linked from the README); the revision on sale is not stated)
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "Status" on F.SilkS covers pad ?.1 (0.79 mm2) | ? @ (29.3, 33.6) |
+| error | check_silk / silk_over_pad | silk "Status" on F.SilkS covers pad ?.2 (0.79 mm2) | ? @ (27.7, 33.6) |
+| error | check_silk / silk_over_pad | silk "Otter-      Pill" on F.SilkS covers pad ?.32 (0.26 mm2) | ? @ (40.3, 32.1) |
+| error | check_silk / silk_over_pad | silk "Otter-      Pill" on F.SilkS covers pad ?.33 (0.41 mm2) | ? @ (40.6, 32.4) |
+| error | check_silk / silk_over_pad | silk "Otter-      Pill" on F.SilkS covers pad ?.34 (0.44 mm2) | ? @ (41.0, 32.8) |
+| error | check_silk / silk_over_pad | silk "Otter-      Pill" on F.SilkS covers pad ?.35 (0.32 mm2) | ? @ (41.3, 33.1) |
+| error | check_silk / silk_over_pad | silk "Power" on F.SilkS covers pad ?.1 (0.79 mm2) | ? @ (29.3, 23.6) |
+| error | check_silk / silk_over_pad | silk "Power" on F.SilkS covers pad ?.2 (0.79 mm2) | ? @ (27.7, 23.6) |
+| error | check_silk / silk_over_pad | silk "Power" on F.SilkS covers pad ?.1 (0.19 mm2) | ? @ (28.7, 24.9) |
+| error | check_silk / silk_over_pad | silk "Power" on F.SilkS covers pad ?.2 (0.19 mm2) | ? @ (29.7, 24.9) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.34 mm2) | ? @ (28.7, 24.9) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.94 mm2) | ? @ (21.4, 21.8) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.87 mm2) | ? @ (21.4, 35.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0825 mm below JLC minimum 0.127 mm on F.Cu | @ (35.4, 25.1) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0825 mm below JLC minimum 0.127 mm on F.Cu | @ (48.4, 32.1) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0825 mm below JLC minimum 0.127 mm on F.Cu | @ (54.4, 35.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0825 mm below JLC minimum 0.127 mm on F.Cu | @ (44.8, 35.7) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1570 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (27.5, 20.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1570 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (25.1, 20.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1570 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (23.0, 29.1) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1570 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (43.6, 28.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1570 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (25.4, 35.4) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1570 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (27.6, 36.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1570 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (35.2, 20.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1570 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (37.7, 20.6) |
+
+191 more in `runs/otterpill-v1.4/reports/`.
+
+### pd-injector
+
+https://github.com/Jana-Marie/PD-Injector at `75ef2f62ee7a`, `PD-Injector.kicad_pcb`, CERN-OHL-1.2, power, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check.dfm / dfm_copper_to_edge | copper 0.1300 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (25.2, 22.7) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1300 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (24.8, 37.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1300 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (26.7, 20.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2250 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (21.3, 30.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1300 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (24.9, 38.0) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1243 mm below JLC minimum 0.5 mm | @ (20.4, 28.6) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4763 mm below JLC minimum 0.5 mm | @ (20.4, 31.0) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1243 mm below JLC minimum 0.5 mm | @ (20.6, 28.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1612 mm below JLC minimum 0.5 mm | @ (20.9, 29.1) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (23.8, 36.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (24.2, 36.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (24.6, 36.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (25.1, 36.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (26.7, 35.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (27.1, 35.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1067 mm below JLC minimum 0.5 mm | @ (27.2, 32.7) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (27.6, 32.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (27.6, 35.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (28.0, 32.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (28.1, 35.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (28.4, 29.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (28.4, 32.9) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (28.9, 29.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (28.9, 37.0) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.1500 mm below JLC minimum 0.5 mm | @ (28.9, 37.4) |
+
+30 more in `runs/pd-injector/reports/`.
+
+### opengps
+
+https://github.com/OpenDrone-hw/OpenGPS at `6825d8331cdf`, `hardware/board.kicad_pcb`, CERN-OHL-S-2.0, rf, 6 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style pass, check_silk pass, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check.dfm / dfm_open_outline | Edge.Cuts present but does not form a closed outline - copper/hole edge-distance checks cannot run |  |
+
+### byrandev-nrf52840
+
+https://github.com/byrantech/byrandev at `27c9eff2f96f`, `pcb/nrf52840.kicad_pcb`, MIT, rf, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair error, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "NRF52840  Dev Board" on F.SilkS covers pad ?.1 (0.06 mm2) | ? @ (167.3, 116.0) |
+| error | check_silk / silk_over_pad | silk "NRF52840  Dev Board" on F.SilkS covers pad ?.1 (0.20 mm2) | ? @ (166.4, 117.0) |
+| error | check_silk / silk_over_pad | silk "NRF52840  Dev Board" on F.SilkS covers pad ?.2 (0.20 mm2) | ? @ (167.3, 117.0) |
+| error | check_silk / silk_over_pad | silk "NRF52840  Dev Board" on F.SilkS covers pad ?.1 (0.33 mm2) | ? @ (166.3, 116.0) |
+| error | check_silk / silk_over_pad | silk "NRF52840  Dev Board" on F.SilkS covers pad ?.2 (0.33 mm2) | ? @ (167.3, 116.0) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.33 mm2) | ? @ (164.9, 112.0) |
+| error | check_silk / silk_over_pad | silk "Y1" on F.SilkS covers pad ?.2 (0.15 mm2) | ? @ (168.9, 107.0) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0350 mm below JLC minimum 0.127 mm on F.Cu | @ (165.3, 112.3) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1005 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (163.0, 98.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.0010 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (164.3, 99.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4355 mm below JLC minimum 0.5 mm | @ (158.9, 92.1) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4315 mm below JLC minimum 0.5 mm | @ (159.3, 105.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4432 mm below JLC minimum 0.5 mm | @ (160.8, 98.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4298 mm below JLC minimum 0.5 mm | @ (162.5, 92.0) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4604 mm below JLC minimum 0.5 mm | @ (169.8, 100.1) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4291 mm below JLC minimum 0.5 mm | @ (170.2, 103.4) |
+| error | check.dfm / dfm_hole_to_edge | hole 0.4217 mm from board edge, JLC minimum 0.5 mm | @ (145.3, 108.5) |
+| warning | check_silk / silk_illegible | silk text "012" is 0.75 mm tall (< 0.8 mm min legible height) | @ (177.3, 105.7) |
+| warning | check_silk / silk_illegible | silk text "101" is 0.75 mm tall (< 0.8 mm min legible height) | @ (148.7, 108.2) |
+| warning | check_silk / silk_illegible | silk text "107" is 0.75 mm tall (< 0.8 mm min legible height) | @ (177.4, 110.8) |
+| warning | check_silk / silk_illegible | silk text "006" is 0.75 mm tall (< 0.8 mm min legible height) | @ (148.6, 113.3) |
+| warning | check_silk / silk_illegible | silk text "110" is 0.75 mm tall (< 0.8 mm min legible height) | @ (177.3, 108.2) |
+| warning | check_silk / silk_illegible | silk text "030" is 0.75 mm tall (< 0.8 mm min legible height) | @ (177.4, 113.3) |
+| warning | check_silk / silk_illegible | silk text "109" is 0.75 mm tall (< 0.8 mm min legible height) | @ (148.7, 110.8) |
+| warning | check_silk / silk_illegible | silk text "112" is 0.75 mm tall (< 0.8 mm min legible height) | @ (148.7, 103.1) |
+
+66 more in `runs/byrandev-nrf52840/reports/`.
+
+### stm32-nrf24-node-revb
+
+https://github.com/denysderihlazov/stm32-nrf24-wireless-node at `b3676ea35a3f`, `hardware/revB/kicad/nRF24Radio_STM32G431KB.kicad_pcb`, MIT, rf, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair error, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "S1" on F.SilkS covers pad S1.3 (0.91 mm2) | S1 @ (179.1, 132.6) |
+| error | check_silk / silk_over_pad | silk "S2" on F.SilkS covers pad S2.3 (0.80 mm2) | S2 @ (177.4, 125.5) |
+| error | check_silk / silk_over_pad | silk "RST " on B.SilkS covers pad J1.1 (1.40 mm2) | J1 @ (156.8, 99.0) |
+| error | check_silk / silk_over_pad | silk "CLK" on B.SilkS covers pad J1.3 (0.83 mm2) | J1 @ (156.8, 94.0) |
+| error | check_silk / silk_over_pad | silk "Designed by Denys Derihlazov Wroclaw, Poland Manufactured in China by JLCPCB 11.02.2025 REV B " on B.SilkS covers pad J5.1 (1.84 mm2) | J5 @ (166.9, 76.7) |
+| error | check_silk / silk_over_pad | silk "Designed by Denys Derihlazov Wroclaw, Poland Manufactured in China by JLCPCB 11.02.2025 REV B " on B.SilkS covers pad J5.2 (1.71 mm2) | J5 @ (169.4, 76.7) |
+| error | check_silk / silk_over_pad | silk "Designed by Denys Derihlazov Wroclaw, Poland Manufactured in China by JLCPCB 11.02.2025 REV B " on B.SilkS covers pad J5.3 (1.71 mm2) | J5 @ (172.0, 76.7) |
+| error | check_silk / silk_over_pad | silk "Designed by Denys Derihlazov Wroclaw, Poland Manufactured in China by JLCPCB 11.02.2025 REV B " on B.SilkS covers pad J5.4 (1.71 mm2) | J5 @ (174.5, 76.7) |
+| error | check_silk / silk_over_pad | silk "GND" on B.SilkS covers pad J1.4 (1.00 mm2) | J1 @ (156.8, 91.4) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.127 mm on F.Cu | @ (172.6, 92.5) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.127 mm on F.Cu | @ (172.6, 93.0) |
+| error | check.dfm / dfm_trace_width | trace width 0.1000 mm below JLC minimum 0.127 mm on F.Cu | @ (172.9, 91.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.1005 mm below JLC minimum 0.127 mm on F.Cu | @ (167.6, 125.1) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4000 mm below JLC minimum 0.5 mm | @ (167.6, 124.8) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4000 mm below JLC minimum 0.5 mm | @ (173.3, 122.1) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4000 mm below JLC minimum 0.5 mm | @ (173.3, 124.6) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0998 mm below JLC minimum 0.15 mm | @ (158.1, 84.9) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0998 mm below JLC minimum 0.15 mm | @ (159.7, 67.9) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0998 mm below JLC minimum 0.15 mm | @ (163.2, 90.0) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0998 mm below JLC minimum 0.15 mm | @ (165.3, 84.7) |
+| error | check.dfm / dfm_annular_ring | annular ring -0.0250 mm below JLC minimum 0.15 mm | @ (160.7, 132.0) |
+| error | check.dfm / dfm_annular_ring | annular ring -0.0002 mm below JLC minimum 0.15 mm | @ (150.0, 121.8) |
+| error | check.dfm / dfm_annular_ring | annular ring -0.0002 mm below JLC minimum 0.15 mm | @ (150.0, 124.8) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.1450 mm below JLC minimum 0.15 mm | @ (166.9, 76.7) |
+| warning | check_silk / silk_illegible | silk text "SCK" is 0.60 mm tall (< 0.8 mm min legible height) | @ (148.6, 68.4) |
+
+51 more in `runs/stm32-nrf24-node-revb/reports/`.
+
+### gnss-7-seg-clock
+
+https://github.com/Tosainu/gnss-7-seg-clock at `811781f555e5`, `hardware/gnss-7-seg-clock.kicad_pcb`, MIT, rf, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "${TITLE} ${ISSUE_DATE} Rev.${REVISION}" on F.SilkS covers pad H8. (5.22 mm2) | H8 @ (254.3, 98.0) |
+| error | check_silk / silk_over_pad | silk "GP5" on B.SilkS covers pad D7.1 (0.47 mm2) | D7 @ (56.6, 43.2) |
+| error | check_silk / silk_over_pad | silk "GP4" on B.SilkS covers pad D6.1 (0.47 mm2) | D6 @ (90.9, 43.2) |
+| error | check_silk / silk_over_pad | silk "GP3" on B.SilkS covers pad D5.1 (0.47 mm2) | D5 @ (125.2, 43.2) |
+| error | check_silk / silk_over_pad | silk "GP2" on B.SilkS covers pad D4.1 (0.47 mm2) | D4 @ (159.4, 43.2) |
+| error | check_silk / silk_over_pad | silk "GP1" on B.SilkS covers pad D3.1 (0.47 mm2) | D3 @ (193.7, 43.2) |
+| error | check_silk / silk_over_pad | silk "PPS" on B.SilkS covers pad D2.1 (0.47 mm2) | D2 @ (228.0, 43.2) |
+| error | check_silk / silk_over_pad | silk "C3" on F.SilkS covers pad C3.2 (0.44 mm2) | C3 @ (227.6, 54.0) |
+| error | check_silk / silk_over_pad | silk "C3" on F.SilkS covers pad C11.2 (0.30 mm2) | C11 @ (228.6, 54.0) |
+| error | check_silk / silk_over_pad | silk "R13" on F.SilkS covers pad R13.1 (0.44 mm2) | R13 @ (210.2, 49.5) |
+| error | check_silk / silk_over_pad | silk "C7" on F.SilkS covers pad C7.2 (0.44 mm2) | C7 @ (225.0, 71.7) |
+| error | check_silk / silk_over_pad | silk "TP1" on F.SilkS covers pad TP1.1 (1.00 mm2) | TP1 @ (204.5, 64.8) |
+| error | check_silk / silk_over_pad | silk "C10" on F.SilkS covers pad C10.2 (0.44 mm2) | C10 @ (224.4, 54.0) |
+| error | check_silk / silk_over_pad | silk "C11" on F.SilkS covers pad C11.2 (0.44 mm2) | C11 @ (228.6, 54.0) |
+| error | check_silk / silk_over_pad | silk "R5" on F.SilkS covers pad R5.2 (0.44 mm2) | R5 @ (210.2, 48.5) |
+| error | check_silk / silk_over_pad | silk "C1" on F.SilkS covers pad C1.2 (0.44 mm2) | C1 @ (226.1, 71.7) |
+| error | check_silk / silk_over_pad | silk "TP2" on F.SilkS covers pad TP2.1 (1.00 mm2) | TP2 @ (207.0, 64.8) |
+| error | check_silk / silk_over_pad | silk "R9" on F.SilkS covers pad R9.1 (0.44 mm2) | R9 @ (226.5, 54.0) |
+| error | check_silk / silk_over_pad | silk "C15" on F.SilkS covers pad C15.1 (0.44 mm2) | C15 @ (219.7, 71.8) |
+| error | check_silk / silk_over_pad | silk "TP3" on F.SilkS covers pad TP3.1 (1.00 mm2) | TP3 @ (209.6, 64.8) |
+| error | check_silk / silk_over_pad | silk "R8" on F.SilkS covers pad R8.1 (0.44 mm2) | R8 @ (225.5, 54.0) |
+| error | check_silk / silk_over_pad | silk "C16" on F.SilkS covers pad C16.1 (0.44 mm2) | C16 @ (219.7, 75.5) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4620 mm below JLC minimum 0.5 mm | @ (224.3, 56.3) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3350 mm below JLC minimum 0.5 mm | @ (248.8, 64.1) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.3350 mm below JLC minimum 0.5 mm | @ (248.8, 64.8) |
+
+12 more in `runs/gnss-7-seg-clock/reports/`.
+
+### meshsat-aprs
+
+https://github.com/meshsat/meshsat-fieldkit at `dfea910c10ac`, `v2/ecad/pcb-d-aprs/pcb-d-aprs.kicad_pcb`, CERN-OHL-S-2.0, rf, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_diffpair / diffpair_skew | diff pair /AMP_INL_P//AMP_INL_N length skew 15.92 mm (~111 ps, eps_r 4.4); limit 5.0 mm | /AMP_INL_P @ (136.9, 77.2) |
+| error | check_diffpair / diffpair_uncoupled | diff pair /AMP_INL_P//AMP_INL_N has 13.92 mm of /AMP_INL_N running uncoupled (> 16.79 mm from its partner); limit 5.0 mm | /AMP_INL_N @ (136.9, 77.2) |
+| error | check_diffpair / diffpair_skew | diff pair /AMP_INR_P//AMP_INR_N length skew 19.20 mm (~134 ps, eps_r 4.4); limit 5.0 mm | /AMP_INR_P @ (138.3, 85.1) |
+| error | check_diffpair / diffpair_uncoupled | diff pair /USB_D8_P//USB_D8_N has 7.33 mm of /USB_D8_N running uncoupled (> 1.50 mm from its partner); limit 5.0 mm | /USB_D8_N @ (60.7, 83.6) |
+| error | check_silk / silk_over_pad | silk "J_HARN1 <- A22 J_MEZZ1" on F.SilkS covers pad U1.2 (0.78 mm2) | U1 @ (64.5, 78.7) |
+| error | check_silk / silk_over_pad | silk "J_HARN1 <- A22 J_MEZZ1" on F.SilkS covers pad U1.3 (0.53 mm2) | U1 @ (64.5, 79.7) |
+| error | check_silk / silk_over_pad | silk "J_HARN1 <- A22 J_MEZZ1" on F.SilkS covers pad U1.4 (0.53 mm2) | U1 @ (66.8, 79.7) |
+| error | check_silk / silk_over_pad | silk "headset leads J_HS1 / J_HS2 from the face plate jacks (SPK MIC PTT GND GND)" on F.SilkS covers pad U2.11 (3.19 mm2) | U2 @ (102.4, 99.5) |
+| error | check_silk / silk_over_pad | silk "headset leads J_HS1 / J_HS2 from the face plate jacks (SPK MIC PTT GND GND)" on F.SilkS covers pad U3.7 (0.14 mm2) | U3 @ (127.7, 98.5) |
+| error | check_silk / silk_over_pad | silk "headset leads J_HS1 / J_HS2 from the face plate jacks (SPK MIC PTT GND GND)" on F.SilkS covers pad U3.8 (0.20 mm2) | U3 @ (128.7, 99.5) |
+| error | check_silk / silk_over_pad | silk "headset leads J_HS1 / J_HS2 from the face plate jacks (SPK MIC PTT GND GND)" on F.SilkS covers pad U3.9 (0.20 mm2) | U3 @ (129.2, 99.5) |
+| error | check_silk / silk_over_pad | silk "headset leads J_HS1 / J_HS2 from the face plate jacks (SPK MIC PTT GND GND)" on F.SilkS covers pad U3.10 (0.20 mm2) | U3 @ (129.7, 99.5) |
+| error | check_silk / silk_over_pad | silk "headset leads J_HS1 / J_HS2 from the face plate jacks (SPK MIC PTT GND GND)" on F.SilkS covers pad U3.11 (0.20 mm2) | U3 @ (130.2, 99.5) |
+| error | check_silk / silk_over_pad | silk "headset leads J_HS1 / J_HS2 from the face plate jacks (SPK MIC PTT GND GND)" on F.SilkS covers pad U3.12 (0.20 mm2) | U3 @ (130.7, 99.5) |
+| error | check_silk / silk_over_pad | silk "headset leads J_HS1 / J_HS2 from the face plate jacks (SPK MIC PTT GND GND)" on F.SilkS covers pad U3.13 (0.20 mm2) | U3 @ (131.2, 99.5) |
+| error | check_silk / silk_over_pad | silk "headset leads J_HS1 / J_HS2 from the face plate jacks (SPK MIC PTT GND GND)" on F.SilkS covers pad U3.14 (0.20 mm2) | U3 @ (131.7, 99.5) |
+| error | check_silk / silk_over_pad | silk "headset leads J_HS1 / J_HS2 from the face plate jacks (SPK MIC PTT GND GND)" on F.SilkS covers pad U3.15 (0.14 mm2) | U3 @ (132.6, 98.5) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J_HS1.1 (2.05 mm2) | J_HS1 @ (145.9, 92.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J_HS1.2 (1.79 mm2) | J_HS1 @ (145.9, 90.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J_HS1.3 (1.79 mm2) | J_HS1 @ (145.9, 88.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J_HS1.4 (1.79 mm2) | J_HS1 @ (145.9, 86.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J_HS1.5 (1.79 mm2) | J_HS1 @ (145.9, 84.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J_HS2.1 (2.05 mm2) | J_HS2 @ (145.9, 116.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J_HS2.2 (1.79 mm2) | J_HS2 @ (145.9, 114.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J_HS2.3 (1.79 mm2) | J_HS2 @ (145.9, 112.0) |
+
+241 more in `runs/meshsat-aprs/reports/`.
+
+### meshsat-rfjunction
+
+https://github.com/meshsat/meshsat-fieldkit at `dfea910c10ac`, `v2/ecad/pcb-e2-rfjunction/pcb-e2-rfjunction.kicad_pcb`, CERN-OHL-S-2.0, rf, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style pass, check_silk pass, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| warning | check.dfm / dfm_silk_width | 12 silk strokes below JLC minimum width 0.15 mm (narrowest 0.1200 mm) on F.Silkscreen | @ (47.6, 99.5) |
+
+### sincos-interpolator
+
+https://github.com/finngineering/sincos_interpolator at `52fcf9e048ec`, `hardware/sincos_interpolator.kicad_pcb`, MIT, analog, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style pass, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_diffpair / diffpair_uncoupled | diff pair /B+//B- has 6.79 mm of /B- running uncoupled (> 2.37 mm from its partner); limit 5.0 mm | /B- @ (179.1, 125.5) |
+| error | check_silk / silk_over_pad | silk "SinCos Interpolator Finngineering.com" on F.SilkS covers pad ?.2 (1.50 mm2) | ? @ (154.9, 148.0) |
+| error | check_silk / silk_over_pad | silk "SinCos Interpolator Finngineering.com" on F.SilkS covers pad ?.3 (0.50 mm2) | ? @ (154.9, 149.3) |
+| error | check_silk / silk_over_pad | silk "SinCos Interpolator Finngineering.com" on F.SilkS covers pad ?.2 (1.50 mm2) | ? @ (151.1, 148.0) |
+| error | check_silk / silk_over_pad | silk "SinCos Interpolator Finngineering.com" on F.SilkS covers pad ?.3 (0.50 mm2) | ? @ (151.1, 149.3) |
+| error | check_silk / silk_over_pad | silk "SinCos Interpolator Finngineering.com" on F.SilkS covers pad ?.2 (1.50 mm2) | ? @ (158.8, 148.0) |
+| error | check_silk / silk_over_pad | silk "SinCos Interpolator Finngineering.com" on F.SilkS covers pad ?.3 (0.50 mm2) | ? @ (158.8, 149.3) |
+| error | check_silk / silk_over_pad | silk "SinCos Interpolator Finngineering.com" on F.SilkS covers pad ?.2 (1.34 mm2) | ? @ (147.3, 148.0) |
+| error | check_silk / silk_over_pad | silk "SinCos Interpolator Finngineering.com" on F.SilkS covers pad ?.3 (0.50 mm2) | ? @ (147.3, 149.3) |
+| error | check_silk / silk_over_pad | silk "SinCos Interpolator Finngineering.com" on F.SilkS covers pad ?.2 (1.50 mm2) | ? @ (162.6, 148.0) |
+| error | check_silk / silk_over_pad | silk "SinCos Interpolator Finngineering.com" on F.SilkS covers pad ?.3 (0.50 mm2) | ? @ (162.6, 149.3) |
+| error | check_silk / silk_over_pad | silk "2024-10-13 Rev. 1.4" on F.SilkS covers pad ?.1 (2.01 mm2) | ? @ (172.7, 143.5) |
+| error | check_silk / silk_over_pad | silk "2024-10-13 Rev. 1.4" on F.SilkS covers pad ?.2 (2.01 mm2) | ? @ (162.6, 143.5) |
+| error | check_silk / silk_over_pad | silk "VREF COS" on F.SilkS covers pad ?.1 (1.42 mm2) | ? @ (151.1, 137.8) |
+| error | check_silk / silk_over_pad | silk "JP21" on F.SilkS covers pad ?.1 (0.50 mm2) | ? @ (153.7, 135.2) |
+| error | check.dfm / dfm_annular_ring | annular ring -0.1000 mm below JLC minimum 0.15 mm | @ (135.9, 134.6) |
+| error | check.dfm / dfm_annular_ring | annular ring -0.1000 mm below JLC minimum 0.15 mm | @ (203.8, 125.7) |
+| error | check.dfm / dfm_annular_ring | annular ring -0.0750 mm below JLC minimum 0.15 mm | @ (187.2, 106.7) |
+| error | check.dfm / dfm_annular_ring | annular ring -0.0750 mm below JLC minimum 0.15 mm | @ (193.0, 106.7) |
+| warning | check_diffpair / diffpair_via_asymmetry | diff pair /A+//A- via count asymmetric: /A+ has 1, /A- has 0 | /A+ @ (186.7, 123.2) |
+| warning | check_diffpair / diffpair_via_asymmetry | diff pair /B+//B- via count asymmetric: /B+ has 1, /B- has 0 | /B+ @ (179.1, 125.5) |
+| warning | check_diffpair / diffpair_via_asymmetry | diff pair /Z+//Z- via count asymmetric: /Z+ has 0, /Z- has 1 | /Z+ @ (178.8, 130.2) |
+| warning | check.dfm / dfm_silk_width | 657 silk strokes below JLC minimum width 0.15 mm (narrowest 0.1000 mm) on F.Silkscreen | @ (175.5, 135.3) |
+
+### guitar-pedal-stm32
+
+https://github.com/GuitarML/GuitarPedalSTM32 at `72dfd26114fa`, `hardware/STM32H7B0_GuitarPedal/STM32H7_GuitarPedal.kicad_pcb`, MIT, analog, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J3.1 (4.88 mm2) | J3 @ (123.7, 56.5) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad J3.2 (9.21 mm2) | J3 @ (117.7, 56.5) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0850 mm below JLC minimum 0.1 mm | @ (142.0, 122.3) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0850 mm below JLC minimum 0.1 mm | @ (142.0, 124.1) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0850 mm below JLC minimum 0.1 mm | @ (142.0, 125.9) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0850 mm below JLC minimum 0.1 mm | @ (142.0, 127.7) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.4775 mm2) on F.Silkscreen - pad of J3 | J3 @ (121.2, 61.2) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.5398 mm2) on F.Silkscreen - pad of J3 | J3 @ (123.7, 56.5) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1731 mm2) on F.Silkscreen - pad of SW4 | SW4 @ (131.3, 77.2) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.0950 mm2) on F.Silkscreen - pad of SW4 | SW4 @ (131.3, 67.8) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1731 mm2) on F.Silkscreen - pad of SW3 | SW3 @ (152.7, 77.2) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.0950 mm2) on F.Silkscreen - pad of SW3 | SW3 @ (152.7, 67.8) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.5186 mm2) on B.Silkscreen - pad of J3 | J3 @ (123.7, 56.5) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.5402 mm2) on B.Silkscreen - pad of J3 | J3 @ (117.7, 56.5) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1612 mm2) on B.Silkscreen - pad of J5 | J5 @ (165.0, 48.4) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.2607 mm2) on B.Silkscreen - pad of J5 | J5 @ (158.7, 48.4) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1288 mm2) on B.Silkscreen - pad of J5 | J5 @ (165.0, 64.6) |
+| warning | check_silk / silk_illegible | silk text "C10" is 0.60 mm tall (< 0.8 mm min legible height) | @ (137.3, 78.5) |
+| warning | check_silk / silk_illegible | silk text "Expression" is 0.60 mm tall (< 0.8 mm min legible height) | @ (170.2, 56.5) |
+| warning | check_silk / silk_illegible | silk text "Audio Output" is 0.60 mm tall (< 0.8 mm min legible height) | @ (170.5, 125.0) |
+| warning | check_silk / silk_illegible | silk text "C27" is 0.60 mm tall (< 0.8 mm min legible height) | @ (153.6, 44.5) |
+| warning | check_silk / silk_illegible | silk text "Audio Input" is 0.60 mm tall (< 0.8 mm min legible height) | @ (113.5, 125.2) |
+| warning | check_silk / silk_illegible | silk text "R28" is 0.60 mm tall (< 0.8 mm min legible height) | @ (159.4, 100.1) |
+| warning | check_silk / silk_illegible | silk text "JP1" is 0.60 mm tall (< 0.8 mm min legible height) | @ (117.5, 89.6) |
+| warning | check_silk / silk_illegible | silk text "C15" is 0.60 mm tall (< 0.8 mm min legible height) | @ (137.2, 102.3) |
+
+102 more in `runs/guitar-pedal-stm32/reports/`.
+
+### winterbloom-hydrogen
+
+https://github.com/wntrblm/Hydrogen at `116763d35b46`, `hardware/board/board.kicad_pcb`, CERN-OHL-P-2.0, analog, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D3.1 (1.56 mm2) | D3 @ (118.1, 103.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D3.2 (1.56 mm2) | D3 @ (115.7, 103.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D4.1 (1.56 mm2) | D4 @ (118.1, 105.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D4.2 (1.56 mm2) | D4 @ (115.7, 105.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D5.1 (1.56 mm2) | D5 @ (118.1, 117.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D5.2 (1.56 mm2) | D5 @ (115.7, 117.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D6.1 (1.56 mm2) | D6 @ (118.1, 119.2) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad D6.2 (1.56 mm2) | D6 @ (115.7, 119.2) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad C3.1 (0.97 mm2) | C3 @ (135.3, 110.5) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad C3.2 (0.97 mm2) | C3 @ (135.3, 112.3) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad C4.1 (0.97 mm2) | C4 @ (144.6, 112.3) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad C4.2 (0.97 mm2) | C4 @ (144.6, 110.5) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad C5.1 (0.97 mm2) | C5 @ (159.8, 110.5) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad C5.2 (0.97 mm2) | C5 @ (159.8, 112.3) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad C6.1 (0.97 mm2) | C6 @ (168.7, 112.3) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad C6.2 (0.97 mm2) | C6 @ (168.7, 110.5) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad D1.1 (1.65 mm2) | D1 @ (105.5, 119.2) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad D1.2 (1.65 mm2) | D1 @ (108.5, 119.2) |
+| error | check_silk / silk_over_pad | silk poly on B.SilkS covers pad D1.1 (0.85 mm2) | D1 @ (105.5, 119.2) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad D2.1 (1.65 mm2) | D2 @ (108.5, 103.7) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad D2.2 (1.65 mm2) | D2 @ (105.5, 103.7) |
+| error | check_silk / silk_over_pad | silk poly on B.SilkS covers pad D2.1 (0.85 mm2) | D2 @ (108.5, 103.7) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad FB1.1 (0.95 mm2) | FB1 @ (106.0, 116.9) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad FB1.2 (0.95 mm2) | FB1 @ (107.8, 116.9) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad R1.1 (0.88 mm2) | R1 @ (126.1, 104.8) |
+
+169 more in `runs/winterbloom-hydrogen/reports/`.
+
+### temperature-logger
+
+https://github.com/Jana-Marie/temperature-logger at `fa80da42b0d4`, `temperature-logger.kicad_pcb`, CERN-OHL-S-2.0, analog, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "CSV - SCPI" on B.SilkS covers pad ?. (0.64 mm2) | ? @ (120.5, 52.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.58 mm2) | ? @ (80.8, 61.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.66 mm2) | ? @ (79.8, 61.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.3 (0.66 mm2) | ? @ (78.8, 61.3) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?. (0.48 mm2) | ? @ (120.5, 52.2) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (74.5, 82.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (99.8, 60.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2050 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (124.2, 57.2) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (114.4, 88.7) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (135.8, 90.1) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (148.9, 70.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on In1.Cu | @ (102.7, 74.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on In2.Cu | @ (102.7, 74.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (65.5, 80.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (87.3, 57.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (91.9, 87.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (113.9, 87.6) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (141.7, 67.1) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2000 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (135.3, 88.2) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4796 mm below JLC minimum 0.5 mm | @ (118.0, 61.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4800 mm below JLC minimum 0.5 mm | @ (118.7, 61.0) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0500 mm below JLC minimum 0.1 mm | @ (68.2, 91.7) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0500 mm below JLC minimum 0.1 mm | @ (85.0, 58.2) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0500 mm below JLC minimum 0.1 mm | @ (90.2, 91.7) |
+| error | check.dfm / dfm_annular_ring | annular ring 0.0500 mm below JLC minimum 0.1 mm | @ (110.0, 58.2) |
+
+182 more in `runs/temperature-logger/reports/`.
+
+### moteus-c1-r1.0
+
+https://github.com/mjbots/moteus at `8f747f4ac448`, `hw/c1/r1.0/moteus_c1.kicad_pcb`, Apache-2.0, motor, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "+   +" on B.SilkS covers pad ?.1 (0.12 mm2) | ? @ (140.2, 84.9) |
+| error | check_silk / silk_over_pad | silk "+   +" on B.SilkS covers pad ?.1 (0.12 mm2) | ? @ (144.5, 84.9) |
+| error | check_silk / silk_over_pad | silk "B" on B.SilkS covers pad ?.1 (0.14 mm2) | ? @ (149.6, 84.9) |
+| error | check_silk / silk_over_pad | silk "-  -" on B.SilkS covers pad ?.1 (0.13 mm2) | ? @ (154.7, 84.9) |
+| error | check_silk / silk_over_pad | silk "C" on B.SilkS covers pad ?.1 (0.14 mm2) | ? @ (139.4, 84.9) |
+| error | check_silk / silk_over_pad | silk "A" on B.SilkS covers pad ?.1 (0.12 mm2) | ? @ (159.8, 84.9) |
+| error | check_silk / silk_over_pad | silk "(c) 2023" on F.SilkS covers pad ?.22 (0.11 mm2) | ? @ (148.6, 102.2) |
+| error | check_silk / silk_over_pad | silk "(c) 2023" on F.SilkS covers pad ?.23 (0.13 mm2) | ? @ (148.9, 102.6) |
+| error | check_silk / silk_over_pad | silk "(c) 2023" on F.SilkS covers pad ?.24 (0.13 mm2) | ? @ (149.3, 102.9) |
+| error | check_silk / silk_over_pad | silk "(c) 2023" on F.SilkS covers pad ?.25 (0.12 mm2) | ? @ (149.6, 103.3) |
+| error | check_silk / silk_over_pad | silk "B" on F.SilkS covers pad ?.1 (0.16 mm2) | ? @ (150.4, 84.9) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.5 (0.25 mm2) | ? @ (153.3, 86.7) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.6 (0.25 mm2) | ? @ (152.6, 86.7) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.7 (0.25 mm2) | ? @ (152.0, 86.7) |
+| error | check_silk / silk_over_pad | silk "-  -" on F.SilkS covers pad ?.8 (0.25 mm2) | ? @ (151.3, 86.7) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.0" on F.SilkS covers pad ?.25 (0.10 mm2) | ? @ (149.6, 103.3) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.0" on F.SilkS covers pad ?.26 (0.13 mm2) | ? @ (150.0, 103.6) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.0" on F.SilkS covers pad ?.27 (0.13 mm2) | ? @ (150.3, 104.0) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.0" on F.SilkS covers pad ?.28 (0.13 mm2) | ? @ (150.7, 104.3) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.0" on F.SilkS covers pad ?.33 (0.13 mm2) | ? @ (153.0, 104.3) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.0" on F.SilkS covers pad ?.34 (0.13 mm2) | ? @ (153.4, 104.0) |
+| error | check_silk / silk_over_pad | silk "moteus-c1 r1.0" on F.SilkS covers pad ?.35 (0.09 mm2) | ? @ (153.7, 103.6) |
+| error | check_silk / silk_over_pad | silk "A" on F.SilkS covers pad ?.1 (0.16 mm2) | ? @ (160.6, 84.9) |
+| error | check_silk / silk_over_pad | silk "G" on F.SilkS covers pad ?.2 (0.18 mm2) | ? @ (162.3, 102.4) |
+| error | check_silk / silk_over_pad | silk "G" on F.SilkS covers pad ?.1 (0.28 mm2) | ? @ (162.3, 103.4) |
+
+585 more in `runs/moteus-c1-r1.0/reports/`.
+
+### jiran-ble-lite
+
+https://github.com/Ladniy/jiran-ble-lite at `c2a5ef422c26`, `pcb/jiran-ble-lite/jiran-ble-lite.kicad_pcb`, CERN-OHL-P-2.0, mcu-usb, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_diffpair / diffpair_skew | diff pair /jiran-ble-lite-right/DATA+//jiran-ble-lite-right/DATA- length skew 13.40 mm (~95 ps, eps_r 4.5); limit 5.0 mm | /jiran-ble-lite-right/DATA+ @ (236.0, 80.9) |
+| error | check_diffpair / diffpair_uncoupled | diff pair /jiran-ble-lite-right/DATA+//jiran-ble-lite-right/DATA- has 18.79 mm of /jiran-ble-lite-right/DATA- running uncoupled (> 5.03 mm f | /jiran-ble-lite-right/DATA- @ (236.0, 80.9) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (2.25 mm2) | ? @ (228.1, 104.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.3 (2.25 mm2) | ? @ (228.1, 101.9) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.1 (0.73 mm2) | ? @ (243.6, 68.7) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.2 (0.73 mm2) | ? @ (242.0, 68.7) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.1 (1.01 mm2) | ? @ (189.0, 74.5) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.2 (1.01 mm2) | ? @ (189.0, 71.2) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.2 (0.67 mm2) | ? @ (184.8, 76.1) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.1 (0.73 mm2) | ? @ (189.8, 68.7) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.2 (0.73 mm2) | ? @ (188.2, 68.7) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.1 (0.73 mm2) | ? @ (189.8, 77.0) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.2 (0.73 mm2) | ? @ (188.2, 77.0) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.1 (0.73 mm2) | ? @ (184.5, 68.7) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.2 (0.73 mm2) | ? @ (182.9, 68.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.1003 mm below JLC minimum 0.127 mm on F.Cu | @ (175.5, 86.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.1003 mm below JLC minimum 0.127 mm on F.Cu | @ (173.6, 86.8) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0540 mm below JLC minimum 0.127 mm on F.Cu | @ (169.4, 86.6) |
+| error | check.dfm / dfm_clearance | copper clearance 0.1003 mm below JLC minimum 0.127 mm on F.Cu | @ (186.2, 91.7) |
+| error | check.dfm / dfm_clearance | copper clearance 0.1001 mm below JLC minimum 0.127 mm on F.Cu | @ (233.8, 77.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.1164 mm below JLC minimum 0.127 mm on F.Cu | @ (238.6, 82.1) |
+| error | check.dfm / dfm_clearance | copper clearance 0.1001 mm below JLC minimum 0.127 mm on F.Cu | @ (297.4, 78.3) |
+| error | check.dfm / dfm_clearance | copper clearance 0.1179 mm below JLC minimum 0.127 mm on F.Cu | @ (267.3, 82.8) |
+| error | check.dfm / dfm_clearance | copper clearance 0.1088 mm below JLC minimum 0.127 mm on F.Cu | @ (244.3, 83.4) |
+| error | check.dfm / dfm_clearance | copper clearance 0.1152 mm below JLC minimum 0.127 mm on B.Cu | @ (84.0, 59.0) |
+
+371 more in `runs/jiran-ble-lite/reports/`.
+
+### anotter-sensor-hub
+
+https://github.com/Jana-Marie/anotter-sensor-hub at `37d2efe854fc`, `anotter-sensor-hub.kicad_pcb`, CERN-OHL-S-2.0, mcu-usb, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "SEN55-      Sensorhub" on F.SilkS covers pad ?.2 (0.27 mm2) | ? @ (128.8, 126.0) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?. (0.59 mm2) | ? @ (104.4, 134.7) |
+| error | check_silk / silk_over_pad | silk "hide" on B.SilkS covers pad ?.4 (1.18 mm2) | ? @ (103.1, 130.0) |
+| error | check.dfm / dfm_clearance | copper clearance 0.0588 mm below JLC minimum 0.127 mm on F.Cu | @ (127.0, 130.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (114.7, 118.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (148.6, 122.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.1999 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (124.9, 123.4) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4273 mm below JLC minimum 0.5 mm | @ (105.6, 128.6) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1337 mm2) on B.Silkscreen - pad of ? | ? @ (103.1, 130.0) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.1767 mm2) on B.Silkscreen - pad of ? | ? @ (103.1, 132.5) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.7663 mm2) on B.Silkscreen - pad of ? | ? @ (105.5, 129.7) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.7623 mm2) on B.Silkscreen - pad of ? | ? @ (106.5, 134.7) |
+| error | check.dfm / dfm_silk_over_pad | silkscreen printed over a solder-mask opening (0.7623 mm2) on B.Silkscreen - pad of ? | ? @ (104.4, 134.7) |
+| warning | check_silk / silk_illegible | silk text "GND" is 0.60 mm tall (< 0.8 mm min legible height) | @ (144.4, 116.5) |
+| warning | check_silk / silk_illegible | silk text "TXD" is 0.60 mm tall (< 0.8 mm min legible height) | @ (101.1, 124.9) |
+| warning | check_silk / silk_illegible | silk text "GND " is 0.60 mm tall (< 0.8 mm min legible height) | @ (137.0, 129.8) |
+| warning | check_silk / silk_illegible | silk text "SDA" is 0.60 mm tall (< 0.8 mm min legible height) | @ (134.5, 129.8) |
+| warning | check_silk / silk_illegible | silk text "GND " is 0.60 mm tall (< 0.8 mm min legible height) | @ (122.2, 128.8) |
+| warning | check_silk / silk_illegible | silk text "5V" is 0.60 mm tall (< 0.8 mm min legible height) | @ (132.0, 129.8) |
+| warning | check_silk / silk_illegible | silk text "SCK " is 0.60 mm tall (< 0.8 mm min legible height) | @ (118.4, 129.8) |
+| warning | check_silk / silk_illegible | silk text "3V3" is 0.60 mm tall (< 0.8 mm min legible height) | @ (133.2, 128.9) |
+| warning | check_silk / silk_illegible | silk text "5V" is 0.60 mm tall (< 0.8 mm min legible height) | @ (145.4, 117.7) |
+| warning | check_silk / silk_illegible | silk text "Jana Marie 2022" is 0.60 mm tall (< 0.8 mm min legible height) | @ (137.4, 127.3) |
+| warning | check_silk / silk_illegible | silk text "COPI" is 0.60 mm tall (< 0.8 mm min legible height) | @ (120.9, 129.8) |
+| warning | check_silk / silk_illegible | silk text "SCK " is 0.60 mm tall (< 0.8 mm min legible height) | @ (145.4, 129.3) |
+
+50 more in `runs/anotter-sensor-hub/reports/`.
+
+### pico-ice-rev2
+
+https://github.com/tinyvision-ai-inc/pico-ice at `00e13360969d`, `Board/Rev2/pico-ice.kicad_pcb`, MIT, mcu-usb, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "~{SS}" on B.SilkS covers pad ?.4 (0.61 mm2) | ? @ (77.3, 82.3) |
+| error | check_silk / silk_over_pad | silk "~{Rst}" on B.SilkS covers pad ?.5 (0.75 mm2) | ? @ (68.5, 124.6) |
+| error | check_silk / silk_over_pad | silk "iCE PMOD" on B.SilkS covers pad ?.2 (0.17 mm2) | ? @ (66.7, 88.7) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on B.SilkS covers pad ?.1 (0.27 mm2) | ? @ (77.3, 98.0) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on B.SilkS covers pad ?.2 (0.33 mm2) | ? @ (76.4, 98.0) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on B.SilkS covers pad ?.5 (0.61 mm2) | ? @ (77.3, 99.3) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on F.SilkS covers pad ?.1 (0.33 mm2) | ? @ (77.7, 92.5) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on F.SilkS covers pad ?.2 (0.33 mm2) | ? @ (77.7, 93.5) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on F.SilkS covers pad ?.1 (0.20 mm2) | ? @ (76.7, 92.5) |
+| error | check_silk / silk_over_pad | silk "RP-iCE PMOD" on F.SilkS covers pad ?.2 (0.20 mm2) | ? @ (76.7, 93.5) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.39 (2.21 mm2) | ? @ (62.2, 128.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.40 (2.21 mm2) | ? @ (64.8, 128.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.30 mm2) | ? @ (68.5, 98.9) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.27 mm2) | ? @ (70.0, 118.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.33 mm2) | ? @ (72.0, 118.9) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.33 mm2) | ? @ (71.1, 118.9) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.28 mm2) | ? @ (68.5, 99.9) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.26 mm2) | ? @ (67.6, 112.3) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.33 mm2) | ? @ (70.6, 108.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.33 mm2) | ? @ (70.6, 107.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.33 mm2) | ? @ (70.8, 106.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (1.33 mm2) | ? @ (74.5, 76.5) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (1.33 mm2) | ? @ (78.7, 76.5) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.52 mm2) | ? @ (73.7, 121.0) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.43 mm2) | ? @ (73.7, 122.2) |
+
+157 more in `runs/pico-ice-rev2/reports/`.
+
+### eurorack-pmod-r3.3
+
+https://github.com/apfaudio/eurorack-pmod at `ddb9aa92fab7`, `hardware/eurorack-pmod-r3.3/eurorack-pmod-pcb.kicad_pcb`, CERN-OHL-S-2.0, analog, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "Mit      aus Friedrichshain" on B.SilkS covers pad ?.1 (0.38 mm2) | ? @ (10.2, 87.7) |
+| error | check_silk / silk_over_pad | silk "Mit      aus Friedrichshain" on B.SilkS covers pad ?.1 (0.38 mm2) | ? @ (10.2, 90.0) |
+| error | check_silk / silk_over_pad | silk "Mit      aus Friedrichshain" on B.SilkS covers pad ?.1 (0.25 mm2) | ? @ (10.7, 88.8) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.9 (2.27 mm2) | ? @ (2.0, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.10 (2.27 mm2) | ? @ (-0.5, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.3 (2.27 mm2) | ? @ (2.0, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.4 (2.27 mm2) | ? @ (-0.5, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.5 (2.27 mm2) | ? @ (2.0, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.6 (2.27 mm2) | ? @ (-0.5, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.7 (2.27 mm2) | ? @ (2.0, 98.4) |
+| error | check_silk / silk_over_pad | silk rect on B.SilkS covers pad ?.8 (2.27 mm2) | ? @ (-0.5, 98.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.9 (2.27 mm2) | ? @ (2.0, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.10 (2.27 mm2) | ? @ (-0.5, 6.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.3 (2.27 mm2) | ? @ (2.0, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.4 (2.27 mm2) | ? @ (-0.5, 103.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.5 (2.27 mm2) | ? @ (2.0, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.6 (2.27 mm2) | ? @ (-0.5, 100.9) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.7 (2.27 mm2) | ? @ (2.0, 98.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.8 (2.27 mm2) | ? @ (-0.5, 98.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.20 mm2) | ? @ (-17.0, 40.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (-18.3, 40.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (-19.2, 40.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.33 mm2) | ? @ (5.9, 33.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.20 mm2) | ? @ (3.2, 33.5) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.15 mm2) | ? @ (3.7, 33.5) |
+
+382 more in `runs/eurorack-pmod-r3.3/reports/`.
+
+### pico-evb
+
+https://github.com/OLIMEX/PICO-EVB at `5a4360986a67`, `HARDWARE/PICO-EVB_Rev_A/PICO-EVB_Rev_A.kicad_pcb`, MIT, mcu-usb, 2 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "29/ GND" on F.SilkS covers pad ?.5 (1.33 mm2) | ? @ (136.5, 61.5) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2545 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (140.5, 97.1) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2545 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (152.3, 120.4) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2545 mm from board edge, JLC minimum 0.3 mm on F.Cu | @ (159.6, 63.9) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2545 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (134.2, 87.8) |
+| error | check.dfm / dfm_copper_to_edge | copper 0.2545 mm from board edge, JLC minimum 0.3 mm on B.Cu | @ (146.6, 119.5) |
+| error | check.dfm / dfm_hole_to_hole | hole-to-hole 0.4607 mm below JLC minimum 0.5 mm | @ (136.0, 124.8) |
+| warning | check_silk / silk_illegible | silk text "IO3" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 76.7) |
+| warning | check_silk / silk_illegible | silk text "IO11" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 102.1) |
+| warning | check_silk / silk_illegible | silk text "GND" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 84.3) |
+| warning | check_silk / silk_illegible | silk text "IO13" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 107.2) |
+| warning | check_silk / silk_illegible | silk text "IO7" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 89.4) |
+| warning | check_silk / silk_illegible | silk text "IO10" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 99.5) |
+| warning | check_silk / silk_illegible | silk text "IO25" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 109.7) |
+| warning | check_silk / silk_illegible | silk text "IO4" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 79.2) |
+| warning | check_silk / silk_illegible | silk text "IO1" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 69.1) |
+| warning | check_silk / silk_illegible | silk text "IO6" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 86.8) |
+| warning | check_silk / silk_illegible | silk text "IO9" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 94.5) |
+| warning | check_silk / silk_illegible | silk text "IO0" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 66.5) |
+| warning | check_silk / silk_illegible | silk text "GND" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.0, 71.6) |
+| warning | check_silk / silk_illegible | silk text "IO12" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 104.6) |
+| warning | check_silk / silk_illegible | silk text "IO8" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 91.9) |
+| warning | check_silk / silk_illegible | silk text "IO2" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 74.1) |
+| warning | check_silk / silk_illegible | silk text "IO29" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 97.0) |
+| warning | check_silk / silk_illegible | silk text "IO14" is 0.51 mm tall (< 0.8 mm min legible height) | @ (143.1, 112.2) |
+
+109 more in `runs/pico-evb/reports/`.
+
+### esp32-p4-pc-rev-c
+
+https://github.com/OLIMEX/ESP32-P4-PC at `04032d68e5c7`, `HARDWARE/ESP32-P4-PC-Rev.C/ESP32-P4-PC_Rev_C.kicad_pcb`, MIT, 4-layer, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_diffpair / diffpair_skew | diff pair /DSI_DATA1P//DSI_DATA1N length skew 17.78 mm (~122 ps, eps_r 4.2); limit 5.0 mm | /DSI_DATA1P @ (175.8, 62.0) |
+| error | check_silk / silk_over_pad | silk "20" on B.SilkS covers pad ?.5 (0.63 mm2) | ? @ (143.4, 88.8) |
+| error | check_silk / silk_over_pad | silk "20" on B.SilkS covers pad ?.1 (0.19 mm2) | ? @ (143.8, 87.8) |
+| error | check_silk / silk_over_pad | silk "UEXT1" on B.SilkS covers pad ?.1 (0.28 mm2) | ? @ (187.8, 65.9) |
+| error | check_silk / silk_over_pad | silk "UEXT1" on B.SilkS covers pad ?.2 (0.28 mm2) | ? @ (187.8, 66.9) |
+| error | check_silk / silk_over_pad | silk "ESP32-P4-PC" on B.SilkS covers pad ?.1 (0.27 mm2) | ? @ (170.7, 62.4) |
+| error | check_silk / silk_over_pad | silk "ESP32-P4-PC" on B.SilkS covers pad ?.2 (0.27 mm2) | ? @ (171.7, 62.4) |
+| error | check_silk / silk_over_pad | silk "ESP32-P4-PC" on B.SilkS covers pad ?.2 (0.17 mm2) | ? @ (167.1, 62.0) |
+| error | check_silk / silk_over_pad | silk "1" on B.SilkS covers pad ?.1.1 (0.14 mm2) | ? @ (182.9, 54.4) |
+| error | check_silk / silk_over_pad | silk "www.olimex.com" on B.SilkS covers pad ?.2 (0.28 mm2) | ? @ (173.1, 48.4) |
+| error | check_silk / silk_over_pad | silk "www.olimex.com" on B.SilkS covers pad ?.1 (0.27 mm2) | ? @ (178.6, 48.3) |
+| error | check_silk / silk_over_pad | silk "www.olimex.com" on B.SilkS covers pad ?.2 (0.27 mm2) | ? @ (177.5, 48.3) |
+| error | check_silk / silk_over_pad | silk "www.olimex.com" on B.SilkS covers pad ?.1 (1.13 mm2) | ? @ (174.9, 49.0) |
+| error | check_silk / silk_over_pad | silk "www.olimex.com" on F.SilkS covers pad ?.1 (0.28 mm2) | ? @ (143.1, 92.6) |
+| error | check_silk / silk_over_pad | silk "www.olimex.com" on F.SilkS covers pad ?.2 (0.28 mm2) | ? @ (142.1, 92.6) |
+| error | check_silk / silk_over_pad | silk "ESP32-P4-PC" on F.SilkS covers pad ?.2 (0.28 mm2) | ? @ (159.0, 69.7) |
+| error | check_silk / silk_over_pad | silk "ESP32-P4-PC" on F.SilkS covers pad ?. (5.34 mm2) | ? @ (148.5, 68.5) |
+| error | check_silk / silk_over_pad | silk "o" on F.SilkS covers pad ?.1 (0.24 mm2) | ? @ (169.2, 87.1) |
+| error | check_silk / silk_over_pad | silk "o" on F.SilkS covers pad ?.1 (0.13 mm2) | ? @ (163.2, 48.2) |
+| error | check_silk / silk_over_pad | silk "o" on F.SilkS covers pad ?.2 (0.11 mm2) | ? @ (163.7, 48.2) |
+| error | check_silk / silk_over_pad | silk "o" on F.SilkS covers pad ?.1 (0.13 mm2) | ? @ (166.3, 48.2) |
+| error | check_silk / silk_over_pad | silk "o" on F.SilkS covers pad ?.2 (0.11 mm2) | ? @ (166.8, 48.2) |
+| error | check_silk / silk_over_pad | silk "o" on F.SilkS covers pad ?.2 (0.15 mm2) | ? @ (172.6, 74.2) |
+| error | check_silk / silk_over_pad | silk "o" on F.SilkS covers pad ?.1 (0.13 mm2) | ? @ (169.3, 48.2) |
+| error | check_silk / silk_over_pad | silk "o" on F.SilkS covers pad ?.2 (0.11 mm2) | ? @ (169.8, 48.2) |
+
+229 more in `runs/esp32-p4-pc-rev-c/reports/`.
+
+### kria-k26-devboard
+
+https://github.com/antmicro/kria-k26-devboard at `9ead4dfc5b29`, `kria-k26-devboard.kicad_pcb`, Apache-2.0, 4-layer, 8 layers.
+
+dfm_check wrote no report: CheckError: no capability entry '8layer_1oz' (have: 2layer_1oz, 2layer_2oz, 4layer_1oz, 4layer_2oz, 6layer_1oz)
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style error, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_diffpair / diffpair_skew | diff pair /Debug and JTAG/USBC_P//Debug and JTAG/USBC_N length skew 67.11 mm (~464 ps, eps_r 4.3); limit 5.0 mm | /Debug and JTAG/USBC_P @ (147.4, 107.0) |
+| error | check_silk / silk_over_pad | silk "C16" on F.SilkS covers pad ?.1 (0.22 mm2) | ? @ (132.5, 136.5) |
+| error | check_silk / silk_over_pad | silk "C16" on F.SilkS covers pad ?.16 (0.12 mm2) | ? @ (131.1, 136.4) |
+| error | check_silk / silk_over_pad | silk "C22" on F.SilkS covers pad ?.1 (0.34 mm2) | ? @ (110.9, 95.5) |
+| error | check_silk / silk_over_pad | silk "C25" on F.SilkS covers pad ?.2 (0.34 mm2) | ? @ (112.1, 96.5) |
+| error | check_silk / silk_over_pad | silk "C12" on F.SilkS covers pad ?.2 (0.35 mm2) | ? @ (135.1, 135.9) |
+| error | check_silk / silk_over_pad | silk "C15" on F.SilkS covers pad ?.10 (0.72 mm2) | ? @ (136.3, 139.8) |
+| error | check_silk / silk_over_pad | silk "C36" on F.SilkS covers pad ?.8 (1.16 mm2) | ? @ (170.5, 144.3) |
+| error | check_silk / silk_over_pad | silk "C37" on F.SilkS covers pad ?.10 (0.86 mm2) | ? @ (167.9, 144.3) |
+| error | check_silk / silk_over_pad | silk "R66" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (122.5, 95.3) |
+| error | check_silk / silk_over_pad | silk "R18" on F.SilkS covers pad ?.2 (0.30 mm2) | ? @ (125.2, 137.6) |
+| error | check_silk / silk_over_pad | silk "R104" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (146.1, 109.6) |
+| error | check_silk / silk_over_pad | silk "R105" on F.SilkS covers pad ?.2 (0.22 mm2) | ? @ (142.7, 108.3) |
+| error | check_silk / silk_over_pad | silk "R19" on F.SilkS covers pad ?.2 (0.24 mm2) | ? @ (118.3, 118.8) |
+| error | check_silk / silk_over_pad | silk "R19" on F.SilkS covers pad ?.2 (0.24 mm2) | ? @ (117.4, 118.8) |
+| error | check_silk / silk_over_pad | silk "R84" on F.SilkS covers pad ?.2 (0.34 mm2) | ? @ (109.3, 135.5) |
+| error | check_silk / silk_over_pad | silk "R82" on F.SilkS covers pad ?.2 (0.22 mm2) | ? @ (86.8, 115.0) |
+| error | check_silk / silk_over_pad | silk "Y2" on F.SilkS covers pad ?.1 (0.34 mm2) | ? @ (108.3, 95.4) |
+| error | check_silk / silk_over_pad | silk "R115" on F.SilkS covers pad ?.2 (0.22 mm2) | ? @ (189.3, 76.8) |
+| error | check_silk / silk_over_pad | silk "R115" on F.SilkS covers pad ?.1 (0.40 mm2) | ? @ (187.9, 76.5) |
+| error | check_silk / silk_over_pad | silk "C231" on F.SilkS covers pad ?.1 (0.26 mm2) | ? @ (149.0, 60.7) |
+| error | check_silk / silk_over_pad | silk "C231" on F.SilkS covers pad ?.2 (0.32 mm2) | ? @ (150.0, 60.7) |
+| error | check_silk / silk_over_pad | silk "R149" on F.SilkS covers pad ?.2 (0.35 mm2) | ? @ (153.3, 67.1) |
+| error | check_silk / silk_over_pad | silk "C232" on F.SilkS covers pad ?.1 (0.19 mm2) | ? @ (186.3, 61.8) |
+| error | check_silk / silk_over_pad | silk "C232" on F.SilkS covers pad ?.2 (0.34 mm2) | ? @ (187.3, 61.8) |
+
+1025 more in `runs/kria-k26-devboard/reports/`.
+
+### scalenode-cm4-baseboard
+
+https://github.com/antmicro/scalenode-cm4-baseboard at `77f5bf281d13`, `scalenode-cm4-baseboard.kicad_pcb`, Apache-2.0, 4-layer, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair error, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style error, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "Activity" on F.SilkS covers pad ?.1 (0.37 mm2) | ? @ (79.9, 81.8) |
+| error | check_silk / silk_over_pad | silk "C14" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (175.2, 83.7) |
+| error | check_silk / silk_over_pad | silk "C13" on F.SilkS covers pad ?.2 (0.34 mm2) | ? @ (175.2, 82.7) |
+| error | check_silk / silk_over_pad | silk "R22" on F.SilkS covers pad ?.2 (0.24 mm2) | ? @ (92.8, 58.1) |
+| error | check_silk / silk_over_pad | silk "R22" on F.SilkS covers pad ?.2 (0.24 mm2) | ? @ (91.7, 58.1) |
+| error | check_silk / silk_over_pad | silk "R21" on F.SilkS covers pad ?.1 (0.17 mm2) | ? @ (90.8, 58.1) |
+| error | check_silk / silk_over_pad | silk "R14" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (176.0, 85.7) |
+| error | check_silk / silk_over_pad | silk "R65" on F.SilkS covers pad ?.1 (0.32 mm2) | ? @ (150.9, 62.8) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.3 (1.16 mm2) | ? @ (88.9, 69.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.4 (0.89 mm2) | ? @ (90.7, 68.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.17 (0.22 mm2) | ? @ (93.0, 89.1) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.18 (0.22 mm2) | ? @ (92.4, 89.1) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.19 (0.22 mm2) | ? @ (91.7, 89.1) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.20 (0.22 mm2) | ? @ (91.1, 89.1) |
+| error | check_silk / silk_over_pad | silk "R60" on F.SilkS covers pad ?.2 (0.18 mm2) | ? @ (158.4, 71.1) |
+| error | check_silk / silk_over_pad | silk "R61" on F.SilkS covers pad ?.1 (0.18 mm2) | ? @ (158.4, 72.0) |
+| error | check_silk / silk_over_pad | silk "R56" on F.SilkS covers pad ?.1 (0.19 mm2) | ? @ (155.2, 71.1) |
+| error | check_silk / silk_over_pad | silk "R57" on F.SilkS covers pad ?.2 (0.20 mm2) | ? @ (155.2, 72.1) |
+| error | check_silk / silk_over_pad | silk "R8" on F.SilkS covers pad ?.1 (0.34 mm2) | ? @ (177.0, 89.9) |
+| error | check_silk / silk_over_pad | silk "C55" on F.SilkS covers pad ?.2 (0.29 mm2) | ? @ (169.1, 72.5) |
+| error | check_silk / silk_over_pad | silk "R16" on F.SilkS covers pad ?.1 (0.18 mm2) | ? @ (158.9, 75.1) |
+| error | check_silk / silk_over_pad | silk "C56" on F.SilkS covers pad ?.5 (0.09 mm2) | ? @ (82.6, 87.3) |
+| error | check_silk / silk_over_pad | silk "C56" on F.SilkS covers pad ?.6 (0.09 mm2) | ? @ (82.6, 86.8) |
+| error | check_silk / silk_over_pad | silk circle on F.SilkS covers pad ?.1 (0.05 mm2) | ? @ (81.7, 85.8) |
+| error | check_silk / silk_over_pad | silk "R33" on F.SilkS covers pad ?.2 (0.88 mm2) | ? @ (100.0, 92.6) |
+
+4195 more in `runs/scalenode-cm4-baseboard/reports/`.
+
+### gmsl-serializer
+
+https://github.com/antmicro/gmsl-serializer at `58641df7b331`, `gmsl-serializer.kicad_pcb`, Apache-2.0, 4-layer, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style error, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "R31" on F.SilkS covers pad R31.2 (0.35 mm2) | R31 @ (135.9, 111.0) |
+| error | check_silk / silk_over_pad | silk "C3" on F.SilkS covers pad C3.1 (0.21 mm2) | C3 @ (131.1, 84.4) |
+| error | check_silk / silk_over_pad | silk "R44" on F.SilkS covers pad R44.1 (0.27 mm2) | R44 @ (140.3, 80.0) |
+| error | check_silk / silk_over_pad | silk "R33" on F.SilkS covers pad R33.2 (0.31 mm2) | R33 @ (135.9, 108.8) |
+| error | check_silk / silk_over_pad | silk "R41" on F.SilkS covers pad R41.1 (0.25 mm2) | R41 @ (144.7, 79.2) |
+| error | check_silk / silk_over_pad | silk "C14" on F.SilkS covers pad C14.2 (0.32 mm2) | C14 @ (160.2, 106.9) |
+| error | check_silk / silk_over_pad | silk "C7" on F.SilkS covers pad C5.2 (0.21 mm2) | C5 @ (137.8, 86.1) |
+| error | check_silk / silk_over_pad | silk "R37" on F.SilkS covers pad R44.1 (0.27 mm2) | R44 @ (140.3, 80.0) |
+| error | check_silk / silk_over_pad | silk "R37" on F.SilkS covers pad R37.2 (0.21 mm2) | R37 @ (140.3, 81.1) |
+| error | check_silk / silk_over_pad | silk "R20" on F.SilkS covers pad R20.1 (0.31 mm2) | R20 @ (153.2, 100.2) |
+| error | check_silk / silk_over_pad | silk "C19" on F.SilkS covers pad C19.1 (0.50 mm2) | C19 @ (145.2, 83.7) |
+| error | check_silk / silk_over_pad | silk "R6" on F.SilkS covers pad R6.2 (0.33 mm2) | R6 @ (135.9, 112.0) |
+| error | check_silk / silk_over_pad | silk "C12" on F.SilkS covers pad C12.2 (0.32 mm2) | C12 @ (153.0, 109.3) |
+| error | check_silk / silk_over_pad | silk "R28" on F.SilkS covers pad R28.2 (0.28 mm2) | R28 @ (147.7, 109.2) |
+| error | check_silk / silk_over_pad | silk "R28" on F.SilkS covers pad R18.2 (0.20 mm2) | R18 @ (147.7, 110.3) |
+| error | check_silk / silk_over_pad | silk "C8" on F.SilkS covers pad C8.2 (0.26 mm2) | C8 @ (165.4, 103.7) |
+| error | check_silk / silk_over_pad | silk "R17" on F.SilkS covers pad R17.2 (0.34 mm2) | R17 @ (157.8, 96.9) |
+| error | check_silk / silk_over_pad | silk "C6" on F.SilkS covers pad C6.2 (0.36 mm2) | C6 @ (164.5, 103.7) |
+| error | check_silk / silk_over_pad | silk "R46" on F.SilkS covers pad R46.2 (0.30 mm2) | R46 @ (143.8, 115.1) |
+| error | check_silk / silk_over_pad | silk "C32" on F.SilkS covers pad C22.1 (0.36 mm2) | C22 @ (149.2, 96.6) |
+| error | check_silk / silk_over_pad | silk "C32" on F.SilkS covers pad C33.2 (0.21 mm2) | C33 @ (148.2, 96.1) |
+| error | check_silk / silk_over_pad | silk "C4" on F.SilkS covers pad C4.1 (0.21 mm2) | C4 @ (159.3, 102.0) |
+| error | check_silk / silk_over_pad | silk "R25" on F.SilkS covers pad R1.2 (0.36 mm2) | R1 @ (133.6, 105.6) |
+| error | check_silk / silk_over_pad | silk "C15" on F.SilkS covers pad C15.1 (0.32 mm2) | C15 @ (155.2, 107.8) |
+| error | check_silk / silk_over_pad | silk "C22" on F.SilkS covers pad R29.1 (0.36 mm2) | R29 @ (152.1, 96.3) |
+
+251 more in `runs/gmsl-serializer/reports/`.
+
+### sdi-mipi-bridge
+
+https://github.com/antmicro/sdi-mipi-bridge-hw at `0d08a865eba7`, `sdi-mipi-bridge.kicad_pcb`, Apache-2.0, 4-layer, 6 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair pass, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "LOCKED" on F.SilkS covers pad ?.2 (0.64 mm2) | ? @ (129.0, 103.7) |
+| error | check_silk / silk_over_pad | silk "SMPTE_BYPASS" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (144.2, 130.2) |
+| error | check_silk / silk_over_pad | silk "SMPTE_BYPASS" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (144.2, 129.3) |
+| error | check_silk / silk_over_pad | silk "SMPTE_BYPASS" on F.SilkS covers pad ?.1 (0.32 mm2) | ? @ (144.2, 132.2) |
+| error | check_silk / silk_over_pad | silk "SMPTE_BYPASS" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (144.2, 131.3) |
+| error | check_silk / silk_over_pad | silk "SDO_EN" on F.SilkS covers pad ?.1 (0.34 mm2) | ? @ (139.2, 130.2) |
+| error | check_silk / silk_over_pad | silk "SDO_EN" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (139.2, 129.3) |
+| error | check_silk / silk_over_pad | silk "JTAG_HOST" on F.SilkS covers pad ?.2 (0.31 mm2) | ? @ (151.8, 131.3) |
+| error | check_silk / silk_over_pad | silk "JTAG_HOST" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (151.8, 130.2) |
+| error | check_silk / silk_over_pad | silk "JTAG_HOST" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (151.8, 129.3) |
+| error | check_silk / silk_over_pad | silk "~{DATA ERROR}" on F.SilkS covers pad ?.1 (0.64 mm2) | ? @ (133.0, 105.2) |
+| error | check_silk / silk_over_pad | silk "~{DATA ERROR}" on F.SilkS covers pad ?.2 (0.64 mm2) | ? @ (133.0, 103.7) |
+| error | check_silk / silk_over_pad | silk "USER LED" on F.SilkS covers pad ?.2 (0.64 mm2) | ? @ (127.0, 103.7) |
+| error | check_silk / silk_over_pad | silk "RC_BYP" on F.SilkS covers pad ?.1 (0.35 mm2) | ? @ (149.2, 130.2) |
+| error | check_silk / silk_over_pad | silk "RC_BYP" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (149.2, 129.3) |
+| error | check_silk / silk_over_pad | silk "AUDIO_EN" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (140.5, 130.2) |
+| error | check_silk / silk_over_pad | silk "AUDIO_EN" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (140.5, 129.3) |
+| error | check_silk / silk_over_pad | silk "TIM_861" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (148.0, 130.2) |
+| error | check_silk / silk_over_pad | silk "TIM_861" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (148.0, 129.2) |
+| error | check_silk / silk_over_pad | silk "STANDBY" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (150.5, 130.2) |
+| error | check_silk / silk_over_pad | silk "STANDBY" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (150.5, 129.3) |
+| error | check_silk / silk_over_pad | silk "SW_EN" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (146.8, 129.3) |
+| error | check_silk / silk_over_pad | silk "USER_SW" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (138.0, 130.2) |
+| error | check_silk / silk_over_pad | silk "USER_SW" on F.SilkS covers pad ?.2 (0.36 mm2) | ? @ (138.0, 129.3) |
+| error | check_silk / silk_over_pad | silk "DVB_ASI" on F.SilkS covers pad ?.1 (0.36 mm2) | ? @ (145.5, 130.2) |
+
+4107 more in `runs/sdi-mipi-bridge/reports/`.
+
+### usb-c-fusb302-pi
+
+https://github.com/bentwire/USB-C-FUSB302-PI at `7d95292262b4`, `USB-C-FUSB302-PI.kicad_pcb`, MIT, power, 4 layers.
+
+verify_all checks: check_creepage skipped, check_current skipped, check_decoupling skipped, check_diffpair violations, check_mating pass, check_pdn skipped, check_ratings skipped, check_return_path skipped, check_route_style violations, check_silk violations, check_thermal skipped
+
+| severity | check | finding | where |
+|---|---|---|---|
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.18 mm2) | ? @ (141.9, 84.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.18 mm2) | ? @ (142.5, 84.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.32 mm2) | ? @ (142.2, 83.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.18 mm2) | ? @ (141.9, 85.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.18 mm2) | ? @ (142.5, 85.4) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (1.20 mm2) | ? @ (154.4, 86.1) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (1.20 mm2) | ? @ (152.8, 86.1) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (1.11 mm2) | ? @ (130.0, 86.7) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (1.11 mm2) | ? @ (130.0, 88.6) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.15 mm2) | ? @ (139.7, 83.5) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.18 mm2) | ? @ (139.7, 84.2) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.33 mm2) | ? @ (109.2, 85.1) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.33 mm2) | ? @ (109.2, 84.1) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.5 (0.15 mm2) | ? @ (126.5, 80.8) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.6 (0.15 mm2) | ? @ (126.0, 80.8) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.7 (0.15 mm2) | ? @ (125.5, 80.8) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.1 (0.33 mm2) | ? @ (124.0, 83.0) |
+| error | check_silk / silk_over_pad | silk "hide" on F.SilkS covers pad ?.2 (0.33 mm2) | ? @ (124.0, 84.0) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.1 (0.24 mm2) | ? @ (126.9, 83.4) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.2 (0.24 mm2) | ? @ (126.9, 82.7) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.3 (0.15 mm2) | ? @ (126.9, 82.1) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.4 (0.15 mm2) | ? @ (126.9, 81.6) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.5 (0.15 mm2) | ? @ (126.5, 80.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.6 (0.15 mm2) | ? @ (126.0, 80.8) |
+| error | check_silk / silk_over_pad | silk rect on F.SilkS covers pad ?.7 (0.15 mm2) | ? @ (125.5, 80.8) |
+
+268 more in `runs/usb-c-fusb302-pi/reports/`.

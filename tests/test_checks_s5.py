@@ -184,6 +184,151 @@ def test_thermal_low_power_passes(tmp_path_factory):
     assert [v for v in vs if v["kind"] == "thermal_area"] == []
 
 
+def _thermal_2l_board(tmp_path_factory, name, *, vias="", fp_vias="",
+                      pours=("F.Cu", "B.Cu"), half=15.0):
+    """40 x 40 mm 2-layer board: a 3 x 3 mm exposed pad U9 at (20, 20), GND
+    pours 2*half square (30 x 30 mm) on `pours`, plus optional board vias /
+    footprint PTH."""
+    lo, hi = 20 - half, 20 + half
+    sq = f"(xy {lo} {lo}) (xy {hi} {lo}) (xy {hi} {hi}) (xy {lo} {hi})"
+    zones = "".join(
+        f'  (zone (net "GND") (layer "{lyr}")\n'
+        f'    (polygon (pts {sq}))\n'
+        f'    (filled_polygon (layer "{lyr}")\n'
+        f'      (pts {sq})))\n'
+        for lyr in pours)
+    text = f"""(kicad_pcb (version 20260206) (generator "test")
+  (general (thickness 1.6))
+  (layers (0 "F.Cu" signal) (2 "B.Cu" signal) (25 "Edge.Cuts" user)) (setup)
+  (gr_rect (start 0 0) (end 40 40) (stroke (width 0.1)) (fill no)
+    (layer "Edge.Cuts"))
+  (footprint "t:U" (at 20 20) (layer "F.Cu")
+    (property "Reference" "U9" (at 0 0 0) (layer "F.SilkS"))
+    (pad "1" smd rect (at 0 0) (size 3 3) (layers "F.Cu") (net "GND"))
+{fp_vias})
+{vias}{zones})
+"""
+    p = tmp_path_factory.mktemp(name) / f"{name}.kicad_pcb"
+    p.write_text(text, encoding="utf-8")
+    return geom.load_board(p)
+
+
+def _via_grid(fmt: str, base: float = 0.0) -> str:
+    """4 x 4 grid at 0.9 mm pitch centred on (base, base), one `fmt` each."""
+    offs = (-1.35, -0.45, 0.45, 1.35)
+    return "".join(fmt.format(x=base + dx, y=base + dy)
+                   for dx in offs for dy in offs)
+
+
+AMP_2L = {"ref": "U9", "net": "GND", "power_w": 1.5, "dt_c": 85}
+
+
+def test_via_barrel_resistance():
+    # 0.3 mm drill, 18 um plating, 1.6 mm FR4: ~230 C/W per unfilled via
+    assert check_thermal.via_r_cw(0.3) == pytest.approx(232, rel=0.02)
+    assert check_thermal.via_r_cw(0.0) == math.inf
+    assert check_thermal.via_array_r_cw([]) == math.inf
+    assert check_thermal.via_array_r_cw([0.3] * 16) == pytest.approx(
+        check_thermal.via_r_cw(0.3) / 16)
+    cap = check_thermal.VIA_BENEFIT_CAP
+    assert check_thermal.via_array_r_cw([0.3] * (cap + 50)) == pytest.approx(
+        check_thermal.via_array_r_cw([0.3] * cap))
+    # no vias -> the network is the top pour alone
+    assert check_thermal.theta_2l_network(645, 645, math.inf) == \
+        pytest.approx(check_thermal.theta_ja(645, False))
+
+
+def test_thermal_2l_via_array_and_pour_meets_budget(tmp_path_factory):
+    """A PowerPAD amp at 1.5 W with 16 vias into a back pour fits 85 C."""
+    vias = _via_grid('  (via (at {x:.2f} {y:.2f}) (size 0.6) (drill 0.3) '
+                     '(layers "F.Cu" "B.Cu") (net "GND"))\n', base=20.0)
+    bg = _thermal_2l_board(tmp_path_factory, "amp2l", vias=vias)
+    vs, facts = check_thermal.check_part(bg, AMP_2L)
+    assert facts["vias_near_part"] == 16
+    assert facts["theta_area_cw"] == pytest.approx(73.8, abs=0.5)  # old floor
+    assert facts["theta_ja"] < 85 / 1.5
+    assert vs == [], json.dumps(vs)
+
+
+def test_thermal_2l_footprint_via_pads_count(tmp_path_factory):
+    """Thermal vias drawn as PTH pads in the footprint count like vias."""
+    fp = _via_grid('    (pad "1" thru_hole circle (at {x} {y}) (size 0.6 0.6) '
+                   '(drill 0.3) (layers "*.Cu") (net "GND"))\n')
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lfp", fp_vias=fp)
+    vs, facts = check_thermal.check_part(bg, AMP_2L)
+    assert facts["vias_near_part"] == 16
+    assert facts["theta_ja"] < 85 / 1.5
+    assert vs == [], json.dumps(vs)
+
+
+@pytest.mark.parametrize("pours", [(), ("F.Cu", "B.Cu")])
+def test_thermal_2l_no_vias_still_fails(tmp_path_factory, pours):
+    """Without vias the back pour is unreachable: bare pad or pours, it fails."""
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lbare", pours=pours)
+    vs, facts = check_thermal.check_part(bg, AMP_2L)
+    assert facts["vias_near_part"] == 0
+    assert facts["theta_ja"] == pytest.approx(facts["theta_area_cw"])
+    assert any(v["kind"] == "thermal_area" for v in vs)
+    assert any(v["kind"] == "thermal_vias" for v in vs)
+
+
+THERMAL_VIA = ('  (via (at {x:.2f} {y:.2f}) (size 0.6) (drill 0.3) '
+               '(layers "F.Cu" "B.Cu") (net "GND"))\n')
+
+
+def test_thermal_2l_vias_without_back_pour_get_no_credit(tmp_path_factory):
+    """Vias that end on their own lands (no back pour) carry heat nowhere."""
+    vias = _via_grid(THERMAL_VIA, base=20.0)
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lnoback", vias=vias,
+                           pours=("F.Cu",))
+    vs, facts = check_thermal.check_part(bg, AMP_2L)
+    assert facts["vias_near_part"] == 16
+    assert facts["back_pour_reached"] is False
+    assert facts["theta_ja"] == pytest.approx(facts["theta_area_cw"])
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "add thermal vias into a back-side GND pour" in err[0]["msg"]
+
+
+def test_thermal_2l_too_few_vias_says_add_vias(tmp_path_factory):
+    """One via into the back pour helps a little; the fix is more vias."""
+    vias = THERMAL_VIA.format(x=20.0, y=20.0)
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lonevia", vias=vias)
+    vs, facts = check_thermal.check_part(bg, AMP_2L)
+    assert facts["back_pour_reached"] is True
+    assert facts["theta_ja"] < facts["theta_area_cw"]       # credited
+    assert facts["theta_best_2l_cw"] * 1.5 < 85             # fixable on 2L
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "add thermal vias into a back-side GND pour" in err[0]["msg"]
+    assert "1 thermal via(s)" in err[0]["msg"]
+
+
+def test_thermal_2l_over_power_fails_despite_vias(tmp_path_factory):
+    """3 W into 16 vias + full pours: credited, still over, and past the best
+    2-layer case, so the remedy is not 'more vias'."""
+    vias = _via_grid(THERMAL_VIA, base=20.0)
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lhot", vias=vias)
+    vs, facts = check_thermal.check_part(bg, dict(AMP_2L, power_w=3.0))
+    assert facts["theta_ja"] < facts["theta_area_cw"]       # vias credited
+    assert facts["theta_best_2l_cw"] == pytest.approx(38.5, abs=1.0)
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "even the best 2-layer case" in err[0]["msg"]
+    assert "move to 4 layers" in err[0]["msg"]
+
+
+def test_thermal_2l_full_via_array_small_pours_says_grow(tmp_path_factory):
+    """A full via array into small pours: the fix is copper, not vias."""
+    offs = [i * 0.65 - 1.625 for i in range(6)]   # 6 x 6 at 0.65 mm
+    vias = "".join(THERMAL_VIA.format(x=20 + dx, y=20 + dy)
+                   for dx in offs for dy in offs)
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lsmall", vias=vias,
+                           half=4.0)            # 8 x 8 mm both sides
+    vs, facts = check_thermal.check_part(bg, dict(AMP_2L, power_w=1.2))
+    assert facts["vias_near_part"] == check_thermal.VIA_BENEFIT_CAP
+    assert facts["back_pour_reached"] is True
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "grow the top and back GND pours" in err[0]["msg"]
+
+
 # ============================================================ pure: pdn
 
 def test_pdn_no_bulk_and_undecoupled():

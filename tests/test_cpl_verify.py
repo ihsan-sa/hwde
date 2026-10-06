@@ -271,3 +271,214 @@ def test_render_puts_pin1_dot_on_pad1_only_when_right(ws, tmp_path):
         assert png.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
     assert idx["parts"]["X1"]["has_model"] is False
     assert idx["parts"]["D1"]["polar"] is True
+
+
+# ---------------------------------------------- cache resolution, fetch errors
+
+def test_cache_order_env_then_board_dir_then_shared(tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    board = tmp_path / "board"
+    board.mkdir()
+    parts = board / "parts.json"
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("HWDE_EASYEDA_CACHE", raising=False)
+    monkeypatch.delenv("AIEE_EASYEDA_CACHE", raising=False)
+    shared = home / ".cache" / "hwde" / "easyeda"
+    # No board-local dir (a worktree checkout): the shared cache.
+    assert cv.default_cache(parts) == shared
+    assert cv.default_cache(None) == shared
+    # A board-local dir that exists wins over the shared one.
+    (board / "easyeda").mkdir()
+    assert cv.default_cache(parts) == board / "easyeda"
+    # The env var wins over both.
+    monkeypatch.setenv("HWDE_EASYEDA_CACHE", str(tmp_path / "env"))
+    assert cv.default_cache(parts) == tmp_path / "env"
+    assert cv.default_cache(None) == tmp_path / "env"
+
+
+def test_failed_fetch_is_fetch_failed_not_no_model(ws, tmp_path, monkeypatch):
+    """A fetch that raises must not read as a missing model (and so not as a
+    pin-1 result); an API with no data for the part stays no_model."""
+    pcb, _ = ws
+    monkeypatch.setattr(easyeda.time, "sleep", lambda s: None)
+
+    def boom(lcsc):
+        raise OSError("HTTP Error 403: rate limited")
+    monkeypatch.setattr(easyeda, "_fetch_raw", boom)
+    rep = cv.verify(pcb, _cpl(U1=90), LCSC, tmp_path / "empty", fetch=True)
+    row = rep["parts"][0]
+    assert row["verdict"] == "fetch_failed"
+    assert "403" in row["why"] and "pin-1" in row["why"]
+    assert rep["failed"] == ["U1"] and rep["status"] == "violations"
+    assert "fetch_failed" in cv.FAIL_VERDICTS
+
+    # The 403 latched the rate limit for this process; a fresh run starts
+    # without it.
+    easyeda.reset_rate_limit()
+    monkeypatch.setattr(easyeda, "_fetch_raw", lambda lcsc: {})
+    rep = cv.verify(pcb, _cpl(U1=90), LCSC, tmp_path / "empty2", fetch=True)
+    assert rep["parts"][0]["verdict"] == "no_model"
+
+
+# ------------------------------------- rate limit: 403/429 stop the fetching
+
+def _http(code):
+    import urllib.error
+
+    def fetch(lcsc):
+        raise urllib.error.HTTPError(easyeda.API.format(lcsc=lcsc), code,
+                                     "Forbidden", None, None)
+    return fetch
+
+
+class _Calls:
+    """A fetcher that records each LCSC number it is asked for."""
+
+    def __init__(self, fetch):
+        self.fetch, self.asked = fetch, []
+
+    def __call__(self, lcsc):
+        self.asked.append(lcsc)
+        return self.fetch(lcsc)
+
+
+@pytest.mark.parametrize("code", [403, 429])
+def test_rate_limit_latches_and_later_parts_are_not_fetched(tmp_path, code,
+                                                             capsys):
+    calls = _Calls(_http(code))
+    errs: dict = {}
+    assert easyeda.get("C1", tmp_path, fetcher=calls, errors=errs) is None
+    assert errs["C1"] == f"HTTP {code} from EasyEDA (rate limited)"
+    assert easyeda.rate_limited() == errs["C1"]
+    # Every later uncached part is skipped, not asked again.
+    for c in ("C2", "C3"):
+        assert easyeda.get(c, tmp_path, fetcher=calls, errors=errs) is None
+        assert errs[c].startswith("not fetched: HTTP") and "rate" in errs[c]
+    assert calls.asked == ["C1"]
+    # Said once on stderr, not per part.
+    assert capsys.readouterr().err.count("rate limited") == 1
+    # A cached part is still read.
+    shutil.copy(FIX / "C106245.json", tmp_path / "C106245.json")
+    assert easyeda.get("C106245", tmp_path, fetcher=calls) is not None
+
+
+def test_404_or_empty_is_no_model_and_network_error_is_not(tmp_path):
+    import urllib.error
+    errs: dict = {}
+    assert easyeda.get("C1", tmp_path, fetcher=_http(404), errors=errs) is None
+    assert easyeda.get("C2", tmp_path, fetcher=lambda _: {},
+                       errors=errs) is None
+    assert errs == {} and easyeda.rate_limited() is None
+
+    def down(lcsc):
+        raise urllib.error.URLError("Temporary failure in name resolution")
+    calls = _Calls(down)
+    for c in ("C3", "C4"):
+        assert easyeda.get(c, tmp_path, fetcher=calls, errors=errs) is None
+    assert errs["C3"].startswith("network error: URLError")
+    # A network error is not a rate limit: the next part is still asked.
+    assert calls.asked == ["C3", "C4"] and easyeda.rate_limited() is None
+    assert easyeda.get("C5", tmp_path, fetcher=_http(500), errors=errs) is None
+    assert errs["C5"] == "HTTP 500 from EasyEDA"
+
+
+def test_cpl_verify_403_fails_first_part_and_skips_the_rest(ws, tmp_path,
+                                                            monkeypatch):
+    pcb, _ = ws
+    monkeypatch.setattr(easyeda.time, "sleep", lambda s: None)
+    calls = _Calls(_http(403))
+    monkeypatch.setattr(easyeda, "_fetch_raw", calls)
+    lcsc = {"U1": "C116592", "C1": "C106245", "C2": "C106675"}
+    rep = cv.verify(pcb, _cpl(U1=90, C1=0, C2=0), lcsc, tmp_path / "empty",
+                    fetch=True)
+    rows = {r["ref"]: r for r in rep["parts"]}
+    assert {r["verdict"] for r in rows.values()} == {"fetch_failed"}
+    assert calls.asked == ["C106245"]   # first in natural order, then none
+    assert "HTTP 403" in rows["C1"]["fetch_error"]
+    assert rows["U1"]["fetch_error"].startswith("not fetched")
+    assert rep["rate_limited"] == "HTTP 403 from EasyEDA (rate limited)"
+    assert rep["fetch_failed"] == ["C1", "C2", "U1"]
+    assert rep["status"] == "violations"
+
+
+def test_dfm_reports_a_refused_fetch_once_never_as_no_model(ws, tmp_path,
+                                                            monkeypatch):
+    pcb, _ = ws
+    monkeypatch.setattr(easyeda.time, "sleep", lambda s: None)
+    monkeypatch.setattr(easyeda, "_fetch_raw", _http(403))
+    cpl = tmp_path / "CPL.csv"
+    with cpl.open("w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
+        w.writerow(["U1", 10, -10, "Top", 90])
+        w.writerow(["C1", 40, -10, "Top", 0])
+    pj = tmp_path / "parts.json"
+    pj.write_text(json.dumps({"U1": {"lcsc": "C116592"},
+                              "C1": {"lcsc": "C106245"}}))
+    vios: list = []
+    facts = dfm_check.check_placement(pcb, cpl, pj, None, tmp_path / "empty",
+                                      True, vios)
+    assert [v["kind"] for v in vios] == ["cpl_fetch_failed"]
+    v = vios[0]
+    assert v["severity"] == "error" and sorted(v["refs"]) == ["C1", "U1"]
+    assert "HTTP 403" in v["msg"] and "rate limited" in v["msg"]
+    assert "rerun" in v["msg"] and v["rate_limited"] is True
+    assert facts["fetch_failed"] == ["C1", "U1"]
+    assert "cpl_fetch_failed" in dfm_check.DFM_FAMILIES["placement"]
+
+
+def test_bom_cpl_says_fetch_failed_not_none_and_fails_the_run(ws, tmp_path,
+                                                              monkeypatch):
+    pcb, _ = ws
+    monkeypatch.setattr(easyeda.time, "sleep", lambda s: None)
+    calls = _Calls(_http(403))
+    monkeypatch.setattr(easyeda, "_fetch_raw", calls)
+    fps = cv.board_footprints(pcb)
+    pos = tmp_path / "pos.csv"
+    lines = ["Ref,Val,Package,PosX,PosY,Rot,Side"]
+    for r in ("U1", "X1", "C1"):
+        f = fps[r]
+        lines.append(f"{r},v,{f.name},{f.x},{-f.y},{f.rot},top")
+    pos.write_text("\n".join(lines) + "\n")
+    pj = tmp_path / "parts.json"
+    pj.write_text(json.dumps({"U1": {"lcsc": "C116592"},
+                              "X1": {"lcsc": "C116593"},
+                              "C1": {"lcsc": "C106245"}}))
+    rep = bom_cpl.run(pcb, tmp_path / "fab", pos=pos, parts_json=pj,
+                      easyeda_cache=tmp_path / "empty", fetch_models=True)
+    got = {a["ref"]: a for a in rep["rotation_audit"]}
+    assert {a["source"] for a in got.values()} == {"fetch_failed"}
+    assert "HTTP 403" in got["C1"]["fetch_error"]
+    assert len(calls.asked) == 1
+    assert rep["model_fetch_failed"] == ["C1", "U1", "X1"]
+    assert rep["easyeda_rate_limited"].startswith("HTTP 403")
+    assert rep["status"] == "violations"
+    vio = [v for v in rep["violations"]
+           if v["kind"] == "cpl_model_fetch_failed"]
+    assert len(vio) == 1 and "rate limited" in vio[0]["message"]
+
+
+def test_render_records_fetch_error_apart_from_no_model(ws, tmp_path,
+                                                        monkeypatch):
+    pcb, _ = ws
+    monkeypatch.setattr(easyeda.time, "sleep", lambda s: None)
+    easyeda.reset_rate_limit()
+
+    def forbidden(lcsc):
+        raise OSError("HTTP Error 403: rate limited")
+    monkeypatch.setattr(easyeda, "_fetch_raw", forbidden)
+    idx = cpl_render.render(pcb, _cpl(U1=90), LCSC, tmp_path / "empty",
+                            tmp_path / "r", fetch=True)
+    part = idx["parts"]["U1"]
+    assert part["has_model"] is False and "403" in part["fetch_error"]
+    assert idx["fetch_failed"] == ["U1"] and idx["rate_limited"]
+    assert "rerun" in idx["note"]
+    easyeda.reset_rate_limit()
+
+    monkeypatch.setattr(easyeda, "_fetch_raw", lambda lcsc: {})
+    idx = cpl_render.render(pcb, _cpl(U1=90), LCSC, tmp_path / "empty2",
+                            tmp_path / "r2", fetch=True)
+    assert idx["parts"]["U1"]["has_model"] is False
+    assert "fetch_error" not in idx["parts"]["U1"]
+    assert idx["fetch_failed"] == [] and "note" not in idx
+    easyeda.reset_rate_limit()

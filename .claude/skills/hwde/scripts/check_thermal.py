@@ -14,6 +14,43 @@ Rise ~= power_w * theta_JA(effective_area); a copper pour saturates near
 thermal vias to an inner/back plane, which the check flags separately. Every
 number is +/-30%; this is a screen, not a sign-off (JEDEC JESD51 / TI SLOA122).
 
+2-layer boards: the area curve alone floors at theta(A_SAT) ~74 C/W however
+the layout is built, so a part with a thermal-via array into a back pour
+(TI SLMA002 PowerPAD practice) could never meet a tight budget. The 2-layer
+estimate is therefore the better of the area screen and a two-path network:
+    top path : theta_top = theta_JA(A_top)  - the pour connected to the part's
+               pads on its own side, through the same calibrated curve
+    via path : R_vias + theta_JA(A_bot)     - the thermal vias / plated pad
+               drills of the net under the part in parallel, into the back
+               pour they land in, through the same curve again
+    theta_2L = min(theta_JA(A_top + A_bot),  1 / (1/theta_top + 1/via_path))
+One via conducts along its plated barrel only: R = t_board / (k_Cu * A_barrel),
+A_barrel = pi*((d/2 + t_p)^2 - (d/2)^2), k_Cu = 380 W/m-K, t_p = 18 um (under
+IPC-6012 class 2's 20 um average), unfilled (solder wicking ignored) - e.g.
+~230 C/W for a 0.3 mm drill in 1.6 mm FR4; FR4 between vias is ignored. The
+array is capped at VIA_BENEFIT_CAP. Conservative on purpose: re-using the
+whole curve (package and convection included) on each path, and ignoring
+solder fill and FR4 conduction, overstates theta. Example: 16 x 0.3 mm vias,
+~120 mm2 connected top + ~640 mm2 bottom pour -> ~54 C/W (TPA3118D2 HTSSOP),
+against TI's 22 C/W measured on its 2-layer EVM (SLOS708G 6.4). A bare pad with no vias gets the
+area screen unchanged. 4-layer boards keep the area screen (it already sums
+the inner planes).
+
+The via path needs a back pour to land in: when the back-side copper of the
+net that those vias touch is smaller than the part's own pad hull (the vias
+end on their own lands, or on a trace stub), the path is dropped and the part
+gets the top pour alone. The threshold is a judgement, not a cited figure:
+SLMA002 lands its 2-layer via arrays in a bottom-side copper area, and the
+curve's theta_JA(0) = 174 C/W stands for a package on its pads, not for a
+few via rings, so crediting that would be optimistic.
+
+When a 2-layer part still fails, the error compares the budget against the
+screen's best 2-layer case: VIA_BENEFIT_CAP vias (0.3 mm, SLMA002's drill, or
+the largest drill found) into saturated pours on both sides, ~38 C/W on
+1.6 mm FR4. A part over budget even there gets "cut the dissipation, add a
+heatsink, or move to 4 layers" instead of "add thermal vias", because more
+vias can't fix it within this model.
+
 The corpus carries no thermal constraints, so this check is clean on all
 goldens; supply parts via constraints.json to exercise it (a synthetic fixture
 is tested).
@@ -50,12 +87,51 @@ DEFAULT_DT_C = 40.0
 VIA_PITCH_MM = 1.1           # recommended thermal-via pitch
 VIA_BENEFIT_CAP = 36         # array benefit flattens past ~36 vias
 REACH_MM = (A_SAT_MM2 / math.pi) ** 0.5   # ~14.3 mm: heat spreads only so far
+K_CU_W_MK = 380.0            # copper thermal conductivity
+PLATING_MM = 0.018           # via barrel plating (IPC-6012 cl.2 avg is 0.020)
+DEFAULT_BOARD_MM = 1.6
+BEST_VIA_DRILL_MM = 0.3      # SLMA002's recommended thermal-via drill
 
 
 def theta_ja(area_mm2: float, multilayer: bool) -> float:
     t0, tfloor, tau = MODEL_ML if multilayer else MODEL_2L
     a = max(0.0, min(area_mm2, A_SAT_MM2))
     return tfloor + (t0 - tfloor) * math.exp(-a / tau)
+
+
+def via_r_cw(drill_mm: float, board_mm: float = DEFAULT_BOARD_MM) -> float:
+    """Barrel conduction of one plated, unfilled via (C/W); inf if no drill."""
+    if drill_mm <= 0:
+        return math.inf
+    r = drill_mm / 2.0
+    a_m2 = math.pi * ((r + PLATING_MM) ** 2 - r ** 2) * 1e-6
+    return (board_mm * 1e-3) / (K_CU_W_MK * a_m2)
+
+
+def via_array_r_cw(drills_mm: list[float],
+                   board_mm: float = DEFAULT_BOARD_MM) -> float:
+    """Parallel vias (the VIA_BENEFIT_CAP largest drills); inf if none."""
+    best = sorted((d for d in drills_mm if d > 0), reverse=True)
+    g = sum(1.0 / via_r_cw(d, board_mm) for d in best[:VIA_BENEFIT_CAP])
+    return 1.0 / g if g > 0 else math.inf
+
+
+def theta_2l_network(a_top: float, a_bot: float, r_vias: float,
+                     min_bot: float = 0.0) -> float:
+    """Top pour in parallel with (via array + back pour); see module doc.
+    No vias, or a back pour smaller than `min_bot`, leaves the top pour alone."""
+    top = theta_ja(a_top, False)
+    if math.isinf(r_vias) or a_bot <= 0 or a_bot < min_bot:
+        return top
+    return 1.0 / (1.0 / top + 1.0 / (r_vias + theta_ja(a_bot, False)))
+
+
+def _connected_area(copper, seeds, reach) -> float:
+    """Area of the copper pieces within reach that touch any seed shape."""
+    local = copper.intersection(reach)
+    pieces = getattr(local, "geoms", [local])
+    return sum(g.area for g in pieces
+               if not g.is_empty and any(g.intersects(s) for s in seeds))
 
 
 def part_region(bg: geom.BoardGeom, ref: str):
@@ -91,11 +167,45 @@ def check_part(bg: geom.BoardGeom, entry: dict):
     a_eff = min(A_SAT_MM2, sum(bg.net_copper(net, layer).intersection(reach).area
                                for layer in bg.copper_layers))
     theta = theta_ja(a_eff, multilayer)
-    rise = power * theta
 
-    # thermal vias of the net under the part (needed once copper saturates)
+    # thermal vias of the net under the part (needed once copper saturates):
+    # board vias plus the plated drills of the net's own pads there (a
+    # footprint's thermal-via pads, a THT tab) - both tie the layers together
     region = Point(cx, cy).buffer(max(2.0, math.sqrt(fp_area / math.pi) + 1.5))
     vias = [v for v in bg.vias_of(net) if region.contains(Point(v.at))]
+    drilled = [p for p in bg.pads_of(net=net) if p.drill and len(p.layers) > 1
+               and region.contains(Point(p.center))]
+    n_vias = len(vias) + len(drilled)
+
+    network = {}
+    if not multilayer and len(bg.copper_layers) == 2:
+        bot = next(lyr for lyr in bg.copper_layers if lyr != side)
+        board_mm = bg.stackup.total_thickness or DEFAULT_BOARD_MM
+        r_vias = via_array_r_cw(
+            [v.drill for v in vias] + [min(p.drill) for p in drilled], board_mm)
+        seeds = [v.poly for v in vias] + [p.poly for p in drilled]
+        a_top = min(A_SAT_MM2, _connected_area(
+            bg.net_copper(net, side),
+            [p.poly for p in bg.pads_of(net=net, ref=ref)], reach))
+        a_bot = min(A_SAT_MM2, _connected_area(
+            bg.net_copper(net, bot), seeds, reach)) if seeds else 0.0
+        theta_net = theta_2l_network(a_top, a_bot, r_vias, min_bot=fp_area)
+        best_drill = max([BEST_VIA_DRILL_MM] + [v.drill for v in vias]
+                         + [min(p.drill) for p in drilled])
+        theta_best = theta_2l_network(
+            A_SAT_MM2, A_SAT_MM2,
+            via_array_r_cw([best_drill] * VIA_BENEFIT_CAP, board_mm))
+        network = {"area_top_mm2": checklib.rnd(a_top),
+                   "area_bottom_mm2": checklib.rnd(a_bot),
+                   "via_array_r_cw": (None if math.isinf(r_vias)
+                                      else checklib.rnd(r_vias)),
+                   "back_pour_reached": bool(seeds) and a_bot >= fp_area,
+                   "theta_area_cw": checklib.rnd(theta),
+                   "theta_network_cw": checklib.rnd(theta_net),
+                   "theta_best_2l_cw": checklib.rnd(theta_best)}
+        theta = min(theta, theta_net)
+    rise = power * theta
+
     # copper alone bottoms out at theta_ja(A_SAT) (the clamp), NOT the model's
     # asymptotic floor - if the target is below that, only vias/planes reach it.
     floor_cw = theta_ja(A_SAT_MM2, multilayer)
@@ -109,26 +219,41 @@ def check_part(bg: geom.BoardGeom, entry: dict):
         saturated = a_eff >= A_SAT_MM2 - 1e-6
         remedy = ("add thermal vias to an inner/back plane" if saturated or
                   need_vias else f"grow the {net} pour")
+        where = f"into {a_eff:.0f} mm2 of {net} copper"
+        if network:
+            where = (f"through {network['area_top_mm2']:.0f} mm2 top + "
+                     f"{network['area_bottom_mm2']:.0f} mm2 back {net} copper "
+                     f"and {n_vias} thermal via(s)")
+            best = network["theta_best_2l_cw"]
+            if power * best > dt + 1e-6:
+                remedy = (f"even the best 2-layer case ({VIA_BENEFIT_CAP} vias "
+                          f"into full pours, ~{best:.0f} C/W) gives "
+                          f"~{power * best:.0f} C: cut the dissipation, add a "
+                          "heatsink, or move to 4 layers")
+            elif not network["back_pour_reached"] or n_vias < VIA_BENEFIT_CAP:
+                remedy = f"add thermal vias into a back-side {net} pour"
+            else:
+                remedy = f"grow the top and back {net} pours"
         violations.append(violation(
             SCRIPT, "error", (cx, cy), side, net, [ref],
-            f"{ref} dissipates {power:.2f} W into {a_eff:.0f} mm2 of {net} "
-            f"copper: ~{rise:.0f} C rise (theta_JA ~{theta:.0f} C/W) "
+            f"{ref} dissipates {power:.2f} W {where}: "
+            f"~{rise:.0f} C rise (theta_JA ~{theta:.0f} C/W) "
             f"> {dt:.0f} C allowed; {remedy}", SCRIPT, kind="thermal_area",
             power_w=power, area_mm2=checklib.rnd(a_eff),
             theta_ja=checklib.rnd(theta), rise_c=checklib.rnd(rise),
             dt_allowed_c=dt))
-    if need_vias and len(vias) < min_vias:
+    if need_vias and n_vias < min_vias:
         violations.append(violation(
             SCRIPT, "warning", (cx, cy), side, net, [ref],
             f"{ref} ({power:.2f} W) needs a thermal-via array to {net} "
-            f"(copper alone tops out ~{floor_cw:.0f} C/W); found {len(vias)} "
+            f"(copper alone tops out ~{floor_cw:.0f} C/W); found {n_vias} "
             f"via(s), want >= {min_vias}", SCRIPT, kind="thermal_vias",
-            vias=len(vias), required=min_vias, power_w=power))
+            vias=n_vias, required=min_vias, power_w=power))
 
     facts = {"ref": ref, "net": net, "power_w": power,
              "area_mm2": checklib.rnd(a_eff), "theta_ja": checklib.rnd(theta),
              "rise_c": checklib.rnd(rise), "dt_allowed_c": dt,
-             "vias_near_part": len(vias), "multilayer": multilayer}
+             "vias_near_part": n_vias, "multilayer": multilayer, **network}
     return violations, facts
 
 

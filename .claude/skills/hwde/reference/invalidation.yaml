@@ -77,6 +77,8 @@ artifact_kinds:
   # (the kicad/reports path hashed null on every board - the rf-de
   # verify pass was never bound to its waiver file; LEARNINGS 2026-08-08).
   waivers:     {path: "reports/verify-waivers.json", norm: json_canonical}
+  # the place gate's own sidecar (gate.py WAIVER_SIDECARS, 2026-10-05)
+  place_waivers: {path: "reports/place-waivers.json", norm: json_canonical}
   gerbers:     {path: "fab/{board}_gerbers.zip", norm: gerber_design}
   bom:         {path: "fab/BOM.csv", norm: text_eol}
   bom_full:    {path: "fab/BOM-full.csv", norm: text_eol}
@@ -86,14 +88,14 @@ artifact_kinds:
 # T7): erc reads the schematic + project severities; drc gates read the board,
 # the schematic (parity), the project rules and the DRU; place/verify read the
 # board + its sidecars (gate.py takes constraints/decoupling from the board's
-# own directory; verify additionally honors the waiver sidecar); sim reads the
+# own directory; verify and place each honor their waiver sidecar); sim reads the
 # testbench directory; dfm re-exports gerbers from the BOARD to scratch and
 # reads the sibling schematic (CPL polarity oracle) + parts.json (BOM leg).
 gate_inputs:
   erc:        [sch, pro]
   drc:        [pcb, sch, pro, dru]
   drc_routed: [pcb, sch, pro, dru]
-  place:      [pcb, constraints, decoupling]
+  place:      [pcb, constraints, decoupling, place_waivers]
   verify:     [pcb, constraints, decoupling, waivers]
   sim:        [sims]
   dfm:        [pcb, sch, parts]
