@@ -327,9 +327,17 @@ def refdes_texts(root) -> list[tuple[str, "Silk"]]:
     return out
 
 
-def check_attribution(bg: geom.BoardGeom, root) -> list[dict]:
-    """silk_misattributed: refdes text that reads against a neighbor (see
-    module docstring). Distances are text-bbox to pad-extent bbox per ref."""
+def text_geom(text: str, x: float, y: float, angle: float, size_x: float,
+              size_y: float, thickness: float) -> Polygon:
+    """The text box every check_silk rule measures (board coords; angle is
+    ABSOLUTE). silk_place builds its candidates' rule geometry here, so the
+    solver and this checker never measure a label two ways."""
+    return _text_box(x, y, angle, text, size_x, size_y, thickness)
+
+
+def pad_extent_boxes(bg: geom.BoardGeom) -> dict[str, Polygon]:
+    """{ref: bbox of that footprint's pad extent} - the 'own pads' and
+    'other part' shapes of the attribution rule."""
     extent: dict[str, list[float]] = {}
     for p in bg.pads_of():
         b = p.poly.bounds
@@ -339,24 +347,50 @@ def check_attribution(bg: geom.BoardGeom, root) -> list[dict]:
         else:
             e[0] = min(e[0], b[0]); e[1] = min(e[1], b[1])
             e[2] = max(e[2], b[2]); e[3] = max(e[3], b[3])
-    boxes = {r: box(*b) for r, b in extent.items()}
+    return {r: box(*b) for r, b in extent.items()}
+
+
+def attribution(ref: str, g, boxes: dict[str, Polygon]):
+    """The ONE misattribution rule: check_attribution here, and candidate
+    acceptance in silk_place. -> (own_off, nearest_ref, nearest_d, flagged),
+    or None for a padless footprint (logo, graphic).
+
+    nearest_* is the closest OTHER part's pad extent no farther than own_off
+    (None when no other part is that close); a part farther away than the
+    label's own pads can neither flag it nor out-rank its own part. flagged:
+    the label sits more than MISATTR_OWN_MM beyond its own pads AND another
+    part is nearer than min(MISATTR_NEAR_MM, own_off)."""
+    own = boxes.get(ref)
+    if own is None:
+        return None
+    own_off = g.distance(own)
+    gx0, gy0, gx1, gy1 = g.bounds
+    nearest_ref, nearest_d = None, None
+    for other, ob in boxes.items():
+        if other == ref:
+            continue
+        ox0, oy0, ox1, oy1 = ob.bounds
+        if ox0 > gx1 + own_off or ox1 < gx0 - own_off \
+                or oy0 > gy1 + own_off or oy1 < gy0 - own_off:
+            continue                     # bounds farther than own pads
+        d = g.distance(ob)
+        if d <= own_off and (nearest_d is None or d < nearest_d):
+            nearest_ref, nearest_d = other, d
+    flagged = (own_off > MISATTR_OWN_MM and nearest_d is not None
+               and nearest_d < min(MISATTR_NEAR_MM, own_off))
+    return own_off, nearest_ref, nearest_d, flagged
+
+
+def check_attribution(bg: geom.BoardGeom, root) -> list[dict]:
+    """silk_misattributed: refdes text that reads against a neighbor (see
+    module docstring). Distances are text-bbox to pad-extent bbox per ref."""
+    boxes = pad_extent_boxes(bg)
     violations: list[dict] = []
     for ref, s in refdes_texts(root):
-        own = boxes.get(ref)
-        if own is None:
-            continue                     # padless footprint (logo, graphic)
-        own_off = s.geom.distance(own)
-        if own_off <= MISATTR_OWN_MM:
+        a = attribution(ref, s.geom, boxes)
+        if a is None or not a[3]:
             continue
-        nearest_ref, nearest_d = None, None
-        for other, ob in boxes.items():
-            if other == ref:
-                continue
-            d = s.geom.distance(ob)
-            if nearest_d is None or d < nearest_d:
-                nearest_ref, nearest_d = other, d
-        if nearest_ref is None or nearest_d >= min(MISATTR_NEAR_MM, own_off):
-            continue
+        own_off, nearest_ref, nearest_d, _ = a
         violations.append(violation(
             SCRIPT, "warning", s.pos, f"{s.side}.SilkS", None, [ref],
             f'refdes "{ref}" sits {own_off:.2f} mm beyond its own pads and '
@@ -379,15 +413,18 @@ def pad_side(pad) -> set[str]:
     return out
 
 
-def over_pad(silk: Silk, pad) -> tuple[bool, float]:
+def over_pad(silk, pad) -> tuple[bool, float]:
     """(is_over, overlap_area). Over if the pad centre is under the silk, or the
-    silk covers a substantial fraction of the pad (not a mere edge graze)."""
+    silk covers a substantial fraction of the pad (not a mere edge graze).
+    `silk` is a Silk or a bare geometry: silk_place tests its candidates with
+    this same rule."""
+    g = silk.geom if isinstance(silk, Silk) else silk
     pp = pad.poly
-    if not silk.geom.intersects(pp):
+    if not g.intersects(pp):
         return False, 0.0
-    inter = silk.geom.intersection(pp)
+    inter = g.intersection(pp)
     area = inter.area
-    center_in = silk.geom.covers(Point(pad.center))
+    center_in = g.covers(Point(pad.center))
     substantial = area >= MIN_OVERLAP_MM2 and area >= COVER_FRAC * pp.area
     return (center_in or substantial), area
 

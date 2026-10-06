@@ -11,6 +11,35 @@ Per net in constraints.json["power"] with a budgeted current:
  - layer transitions: net vias are clustered (<= 2 mm) and each cluster needs
    ceil(I / via_amps) vias (default 0.5 A per via, per spec).
 
+Pad-exit necks (PCB-0019-A SW_L1/SW_L2: 0.30 mm off a TPS63001's 0.24 mm
+pads at 0.5 mm pitch, where a 0.5 mm track breaks clearance to the next pin,
+so no layout clears the finding). A run of undersized same-net, same-layer
+segments touching end to end is accepted, not reported, when all hold:
+ 1. one of its segments ends on a same-net pad on that layer;
+ 2. every segment is at least min(required, w_pad) wide, where w_pad is the
+    short side of the narrowest pad the run touches - the pad already
+    constricts the current to w_pad, so a track no narrower than the copper
+    it leaves adds no tighter section (a pad as wide as the requirement
+    leaves nothing to excuse, so the full rule applies);
+ 3. the run's centerline outside the net's other copper on that layer (pads,
+    vias, zone fill, the tracks not in the run) totals <= PAD_EXIT_MAX_MM.
+    This bounds the neck to the pad's escape: a sub-millimetre neck between
+    wide copper at both ends is heat-sunk by it, which IPC-2152's
+    long-conductor charts do not describe; a longer one is a routed trace
+    and must meet the full width.
+Accepted runs are listed in facts["pad_exit_necks"] for the reviewer.
+
+Pour connectivity is judged across layers (PCB-0017-B GND: the F.Cu fill is
+split into islands, each stitched to one unbroken B.Cu pour). When a fill on
+one layer is eroded, the net's fills on every other layer are eroded by
+their own required_width/2, and the pieces are joined through every same-net
+via and plated through-hole whose layers both pieces sit on. The attachment
+vias of the fill under test must all land in one joined component. Pieces on
+the SAME layer are never joined through a via alone (a via touching two
+same-layer pieces and nothing else is not a path), so a single-layer pour is
+judged exactly as before. Via ampacity at those stitches stays the
+transition-via rule's job.
+
 Override reach (LEARNINGS 2026-07-28/29: overrides used to feed only track
 widths, making the via rule net-wide and unsatisfiable for branch taps):
  - a via CLUSTER whose centroid falls inside an override region is judged at
@@ -28,6 +57,18 @@ when the segment is a cut edge of the net's connectivity graph (tracks + vias
 current really crosses it. false = a parallel same-net path exists (which may
 still be jointly undersized - severity is NOT reduced; the label is for the
 fixer, LEARNINGS 2026-07-29 "no bridge awareness").
+
+Two non-bridge cases are dropped instead (PCB-0018-A: signal taps that
+leave FET pins sitting in the PHASE/LS_SRC pour that carries the phase
+current), and listed by position in facts["pour_taps"]:
+ - pour-shunted: both ends sit on the net's pour - inside its fill on the
+   track's layer, or on a same-net pad or via whose copper touches a
+   same-net fill on any layer. The track is in parallel with that pour, so
+   the pour carries the current, and the pour-neck pass judges the pour;
+ - inside pad copper: the track lies wholly inside same-net pad and via
+   copper on its layer (a stub drawn over a pad adds no section).
+A bridge is never dropped: when it is the sole path, the whole judged
+current may cross it, and only a declared override can say otherwise.
 
 Plane-fed rails ("plane_fed": true on the entry): the rail's trunk is its
 zone fill, so every via is a single-pin leaf tap by construction and the
@@ -85,7 +126,9 @@ import math
 import sys
 from pathlib import Path
 
+from shapely import STRtree
 from shapely.geometry import Point
+from shapely.ops import unary_union
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 import checklib  # noqa: E402
@@ -104,6 +147,8 @@ VIA_CLUSTER_MM = 2.0           # vias within this distance share current
 WIDTH_TOL_MM = 1e-3
 RETURN_SYNTH_MIN_A = 3.0       # derive return-net coverage at/above this rail
 PLANE_HINT_SINGLE_VIA_FRAC = 0.8  # plane_fed_candidate hint threshold
+PAD_EXIT_MAX_MM = 1.0          # longest accepted pad-exit neck (docstring)
+TOUCH_MM = 1e-3                # end-to-end / end-on-pad contact tolerance
 
 
 def width_1oz_10c(current_a: float) -> float:
@@ -162,23 +207,155 @@ def segment_current(entry: dict, midpoint) -> float:
     return float(entry["current_a"]) if ov is None else ov
 
 
+def pad_exit_necks(bg: geom.BoardGeom, net: str, thin: list) -> dict:
+    """Accepted pad-exit necks (module docstring). `thin` lists
+    (Track, required_mm) for every undersized segment of `net`; returns
+    {id(Track): info} for the segments of each accepted run."""
+    accepted: dict[int, dict] = {}
+    by_layer: dict[str, list] = {}
+    for t, req in thin:
+        by_layer.setdefault(t.layer, []).append((t, req))
+    for layer, items in by_layer.items():
+        # runs = undersized segments touching end to end (union-find)
+        parent = list(range(len(items)))
+
+        def find(i):
+            while parent[i] != i:
+                parent[i] = parent[parent[i]]
+                i = parent[i]
+            return i
+        for i in range(len(items)):
+            for j in range(i + 1, len(items)):
+                if items[i][0].shape.distance(items[j][0].shape) <= TOUCH_MM:
+                    parent[find(i)] = find(j)
+        runs: dict[int, list] = {}
+        for i, it in enumerate(items):
+            runs.setdefault(find(i), []).append(it)
+        pads = bg.pads_of(net, layer)
+        for run in runs.values():
+            ends = [Point(c) for t, _ in run
+                    for c in (t.shape.coords[0], t.shape.coords[-1])]
+            touched = [p for p in pads
+                       if any(p.poly.distance(e) <= TOUCH_MM for e in ends)]
+            if not touched:
+                continue                        # 1. not a pad exit
+            w_pad = min(min(p.size) for p in touched)
+            if any(t.width + WIDTH_TOL_MM < min(req, w_pad) for t, req in run):
+                continue                        # 2. narrower than the pad
+            ids = {id(t) for t, _ in run}
+            anchor = [p.poly for p in pads] + \
+                [v.poly for v in bg.vias_of(net, layer)] + \
+                [t.poly for t in bg.tracks_of(net, layer) if id(t) not in ids] + \
+                [z.fill_on(layer) for z in bg.zones_of(net, layer)]
+            line = unary_union([t.shape for t, _ in run])
+            free = line.difference(unary_union(anchor)).length
+            if free > PAD_EXIT_MAX_MM + WIDTH_TOL_MM:
+                continue                        # 3. longer than an escape
+            pad = min(touched, key=lambda p: min(p.size))
+            info = {"pad": f"{pad.ref}.{pad.number}", "layer": layer,
+                    "pad_width_mm": checklib.rnd(w_pad),
+                    "neck_mm": checklib.rnd(min(t.width for t, _ in run)),
+                    "length_mm": checklib.rnd(free)}
+            for t, _ in run:
+                accepted[id(t)] = info
+    return accepted
+
+
+def pour_shunted(bg: geom.BoardGeom, net: str, t) -> bool:
+    """True when both ends of track `t` sit on the net's pour: inside its
+    fill on t's layer, or on a same-net pad or via whose copper touches a
+    same-net fill on any layer (module docstring, pour taps)."""
+    fills = {l: bg.zone_fill(net, l) for l in bg.layers_with_zone(net)}
+    if not fills:
+        return False
+    own = fills.get(t.layer)
+    items = bg.pads_of(net, t.layer) + bg.vias_of(net, t.layer)
+
+    def anchored(xy) -> bool:
+        p = Point(xy)
+        if own is not None and own.buffer(TOUCH_MM).contains(p):
+            return True
+        return any(it.poly.buffer(TOUCH_MM).contains(p)
+                   and any(fills[l].intersects(it.poly)
+                           for l in it.layers if l in fills)
+                   for it in items)
+    return anchored(t.shape.coords[0]) and anchored(t.shape.coords[-1])
+
+
+def inside_pad_copper(bg: geom.BoardGeom, net: str, t) -> bool:
+    """True when track `t` lies wholly inside same-net pad and via copper
+    on its layer: a stub drawn over a pad adds no section of its own."""
+    cover = [p.poly for p in bg.pads_of(net, t.layer)] + \
+        [v.poly for v in bg.vias_of(net, t.layer)]
+    if not cover:
+        return False
+    return t.shape.difference(unary_union(cover)).length <= TOUCH_MM
+
+
+def _stitches(bg: geom.BoardGeom, net: str) -> list:
+    """(Point, layers) of every same-net via and plated through-hole: the
+    places where fills on different layers join."""
+    out = [(Point(v.at), frozenset(v.layers)) for v in bg.vias_of(net)]
+    out += [(Point(p.center), frozenset(p.layers)) for p in bg.pads_of(net)
+            if p.drill is not None and len(p.layers) > 1]
+    return out
+
+
+def _pieces(fill, radius: float) -> list:
+    eroded = fill.buffer(-radius) if radius > 0 else fill
+    return [] if eroded.is_empty else list(getattr(eroded, "geoms", [eroded]))
+
+
 def pour_neck(bg: geom.BoardGeom, net: str, layer: str, fill,
-              required: float):
+              required: float, others: dict | None = None):
     """None if the pour carries `required` width between all via attachments,
-    else (neck_width_mm, pos) of the tightest failing neck."""
+    else (neck_width_mm, pos) of the tightest failing neck.
+
+    `others` maps every other copper layer with a fill of this net to
+    (fill, required_mm on that layer); pieces join across layers through
+    same-net vias and plated through-holes (module docstring)."""
     pts = [Point(v.at) for v in bg.vias_of(net, layer)
            if fill.buffer(0.01).contains(Point(v.at))]
     if len(pts) < 2:
         return None
+    others = {l: o for l, o in (others or {}).items()
+              if l != layer and not o[0].is_empty}
+    stitches = [(p, ls) for p, ls in _stitches(bg, net)
+                if layer in ls and any(l in ls for l in others)]
+    # other layers' pieces are fixed at their own requirement: erode once
+    other_nodes = []                     # (layer, reach polygon)
+    for l, (ofill, oreq) in others.items():
+        r = oreq / 2.0
+        other_nodes += [(l, part.buffer(r + 0.01)) for part in _pieces(ofill, r)]
+
     def connected(radius: float) -> bool:
-        eroded = fill.buffer(-radius)
-        if eroded.is_empty:
+        own = [part.buffer(radius + 0.01) for part in _pieces(fill, radius)]
+        if not own:
             return False
-        for part in getattr(eroded, "geoms", [eroded]):
-            hit = part.buffer(radius + 0.01)
-            if all(hit.contains(p) for p in pts):
-                return True
-        return False
+        nodes = [(layer, g) for g in own] + other_nodes
+        parent = list(range(len(nodes)))
+
+        def find(i):
+            while parent[i] != i:
+                parent[i] = parent[parent[i]]
+                i = parent[i]
+            return i
+        if stitches and other_nodes:
+            tree = STRtree([g for _, g in nodes])
+            for p, ls in stitches:
+                hit = [int(i) for i in tree.query(p, predicate="intersects")
+                       if nodes[int(i)][0] in ls]
+                if len({nodes[i][0] for i in hit}) < 2:
+                    continue             # same-layer pieces only: no path
+                for i in hit[1:]:
+                    parent[find(i)] = find(hit[0])
+        common = None
+        for p in pts:
+            comps = {find(i) for i, g in enumerate(own) if g.contains(p)}
+            common = comps if common is None else common & comps
+            if not common:
+                return False
+        return True
     if connected(required / 2.0):
         return None
     lo, hi = 0.0, required / 2.0    # lo connected, hi not
@@ -230,6 +407,8 @@ def check_net(bg: geom.BoardGeom, entry: dict):
     # ---- track segments
     min_seen: dict[str, float] = {}
     undersized: list[tuple[dict, object]] = []   # (violation, Track)
+    pour_taps: list = []                         # dropped: pour-shunted taps
+    thin = []                                    # (Track, mid, ov, amps, req)
     for t in bg.tracks_of(net):
         mid = t.shape.interpolate(0.5, normalized=True).coords[0]
         ov = region_current(entry, mid)
@@ -237,27 +416,33 @@ def check_net(bg: geom.BoardGeom, entry: dict):
         req = required_width_mm(amps, dt_c, cu[t.layer])
         min_seen[t.layer] = min(min_seen.get(t.layer, 9e9), t.width)
         if t.width + WIDTH_TOL_MM < req:
-            advisory = plane_fed and ov is None
-            msg = (f"{net} track {t.width:.3f} mm wide on {t.layer}; IPC-2152 "
-                   f"needs {req:.3f} mm for {amps:.2f} A at dT={dt_c:.0f}C")
-            extras = {}
-            if advisory:
-                msg += ("; advisory: plane-fed rail, full-budget worst-case "
-                        "screen (per-segment current unattributed)")
-                extras["advisory"] = True
-            x0, y0 = t.shape.coords[0]
-            x1, y1 = t.shape.coords[-1]
-            v = violation(
-                SCRIPT, "warning" if advisory else "error", mid, t.layer,
-                net, [], msg, SCRIPT, kind="undersized_track",
-                width_mm=checklib.rnd(t.width), required_mm=checklib.rnd(req),
-                current_a=amps, segment={"start": [checklib.rnd(x0),
-                                                   checklib.rnd(y0)],
-                                         "end": [checklib.rnd(x1),
-                                                 checklib.rnd(y1)]},
-                **extras)
-            violations.append(v)
-            undersized.append((v, t))
+            thin.append((t, mid, ov, amps, req))
+    exits = pad_exit_necks(bg, net, [(x[0], x[4]) for x in thin]) \
+        if thin else {}
+    for t, mid, ov, amps, req in thin:
+        if id(t) in exits:
+            continue
+        advisory = plane_fed and ov is None
+        msg = (f"{net} track {t.width:.3f} mm wide on {t.layer}; IPC-2152 "
+               f"needs {req:.3f} mm for {amps:.2f} A at dT={dt_c:.0f}C")
+        extras = {}
+        if advisory:
+            msg += ("; advisory: plane-fed rail, full-budget worst-case "
+                    "screen (per-segment current unattributed)")
+            extras["advisory"] = True
+        x0, y0 = t.shape.coords[0]
+        x1, y1 = t.shape.coords[-1]
+        v = violation(
+            SCRIPT, "warning" if advisory else "error", mid, t.layer,
+            net, [], msg, SCRIPT, kind="undersized_track",
+            width_mm=checklib.rnd(t.width), required_mm=checklib.rnd(req),
+            current_a=amps, segment={"start": [checklib.rnd(x0),
+                                               checklib.rnd(y0)],
+                                     "end": [checklib.rnd(x1),
+                                             checklib.rnd(y1)]},
+            **extras)
+        violations.append(v)
+        undersized.append((v, t))
 
     # ---- bridge labeling (LEARNINGS 2026-07-29: cut edge = sole path)
     if undersized:
@@ -271,8 +456,24 @@ def check_net(bg: geom.BoardGeom, entry: dict):
         for v, t in undersized:
             eid = edge_of.get(id(t))
             v["bridge"] = True if eid is None else eid in bridges
+        # non-bridge taps inside their own pour carry no load current
+        shunted = [(v, t) for v, t in undersized
+                   if not v["bridge"] and (pour_shunted(bg, net, t)
+                                           or inside_pad_copper(bg, net, t))]
+        if shunted:
+            drop = {id(v) for v, _ in shunted}
+            violations = [v for v in violations if id(v) not in drop]
+            undersized = [(v, t) for v, t in undersized if id(v) not in drop]
+            pour_taps = [v["pos"] for v, _ in shunted]
 
     # ---- pour neckdowns (always at the full budget; plane_fed keeps error)
+    zone_layers = bg.layers_with_zone(net)
+
+    def others_at(amps, layer):
+        # the net's fills on every other layer, at their own requirement
+        return {l: (bg.zone_fill(net, l), required_width_mm(amps, dt_c, cu[l]))
+                for l in zone_layers if l != layer}
+
     for z in bg.zones_of(net):
         for layer in z.fills:
             fill = z.fill_on(layer)
@@ -280,7 +481,8 @@ def check_net(bg: geom.BoardGeom, entry: dict):
                 continue
             amps = budget
             req = required_width_mm(budget, dt_c, cu[layer])
-            neck = pour_neck(bg, net, layer, fill, req)
+            neck = pour_neck(bg, net, layer, fill, req,
+                             others_at(budget, layer))
             if neck is not None:
                 ov = region_current(entry, neck[1])
                 if ov is not None:
@@ -288,7 +490,8 @@ def check_net(bg: geom.BoardGeom, entry: dict):
                     # fill at the override requirement; passing drops it
                     amps = ov
                     req = required_width_mm(ov, dt_c, cu[layer])
-                    neck = pour_neck(bg, net, layer, fill, req)
+                    neck = pour_neck(bg, net, layer, fill, req,
+                                     others_at(ov, layer))
             if neck is not None:
                 width, pos = neck
                 msg = (f"{net} pour on {layer} necks to ~{width:.2f} mm "
@@ -338,8 +541,16 @@ def check_net(bg: geom.BoardGeom, entry: dict):
              "min_track_mm_by_layer": {l: checklib.rnd(w)
                                        for l, w in min_seen.items()},
              "via_clusters": len(clusters)}
-    if undersized:
+    if undersized or pour_taps:
         facts["bridge_labeled"] = True
+    if pour_taps:
+        facts["pour_taps"] = pour_taps
+    if exits:
+        seen = []
+        for info in exits.values():
+            if info not in seen:
+                seen.append(info)
+        facts["pad_exit_necks"] = seen
     if entry.get("plane_fed"):
         facts["plane_fed"] = True
         facts["advisory_violations"] = sum(

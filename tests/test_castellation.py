@@ -69,8 +69,25 @@ def test_generator_marks_every_pad_castellated(tmp_path):
     assert text.count("(property pad_prop_castellated)") == 6
     # a board feature: nothing to buy or place
     assert "exclude_from_bom" in text and "exclude_from_pos_files" in text
-    # hole centres on y = 0: pad centre + drill offset cancel
-    assert "(at -6.35 0.275)" in text and "(offset 0 -0.275)" in text
+    # KiCad puts the hole at the pad's (at) and moves the copper by the
+    # drill offset: holes on y = 0, copper carried 0.275 mm inboard
+    assert "(at -6.35 0)" in text and "(offset 0 0.275)" in text
+    assert "(at -6.35 0.275)" not in text
+
+
+def test_geom_puts_the_hole_at_the_pad_and_offsets_the_copper():
+    # pcbnew (SWIG, KiCad 10.0.6) on this fixture: J1.1 hole (8.65, 0),
+    # copper centre (8.65, 0.275); J2 is turned 180, so its copper sits at
+    # y = 20 - 0.275 with the hole on y = 20
+    pads = {f"{p.ref}.{p.number}": p for p in geom.load_board(FIX).pads_of()}
+    for name, hole, copper in (("J1.1", (8.65, 0.0), (8.65, 0.275)),
+                               ("J2.1", (21.35, 20.0), (21.35, 19.725))):
+        p = pads[name]
+        h, c = p.drill_poly.centroid, p.poly.centroid
+        assert (h.x, h.y) == pytest.approx(hole, abs=1e-6)
+        assert (c.x, c.y) == pytest.approx(copper, abs=1e-6)
+        assert p.center == pytest.approx(hole, abs=1e-6)
+        assert p.copper_center == pytest.approx(copper, abs=1e-6)
 
 
 @pytest.mark.parametrize("kw, words", [
@@ -122,6 +139,27 @@ def test_castellated_pad_off_the_outline(tmp_path):
     assert {v["refs"][0] for v in vios} == {"J1"} and len(vios) == 6
 
 
+def test_old_offset_convention_puts_the_hole_inboard(tmp_path):
+    # J1's pads written the way the generator used to: copper centred on the
+    # edge by (at), hole moved by the offset. KiCad drills at (at), 0.275 mm
+    # inside the board, so every J1 hole is off the outline; J2 stays clean.
+    def old(t):
+        blocks = t.split("\n\t(footprint ")
+        for i, b in enumerate(blocks):
+            if '"Reference" "J1"' in b:
+                b = re.sub(r'(\(pad "\d+" thru_hole rect\s+)\(at (-?[\d.]+) 0\)',
+                           r"\1(at \2 0.275)", b)
+                blocks[i] = b.replace("(offset 0 0.275)", "(offset 0 -0.275)")
+        return "\n\t(footprint ".join(blocks)
+
+    pcb = _mutant(tmp_path, old)
+    vios, _ = castellation.check(geom.load_board(pcb), RULES, 1.6)
+    assert {v["kind"] for v in vios} == {"castellated_off_outline"}
+    assert {v["pad"] for v in vios} == {f"J1.{n}" for n in range(1, 7)}
+    assert all(v["distance_mm"] == pytest.approx(0.275, abs=1e-3)
+               for v in vios)
+
+
 def test_castellated_hole_too_near_a_corner(tmp_path):
     # J1's row starts 0.15 mm from x = 0: the end hole is inside the corner
     # and the next edge; J2 untouched
@@ -130,6 +168,83 @@ def test_castellated_hole_too_near_a_corner(tmp_path):
     near = {v["kind"] for v in vios if v["pad"] == "J1.1"}
     assert near == {"castellated_to_corner", "castellated_to_other_edge"}
     assert not [v for v in vios if v["refs"] == ["J2"]]
+
+
+def _rounded(text: str, r: float, w: float = 30.0, h: float = 20.0) -> str:
+    """The fixture's w x h outline redrawn with corners rounded to radius r:
+    four gr_lines stopping r short of each corner and four gr_arcs."""
+    text = re.sub(r"\t\(gr_line\n(?:\t\t.*\n)*?\t\)\n", "", text)
+    k = r * (1 - 1 / 2 ** 0.5)  # arc midpoint inset from the sharp corner
+
+    def line(a, b):
+        return (f"\t(gr_line (start {a[0]} {a[1]}) (end {b[0]} {b[1]}) "
+                "(stroke (width 0.05) (type default)) (layer \"Edge.Cuts\"))\n")
+
+    def arc(a, m, b):
+        return (f"\t(gr_arc (start {a[0]} {a[1]}) (mid {m[0]} {m[1]}) "
+                f"(end {b[0]} {b[1]}) (stroke (width 0.05) (type default)) "
+                "(layer \"Edge.Cuts\"))\n")
+
+    edge = (line((r, 0), (w - r, 0)) + line((w, r), (w, h - r))
+            + line((w - r, h), (r, h)) + line((0, h - r), (0, r))
+            + arc((w - r, 0), (w - k, k), (w, r))
+            + arc((w, h - r), (w - k, h - k), (w - r, h))
+            + arc((r, h), (k, h - k), (0, h - r))
+            + arc((0, r), (k, k), (r, 0)))
+    head, tail = text.rsplit("\n\t(embedded_fonts", 1)  # the board's own
+    return head + "\n" + edge + "\t(embedded_fonts" + tail
+
+
+def test_rounded_corners_are_corners(tmp_path):
+    # PCB-0019-A's case: 1 mm corner radius, end hole 1.37 mm from the short
+    # edge. A sampled arc never turns CORNER_DEG at one vertex, so before the
+    # fix the board had no corner and no "other edge" and this passed.
+    pcb = _mutant(tmp_path, lambda t: _move(_rounded(t, 1.0), "J1", "7.72 0"))
+    bg = geom.load_board(pcb)
+    runs, corners, arcs = castellation._runs(bg.outline)
+    assert len(runs) == 4 and len(corners) == 4 and len(arcs) == 4
+    # a rounded corner counts from the sharp corner its edges would meet at
+    assert sorted((round(k.x, 6), round(k.y, 6)) for k in corners) == [
+        (0, 0), (0, 20), (30, 0), (30, 20)]
+    vios, _ = castellation.check(bg, RULES, 1.6)
+    near = {v["kind"]: v["distance_mm"] for v in vios if v["pad"] == "J1.1"}
+    assert set(near) == {"castellated_to_corner", "castellated_to_other_edge"}
+    # 1.37 - 0.5 hole radius from the corner; the hole cuts into the arc
+    assert near["castellated_to_corner"] == pytest.approx(0.87, abs=0.01)
+    assert near["castellated_to_other_edge"] < 0
+    # pin 2, 3.91 mm along, clears both: only the end hole fails
+    assert {v["pad"] for v in vios} == {"J1.1"}
+
+
+def test_rounded_corners_compliant_board_passes(tmp_path):
+    # the fixture's own placement on the same rounded outline: end holes
+    # 8.65 mm from the short edges, far past 3 mm from the arcs
+    pcb = _mutant(tmp_path, lambda t: _rounded(t, 1.0))
+    bg = geom.load_board(pcb)
+    assert bg.outline_items.get("gr_arc") == 4
+    vios, facts = castellation.check(bg, RULES, 1.6)
+    assert vios == [] and facts["castellated_pads"] == 12
+
+
+def test_corner_spans_shapes():
+    from shapely.geometry import Point as P, box
+    from shapely import affinity
+    sharp = list(box(0, 0, 30, 20).exterior.coords)[:-1]
+    assert [i == j for i, j in castellation._corner_spans(sharp)] == [True] * 4
+    # a round board: one curve all the way round, no corner
+    disc = list(P(0, 0).buffer(10, quad_segs=32).exterior.coords)[:-1]
+    assert castellation._corner_spans(disc) == []
+    # rounded rectangle, ring started mid-arc so one corner wraps vertex 0
+    rr = box(1, 1, 29, 19).buffer(1, quad_segs=8)
+    pts = list(rr.exterior.coords)[:-1]
+    spans = castellation._corner_spans(pts[3:] + pts[:3])
+    assert len(spans) == 4 and all(i != j for i, j in spans)
+    assert sum(i > j for i, j in spans) == 1
+    # a sweep wider than CORNER_MAX_R_MM is a curved edge, not a corner
+    wide = box(8, 8, 22, 12).buffer(castellation.CORNER_MAX_R_MM + 3,
+                                    quad_segs=8)
+    assert castellation._corner_spans(
+        list(affinity.translate(wide, 0, 0).exterior.coords)[:-1]) == []
 
 
 def test_castellated_drill_and_ring_and_extension(tmp_path):
@@ -251,3 +366,13 @@ def test_count_and_refs_are_a_text_scan(tmp_path):
     stub = tmp_path / "stub.kicad_pcb"
     stub.write_text("(kicad_pcb)\n", encoding="utf-8")
     assert castellation.count(stub) == 0 and castellation.refs(stub) == []
+
+
+def test_half_round_end_counts_from_its_arc():
+    # a stadium: two 180 deg ends whose edges never meet, so the corner
+    # distance is measured to the arc itself
+    from shapely.geometry import LineString as L
+    stadium = L([(5, 5), (25, 5)]).buffer(2, quad_segs=8)
+    runs, corners, arcs = castellation._runs(stadium)
+    assert len(runs) == 2 and len(arcs) == 2
+    assert all(isinstance(k, L) for k in corners)

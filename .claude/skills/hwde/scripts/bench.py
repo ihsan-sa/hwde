@@ -74,6 +74,7 @@ CLI: bench.py --list
      bench.py --scorecard WS [WS ...] | --scorecard all [--boards-root DIR]
               [--record] [--top N]
      bench.py --scorecard-report MD
+     bench.py --scorecard-corpus [ID ...] [--cache DIR] [--record] [--top N]
 
 --corpus is the one mode that DOES run the live pipeline: place_seed,
 place_anneal and route_auto (Freerouting) on a copy of every board in the
@@ -96,6 +97,19 @@ time.  --record appends one line per board (scores, counts and the top
 results/scorecard.jsonl (HWDE_RESULTS_ROOT overrides the root).
 --scorecard-report MD rewrites the markdown between the SCORECARD markers in
 MD (docs/design-evals.md) from the last recorded suite in that store.
+
+--scorecard-corpus scores the human-made board corpus (human_corpus.py,
+docs/human-corpus.md) the same way, but runs nothing: it reads the
+verify_all and dfm_check results `human_corpus.py run` left in
+CACHE/runs/<id>/result.json (CACHE as human_corpus.py: --cache, else
+HWDE_HUMAN_CORPUS_CACHE, else ~/.cache/hwde-human-corpus) for every
+manifest board, or the ids given. These are bare KiCad boards with no
+state.json, so the ERC/DRC gate column is left out rather than scored as
+missing; dfm_check's fresh findings count under check `dfm_check`. A board
+with no result.json, or whose verify_all wrote no summary, is listed under
+`unscored` and left out of the suite. The suite's bootstrap clusters boards
+by GitHub repo, so revisions of one design count once. --record appends to
+results/corpus-scorecard.jsonl, a store of its own.
 
 Exit 0 scored (no regression), 1 known-answer miss or composite regression,
 2 error/drifted fixture/missing toolchain for a live-only stage.
@@ -1077,6 +1091,83 @@ def do_scorecard(args) -> dict:
             if prec else None}
 
 
+def corpus_card(b: dict, res: dict, triage: list, prec: dict, modes: dict,
+                top: int) -> dict:
+    """Score one corpus board from its recorded verify_all + dfm_check run."""
+    import score_checks
+    summary = res.get("verify_summary") or {}
+    raw = [(v.get("source") or v.get("check"), v)
+           for v in summary.get("violations") or []]
+    raw += [("dfm_check", v) for v in (res.get("dfm_report") or {}).get("violations") or []]
+    findings = []
+    for name, v in raw:
+        verdict = next((t["verdict"] for t in triage if t["board"] == b["id"]
+                        and score_checks.triage_matches(t, name, v)), None)
+        findings.append(evalcard.finding(name, v, verdict or "untriaged",
+                                         prec.get(name), modes))
+    checks = summary.get("checks") or {}
+    ran = {n for n, c in checks.items()
+           if isinstance(c, dict) and c.get("status") in ("pass", "violations")}
+    if res.get("dfm_report"):
+        ran.add("dfm_check")
+    info = {"gates": "excluded (bare board: ERC/DRC never ran)",
+            "skipped_checks": sorted(n for n, c in checks.items()
+                                     if isinstance(c, dict) and c.get("status") == "skipped"),
+            "check_errors": sorted(n for n, c in checks.items()
+                                   if isinstance(c, dict) and c.get("status") == "error"),
+            "dfm": (res.get("dfm_report") or {}).get("status") or "no report"}
+    card = evalcard.board_card(b["id"], findings, info, top=top, scored_areas={
+        evalcard.CHECK_AREA.get(n, "layout") for n in ran})
+    card.update({"domain": b.get("domain"), "layers": b.get("layers"),
+                 "outcome": (b.get("outcome") or {}).get("label") or "",
+                 "repo": b.get("url"), "commit": b.get("commit"),
+                 "pcb": b.get("pcb"),
+                 "by_failure_mode": evalcard._count(
+                     [f for f in findings if f["failure_mode"]], "failure_mode")})
+    return card
+
+
+def do_scorecard_corpus(args) -> dict:
+    import human_corpus
+    import score_checks
+    try:   # human_corpus reports a bad id or cache as SystemExit
+        boards = human_corpus.select(human_corpus.load(human_corpus.MANIFEST),
+                                     args.scorecard_corpus)
+        cache = human_corpus.cache_root(args.cache)
+    except SystemExit as exc:
+        raise CheckError(str(exc)) from None
+    triage = score_checks.load_triage(score_checks.TRIAGE)
+    prec = evalcard.precisions()
+    modes = evalcard.load_failure_modes(evalcard.REPO / "docs" / "failure-modes.yaml")
+    cards, unscored = [], []
+    for b in boards:
+        res = human_corpus.read_json(cache / "runs" / b["id"] / "result.json")
+        if not res:
+            unscored.append({"board": b["id"], "why": "no result.json; run human_corpus.py run"})
+        elif not res.get("verify_summary"):
+            unscored.append({"board": b["id"], "why": "verify_all wrote no summary (exit "
+                             f"{(res.get('verify_all') or {}).get('exit')})"})
+        else:
+            cards.append(corpus_card(b, res, triage, prec, modes, args.top))
+    if not cards:
+        raise CheckError(f"no corpus board has a recorded run under {cache}/runs")
+    suite = evalcard.suite_score(cards, cluster_of=lambda c: c.get("repo") or c["board"])
+    if args.record:
+        for c in cards:
+            evalcard.append("corpus-scorecard", {**evalcard.run_key(c["board"]),
+                                                 "kind": "board",
+                                                 **{k: v for k, v in c.items()
+                                                    if k != "findings"}})
+        evalcard.append("corpus-scorecard", {**evalcard.run_key("suite:" + ",".join(
+            sorted(c["board"] for c in cards))), "kind": "suite",
+            "unscored": unscored, **suite})
+    for c in cards:
+        del c["findings"]
+    return {"script": SCRIPT, "status": "pass", "suite": suite, "boards": cards,
+            "unscored": unscored, "cache": str(cache),
+            "precision_source": str(evalcard.SCORECARD_HISTORY.name) if prec else None}
+
+
 def run(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--list", action="store_true",
@@ -1135,10 +1226,15 @@ def run(argv=None):
                     "repo (default env.boards_root())")
     ap.add_argument("--scorecard", nargs="+", metavar="WS",
                     help="score finished board workspaces (or 'all')")
+    ap.add_argument("--scorecard-corpus", nargs="*", metavar="ID",
+                    help="score the human board corpus from its recorded "
+                    "runs (every board, or these ids)")
+    ap.add_argument("--cache", help="--scorecard-corpus: human_corpus.py's "
+                    "cache (default ~/.cache/hwde-human-corpus)")
     ap.add_argument("--record", action="store_true",
-                    help="--scorecard: append the results to results/")
+                    help="--scorecard / --scorecard-corpus: append the results to results/")
     ap.add_argument("--top", type=int, default=10,
-                    help="--scorecard: findings listed per board (default 10)")
+                    help="--scorecard / --scorecard-corpus: findings listed per board (default 10)")
     ap.add_argument("--scorecard-report", metavar="MD",
                     help="rewrite MD's scorecard table from results/")
     ap.add_argument("--out")
@@ -1146,6 +1242,12 @@ def run(argv=None):
 
     if args.scorecard_report:
         return do_scorecard_report(Path(args.scorecard_report)), args.out
+    if args.scorecard_corpus is not None:
+        if args.scorecard:
+            raise CheckError("--scorecard and --scorecard-corpus are separate modes")
+        return do_scorecard_corpus(args), args.out
+    if args.cache:
+        raise CheckError("--cache only makes sense with --scorecard-corpus")
     if args.scorecard:
         return do_scorecard(args), args.out
     for flag, val in (("--record", args.record),):

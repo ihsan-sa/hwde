@@ -30,7 +30,10 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
    only the fallback for a part with no model. Read `rotation_audit` (base
    -> correction -> final, `source` lcsc_model or table, per part),
    `rotation_from_table`, `class_counts`, `not_placed` and `violations`.
-   Exit 1 = an assembly violation, not a crash.
+   Exit 1 = an assembly violation, not a crash. `source: fetch_failed`
+   (violation `cpl_model_fetch_failed`, `easyeda_rate_limited` set on a
+   403/429) means EasyEDA refused or the network failed, NOT that the part
+   has no model: wait a few minutes and rerun, which fetches into the cache.
    - Membership comes from `assembly_class` in canonical parts data
    (`smt_placed`, `hand_install`, `off_board`, `dnp`, `customer_supplied`,
    `select_on_test`, `board_feature`), per-ref via `refdes_class` /
@@ -53,7 +56,10 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
    output. It writes `fab/cpl_visual.json`: `{"model":
    "claude-sonnet-5-5", "parts": {"U3": {"pin1": "match", "polarity":
    "n/a", "note": ""}, ...}}`, one line for EVERY designator in index.json;
-   a "NO LCSC MODEL" crop is "unclear". Do not edit its verdicts -
+   a "NO LCSC MODEL" crop is "unclear"; a "FETCH FAILED" crop (script
+   exits 1, index.json note) is "unclear" too, and the fix is to rerun
+   cpl_render in a few minutes, not to treat it as no model. Do not edit
+   its verdicts -
    dfm_check merges them in the next step.
 4. Gate: `scripts/gate.py --gate dfm kicad/<board>.kicad_pcb` - runs
    dfm_check on a scratch export: copper (trace/clearance/edge), drill
@@ -64,7 +70,9 @@ scripts with the repo venv python; JSON out, exit 0/1/2. Keep output ASCII.
    on the fab dir's CPL.csv): pin 1 of each part's LCSC model must land on
    the board's pad 1, and a diode/LED/polarised cap's K/+ on the board's.
    A wrong part (`cpl_rotation`), a part with no model, no fit or on the
-   bottom side (`cpl_no_model`), and a part the script and
+   bottom side (`cpl_no_model`), parts whose model fetch failed (one
+   `cpl_fetch_failed` for the run, with the reason - rerun later, it is not
+   a pin-1 result), and a part the script and
    `fab/cpl_visual.json` disagree on or the image pass left out
    (`cpl_visual_disagree`) are ERRORS; `placement.parts` in the report puts
    both verdicts side by side. With no cpl_visual.json the release gate

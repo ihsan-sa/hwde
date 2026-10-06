@@ -64,12 +64,12 @@ boards may use ONE schematic agent (record it).
   library-repair boards. Parity 0, setup 0; sidecars beside the board; generous
   `--outline auto` at a geometry-OUTPUT binding (a fixed WxH is REFUSED there).
 - **P6 Placement**: spawn `placement` (seed -> anneal -> select/repair, <= 8 edit
-  iterations). Gate `place`. At a geometry-OUTPUT binding placement targets the
-  canonical layout, not the outline: after the gate, `board_edit --outline fit
-  --margin M` (+ `planes_gen` if it grew) earns the size. **H3** (optional,
-  default ON): top/bottom render. Silk/refdes collisions are scripted fixes
-  (`silk_place`, `move_text`); agents verify with a full kicad-cli DRC - never
-  trust one checker.
+  iterations). Gate `place` (approved residuals: `reports/place-waivers.json`).
+  At a geometry-OUTPUT binding placement targets the canonical layout, not the
+  outline: after the gate, `board_edit --outline fit --margin M` (+ `planes_gen`
+  if it grew) earns the size. **H3** (optional, default ON): top/bottom render.
+  Silk/refdes collisions are scripted fixes (`silk_place`, `move_text`); agents
+  verify with a full kicad-cli DRC - never trust one checker.
 - **P7 Routing**: spawn `router` (chain order is board-class dependent - its
   prompt carries the verified 2L/4L orders). Gate `drc_routed`. A
   `placement_adjust_request` takes the SANCTIONED backward edge: snapshot,

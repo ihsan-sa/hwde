@@ -6468,6 +6468,53 @@ SILK GOTCHA from the same pass: `add_text` at size 0.7 draws a `text_height` DRC
 board setup enforces a 0.8 mm silk minimum. `check_silk` does NOT catch it (it is lenient
 by design and never the oracle); `kicad-cli pcb drc` does. Size every scripted silk string
 at >= the board's own minimum and verify with kc drc.
+
+## 2026-10-04 [fab][cpl][easyeda2kicad] cpl_verify's default model cache was a board-local dir no board has, and a failed fetch read as no_model - twelve false pin-1 failures
+
+Re-running the fab step on PCB-0016-B from a host worktree, dfm_check failed all 12 parts
+with `cpl_no_model` although `~/.cache/hwde/easyeda` held every model. `default_cache`
+returned `<parts.json dir>/easyeda` whenever a parts.json was given, whether or not that dir
+existed, and `easyeda.get` swallowed the resulting fetch error into `None`, which
+`analyse` reports as `no_model`. Setting `HWDE_EASYEDA_CACHE` hid it.
+
+Now `env.easyeda_cache(board_dir)` resolves env var, then `<board_dir>/easyeda` only if it
+exists, then `~/.cache/hwde/easyeda`; a fetch that raises records its error and the row is
+`fetch_failed` (a failing verdict, kind `cpl_no_model`) with the error and cache dir in
+`why`. `no_model` now means only "EasyEDA answered and has nothing".
+
+Generalise: a default path that may not exist must be checked for existence before it
+shadows a fallback, and a catch-all `except` that returns "no data" must still hand the
+error to a caller that reports a verdict from it. A `no_model` from a run that fetched
+nothing is a cache or network fault until proven otherwise - never chase pin 1 from it.
+
+## 2026-10-05 [easyeda2kicad][cpl][dfm] An EasyEDA 403 is a rate limit for the whole run: latch it, say it once, never call it no_model
+
+Re-running bom_cpl + dfm_check over 16 boards, the EasyEDA component endpoint 403'd after ~20
+fetches (per-IP, shared by everything on the box). `bom_cpl` still swallowed the error, so the
+part's rotation source read `none`/`table`, and dfm failed most parts as `cpl_no_model`; nothing
+said the network had refused, and the batch was void before anyone traced it.
+
+Now `easyeda.get` classifies a failed fetch (`HTTP 403/429 ... (rate limited)`, `HTTP <n>`,
+`network error: ...`; 404 and an empty answer stay "no model"), and the first 403/429 latches
+module state (`easyeda.rate_limited()`): one stderr line, and every later uncached part in the
+process is skipped as `not fetched: ...` instead of asked again - dfm runs bom_cpl and cpl_verify
+in one process, so the second never re-hammers. bom_cpl marks those parts `source: fetch_failed`
+(+ `fetch_error`) with one `cpl_model_fetch_failed` violation; dfm emits one `cpl_fetch_failed`
+error for the run. Remedy is a rerun once the limit clears; the cache keeps what did arrive.
+
+Gotcha: the latch is process state, so a test that mocks a 403 leaves every later test's fetch
+skipped. conftest's autouse `_easyeda_offline` fixture resets it (`easyeda.reset_rate_limit()`).
+
+## 2026-10-04 [connector][verify][mate-pins] Pair mated pins by where they touch, not by pin number
+check_mate_pins.py pairs a stacked mate's pads by overlaying the two pad patterns on their centres:
+KiCad stores a B.Cu footprint as placed, so pads that touch sit at the same top-view offset. Pin
+numbers do not survive the trip - on the lumina carrier and par (PCB-0004-A J4 male on F.Cu, PCB-0005-A
+J4 female on B.Cu) carrier pin 19 meets par pin 20, and a pin-number compare reports a clean pair as
+crossed. Gotchas: JLC footprints name headers `HDR-TH_<n>P-P2.54-V-M` (male) and `-V-F` (female), not
+PinHeader/PinSocket, so a KiCad-only family regex misses every shipped board; two boards name one
+signal differently (ADC0_CONN vs ADC0), which a pair's `net_map` covers rather than a fuzzy match;
+and PCB-0011-A J2/J3 (same 5-pin male header, +3V3 vs /IO3 on pin 3) still carries the MECH-06 fault.
+
 ## 2026-10-04 [verify][scorecard][bom] A check's "input missing" warning is a scorecard false positive on every bare golden board
 score_checks counts every finding a check emits on the golden corpus as a false positive, whatever
 its severity, and the golden boards are bare board dirs with no fab files or parts.json. So

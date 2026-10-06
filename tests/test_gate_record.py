@@ -200,6 +200,61 @@ def test_place_gate_records_on_a_real_board(tmp_path, capsys):
     assert fresh["fresh"] is True and fresh["hash_valid"] is True
 
 
+def _place_report(board: Path, violations) -> dict:
+    return checklib.stamp(
+        {"script": "place_metrics", "board": board.name,
+         "status": "violations" if violations else "pass",
+         "counts": checklib.summarize(violations), "violations": violations},
+        board)
+
+
+def _overlap():
+    return {"check": "place", "source": "check.place",
+            "kind": "courtyard_overlap", "severity": "error", "net": None,
+            "refs": ["C301", "U301"], "pos": [60.135, 41.6875], "msg": "x"}
+
+
+def test_place_gate_applies_and_hashes_place_waivers(tmp_path, capsys):
+    """PCB-0018-A (2026-10-02): every place finding had an entry in
+    reports/place-waivers.json, yet the place gate failed all 14 and its
+    recorded inputs carried no waivers hash - only the verify tool looked
+    for a sidecar. The place gate now applies <ws>/reports/place-waivers.json
+    and hashes it into its inputs; verify-waivers.json stays verify's."""
+    ws = make_ws(tmp_path, phase="P6")
+    board = ws / "kicad" / f"{BOARD}.kicad_pcb"
+    waiver = {"check": "place", "kind": "courtyard_overlap", "net": None,
+              "refs": ["C301", "U301"], "pos": [60.135, 41.6875],
+              "reason": "pads 0.225 mm apart, legal under the scoped rule",
+              "approved": "test"}
+    (ws / "reports").mkdir(parents=True, exist_ok=True)
+    # the verify sidecar alone does not waive a place finding
+    (ws / "reports" / "verify-waivers.json").write_text(
+        json.dumps({"waivers": [waiver]}), encoding="utf-8")
+    report = _place_report(board, [_overlap()])
+    assert run_gate(ws, report, gate_name="place") == 1
+    out = json.loads(capsys.readouterr().out)
+    assert out["failing_count"] == 1 and "waived" not in out
+    assert load(ws)["gates"]["place"]["last"]["inputs"]["place_waivers"] \
+        is None
+
+    (ws / "reports" / "place-waivers.json").write_text(
+        json.dumps({"waivers": [waiver]}), encoding="utf-8")
+    assert run_gate(ws, report, gate_name="place") == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["failing_count"] == 0 and out["waived_count"] == 1
+    inputs = load(ws)["gates"]["place"]["last"]["inputs"]
+    assert set(inputs) == {"pcb", "constraints", "decoupling",
+                           "place_waivers"}
+    assert inputs["place_waivers"] == statelib.hash_artifact(
+        ws / "reports" / "place-waivers.json", "json_canonical")
+    # editing the waiver file makes the recorded pass stale
+    (ws / "reports" / "place-waivers.json").write_text(
+        json.dumps({"waivers": [dict(waiver, reason="reworded")]}),
+        encoding="utf-8")
+    fresh = state_mod.State.load(ws / "state.json").freshness()
+    assert fresh["gates"]["place"]["changed_inputs"] == ["place_waivers"]
+
+
 # ------------------------------------------- 2. set-phase needs the evidence
 
 def test_set_phase_refuses_to_leave_an_unrecorded_gate_phase(tmp_path):

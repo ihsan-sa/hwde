@@ -19,6 +19,8 @@ never silently ignored - a wrong pin must fail loudly):
   HWDE_NGSPICE_DLL      full path to a shared ngspice library (for sim_run)
   HWDE_BOARDS_ROOT      where board workspaces live (default ~/dev/boards, the
                         boards repo; hwde itself holds no boards)
+  HWDE_EASYEDA_CACHE    LCSC model cache (default: the board's easyeda/ dir if it
+                        exists, else ~/.cache/hwde/easyeda)
   HWDE_TOOLS_DIR        the tools/ dir holding jre/, freerouting/ and krt/
                         (default: this checkout's tools/ when it has one, else
                         ~/dev/ai-ee/tools - a vendored copy of the skill, as in
@@ -111,6 +113,21 @@ def boards_root() -> Path:
     """
     val, _ = skill_env("BOARDS_ROOT")
     return Path(val or "~/dev/boards").expanduser()
+
+
+def easyeda_cache(board_dir: Path | None = None) -> Path:
+    """The EasyEDA model cache: HWDE_EASYEDA_CACHE, else `<board_dir>/easyeda`
+    when that directory exists, else ~/.cache/hwde/easyeda (the shared cache).
+
+    The board-local dir only counts when it is there: a worktree checkout has
+    none, and defaulting to a missing dir made every part look model-less.
+    """
+    val, _ = skill_env("EASYEDA_CACHE")
+    if val:
+        return Path(val).expanduser()
+    if board_dir is not None and (Path(board_dir) / "easyeda").is_dir():
+        return Path(board_dir) / "easyeda"
+    return Path.home() / ".cache" / "hwde" / "easyeda"
 
 
 def tools_dir() -> Path:
