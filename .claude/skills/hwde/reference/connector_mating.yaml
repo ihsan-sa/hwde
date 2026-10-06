@@ -29,6 +29,13 @@
 # KiCad y down). On the boards corpus (2026-10-02) the pad-layout reading
 # put every edge connector of a board that mates as built facing its edge,
 # so no override was needed.
+#
+# The name is a hint and the copper is the part: a connector whose SMD pads
+# sit on both outer copper layers straddles the board edge, so it is checked
+# as horizontal even when its name matched a vertical family (an edge-launch
+# SMA named like a vertical one went unchecked on PCB-0023-A). A horizontal
+# connector's 3D model must also reach ahead of its contact pads toward the
+# mouth (mating_model_reversed), or every render shows it the wrong way round.
 
 defaults:
   plug_mm: 15.0
@@ -55,8 +62,10 @@ families:
   - {family: fpc_ffc, entry: horizontal, plug_mm: 8.0, grip_mm: 2.0,
      mouth_tol_mm: 1.5,
      match: 'FPC|FFC'}
+  # BAT Wireless: KWE = right-angle edge, KE = "PCB-end" edge-launch that
+  # straddles the board (BWSMA-KE-P001, C496550); KHD and the rest are vertical
   - {family: sma_edge, entry: horizontal, plug_mm: 15.0,
-     match: '(CON|BW)?SMA.*(EDGE|KWE)'}
+     match: '(CON|BW)?SMA.*(EDGE|KWE|[-_]KE([-_]|$))'}
   # JST/Molex wire-to-board, side entry: JST S<n>B-/SM<n>B- (SH-SM08B-GHS-TB
   # too), and KiCad's *_Horizontal library names
   - {family: wire_to_board_side, entry: horizontal, plug_mm: 12.0,

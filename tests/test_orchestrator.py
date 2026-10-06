@@ -240,7 +240,7 @@ PIPELINE_KINDS = [
     "courtyard_overlap", "outside_outline", "edge_violation",
     "keepout_violation", "courtyard_missing", "seed_unplaced",
     "mating_faces_inward", "mating_mouth_inset", "mating_zone_blocked",
-    "mating_direction_unknown",
+    "mating_direction_unknown", "mating_model_reversed",
     # S11 routing
     "critical_route_failed", "critical_missing_net", "zone_unfilled",
     "stitch_impossible", "plane_split", "plane_split_unrepairable",

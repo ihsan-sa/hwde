@@ -78,6 +78,9 @@ FIXER_HINTS = {
     "mating_faces_inward": "placement", "mating_mouth_inset": "placement",
     "mating_zone_blocked": "placement",
     "mating_direction_unknown": "placement",
+    # the copper faces the edge but the 3D model is turned round: fix the
+    # model's rotate in the footprint, not the placement
+    "mating_model_reversed": "library",
     # S11 routing pipeline
     "critical_route_failed": "router", "critical_missing_net": "schematic",
     "zone_unfilled": "plane", "stitch_impossible": "router",
