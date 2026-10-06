@@ -1259,6 +1259,10 @@ class DocBuilder:
                 used.append(png)
         if not snaps:
             self.body.append(latex_escape(" The run kept no routing snapshots."))
+            if self.due("P6"):
+                self.warn("no routing snapshots found (routing/pre-*.kicad_pcb, "
+                          "post-*.kicad_pcb) for a routed board - the full doc has "
+                          "no routing renders")
         self.record("renders", "included" if used else "missing",
                     ", ".join(used[:4]) or "routing/ snapshots")
 

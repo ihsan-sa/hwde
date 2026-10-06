@@ -328,3 +328,31 @@ def test_render_layers_redraws_a_failed_layers_json(tmp_path, capsys, monkeypatc
                               "--tex-only", "--render-layers"], tmp_path, capsys)
     assert code == 0, payload
     assert len(runs) == 1
+
+
+# ------------------------------------------------------------ routing snapshots
+
+@pytest.mark.parametrize("sep", ["-", "_"])
+def test_snapshots_accept_both_spellings(tmp_path, sep):
+    d = tmp_path / "routing"
+    d.mkdir()
+    for n in (f"pre{sep}route", f"post{sep}route"):
+        (d / f"{n}.kicad_pcb").write_text("x")
+    (d / "other.kicad_pcb").write_text("x")
+    assert dochistory.snapshots(tmp_path, []) == [
+        f"routing/post{sep}route.kicad_pcb", f"routing/pre{sep}route.kicad_pcb"]
+
+
+def test_full_doc_warns_when_a_routed_board_has_no_snapshots(tmp_path, capsys, monkeypatch):
+    monkeypatch.setenv("HWDE_DIAGRAM_MAKER", str(tmp_path / "nowhere"))
+    ws = _ws_with_run(tmp_path)
+    code, payload = run_main(["--workspace", str(ws), "--kind", "full",
+                              "--tex-only"], tmp_path, capsys)
+    assert any("no routing snapshots" in w for w in payload["warnings"])
+    (ws / "routing").mkdir(exist_ok=True)
+    (ws / "routing" / "pre_route.kicad_pcb").write_text("x")
+    code, payload = run_main(["--workspace", str(ws), "--kind", "full",
+                              "--tex-only"], tmp_path, capsys)
+    assert not any("no routing snapshots" in w for w in payload["warnings"])
+    text = (ws / "reports/design_full/synth-design-full.tex").read_text(encoding="utf-8")
+    assert "board snapshots" in text
