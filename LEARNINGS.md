@@ -6525,3 +6525,21 @@ pads carry it with `exclude_from_bom`/`board_only`, and bom_cpl classes those bo
 
 ## 2026-10-06 [route_auto][freerouting][timeout] Freerouting 2.2.4 takes ~5 min per pass on a 4-layer board, so a fixed per-rung timeout kills a healthy run
 PCB-0023-A (4-layer): route_auto's old 600 s wall-clock timeout per rung fired after two passes and the run was lost; a subagent then ran the passes by hand (~$1, 30 min). `routelib.run_freerouting` now streams the process output and kills on STALL (`--stall-s`, default 900 s with no output and no .ses growth) or at a HARD cap (`--timeout-s`, default 3600 s). A run that keeps logging passes is never killed by the stall rule; the report carries `kill_reason` (stall|hard).
+
+## 2026-10-04 [check_current][gates] A neck or via transition that feeds only a resistor carries that resistor's current, not the rail's - and a plated pad's centre is never in its fill
+PCB-0021-A (lipo-boost) failed +SYS at 2 A on a 0.8 mm pour leg and its single-via
+transitions, but the leg fed nothing but R6 (470R 0603), which can pass at most
+sqrt(0.25 W / 470 R) = 23 mA. check_current now re-judges a still-failing neck or via
+cluster at the most its far side can draw: only a two-pad chip resistor with a parseable
+Value and an imperial size in its footprint id is bounded; any other part, and copper that
+reaches no pad at all, keeps the full budget. Passing re-judgements are listed in
+facts["leaf_branches"]. On the bench this cleared 17 one-via pull-up/divider taps on
+lumina-carrier and one on pd-trigger.
+
+Two join gaps turned up on the way. A through-hole pad's centre sits in no fill, because
+the fill stops at its thermal relief, so a centre test never let a THT pad (USB-C shield
+tabs, J4 on PCB-0021-A) join F.Cu to B.Cu; it now joins the fill touching its copper
+within 1 mm. A fill can also end on a via's ring short of its centre (the +SYS B.Cu strip
+stops at y 56.8, the via sits at 56.85), so vias join by their copper disk. Together these
+cleared pd-trigger's 1.62 mm F.Cu GND advisory neck beside J1, whose shield barrels carry
+the current to B.Cu.
