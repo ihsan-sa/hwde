@@ -343,11 +343,16 @@ def test_snapshots_accept_both_spellings(tmp_path, sep):
         f"routing/post{sep}route.kicad_pcb", f"routing/pre{sep}route.kicad_pcb"]
 
 
-def test_full_doc_warns_when_a_routed_board_has_no_snapshots(tmp_path, capsys, monkeypatch):
-    monkeypatch.setenv("HWDE_DIAGRAM_MAKER", str(tmp_path / "nowhere"))
-    ws = _ws_with_run(tmp_path)
+def _run_full(tmp_path, capsys, phase):
+    ws = make_workspace(tmp_path, phase=phase)
     code, payload = run_main(["--workspace", str(ws), "--kind", "full",
                               "--tex-only"], tmp_path, capsys)
+    return ws, payload
+
+
+def test_full_doc_warns_when_a_routed_board_has_no_snapshots(tmp_path, capsys, monkeypatch):
+    monkeypatch.setenv("HWDE_DIAGRAM_MAKER", str(tmp_path / "nowhere"))
+    ws, payload = _run_full(tmp_path, capsys, "P8")   # routing is done
     assert any("no routing snapshots" in w for w in payload["warnings"])
     (ws / "routing").mkdir(exist_ok=True)
     (ws / "routing" / "pre_route.kicad_pcb").write_text("x")
@@ -356,3 +361,10 @@ def test_full_doc_warns_when_a_routed_board_has_no_snapshots(tmp_path, capsys, m
     assert not any("no routing snapshots" in w for w in payload["warnings"])
     text = (ws / "reports/design_full/synth-design-full.tex").read_text(encoding="utf-8")
     assert "board snapshots" in text
+
+
+@pytest.mark.parametrize("phase", ["P6", "P7"])
+def test_no_snapshot_warning_before_routing_is_done(tmp_path, capsys, monkeypatch, phase):
+    monkeypatch.setenv("HWDE_DIAGRAM_MAKER", str(tmp_path / "nowhere"))
+    _ws, payload = _run_full(tmp_path, capsys, phase)
+    assert not any("no routing snapshots" in w for w in payload["warnings"])
