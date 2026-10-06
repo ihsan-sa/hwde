@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import warnings
 from pathlib import Path
 
 import pytest
+from _boards import SHIPPED_CHECKS
 
 REPO = Path(__file__).resolve().parents[1]
 SHOWCASE = REPO / "docs" / "showcase"
@@ -15,6 +17,11 @@ SHOWCASE = REPO / "docs" / "showcase"
 _spec = importlib.util.spec_from_file_location("gallery", SHOWCASE / "gallery.py")
 gallery = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(gallery)
+
+
+class ShowcaseBehind(UserWarning):
+    """A finished board the committed showcase does not picture yet."""
+
 
 REG = """products:
   PCB-0001:
@@ -104,20 +111,50 @@ def test_shown_finds_pictured_boards_only():
     assert gallery.shown_in_readme(md) == ["alpha"]
 
 
+def report_not_shown(root: Path, strict: bool, **texts) -> dict:
+    """Name the finished boards the committed showcase does not picture. The
+    boards repo finishes boards on its own clock, so by default this only
+    warns: it never turns hwde's landing check red. strict
+    (HWDE_LINT_SHIPPED=1) fails instead; `gallery.py --check` exits 1 on it."""
+    gone = gallery.not_shown(root, **texts)
+    if gone["pdf"] or gone["readme"]:
+        msg = (f"the showcase is behind the boards repo: not in the PDF source: "
+               f"{gone['pdf']}; not in README.md: {gone['readme']}. "
+               f"Run docs/showcase/sync.py.")
+        if strict:
+            pytest.fail(msg)
+        warnings.warn(ShowcaseBehind(msg))
+    return gone
+
+
+def test_a_finished_board_missing_from_the_showcase_warns_and_is_reported(tmp_path):
+    root = make_root(tmp_path)
+    texts = {"tex": "\\board{a}{other}%\n", "readme": "*__other__ · 2 layers*\n"}
+    with pytest.warns(ShowcaseBehind, match=r"\['routed'\]"):
+        gone = report_not_shown(root, strict=False, **texts)
+    assert gone == {"pdf": ["routed"], "readme": ["routed"]}
+    with pytest.raises(pytest.fail.Exception, match="routed"):
+        report_not_shown(root, strict=True, **texts)
+    shown = {"tex": "\\board{a}{routed}%\n", "readme": "*__routed__ · 2 layers*\n"}
+    assert report_not_shown(root, strict=True, **shown) == {"pdf": [], "readme": []}
+
+
+def test_gallery_check_names_a_finished_board_the_showcase_lacks(tmp_path, monkeypatch, capsys):
+    root = make_root(tmp_path)
+    monkeypatch.setattr(gallery, "generate", lambda *a, **k: {
+        "tex_changed": False, "readme_changed": False})
+    assert gallery.main(["--boards-root", str(root), "--check"]) == 1
+    out = json.loads(capsys.readouterr().out)
+    assert out["not_shown"] == {"pdf": ["routed"], "readme": ["routed"]}
+
+
 def test_every_finished_board_is_in_the_showcase():
-    """Fails when the register lists a board with a routed layout that the
-    committed showcase does not picture: run docs/showcase/sync.py."""
+    """Warns (fails with HWDE_LINT_SHIPPED=1) when the register lists a board
+    with a routed layout that the committed showcase does not picture: run
+    docs/showcase/sync.py."""
     from lib import env
     root = env.boards_root()
     if not (root / "register.yaml").is_file():
         pytest.skip(f"needs the boards repo ({root}; set HWDE_BOARDS_ROOT)")
-    want = set(gallery.finished(root))
-    assert want, "the boards repo lists no finished board"
-    tex = (SHOWCASE / "hwde-showcase.tex").read_text(encoding="utf-8") + \
-        (SHOWCASE / "gallery.tex").read_text(encoding="utf-8")
-    readme = (REPO / "README.md").read_text(encoding="utf-8")
-    missing_pdf = sorted(want - set(gallery.shown_in_tex(tex)))
-    missing_md = sorted(want - set(gallery.shown_in_readme(readme)))
-    assert not missing_pdf and not missing_md, (
-        f"not in the showcase PDF source: {missing_pdf}; not in README.md: "
-        f"{missing_md}. Run docs/showcase/sync.py.")
+    assert gallery.finished(root), "the boards repo lists no finished board"
+    report_not_shown(root, strict=SHIPPED_CHECKS)
