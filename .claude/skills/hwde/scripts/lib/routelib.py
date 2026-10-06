@@ -185,26 +185,31 @@ def run_freerouting(java: Path, jar: Path, dsn: Path, ses: Path, *,
     ses_size = -1
     timed_out = False
     kill_reason = None
-    while proc.poll() is None:
-        time.sleep(min(0.2, max(0.01, stall_s / 10)))
-        now = time.monotonic()
-        try:
-            sz = ses.stat().st_size
-        except OSError:
-            sz = -1
-        if sz != ses_size:
-            ses_size = sz
-            last[0] = max(last[0], now)
-        if now - start > timeout:
-            kill_reason = "hard"
-        elif now - last[0] > stall_s:
-            kill_reason = "stall"
-        if kill_reason:
+    try:
+        while proc.poll() is None:
+            time.sleep(min(0.2, max(0.01, stall_s / 10)))
+            now = time.monotonic()
+            try:
+                sz = ses.stat().st_size
+            except OSError:
+                sz = -1
+            if sz != ses_size:
+                ses_size = sz
+                last[0] = max(last[0], now)
+            if now - start > timeout:
+                kill_reason = "hard"
+            elif now - last[0] > stall_s:
+                kill_reason = "stall"
+            if kill_reason:
+                proc.kill()
+                timed_out = True
+                break
+    finally:
+        if proc.poll() is None:
             proc.kill()
-            timed_out = True
-            break
-    proc.wait()
-    t.join(5)
+        proc.wait()
+        t.join(5)
+        proc.stdout.close()
     out = b"".join(chunks).decode("utf-8", "replace")
     rc = 124 if timed_out else proc.returncode
     if log_file is not None:

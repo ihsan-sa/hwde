@@ -459,7 +459,40 @@ def test_run_freerouting_silent_hang_is_killed_on_stall(tmp_path):
 
 def test_run_freerouting_hard_cap_ends_a_chatty_run(tmp_path):
     cmd, dsn, ses = _fake_fr(tmp_path, (
-        "import time\nwhile True:\n    print('tick')\n    time.sleep(0.2)\n"))
+        "import time\nfor _ in range(50):\n    print('tick')\n    time.sleep(0.2)\n"))
     facts = routelib.run_freerouting(None, None, dsn, ses, cmd=cmd,
                                      timeout=2, stall_s=60)
     assert facts["timed_out"] and facts["kill_reason"] == "hard"
+
+
+def test_run_freerouting_silent_but_growing_ses_is_not_killed(tmp_path):
+    cmd, dsn, ses = _fake_fr(tmp_path, (
+        "import time\n"
+        "for i in range(1, 7):\n"
+        "    time.sleep(0.5)\n"
+        "    open('b.ses', 'a').write('x' * i)\n"))
+    facts = routelib.run_freerouting(None, None, dsn, ses, cmd=cmd,
+                                     timeout=30, stall_s=1)
+    assert not facts["timed_out"] and facts["rc"] == 0
+
+
+def test_run_freerouting_interrupt_kills_the_process(tmp_path, monkeypatch):
+    cmd, dsn, ses = _fake_fr(tmp_path, "import time\ntime.sleep(60)\n")
+    procs = []
+    real = routelib.subprocess.Popen
+
+    def spy(*a, **k):
+        p = real(*a, **k)
+        procs.append(p)
+        return p
+
+    def boom(_s):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(routelib.subprocess, "Popen", spy)
+    monkeypatch.setattr(routelib.time if hasattr(routelib, "time") else
+                        __import__("time"), "sleep", boom)
+    with pytest.raises(KeyboardInterrupt):
+        routelib.run_freerouting(None, None, dsn, ses, cmd=cmd,
+                                 timeout=30, stall_s=5)
+    assert procs[0].poll() is not None and procs[0].stdout.closed

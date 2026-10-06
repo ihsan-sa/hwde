@@ -384,6 +384,7 @@ def run(argv: list[str] | None = None):
                  "final_score": facts.get("final_score"),
                  "passes": len(facts.get("passes", [])),
                  "timed_out": facts.get("timed_out"),
+                 "kill_reason": facts.get("kill_reason"),
                  "ses_written": facts.get("ses_written")}
         rungs.append(entry)
         if facts.get("ses_written") and facts.get("unrouted") is not None:
