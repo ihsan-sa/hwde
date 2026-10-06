@@ -7,8 +7,10 @@ Three contracts are pinned here:
   2. fix_dispatch.py attaches the matching ref to every work order that carries
      that kind - the fixer gets the knowledge without anyone remembering to
      paste it.
-  3. design/ladder-triage.md carries one row per LEARNINGS.md entry, so new
-     knowledge cannot silently skip triage; plus the SKILL.md health metric
+  3. every root lesson has exactly one triage row - an archive entry
+     (LEARNINGS.md, closed) its Register row in design/ladder-triage.md, a
+     learnings.d/ lesson its own last line - so new knowledge cannot silently
+     skip triage; plus the SKILL.md health metric
      (the playbook must shrink, never grow - v2 plan Conventions).
 """
 from __future__ import annotations
@@ -32,6 +34,11 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 
 import cluster_violations  # noqa: E402
 import fix_dispatch  # noqa: E402
+import learnlib  # noqa: E402
+
+# LEARNINGS.md closed at this many entries (2026-10-06); its line numbers are
+# what the remediation refs and the Register cite, so it must never grow.
+ARCHIVE_ENTRIES = 425
 
 # The check_ids that actually fired >=100 times across the six committed board
 # workspaces (T4 tally, cumulative over every report JSON incl. fix-loop
@@ -74,24 +81,13 @@ def learnings_entries() -> list[tuple[int, str, str]]:
 
 
 def triage_rows() -> list[dict]:
-    """Parse the pipe table in design/ladder-triage.md.
+    """The archive's Register rows (learnlib reads the table)."""
+    return learnlib.archive_rows(TRIAGE)
 
-    Row shape: | n | learnings_line | entry | tags | now | target | owner |
-                 status | note |
-    """
-    rows = []
-    for ln in TRIAGE.read_text(encoding="utf-8").splitlines():
-        if not ln.startswith("|"):
-            continue
-        cells = [c.strip() for c in ln.strip().strip("|").split("|")]
-        if len(cells) < 8 or not cells[0].isdigit():
-            continue
-        rows.append({"n": int(cells[0]), "line": int(cells[1]),
-                     "entry": cells[2], "tags": cells[3], "now": cells[4],
-                     "target": cells[5], "owner": cells[6],
-                     "status": cells[7],
-                     "note": cells[8] if len(cells) > 8 else ""})
-    return rows
+
+def lessons() -> list[tuple[dict, list[str]]]:
+    """(lesson, problems) for every learnings.d/ file."""
+    return [learnlib.parse_lesson(p) for p in learnlib.lesson_files()]
 
 
 # ---------------------------------------------------------------------------
@@ -286,9 +282,18 @@ def test_work_orders_carry_the_matching_remediation(tmp_path):
 # ---------------------------------------------------------------------------
 # 3. the triage register + the SKILL.md health metric
 # ---------------------------------------------------------------------------
+def test_learnings_archive_is_closed():
+    """A new lesson goes to learnings.d/, never onto the archive's end: two
+    PRs appending there always conflicted (and every line citation moved)."""
+    n = len(learnings_entries())
+    assert n == ARCHIVE_ENTRIES, (
+        f"LEARNINGS.md has {n} entries, not {ARCHIVE_ENTRIES}: move the new "
+        "one to its own file in learnings.d/ (format: learnings.d/README.md)")
+
+
 def test_every_learnings_entry_has_a_triage_row():
-    """New knowledge cannot skip triage. Appending a LEARNINGS entry means
-    appending its row - the message below is the row, ready to paste."""
+    """New knowledge cannot skip triage. Every archive entry has its Register
+    row; every learnings.d/ lesson carries its row as its last line."""
     entries = learnings_entries()
     rows = {r["n"]: r for r in triage_rows()}
     src = LEARNINGS.read_text(encoding="utf-8").splitlines()
@@ -302,11 +307,22 @@ def test_every_learnings_entry_has_a_triage_row():
                        f"own this? |")
     assert not missing, (
         f"{len(missing)} LEARNINGS entries have no row in design/"
-        f"ladder-triage.md. Append these to its Register table (edit the "
-        f"level/owner/status honestly - the rubric is in the file header):\n"
-        + "\n".join(missing))
+        f"ladder-triage.md's Register table:\n" + "\n".join(missing))
     phantom = [n for n in rows if n < 1 or n > len(entries)]
     assert not phantom, f"triage rows for non-existent entries: {phantom}"
+    assert len(rows) == len(triage_rows()), "two Register rows share a #"
+    untriaged = [lesson["file"] for lesson, _ in lessons()
+                 if not lesson.get("triage")]
+    assert not untriaged, (
+        f"lessons with no triage row as their last line: {untriaged} "
+        "(format: learnings.d/README.md)")
+
+
+def test_lesson_files_are_well_formed():
+    """One heading, named from it, ASCII, a valid triage row: the file name is
+    the lesson's stable key, so it has to agree with the heading."""
+    bad = [p for _, problems in lessons() for p in problems]
+    assert not bad, bad
 
 
 def test_triage_rows_are_well_formed():
@@ -329,6 +345,9 @@ def test_triage_rows_are_well_formed():
 def test_done_rows_are_actually_at_target():
     off = [f"#{r['n']} {r['now']}->{r['target']}" for r in triage_rows()
            if r["status"] == "done" and r["now"] != r["target"]]
+    off += [f"{lesson['file']} {t['now']}->{t['target']}"
+            for lesson, _ in lessons() if (t := lesson.get("triage"))
+            and t["status"] == "done" and t["now"] != t["target"]]
     assert not off, f"status 'done' but not at target: {off}"
 
 

@@ -79,10 +79,12 @@ v3 board tracks state; session end = suite green (modulo the standing AP63203
 
 - v2 conventions apply (SPEC 6 script contract, smoke-test verify-later
   claims on first touch, bench re-baseline in the same commit as its cause).
-- LEARNINGS discipline: every entry gets its `design/ladder-triage.md` row in
-  the same session (`test_every_learnings_entry_has_a_triage_row` enforces).
-- Parallel-wave file ownership: LEARNINGS.md is append-only - rebase before
-  commit on conflict. In wave 1, U4 owns `SKILL.md`; U1/U2/U3 do not edit it.
+- LEARNINGS discipline: every lesson gets its triage row in the same session
+  (`test_every_learnings_entry_has_a_triage_row` enforces). Since 2026-10-06 a
+  new lesson is its own `learnings.d/` file carrying its row (README there);
+  LEARNINGS.md and the Register table are closed.
+- Parallel-wave file ownership: lessons are one file each, so they never
+  conflict. In wave 1, U4 owns `SKILL.md`; U1/U2/U3 do not edit it.
   In wave 2, U5 edits only the `order` verb in `tasks.yaml`; U6 only appends
   its new verb row.
 - Board files: read-only unless the step names the edit. lumina-carrier is

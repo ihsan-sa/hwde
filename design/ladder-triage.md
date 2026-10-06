@@ -1,17 +1,16 @@
-# Knowledge ladder triage (T4, 2026-08-06; U0 sweep 2026-08-13; U6 2026-08-14;
-# U14 2026-08-15; U15 2026-08-15; U16 2026-08-16; U17 2026-08-16;
-# U19 2026-08-16; U18 2026-08-16; U9 2026-09-27; rows 343-349 2026-09-27; row 350 2026-09-28; row 351 2026-09-29; row 352 2026-10-01; row 353 2026-10-01; row 354 2026-10-02; row 355 2026-10-04; row 356 2026-10-04; rows 357-417 U22 2026-10-04; row 418 2026-10-04; row 419 2026-10-05; row 422 2026-10-06; row 423 2026-10-06; row 424 2026-10-06; row 425 2026-10-06)
+# Knowledge ladder triage (T4, 2026-08-06; sweeps U0, U6, U9, U14-U19, U22)
 
-One row per `LEARNINGS.md` entry (425 of them; the last starts at
-line 6559), placed on the maturity ladder from
+One row per root lesson, placed on the maturity ladder from
 `design/routing-knowledge-notes.md` section 6, with the artifact that owns - or
-must own - it.
+must own - it. The archive's entries (`LEARNINGS.md`, closed 2026-10-06) have
+their rows in the Register table below; every newer lesson is its own file in
+`learnings.d/` and carries its row as its last line.
 
 The failure mode is knowledge sitting at the WRONG LEVEL, not knowledge volume:
 **if a script can check it, it does not belong in the prompt.** This register is
-the outer-loop worklist. `open` rows (205) are the gaps nothing owns yet -
-they are the input to T6 (per-stage deep evaluation) and to any later step
-looking for the next promotion.
+the outer-loop worklist. `open` rows are the gaps nothing owns yet - they are
+the input to T6 (per-stage deep evaluation) and to any later step looking for
+the next promotion.
 
 ## Levels
 
@@ -35,52 +34,20 @@ looking for the next promotion.
 
 ## Summary
 
-Recomputed from the table on 2026-10-04 (rows 357-417 added, U22; row 418 2026-10-04; row 419 2026-10-05; row 420 2026-10-05; row 421 2026-10-04; row 422 2026-10-06; row 423 2026-10-06; row 424 2026-10-06; row 425 2026-10-06), all 425 rows
-(`learnings.py triage` prints these numbers - recompute rather than edit them):
+No count is kept in this file: `learnings.py triage` computes them from the
+Register table plus every `learnings.d/` lesson's triage line - rows and
+entries, levels now and target, done/open/n/a/planned, how many want to climb,
+and the open rows by owning artifact (the promotion worklist). The hand-kept
+copy went stale the first time rows were appended without it, and every PR
+that added a lesson conflicted with every other one on it.
 
-| Level | now | target |
-|---|---|---|
-| L0 | 182 | 25 |
-| L1 | 23 | 26 |
-| L2 | 75 | 154 |
-| L3 | 145 | 220 |
-
-184 entries want to climb at least one level. Status: **done 193**,
-**open 205**, **n/a 11**, planned 16
-(T2 10, T8 1 - both shipped, those rows need re-reading; U2 2,
-U3/U5/U8 1 each).
-
-Read that as: two waves of prose arrived faster than the promotions did. The
-live-run wave (entries 188-240 - lumina-par, sbuck-5v3a, rf-term-150w, the
-carrier retrospective) was 54 rows of which 42 sat at L0; U6 then promoted
-**36 rf-de-20m workspace entries** (rows 251-286), all of them L0 prose today
-and 34 of them targeting L2 or L3. That is the promotion queue working as
-designed - the workspace stops being the only place the knowledge exists, and
-the register carries the climb each one still owes.
-
-Open rows by owning artifact (the promotion worklist):
-
-- `scripts/fp_verify.py` x6
-- `scripts/route_edit.py` x6
-- `scripts/schlib.py` x6
-- `scripts/lib/placelib.py` x5
-- `scripts/route_auto.py` x4
-- `scripts/planes_gen.py` x4
-- `scripts/datasheet_extract.py` x4
-- `scripts/lib/geom.py` x4
-- `scripts/lib_pull.py` x4
-- `agents/router.md` x3
-- `scripts/check_thermal.py` x3
-- `scripts/netlist_audit.py` x3
-- `scripts/check_return_path.py` x3
-- `scripts/gate.py` x3
-- `NEW reference/part_errata.yaml` x2
-- `scripts/route_critical.py` x2
-- `scripts/place_edit.py` x2
-- `scripts/order_submit.py` x2
-- `scripts/constraints_lint.py` x2
-- `scripts/place_seed.py` x2
-- 44 further artifacts (4 with two open rows, 40 with one)
+Read the history this way: two waves of prose arrived faster than the
+promotions did. The live-run wave (entries 188-240 - lumina-par, sbuck-5v3a,
+rf-term-150w, the carrier retrospective) was 54 rows of which 42 sat at L0; U6
+then promoted **36 rf-de-20m workspace entries** (rows 251-286), all of them L0
+prose then and 34 of them targeting L2 or L3. That is the promotion queue
+working as designed - the workspace stops being the only place the knowledge
+exists, and the register carries the climb each one still owes.
 
 ## Health metric
 
@@ -108,12 +75,16 @@ it here when you do.
 
 ## Appending
 
-Adding a LEARNINGS entry means appending its row here in the same commit -
-`tests/test_remediations.py::test_every_learnings_entry_has_a_triage_row` fails
-otherwise and prints the row for you to paste. Promoting knowledge means editing
-the row's Now level and status in the same commit as the code.
+A new lesson is a new file, `learnings.d/<date>-<slug>.md`, and its triage row
+is that file's last line (`learnings.d/README.md` has the format). Never append
+to `LEARNINGS.md` or to the table below: both are frozen, because the
+remediation refs cite archive line numbers and two PRs appending at the same
+end always conflicted. `tests/test_remediations.py` fails on a lesson without a
+well-formed row and on a malformed file. Promoting knowledge means editing the
+row's Now level and status - here for an archive entry, in the lesson file for
+a newer one - in the same commit as the code.
 
-`#` = entry order in LEARNINGS.md, `LN` = its header line there.
+`#` = entry order in LEARNINGS.md, `LN` = its header line there (both frozen).
 
 ## Register
 
