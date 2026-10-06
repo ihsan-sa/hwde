@@ -6555,3 +6555,21 @@ pair is skipped when one piece is a dead end (no pad or track, all its barrels i
 not drop stitches outright: the same board's VBUS crosses F.Cu -> B.Cu -> F.Cu through two 3-via
 stitch groups, and those are real findings. A track hop or a via under a pad with no pour around
 it still counts per cluster.
+
+## 2026-10-04 [place_edit][silk][swig][check_silk] Refdes hide/shrink/re-layer is now `set_text` - the stroke floor is 0.15, not check_silk's 0.12
+Dense 0603 rows (PCB-0020-A) left 8 refdes `silk_misattributed` with no legal spot within 1 mm
+of their own pads, and place_edit had no op to hide or shrink one. It now carries
+`{"op": "set_text", "ref": R, "field": "reference"|"value", ["hide": bool], ["size": mm],
+["thickness": mm], ["layer": F/B.SilkS|F/B.Fab]}`; silk_place's unplaceable residuals carry
+ready `fix_ops` (shrink, then hide). Three facts from building it, measured on KiCad 10.0.6:
+- The silk floor is size 0.8 (check_silk MIN_TEXT_H, also the board's `text_height` DRC) and
+  stroke **0.15**: `jlc_capabilities.yaml` min_silk_width_mm, which rules_gen writes as the
+  `aiee_silk_width_floor` `text_thickness` DRU rule. The 2026-08-09 entry's "0.8 / 0.12 is
+  above JLC's floor" is wrong on the stroke - 0.12 passes check_silk and fails DRC.
+- SWIG: `field.SetVisible(False)` saves `(hide yes)` on the property; `SetLayer(B.SilkS)` on
+  a FRONT footprint's field needs `SetMirrored(True)` too (saves `(justify mirror)`).
+- `board.GetLayerName(id)` returns the USER name ("F.Silkscreen"); a report that compares
+  against file layer names needs `pcbnew.LSET.Name(id)` ("F.SilkS").
+check_silk already skipped hidden refdes; it now lists every refdes not printed on silk under
+the report fact `refdes_off_silk` (a fact, not an info violation, because any violation turns
+the status - and verify_all - to "violations").

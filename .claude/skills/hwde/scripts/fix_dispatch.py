@@ -89,8 +89,9 @@ DOMAINS: dict[str, dict] = {
         "scripts": ["place_edit.py", "render.py"],
         "guidance": [
             "place_edit.py carries add_text (board-frame silk text, "
-            "idempotent) and move_text (refdes/value field repositioning) "
-            "ops - S14 closed the V17 gap. Labels must be PIN-LOCKED (a "
+            "idempotent), move_text (refdes/value field repositioning) "
+            "and set_text (hide / shrink / re-layer a refdes that has no "
+            "legal spot - silk_place residual fix_ops carry them) ops. Labels must be PIN-LOCKED (a "
             "label readable against the wrong pin is worse than none); "
             "footprint-INTERNAL silk defects are librarian edits "
             "(approval + lib/EDITS.md), not board text.",

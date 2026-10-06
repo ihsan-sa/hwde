@@ -1039,8 +1039,9 @@ def test_silk_misattributed_fires(tmp_path_factory):
     assert v["refs"] == ["R1"]
     assert v["nearest_ref"] == "R2"
     assert v["offset_mm"] > 1.0 and v["nearest_mm"] < 1.0
-    assert "move_text" in v["msg"]
+    assert "move_text" in v["msg"] and "set_text" in v["msg"]
     assert payload["checked"][0]["refdes_checked"] == 2
+    assert payload["refdes_off_silk"] == []
 
 
 def test_silk_misattributed_far_but_unambiguous_clean(tmp_path_factory):
@@ -1065,6 +1066,23 @@ def test_silk_misattributed_hidden_ref_skipped(tmp_path_factory):
     payload, _ = check_silk.run(["--pcb", str(bg.path)])
     assert not [v for v in payload["violations"]
                 if v["kind"] == "silk_misattributed"]
+    # hidden is not silently dropped: the report lists it (as a fact, not a
+    # violation, so the status stays pass) for the assembly drawing
+    assert payload["status"] == "pass"
+    assert payload["refdes_off_silk"] == [{"ref": "R1", "why": "hidden"}]
+    assert payload["checked"][0]["refdes_off_silk"] == 1
+
+
+def test_refdes_off_silk_lists_fab_layer_and_skips_shown(tmp_path_factory):
+    body = _MISATTR_BODY.replace(
+        '(property "Reference" "R1" (at 7 0 0) (layer "F.SilkS")',
+        '(property "Reference" "R1" (at 0 0 0) (layer "F.Fab")').replace(
+        '(property "Reference" "R2" (at 0 -1.2 0) (layer "F.SilkS")',
+        '(property "Reference" "R2" (at 0 -1.2 0) (layer "F.SilkS") '
+        '(hide no)')
+    bg = _board(tmp_path_factory, "fabref", body)
+    payload, _ = check_silk.run(["--pcb", str(bg.path)])
+    assert payload["refdes_off_silk"] == [{"ref": "R1", "why": "on F.Fab"}]
 
 
 def test_silk_misattributed_routes_to_silk_domain():
