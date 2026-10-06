@@ -559,10 +559,14 @@ def main(argv: list[str] | None = None) -> int:
                 raise RuntimeError(f"board_swig worker failed: "
                                    f"{(cp.stdout or cp.stderr)[-600:]}")
             inject_stackup(pcb_path, stackup)
+            # Every worker run (the unconnected-nets retry included) may
+            # leave a default .kicad_pro behind; write ours AFTER it so its
+            # ignore settings always survive to the self-check.
+            w["_floors"] = write_pro(out_dir / f"{args.name}.kicad_pro", cap)
             return w
 
         worker = run_worker()
-        floors = write_pro(out_dir / f"{args.name}.kicad_pro", cap)
+        floors = worker["_floors"]
 
         has_sch = False
         if args.schematic:
@@ -580,6 +584,7 @@ def main(argv: list[str] | None = None) -> int:
             # Measured, not assumed - see _rejects_unconnected_nets.
             job["skip_unconnected_nets"] = True
             worker = run_worker()
+            floors = worker["_floors"]
             unconnected_nets_skipped = True
             check = self_check(cli, pcb_path, has_sch)
 
