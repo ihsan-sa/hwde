@@ -27,14 +27,15 @@ order.json's spec snapshot): the count and refs when there are some, "none"
 when there are none - and then a brief/brief.md or architecture/*.md line
 that claims castellation (and does not deny it) is a warning.
 
-A finished PDF is filed in the board's own folder of the library's Boards
-group ("<PN> <board> design doc", or "<board> design doc" with no part
-number) with `cc-docs file` only when asked: `--file` (the
+A finished PDF is filed with `cc-docs file` only when asked: `--file` (the
 command a person or session runs to finish a report) or DOC_PROJECT set in the
-environment (its value is the project, overriding the board's folder). The
-folder is the project "Boards/<PN> <name>" (e.g. "Boards/PCB-0018-A
-bldc-motor-driver": the workspace directory's name without the underscore)
-when the boards register gives the part number, else "Boards/Unregistered".
+environment. A board document already in the library (report_gen.
+filed_document: its source in reports/<kind>/ of this board's directory, or
+its last revision describing this part number) is filed under its own
+project and exact title, so the rebuild is its next revision even from
+another worktree, where cc-docs' source-path match misses. Else it files
+into DOC_PROJECT, or the project "Boards" (002), as "<PN> <board> design
+doc" ("<board> design doc" with no part number).
 With neither, the PDF is built and nothing is filed, so test runs and
 scratch builds never reach the register. A filing that succeeds leaves
 reports/design_doc/.filed.json (a hash of the .tex, its "generated" time
@@ -1718,39 +1719,104 @@ def load_state(ws: Path) -> dict:
     return d
 
 
-BOARDS_GROUP = "Boards"
-UNREGISTERED = f"{BOARDS_GROUP}/Unregistered"
+BOARDS_PROJECT = "Boards"
+# cc-docs' default library; CC_DOCS_ROOT overrides it, as it does for cc-docs.
+DOCS_HOME = Path.home() / ".cc" / "documents"
 
 
 def board_project(ws: Path | None) -> str:
-    """The library project a board's documents file into: DOC_PROJECT when
-    set, else "Boards/<PN> <name>" when the register gives the workspace a
-    part number (name: the directory's name past "<PN>_", or the whole bare
-    name), else "Boards/Unregistered". Never the bare group "Boards", which
-    cc-docs refuses as a project."""
-    override = os.environ.get("DOC_PROJECT", "").strip()
-    if override:
-        return override
-    pn, _ = boardreg.part_number(ws) if ws is not None else (None, "")
-    if not pn:
-        return UNREGISTERED
-    return f"{BOARDS_GROUP}/{pn['pn']} {boardreg.split_dir(Path(ws).resolve().name)[1]}"
+    """The library project a new board document files into: DOC_PROJECT when
+    set, else "Boards" (002), where every board's documents are. Not a
+    per-board "Boards/<PN> <name>": cc-docs refuses a Group/Name while a
+    project outside any group is named like the group, and 002 is."""
+    return os.environ.get("DOC_PROJECT", "").strip() or BOARDS_PROJECT
 
 
-def cc_docs_args(ws: Path | None, board: str, pdf: Path,
-                 project: str | None = None, kind: str = "design") -> list[str]:
-    """The `cc-docs file` arguments for this board's document of `kind`
-    (its title names the kind, so each kind is its own document) into
-    `project` (default board_project(ws)): the part number it describes
-    when the register has one, and one --cost per step of reports/cost.json
-    that carries a number (neither without a ws). The title leads with the
-    part number when there is one ("PCB-0022-B nfc-card design doc"), so a
+def docs_register() -> dict:
+    """cc-docs' register ($CC_DOCS_ROOT/register.json, else DOCS_HOME's),
+    read only; {} when it is missing or unreadable."""
+    root = os.environ.get("CC_DOCS_ROOT", "").strip()
+    path = (Path(root).expanduser() if root else DOCS_HOME) / "register.json"
+    try:
+        reg = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return reg if isinstance(reg, dict) else {}
+
+
+def filed_document(ws: Path | None, kind: str = "design",
+                   pn: str | None = None) -> dict | None:
+    """This board's document of `kind` already in the register, as
+    {number, project, title}, else None. A document is the board's when its
+    source sits in reports/<kind's subdir>/ of a directory that is the
+    workspace's own name, or (with the part number `pn`) is <pn> or starts
+    "<pn>_", or its last revision describes `pn`; one whose last revision
+    describes another board is never it. Of several, the last filed wins.
+    cc-docs keys a document on the source path, else the title in the
+    project, and a rebuild from another worktree has another path, so the
+    filing reuses this one's project and exact title (owner's register:
+    "PCB-0023-A gan-rf-inverter highlights" is 002-0045)."""
+    if ws is None:
+        return None
+    docs = docs_register().get("documents")
+    if not isinstance(docs, dict):
+        return None
+    subdir, name = KINDS[kind][0], Path(ws).resolve().name
+    best, best_key = None, None
+    for number, d in docs.items():
+        if not (isinstance(d, dict) and d.get("title") and d.get("project")):
+            continue
+        parts = [p for p in re.split(r"[\\/]+", str(d.get("source") or "")) if p]
+        at = [i for i in range(1, len(parts) - 1)
+              if parts[i] == "reports" and parts[i + 1] == subdir]
+        if not at:
+            continue
+        revs = d.get("revisions") or []
+        revs = list(revs.values()) if isinstance(revs, dict) else list(revs)
+        last = revs[-1] if revs and isinstance(revs[-1], dict) else {}
+        about = last.get("describes")
+        if pn and about and about != pn:
+            continue
+        home = parts[at[-1] - 1]
+        if not (home == name or (pn and (home == pn or home.startswith(pn + "_")
+                                         or about == pn))):
+            continue
+        key = (str(last.get("filed_at") or last.get("date") or ""), str(number))
+        if best_key is None or key > best_key:
+            best = {"number": str(d.get("number") or number),
+                    "project": str(d["project"]), "title": str(d["title"])}
+            best_key = key
+    return best
+
+
+def doc_target(ws: Path | None, board: str,
+               kind: str = "design") -> tuple[str, str]:
+    """(project, title) a filing of this board's `kind` document uses: the
+    filed one's (filed_document), so a rebuild is its next revision and
+    never a new number; else board_project(ws) and "<PN> <board> <kind>"
+    (no PN: "<board> <kind>"), the title leading with the part number so a
     second revision of a board never matches the first one's documents."""
-    project = project or board_project(ws)
     pn = boardreg.part_number(ws)[0] if ws is not None else None
+    found = filed_document(ws, kind, pn["pn"] if pn else None)
+    if found:
+        return found["project"], found["title"]
     title = f"{board} {KINDS[kind][3]}"
     if pn and not board.startswith(pn["pn"]):
         title = f"{pn['pn']} {title}"
+    return board_project(ws), title
+
+
+def cc_docs_args(ws: Path | None, board: str, pdf: Path,
+                 project: str | None = None, kind: str = "design",
+                 title: str | None = None) -> list[str]:
+    """The `cc-docs file` arguments for this board's document of `kind`
+    into `project` with `title` (both default to doc_target's): the part
+    number it describes when the register has one, and one --cost per step
+    of reports/cost.json that carries a number (neither without a ws)."""
+    if project is None or title is None:
+        p, t = doc_target(ws, board, kind)
+        project, title = project or p, title or t
+    pn = boardreg.part_number(ws)[0] if ws is not None else None
     args = ["file", str(pdf), "--project", project, "--title", title,
             "--source", str(pdf)]
     if ws is None:
@@ -1833,7 +1899,7 @@ def content_hash(tex_text: str, ws: Path) -> str:
 def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
                      digest: str | None = None, ws: Path | None = None,
                      kind: str = "design") -> None:
-    """File the finished design doc into board_project(ws) with cc-docs.
+    """File the finished design doc with cc-docs, as doc_target(ws) names it.
 
     Only when asked (requested, or DOC_PROJECT in the environment) and cc-docs
     is on PATH; a failed filing warns and never fails the
@@ -1848,7 +1914,7 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
     project = os.environ.get("DOC_PROJECT", "").strip()
     if not (requested or project):
         return
-    project = board_project(ws)
+    project, title = doc_target(ws, board, kind)
     stamp = pdf.parent / FILED_STAMP
     want = {"digest": digest, "project": project,
             "library": os.environ.get("CC_DOCS_ROOT", "")}
@@ -1869,7 +1935,7 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
         return
     try:
         cp = subprocess.run(
-            [exe, *cc_docs_args(ws, board, pdf, project, kind)],
+            [exe, *cc_docs_args(ws, board, pdf, project, kind, title)],
             capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired) as exc:
         builder.warn(f"cc-docs filing failed: {type(exc).__name__}: {exc}")
