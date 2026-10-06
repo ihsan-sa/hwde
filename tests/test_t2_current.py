@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from shapely.geometry import Point
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / ".claude" / "skills" / "hwde" / "scripts"
@@ -764,6 +765,32 @@ def test_via_in_a_thermal_relief_pad_is_a_transition(tmp_path_factory):
     assert hop["pos"] == [5.0, 5.0] and "stitch" not in hop
     assert hop["severity"] == "error" and hop["required"] == 24
     assert "stitch_vias" not in facts
+
+
+def test_via_straddling_a_relief_pad_edge_is_a_transition(tmp_path_factory):
+    """Review of the relief rule (PCB-0023-A D201): Q1's only via sits on
+    its pad's edge, so part of its ring reaches the F.Cu pour past the
+    relief gap. The pad itself is ~3% covered by fill (one spoke), not in
+    the pour, so its 12 A to L1 on B.Cu still cross that one via. Before,
+    the via counted as a stitch and the 24-via array beside it made the
+    F.Cu-B.Cu hop pass at 12 A."""
+    array = "".join(_via(x, y) for y in (1, 2.5, 7.5, 9)
+                    for x in (1, 2.5, 4, 5.5, 7, 8.5))
+    body = (_RELIEF_FCU + "".join(_pour("/SW", l)
+                                  for l in ("In1.Cu", "In2.Cu", "B.Cu"))
+            + _smd("Q1", 5, 5, "F.Cu") + _via(5.75, 5) + array
+            + _smd("L1", 10, 5, "B.Cu"))
+    bg = _board4(tmp_path_factory, "reliefedge", body)
+    [via] = [v for v in bg.vias_of("/SW") if v.poly.intersects(Point(5.75, 5))]
+    [pad] = bg.pads_of("/SW", "F.Cu")
+    fcu = bg.zone_fill("/SW", "F.Cu")
+    assert via.poly.intersects(pad.poly) and via.poly.intersects(fcu)
+    assert fcu.intersection(pad.poly).area < 0.1 * pad.poly.area
+    vs, facts = check_current.check_net(bg, dict(SW_12A))
+    [hop] = _kinds(vs, "insufficient_transition_vias")
+    assert hop["pos"] == [5.75, 5.0] and "stitch" not in hop
+    assert hop["severity"] == "error" and hop["required"] == 24
+    assert facts["stitch_vias"] == 24
 
 
 def test_copper_graph_cuts_a_skipped_plated_pad(tmp_path_factory):

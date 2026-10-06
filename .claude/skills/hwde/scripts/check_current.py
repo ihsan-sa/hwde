@@ -13,12 +13,13 @@ Per net in constraints.json["power"] with a budgeted current:
 
 Stitch vias (PCB-0023-A /SW: one pour on four layers, ~120 stitch vias, 112
 one-via "transitions" each asked for 24 vias at 12 A). A via is a STITCH
-when no same-net track touches it, every same-net pad it touches sits in the
-net's fill on that layer, the via itself touches fill on every layer where it
-touches such a pad, and it touches fill on >= 2 layers. The third test is for
-a via inside a thermal-relief pad: the pad reaches its pour through spokes,
-but the via's own copper on that layer is the pad, so the pad's current
-crosses that one via (PCB-0023-A D201). A cluster made
+when no same-net track touches it, every same-net pad it touches is in the
+net's pour on that layer (the fill covers >= PAD_IN_POUR_FRAC of the pad's
+area), the via itself touches fill on every layer where it touches such a
+pad, and it touches fill on >= 2 layers. A thermal-relief pad is not in the
+pour: it reaches the pour only through spokes, so its current crosses the
+via, even when part of the via's ring straddles the relief gap into the
+fill (PCB-0023-A D201). A cluster made
 only of stitches is not judged as a transition. Instead every fill piece
 pair on two layers is judged once, counting every via and plated
 through-hole joining those two pieces (the per-path count of a pour-to-pour
@@ -197,6 +198,7 @@ PLANE_HINT_SINGLE_VIA_FRAC = 0.8  # plane_fed_candidate hint threshold
 PAD_EXIT_MAX_MM = 1.0          # longest accepted pad-exit neck (docstring)
 TOUCH_MM = 1e-3                # end-to-end / end-on-pad contact tolerance
 THT_JOIN_MM = 1.0              # plated pad joins fill this far out (relief)
+PAD_IN_POUR_FRAC = 0.9         # fill covers this much of a pad "in the pour"
 
 
 def width_1oz_10c(current_a: float) -> float:
@@ -387,11 +389,18 @@ def fill_pieces(bg: geom.BoardGeom, net: str) -> dict[str, list]:
 def via_pieces(bg: geom.BoardGeom, net: str, pieces: dict) -> list:
     """Per via of `net` (bg.vias_of order): (is_stitch, frozenset of the
     (layer, piece index) fill pieces its copper touches). A via is a stitch
-    when no same-net track touches it, every same-net pad it touches sits in
-    the net's fill on that layer, the via touches fill on each layer where
-    it touches such a pad (not a via in a thermal-relief pad), and it
-    touches fill on >= 2 layers - it only joins pour to pour (module
-    docstring, stitch vias)."""
+    when no same-net track touches it, every same-net pad it touches is in
+    the net's pour on that layer (fill covers >= PAD_IN_POUR_FRAC of it, so
+    not a thermal-relief pad), the via touches fill on each layer where it
+    touches such a pad, and it touches fill on >= 2 layers - it only joins
+    pour to pour (module docstring, stitch vias)."""
+    fill = {l: unary_union(ps) for l, ps in pieces.items()}
+
+    def in_pour(p, l) -> bool:
+        f = fill.get(l)
+        return f is not None and p.poly.area > 0 and \
+            f.intersection(p.poly).area >= PAD_IN_POUR_FRAC * p.poly.area
+
     out = []
     for v in bg.vias_of(net):
         touched = frozenset(
@@ -402,8 +411,7 @@ def via_pieces(bg: geom.BoardGeom, net: str, pieces: dict) -> list:
         on_fill = {l for l, _ in touched}
         loose_pad = any(
             p.poly.intersects(v.poly)
-            and (l not in on_fill
-                 or not any(q.intersects(p.poly) for q in pieces.get(l, ())))
+            and (l not in on_fill or not in_pour(p, l))
             for l in v.layers for p in bg.pads_of(net, l))
         stitch = not tracked and not loose_pad and len(on_fill) >= 2
         out.append((stitch, touched))
