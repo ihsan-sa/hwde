@@ -45,10 +45,11 @@ def _never_file_documents(monkeypatch, tmp_path_factory):
         monkeypatch.delenv(k)
     # report_gen looks the board's filed documents up in cc-docs' register:
     # never the owner's, so a test reads an empty one unless it writes its own
-    monkeypatch.delenv("CC_DOCS_ROOT", raising=False)
+    # (the env var reaches scripts a test runs as subprocesses too)
+    empty = tmp_path_factory.mktemp("no-docs-register")
+    monkeypatch.setenv("CC_DOCS_ROOT", str(empty))
     if "report_gen" in sys.modules:
-        monkeypatch.setattr(sys.modules["report_gen"], "DOCS_HOME",
-                            tmp_path_factory.mktemp("no-docs-register"))
+        monkeypatch.setattr(sys.modules["report_gen"], "DOCS_HOME", empty)
     dirs = [d for d in os.environ.get("PATH", "").split(os.pathsep)
             if d and not os.access(os.path.join(d, "cc-docs"), os.X_OK)]
     monkeypatch.setenv("PATH", os.pathsep.join(dirs))
