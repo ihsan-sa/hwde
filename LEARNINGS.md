@@ -6522,9 +6522,3 @@ check_bom_sync's first cut, which warned when BOM/CPL or parts.json were absent,
 real hit. A skipped leg now goes in the report's `skipped` list, not in `violations`. Also,
 `exclude_from_pos_files` alone does not mean hand_install: fiducials, printed NFC coils and pogo
 pads carry it with `exclude_from_bom`/`board_only`, and bom_cpl classes those board_feature.
-
-## 2026-10-06 [board_init][kicad_pro][retry] Re-running the pcbnew worker can leave a default .kicad_pro over ours
-PCB-0023-A: board_init's unconnected-nets retry re-ran the worker after `write_pro` had run once, and the
-board came out with a default `.kicad_pro` (ignore settings gone), adding 27 false lib_footprint_issues. The
-write now lives inside `run_worker`, after every worker run, so the first pass and the retry both end with
-our file. Any new second worker pass must go through `run_worker` too, never around it.
