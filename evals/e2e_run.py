@@ -285,7 +285,9 @@ _SCRIPTS = [".claude/skills/hwde/scripts/",
 ALLOWED_TOOLS = {
     "hwde": _FILE_TOOLS + ["Skill", "Agent"] + _SHELL + [
         f"Bash({py} {sc}*)" for py in _PY for sc in _SCRIPTS],
-    "bare": _FILE_TOOLS + _SHELL + ["Bash(python3:*)", "Bash(python:*)"],
+    # the owner, 2026-10-06: the same access as a hwde run, minus the skill
+    "bare": _FILE_TOOLS + ["Agent"] + _SHELL + [
+        "Bash(python3:*)", "Bash(python:*)"],
 }
 
 
@@ -300,7 +302,9 @@ def prompt(arm: str, brief: str) -> str:
                 f"are set), one command per call: other shell commands are "
                 f"denied.\n\n{brief}")
     return (f"Design this board in KiCad 10 (kicad-cli and its python are "
-            f"on PATH), unattended: nobody will answer questions. Leave the "
+            f"on PATH), unattended: nobody will answer questions. The "
+            f"network allows only HTTPS to jlcpcb.com, lcsc.com and "
+            f"easyeda.com and their subdomains, through HTTPS_PROXY. Leave the "
             f"finished design in {WORK}/{BOARD}/: kicad/{BOARD}.kicad_sch, "
             f"kicad/{BOARD}.kicad_pcb (routed, with a closed Edge.Cuts "
             f"outline), the netlist kicad/{BOARD}.net, and the BOM as "

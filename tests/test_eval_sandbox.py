@@ -469,6 +469,18 @@ def test_allowed_tools_scope_bash():
     assert not any("python3:" in t for t in e2e_run.ALLOWED_TOOLS["hwde"])
 
 
+def test_the_bare_arm_gets_the_hwde_arms_tools_minus_the_skill():
+    """Owner, 2026-10-06: the arms differ only by /hwde. Bare = hwde minus
+    Skill and the skill-script grants, plus python on any script."""
+    hwde, bare = e2e_run.ALLOWED_TOOLS["hwde"], e2e_run.ALLOWED_TOOLS["bare"]
+    scripts = {t for t in hwde if t.startswith("Bash(")
+               and any(sc in t for sc in e2e_run._SCRIPTS)}
+    assert scripts
+    assert (set(bare) - {"Bash(python3:*)", "Bash(python:*)"}
+            == set(hwde) - {"Skill"} - scripts)
+    assert "Agent" in bare and "Skill" not in bare
+
+
 def test_paused_project_starts_no_run(monkeypatch):
     ok = {"cost_usd": 1.0, "exit": 0, "budget_stopped": False}
     started = _seeds(monkeypatch, [ok] * 3)
