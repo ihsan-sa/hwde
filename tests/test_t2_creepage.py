@@ -358,3 +358,183 @@ def test_low_voltage_pair_waives_derived_sweep(tmp_path_factory, tmp_path):
     assert payload["violations"] == []
     assert payload["skipped_low_voltage_pairs"] == [
         {"a": "HV", "b": "GND", "voltage": 24.0}]
+
+
+# ---- board DRU rule scoped to one footprint = dru_footprint_scope ---------
+# PCB-0018-A U301 (0.5 mm-pitch gate driver): the switch-node pour and the
+# fanout tracks sit at the package's own pitch from its pins, under the
+# owner's `A.intersectsCourtyard('U301') && B...` 0.13 mm clearance rule.
+
+_SCOPE_RULE = """(version 1)
+(rule "aiee_clearance_floor"
+\t(constraint clearance (min 0.1016mm))
+)
+(rule "hv_scope_u9_courtyard"
+\t(constraint clearance (min {min_mm:.4f}mm))
+\t(condition "{cond}")
+)
+"""
+_U9_COND = "A.intersectsCourtyard('U9') && B.intersectsCourtyard('U9')"
+
+
+def _fp(ref, x, y, net, crtyd=2.0):
+    """1x1 mm pad at (x, y) inside a +/-crtyd mm F.CrtYd rect."""
+    return (f'  (footprint "t:U" (at {x} {y}) (layer "F.Cu")\n'
+            f'    (property "Reference" "{ref}" (at 0 0 0) (layer "F.SilkS"))\n'
+            f'    (fp_rect (start {-crtyd} {-crtyd}) (end {crtyd} {crtyd}) '
+            f'(stroke (width 0.05)) (fill no) (layer "F.CrtYd"))\n'
+            f'    (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu") '
+            f'(net "{net}")))\n')
+
+
+# GND track 0.30 mm below U9's HV pad (pad edge y=2.5, track edge y=2.8)
+_GND_TRACK = ('  (segment (start 9 2.9) (end 11 2.9) (width 0.2) '
+              '(layer "F.Cu") (net "GND"))\n')
+
+
+def _scoped(tmp_path_factory, tmp_path, name, body, cond=_U9_COND,
+            min_mm=0.13, dru=True):
+    bg = _board(tmp_path_factory, name, body)
+    if dru:
+        bg.path.with_suffix(".kicad_dru").write_text(
+            _SCOPE_RULE.format(min_mm=min_mm, cond=cond), encoding="utf-8")
+    return _run(bg, _cons(tmp_path, _HV_PAD_VOLT))
+
+
+def test_dru_footprint_scope_demotes_own_pin_gap(tmp_path_factory, tmp_path):
+    payload = _scoped(tmp_path_factory, tmp_path, "scope_ok",
+                      _fp("U9", 10, 2, "HV") + _GND_TRACK)
+    vs = payload["violations"]
+    assert len(vs) == 1, json.dumps(vs)
+    v = vs[0]
+    assert v["severity"] == "warning"
+    assert v["waiver_class"] == "dru_footprint_scope"
+    assert v["dru_rule"] == "hv_scope_u9_courtyard"
+    assert v["scope_ref"] == "U9" and v["dru_min_mm"] == 0.13
+    assert v["spacing_mm"] == pytest.approx(0.30, abs=0.005)
+    assert "board rule 'hv_scope_u9_courtyard'" in v["msg"]
+    assert payload["dru_footprint_scopes"] == [
+        {"rule": "hv_scope_u9_courtyard", "ref": "U9", "min_mm": 0.13,
+         "courtyard_found": True}]
+    pairs = [p for e in payload["checked"] for p in e.get("pairs", [])]
+    assert sum(p["dru_footprint_scope_under"] for p in pairs) == 1
+
+
+def test_dru_footprint_scope_absent_rule_stays_error(tmp_path_factory,
+                                                     tmp_path):
+    payload = _scoped(tmp_path_factory, tmp_path, "scope_none",
+                      _fp("U9", 10, 2, "HV") + _GND_TRACK, dru=False)
+    v, = payload["violations"]
+    assert v["severity"] == "error" and "waiver_class" not in v
+    assert payload["dru_footprint_scopes"] == []
+
+
+def test_dru_footprint_scope_other_footprint_stays_error(tmp_path_factory,
+                                                         tmp_path):
+    """A different footprint's pad inside U9's courtyard is part-to-part
+    spacing: the package rating does not cover it."""
+    body = (_fp("U9", 10, 2, "HV", crtyd=3.0)
+            + _fp("U7", 10, 3.3, "GND", crtyd=0.6))    # 0.30 mm pad gap
+    payload = _scoped(tmp_path_factory, tmp_path, "scope_xfp", body)
+    v, = payload["violations"]
+    assert v["severity"] == "error" and "waiver_class" not in v
+    assert sorted(v["refs"]) == ["U7", "U9"]
+
+
+def test_dru_footprint_scope_gap_outside_courtyard_stays_error(
+        tmp_path_factory, tmp_path):
+    """Courtyard ends at y=2.7; the track edge at y=2.8 is board copper."""
+    payload = _scoped(tmp_path_factory, tmp_path, "scope_out",
+                      _fp("U9", 10, 2, "HV", crtyd=0.7) + _GND_TRACK)
+    v, = payload["violations"]
+    assert v["severity"] == "error"
+
+
+def test_dru_footprint_scope_below_rule_min_stays_error(tmp_path_factory,
+                                                        tmp_path):
+    payload = _scoped(tmp_path_factory, tmp_path, "scope_min",
+                      _fp("U9", 10, 2, "HV") + _GND_TRACK, min_mm=0.35)
+    v, = payload["violations"]
+    assert v["severity"] == "error"
+
+
+def test_dru_footprint_scope_extra_term_not_honoured(tmp_path_factory,
+                                                     tmp_path):
+    cond = _U9_COND + " && A.NetName == 'HV'"
+    payload = _scoped(tmp_path_factory, tmp_path, "scope_net",
+                      _fp("U9", 10, 2, "HV") + _GND_TRACK, cond=cond)
+    v, = payload["violations"]
+    assert v["severity"] == "error"
+    assert payload["dru_footprint_scopes"] == []
+
+
+def test_dru_footprint_scope_member_rule_needs_two_own_pads(
+        tmp_path_factory, tmp_path):
+    """memberOfFootprint on A and B covers pad pairs only, not a track."""
+    cond = "A.memberOfFootprint('U9') && B.memberOfFootprint('U9')"
+    payload = _scoped(tmp_path_factory, tmp_path, "scope_member",
+                      _fp("U9", 10, 2, "HV") + _GND_TRACK, cond=cond)
+    v, = payload["violations"]
+    assert v["severity"] == "error"
+
+
+@pytest.mark.parametrize("cond", [
+    "A.intersectsCourtyard('U99')",          # no such footprint
+    "A.intersectsBackCourtyard('U9')",       # U9 sits on the front
+])
+def test_dru_footprint_scope_without_courtyard_stays_error(
+        tmp_path_factory, tmp_path, cond):
+    payload = _scoped(tmp_path_factory, tmp_path, "scope_nocy",
+                      _fp("U9", 10, 2, "HV") + _GND_TRACK, cond=cond)
+    v, = payload["violations"]
+    assert v["severity"] == "error"
+    assert payload["dru_footprint_scopes"][0]["courtyard_found"] is False
+
+
+def test_dru_footprint_scope_waived_gap_does_not_hide_error(
+        tmp_path_factory, tmp_path):
+    """A tighter waived gap (own-pin track, 0.25 mm) beside a real error
+    (U7's pad, 0.30 mm) at the same spot: a waiver never dedups away an
+    error, so it is still reported."""
+    body = (_fp("U9", 10, 2, "HV", crtyd=3.0)
+            + _fp("U7", 10, 3.3, "GND", crtyd=0.6)
+            + '  (segment (start 9 2.85) (end 11 2.85) (width 0.2) '
+              '(layer "F.Cu") (net "GND"))\n')
+    payload = _scoped(tmp_path_factory, tmp_path, "scope_mask", body)
+    sev = sorted((v["severity"], v.get("waiver_class"))
+                 for v in payload["violations"])
+    assert ("error", None) in sev, json.dumps(payload["violations"])
+    assert ("warning", "dru_footprint_scope") in sev
+
+
+def test_dru_footprint_scope_layer_clause_not_honoured(tmp_path_factory,
+                                                       tmp_path):
+    bg = _board(tmp_path_factory, "scope_layer",
+                _fp("U9", 10, 2, "HV") + _GND_TRACK)
+    bg.path.with_suffix(".kicad_dru").write_text(
+        _SCOPE_RULE.format(min_mm=0.13, cond=_U9_COND).replace(
+            "\t(condition", "\t(layer outer)\n\t(condition"), encoding="utf-8")
+    payload = _run(bg, _cons(tmp_path, _HV_PAD_VOLT))
+    v, = payload["violations"]
+    assert v["severity"] == "error"
+    assert payload["dru_footprint_scopes"] == []
+
+
+@pytest.mark.parametrize("cond, want", [
+    ("A.insideCourtyard('U301')",
+     {"ref": "U301", "side": None, "courtyard": True, "both_member": False}),
+    ("(A.intersectsCourtyard('U3') && B.intersectsCourtyard('U3'))",
+     {"ref": "U3", "side": None, "courtyard": True, "both_member": False}),
+    ("A.intersectsFrontCourtyard( 'U3' )",
+     {"ref": "U3", "side": "front", "courtyard": True, "both_member": False}),
+    ("A.memberOfFootprint('U3') && B.memberOfFootprint('U3')",
+     {"ref": "U3", "side": None, "courtyard": False, "both_member": True}),
+    ("A.insideCourtyard('U*')", None),
+    ("A.insideCourtyard('U3') && B.insideCourtyard('U4')", None),
+    ("A.insideCourtyard('U3') || B.insideCourtyard('U3')", None),
+    ("!A.insideCourtyard('U3')", None),
+    ("A.NetName == 'HV'", None),
+    (None, None),
+])
+def test_parse_footprint_scope_forms(cond, want):
+    assert check_creepage.parse_footprint_scope(cond) == want

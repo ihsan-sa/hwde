@@ -80,6 +80,13 @@ DURABLE_FIELDS = ("artifact", "checker_version", "expires")
 
 POS_TOL_MM = 0.01
 
+# Artifact kinds added to invalidation.yaml after attestations were already
+# being sealed. An attestation that predates one does not bind it, and that
+# is accepted only while the file is absent (the state it was attested in);
+# once the file exists the board must be re-attested. place_waivers:
+# 2026-10-05, when the place gate began applying reports/place-waivers.json.
+LATE_KINDS = frozenset({"place_waivers"})
+
 _LAYER_DEF_RE = re.compile(
     r'\(\s*\d+\s+"([A-Za-z0-9_.]+\.Cu)"\s+(?:signal|power|mixed|jumper)\b')
 
@@ -234,14 +241,17 @@ def _ws_rel(path: Path, ws: Path) -> str:
                .relative_to(Path(ws).resolve())).replace("\\", "/")
 
 
-def waivers_for_input(input_file: Path) -> Path | None:
+def waivers_for_input(input_file: Path,
+                      name: str = "verify-waivers.json") -> Path | None:
     """Default waiver-sidecar resolution shared with gate.py: the board
     WORKSPACE reports/ dir first (where every real waiver file lives, and
     where invalidation.yaml's `waivers` kind now points, so gate freshness
     and gate application bind the SAME file), then the input file's own
     reports/ dir (the T6-documented location, kept as fallback). LEARNINGS
     2026-08-08: the old input-dir-only default silently ignored every
-    workspace waiver file."""
+    workspace waiver file. `name` picks the sidecar: verify-waivers.json for
+    the verify gates, place-waivers.json for the place gate (gate.py
+    WAIVER_SIDECARS)."""
     p = Path(input_file)
     candidates = []
     parents = list(p.resolve().parents)
@@ -251,13 +261,13 @@ def waivers_for_input(input_file: Path) -> Path | None:
     # as the fallback for a workspace that has no state.json yet.
     for parent in parents:
         if (parent / "state.json").is_file():
-            candidates.append(parent / "reports" / "verify-waivers.json")
+            candidates.append(parent / "reports" / name)
             break
     for parent in parents:
         if env.is_boards_dir(parent.parent):
-            candidates.append(parent / "reports" / "verify-waivers.json")
+            candidates.append(parent / "reports" / name)
             break
-    candidates.append(p.parent / "reports" / "verify-waivers.json")
+    candidates.append(p.parent / "reports" / name)
     for c in candidates:
         if c.is_file():
             return c
@@ -757,6 +767,9 @@ def verify(ws: Path, att: dict | None = None) -> dict:
     att_paths = att.get("input_paths") or {}
     for kind in sorted(set(imap["artifact_kinds"]) | {"stackup_md"}):
         if kind not in att_inputs:
+            if kind in LATE_KINDS and statelib.hash_kind(
+                    ws, board, kind, imap, registry)[1] is None:
+                continue
             problems.append(f"input {kind}: not bound by the attestation")
             continue
         recorded = att_inputs[kind]

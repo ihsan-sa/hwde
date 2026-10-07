@@ -1,0 +1,46 @@
+# HIDDEN known-answer for e2e_stereo_amp: the TPA3116D2/TPA3118D2 typical
+# application (TI SLOS708, sections 9-10), 12 V single supply, BTL into 8 ohm.
+# Read by evals/e2e_electrical.py only; never shown to a design run.
+brief: e2e_stereo_amp
+chip: "TPA311[68]D2"
+pins:                    # HTSSOP-32 pin numbers, same for DAD and DAP
+  modsel: "1"
+  sdz: "2"
+  faultz: "3"
+  plimit: "6"
+  gvdd: "7"
+  gain: "8"
+  mute: "12"
+  am: ["13", "14", "15"]
+  avcc: "17"
+  pvcc: [["18", "19"], ["31", "32"]]       # each pair needs its own bypass
+  gnd: ["9", "22", "25", "28"]
+  inputs: {LINP: "10", LINN: "11", RINP: "4", RINN: "5"}
+  # bootstrap cap between BSxx and OUTxx
+  bootstrap: [["24", "23"], ["20", "21"], ["30", "29"], ["26", "27"]]
+  bridges: {left: ["23", "21"], right: ["29", "27"]}   # OUTP, OUTN
+# Table 3: gain / master-slave by R1 (GAIN to GND) and R2 (GAIN to GVDD);
+# null = open.  Zi is the input impedance that row gives.
+gain_table:
+  - {r1: 5600, r2: null, db: 20, zi: 60000, mode: master}
+  - {r1: 20000, r2: 100000, db: 26, zi: 30000, mode: master}
+  - {r1: 39000, r2: 100000, db: 32, zi: 15000, mode: master}
+  - {r1: 47000, r2: 75000, db: 36, zi: 9000, mode: master}
+  - {r1: 51000, r2: 51000, db: 36, zi: 9000, mode: slave}
+  - {r1: 75000, r2: 47000, db: 32, zi: 15000, mode: slave}
+  - {r1: 100000, r2: 39000, db: 26, zi: 30000, mode: slave}
+  - {r1: 100000, r2: 16000, db: 20, zi: 60000, mode: slave}
+gain_tol: 0.06           # 5% parts plus rounding to E24
+caps_f:
+  pvcc_bypass: [1.0e-8, 2.2e-6]   # 0.1 uF typical; a 10 nF-2.2 uF HF cap near each pair
+  pvcc_bulk_min: 4.7e-5           # 220 uF in the EVM; 47 uF floor at 12 V
+  gvdd: [4.7e-7, 4.7e-6]          # 1 uF
+  avcc: [1.0e-7, 1.0e-5]          # 1 uF (0.1 uF floor)
+  bootstrap: [1.0e-7, 1.0e-6]     # 220 nF
+input_hp_hz_max: 20      # coupling cap x Zi corner inside the audio band
+lc_cutoff_hz: [20000, 100000]     # above audio, well under the 400 kHz PWM
+lc_peak_db_max: 6
+load_ohm: 8
+decap_max_mm: {pvcc_bypass: 3, gvdd: 3, avcc: 5, bootstrap: 4}
+thermal_vias_min: 6      # vias in the exposed pad (DAP); DAD needs a heatsink
+trace_a: {pvcc: 2.0, out: 1.5}

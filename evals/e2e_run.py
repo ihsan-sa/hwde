@@ -77,6 +77,13 @@ CLI:
 Exit 0 on a recorded run (whatever it scored), 1 when the run or the score
 failed or a stop rule ended the seeds, 2 on bad input (unknown brief, no
 bwrap, no usable credential).
+
+Electrical score: when the brief has a known-answer (evals/known_answers/,
+outside the sandbox like the repo), e2e_electrical.py scores the same board
+on whether it would work, writes electrical.json beside score.json, and its
+composite (electrical 0.70, layout 0.15, cost 0.15) replaces the bench's;
+the bench's own stays as composite_bench. A known-answer brief whose board
+the electrical scorer can't read records a score error and no composite.
 """
 from __future__ import annotations
 
@@ -334,7 +341,32 @@ def score(fixture: str, ws: Path | None, out: Path) -> dict | None:
                         "--out", str(out)], capture_output=True, text=True)
     if r.returncode != 0 or not out.is_file():
         return {"error": (r.stderr or r.stdout)[-2000:]}
-    return json.loads(out.read_text(encoding="utf-8"))
+    return with_electrical(fixture, ws, json.loads(out.read_text(encoding="utf-8")),
+                           out.with_name("electrical.json"))
+
+
+def with_electrical(fixture: str, ws: Path, sc: dict, out: Path) -> dict:
+    """The bench score with e2e_electrical's composite in place of its own
+    and the electrical checks added to metrics_live (so findings() lists
+    them). A brief with no known-answer keeps the bench score as it is."""
+    import e2e_electrical as el
+    try:
+        el.load_answer(fixture)
+    except KeyError:
+        return sc
+    sc = dict(sc, composite_bench=sc.get("composite"), composite=None)
+    try:
+        res = el.score_workspace(fixture, ws, sc)
+    except (el.BoardError, subprocess.SubprocessError, OSError) as exc:
+        return dict(sc, error=f"electrical: {exc}")
+    out.write_text(json.dumps(res, indent=1) + "\n", encoding="utf-8")
+    live = dict(sc.get("metrics_live") or {})
+    live["checks"] = list(live.get("checks") or []) + [
+        {"id": c["id"], "category": f"electrical/{c['group']}",
+         "score": c["score"], "refs": c.get("refs", []), "net": c.get("net")}
+        for c in res["checks"]]
+    return dict(sc, composite=res["composite"], electrical=res["electrical"],
+                metrics_live=live)
 
 
 def findings(sc: dict | None) -> list[dict]:

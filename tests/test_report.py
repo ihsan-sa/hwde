@@ -976,52 +976,144 @@ def test_no_filing_without_opt_in_even_with_cc_docs_on_path(tmp_path, monkeypatc
 def test_filing_with_flag_or_doc_project(tmp_path, monkeypatch):
     log = _fake_cc_docs(tmp_path, monkeypatch)
     report_gen.file_in_register(tmp_path / "x.pdf", "b", _Builder(), True)
-    assert "--project Boards/Unregistered " in log.read_text()
+    assert "--project Boards --title" in log.read_text()
     log.unlink()
     monkeypatch.setenv("DOC_PROJECT", "Other")
     report_gen.file_in_register(tmp_path / "x.pdf", "b", _Builder())
     assert "--project Other" in log.read_text()
 
 
-def test_board_project_is_the_boards_own_folder(tmp_path, monkeypatch):
-    """Each board files into "Boards/<PN> <name>" (owner, #ai-ee: "Each PCB
-    should get a folder in the library with the name of the PCB like the PCB
-    number and name"); with no part number, "Boards/Unregistered"; never the
-    bare group "Boards"; DOC_PROJECT still overrides."""
-    monkeypatch.delenv("DOC_PROJECT", raising=False)
+def test_board_project_is_the_boards_project(tmp_path, monkeypatch):
+    """A new board document files into "Boards" (002), registered or not.
+    The per-board "Boards/<PN> <name>" is refused by cc-docs while 002 is a
+    project outside any group named "Boards" (checked with `cc-docs number`,
+    which reserves nothing); DOC_PROJECT still overrides."""
     root = tmp_path / "boards"
     numbered = root / "PCB-0018-A_bldc-motor-driver"
-    bare = root / "blinky2"          # an older bare dir, listed in the register
     stray = root / "stray"           # not in the register
-    for d in (numbered, bare, stray):
+    for d in (numbered, stray):
         d.mkdir(parents=True)
     (root / "register.yaml").write_text(
         "products:\n  PCB-0018:\n    revs:\n"
-        "      A: {dir: PCB-0018-A_bldc-motor-driver}\n"
-        "  PCB-0001:\n    revs:\n      B: {dir: blinky2}\n", encoding="utf-8")
-    assert report_gen.board_project(numbered) == \
-        "Boards/PCB-0018-A bldc-motor-driver"
-    assert report_gen.board_project(bare) == "Boards/PCB-0001-B blinky2"
-    assert report_gen.board_project(stray) == "Boards/Unregistered"
-    assert report_gen.board_project(None) == "Boards/Unregistered"
+        "      A: {dir: PCB-0018-A_bldc-motor-driver}\n", encoding="utf-8")
+    for ws in (numbered, stray, None):
+        assert report_gen.board_project(ws) == "Boards"
     args = report_gen.cc_docs_args(numbered, "bldc", numbered / "x.pdf")
-    assert args[args.index("--project") + 1] == \
-        "Boards/PCB-0018-A bldc-motor-driver"
+    assert args[args.index("--project") + 1] == "Boards"
     monkeypatch.setenv("DOC_PROJECT", "Other")
     assert report_gen.board_project(numbered) == "Other"
     assert report_gen.board_project(stray) == "Other"
 
 
-def test_filing_goes_to_the_boards_folder(tmp_path, monkeypatch):
+def test_filing_goes_to_the_boards_project(tmp_path, monkeypatch):
     log = _fake_cc_docs(tmp_path, monkeypatch)
-    monkeypatch.delenv("DOC_PROJECT", raising=False)
     ws = tmp_path / "PCB-0018-A_bldc"
     ws.mkdir()
     (tmp_path / "register.yaml").write_text(
         "products:\n  PCB-0018:\n    revs:\n      A: {dir: PCB-0018-A_bldc}\n",
         encoding="utf-8")
     report_gen.file_in_register(ws / "x.pdf", "b", _Builder(), True, ws=ws)
-    assert "--project Boards/PCB-0018-A bldc --title" in log.read_text()
+    assert "--project Boards --title PCB-0018-A b design doc " in log.read_text()
+
+
+def _docs_register(tmp_path, monkeypatch, documents):
+    """A scratch cc-docs register (CC_DOCS_ROOT), never the owner's."""
+    lib = tmp_path / "docs-lib"
+    lib.mkdir(exist_ok=True)
+    (lib / "register.json").write_text(json.dumps(
+        {"version": 1, "projects": {"002": {"name": "Boards", "kind": "work"}},
+         "documents": documents, "retired": {}}), encoding="utf-8")
+    monkeypatch.setenv("CC_DOCS_ROOT", str(lib))
+
+
+def _doc(number, title, source, describes=None, at="2026-10-01T00:00:00Z"):
+    return {"number": number, "project": "002", "title": title,
+            "source": source,
+            "revisions": [{"rev": "A", "describes": describes,
+                           "filed_at": at}]}
+
+
+def test_rebuild_reuses_the_filed_documents_title(tmp_path, monkeypatch):
+    """PCB-0024-A's rebuilt docs were titled "... highlight doc" / "... design
+    doc" from a new worktree, matching neither the source path nor the title
+    the library had, so cc-docs made 002-0048/0049. A rebuild now files
+    under the existing document's own project and exact title."""
+    log = _fake_cc_docs(tmp_path, monkeypatch)
+    root = tmp_path / "boards"
+    ws = root / "PCB-0023-A_gan-rf-inverter"
+    ws.mkdir(parents=True)
+    (root / "register.yaml").write_text(
+        "products:\n  PCB-0023:\n    revs:\n"
+        "      A: {dir: PCB-0023-A_gan-rf-inverter}\n", encoding="utf-8")
+    old = "/wt/gan/PCB-0023-A_gan-rf-inverter/reports"
+    _docs_register(tmp_path, monkeypatch, {
+        "002-0045": _doc("002-0045", "PCB-0023-A gan-rf-inverter highlights",
+                         f"{old}/highlight/gan-rf-inverter-highlight.tex",
+                         "PCB-0023-A"),
+        "002-0046": _doc("002-0046", "PCB-0023-A gan-rf-inverter full design doc",
+                         f"{old}/design_full/gan-rf-inverter-design-full.tex",
+                         "PCB-0023-A"),
+        # another board's highlights, and this board's guide: neither is it
+        "002-0042": _doc("002-0042", "PCB-0024-A rf-load-50ohm highlights",
+                         "/wt/rf/PCB-0024-A_rf-load-50ohm/reports/highlight/x.tex",
+                         "PCB-0024-A"),
+        "002-0050": _doc("002-0050", "PCB-0023-A guide",
+                         f"{old}/guide/gan-rf-inverter-guide.tex", "PCB-0023-A"),
+    })
+    pdf = ws / "reports" / "highlight" / "gan-rf-inverter-highlight.pdf"
+    report_gen.file_in_register(pdf, "gan-rf-inverter", _Builder(), True,
+                                ws=ws, kind="highlight")
+    line = log.read_text()
+    assert "--project 002 --title PCB-0023-A gan-rf-inverter highlights " in line
+    assert "--describes PCB-0023-A" in line
+    args = report_gen.cc_docs_args(ws, "gan-rf-inverter", pdf, kind="full")
+    assert args[args.index("--title") + 1] == \
+        "PCB-0023-A gan-rf-inverter full design doc"
+    # no design doc filed yet: the stable convention, into Boards
+    assert report_gen.doc_target(ws, "gan-rf-inverter", "design") == \
+        ("Boards", "PCB-0023-A gan-rf-inverter design doc")
+
+
+def test_filed_document_matching_edges(tmp_path, monkeypatch):
+    """Which filed document is the board's: the part number's directory or
+    describes, never another revision's; the last filed of several; an
+    unregistered board by its directory name; nothing on a bad register."""
+    root = tmp_path / "boards"
+    a, b = root / "PCB-0022-A_nfc-card", root / "PCB-0022-B_nfc-card"
+    stray = root / "stray"
+    for d in (a, b, stray):
+        d.mkdir(parents=True)
+    (root / "register.yaml").write_text(
+        "products:\n  PCB-0022:\n    revs:\n"
+        "      A: {dir: PCB-0022-A_nfc-card}\n"
+        "      B: {dir: PCB-0022-B_nfc-card}\n", encoding="utf-8")
+    _docs_register(tmp_path, monkeypatch, {
+        "002-0031": _doc("002-0031", "nfc-card design doc",
+                         "/wt/nfc-card/PCB-0022-A_nfc-card/reports/design_doc/x.pdf",
+                         "PCB-0022-A", "2026-09-30T00:00:00Z"),
+        # refiled by hand later, from a directory that doesn't name the
+        # board, but describing it: the last filed wins
+        "002-0060": _doc("002-0060", "PCB-0022-A nfc-card design doc",
+                         "C:\\tmp\\clone\\reports\\design_doc\\x.pdf",
+                         "PCB-0022-A", "2026-10-02T00:00:00Z"),
+        # in a directory named like A's but describing B: never A's
+        "002-0061": _doc("002-0061", "B's", "/x/PCB-0022-A_nfc-card/reports/"
+                         "design_doc/x.pdf", "PCB-0022-B", "2026-10-05T00:00:00Z"),
+        "002-0070": _doc("002-0070", "stray design doc",
+                         "/wt/stray/reports/design_doc/stray-design-doc.pdf"),
+    })
+    got = report_gen.filed_document(a, "design", "PCB-0022-A")
+    assert got == {"number": "002-0060", "project": "002",
+                   "title": "PCB-0022-A nfc-card design doc"}
+    assert report_gen.filed_document(b, "design", "PCB-0022-B")["number"] \
+        == "002-0061"
+    assert report_gen.filed_document(a, "highlight", "PCB-0022-A") is None
+    assert report_gen.filed_document(stray, "design")["number"] == "002-0070"
+    assert report_gen.filed_document(None) is None
+    (tmp_path / "docs-lib" / "register.json").write_text("{bad", encoding="utf-8")
+    assert report_gen.filed_document(a, "design", "PCB-0022-A") is None
+    assert report_gen.doc_target(a, "nfc-card") == \
+        ("Boards", "PCB-0022-A nfc-card design doc")
 
 
 def test_second_revision_never_lands_on_the_firsts_docs(tmp_path, monkeypatch):

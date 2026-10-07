@@ -11,6 +11,8 @@ in front of it.
  - mating_mouth_inset: it faces the edge but sits too far inside it.
  - mating_zone_blocked: a part in the plug's insertion zone, or a tall part
    in a vertical connector's finger room.
+ - mating_model_reversed: its copper faces the edge but its 3D model lies
+   behind the contact pads, so renders show it turned round.
  - mating_direction_unknown (warning): the mouth cannot be read from the
    pad layout.
 

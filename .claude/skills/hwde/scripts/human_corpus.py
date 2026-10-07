@@ -33,6 +33,8 @@ Rules the subcommands keep:
 - fetch refuses a board whose .kicad_pcb predates KiCad 6 (file version below
   KICAD6_VERSION) or was saved by a KiCad nightly the pinned KiCad 10 cannot
   open (above KICAD10_VERSION), and records layers and kicad_version from the file itself.
+- run copies a board's folder skipping dangling symlinks, and a board whose copy
+  fails is reported as failed while the rest of the batch runs on.
 - label writes only the machine field `evidence` (GitHub releases and issues
   whose words point at a fabricated board or an erratum; it is read per
   repo, so boards of one repo share it). The `outcome` a
@@ -204,7 +206,7 @@ def fetch_board(cache: Path, b: dict) -> str:
         # several boards of one repo widen the same sparse checkout
         r = subprocess.run(["git", "-C", str(dest), "sparse-checkout", "list"],
                            capture_output=True, text=True)
-        have = r.stdout.split()
+        have = r.stdout.splitlines()  # a path may hold spaces
         want = "/*.*" if sparse == "/" else sparse
         if want not in have:
             git(dest, "sparse-checkout", "set", "--no-cone", *have, want)
@@ -284,7 +286,8 @@ def run_board(cache: Path, b: dict, envv: dict, timeout: int) -> str:
     if work.exists():
         shutil.rmtree(work)
     kicad = work / "kicad"
-    shutil.copytree(src.parent, kicad, ignore=shutil.ignore_patterns(".git", "*-backups"))
+    shutil.copytree(src.parent, kicad, ignore=shutil.ignore_patterns(".git", "*-backups"),
+                    ignore_dangling_symlinks=True)
     pcb = kicad / src.name
     reports = work / "reports"
     reports.mkdir(parents=True)
@@ -451,7 +454,10 @@ def main(argv: list[str] | None = None) -> int:
                 futs = {ex.submit(run_board, cache, b, envv, a.timeout): b["id"]
                         for b in select(data, a.ids)}
                 for f in concurrent.futures.as_completed(futs):
-                    msg = f.result()
+                    try:
+                        msg = f.result()
+                    except (OSError, shutil.Error) as e:  # one board never kills the batch
+                        msg = f"run: {e}"[:300]
                     print(f"{futs[f]}: {msg or 'done'}", file=sys.stderr, flush=True)
                     if msg:
                         failed[futs[f]] = msg

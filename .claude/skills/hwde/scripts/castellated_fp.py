@@ -69,9 +69,12 @@ def plan(pins: int, pitch: float, drill: float, ring: float,
         raise ValueError("; ".join(bad))
     w = drill + 2 * ring
     h = ring + drill + extension
-    # pad spans y in [-(drill/2 + ring), drill/2 + extension]
+    # copper spans y in [-(drill/2 + ring), drill/2 + extension]. KiCad keeps
+    # the hole at the pad's (at) and moves the copper by the drill offset, so
+    # the pad sits at y = 0 (hole on the edge) and an offset of +cy carries
+    # the copper inboard.
     cy = (extension - ring) / 2.0
-    return {"pad_w": w, "pad_h": h, "pad_cy": cy, "drill_off": -cy,
+    return {"pad_w": w, "pad_h": h, "pad_cy": cy, "drill_off": cy,
             "row": (pins - 1) * pitch}
 
 
@@ -108,7 +111,7 @@ def render(name: str, pins: int, pitch: float, drill: float, geo: dict,
     for i in range(pins):
         x = x0 + i * pitch
         out.append(
-            f'\t(pad "{first + i}" thru_hole rect (at {_f(x)} {_f(geo["pad_cy"])}) '
+            f'\t(pad "{first + i}" thru_hole rect (at {_f(x)} 0) '
             f'(size {_f(geo["pad_w"])} {_f(geo["pad_h"])}) '
             f'(drill {_f(drill)} (offset 0 {_f(geo["drill_off"])})) '
             '(property pad_prop_castellated) '

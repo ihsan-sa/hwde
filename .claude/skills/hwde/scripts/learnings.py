@@ -16,10 +16,13 @@ The run-close and promotion halves of v3 design decision 3. Subcommands:
             that exist, rulings that carry a kind + reason. exit 1 on problems.
   resolve   rule on entries - one with --entry/--status/--kind/--reason, or a
             whole pass with --batch FILE. A `root_learnings` promotion also
-            performs the move: the entry is appended verbatim to the repo
-            LEARNINGS.md and its row to design/ladder-triage.md.
+            performs the move: the entry is written verbatim to a new lesson
+            file, learnings.d/<id>.md, whose last line is its triage row.
   sweep     every workspace's queue state (the general-agent operator mode).
-  triage    recompute design/ladder-triage.md's header counts from its table.
+  triage    the knowledge-ladder counts, computed from design/ladder-triage.md's
+            archive table plus every learnings.d/ lesson's triage line (the
+            register keeps no count by hand). exit 1 when a lesson file is
+            malformed.
 
 Contract (SPEC section 6): argparse, JSON to stdout or --out, exit 0/1/2,
 ASCII, no interactivity.
@@ -227,8 +230,10 @@ def do_sweep(args) -> tuple[dict, int]:
 
 
 def do_triage(args) -> tuple[dict, int]:
-    return {"script": SCRIPT, "status": "pass",
-            **learnlib.triage_summary()}, 0
+    summary = learnlib.triage_summary()
+    bad = bool(summary["problems"])
+    return {"script": SCRIPT, "status": "fail" if bad else "pass",
+            **summary}, 1 if bad else 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -285,7 +290,7 @@ def main(argv: list[str] | None = None) -> int:
                         "root, HWDE_BOARDS_ROOT or ~/dev/boards)")
 
     common(sub.add_parser("triage",
-                          help="recompute the triage header counts"))
+                          help="print the knowledge-ladder counts"))
 
     args = ap.parse_args(argv)
     handler = {"init": do_init, "compile": do_compile, "queue": do_queue,

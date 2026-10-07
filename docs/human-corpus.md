@@ -34,6 +34,16 @@ licence, kept to repos that look like one board or a family of boards, not
 libraries or tools, plus a few well-known boards with a shipped history
 (Glasgow, Bus Pirate 5, ThunderScope, OLIMEX ESP32-PoE).
 
+The second batch leaned on the thin domains (motor, RF, analog) and on boards
+with outcome evidence: GitHub topic searches pairing `kicad` with `bldc`,
+`lora`, `rf`, `eurorack`, `audio` and the like, plus vendors who sell the
+boards they publish (mjbots moteus, Winterbloom, Electronic Cats, OLIMEX,
+tinyVision, Antmicro). A `product` label there cites the store page the
+repo's own README links, and says when the revision on sale is not stated.
+A KiCad 5 file is the commonest reason a candidate fails `fetch`; a
+`.kicad_pro` beside the `.kicad_pcb` is a cheap first filter, though a
+KiCad 6 project can still carry an unsaved KiCad 5 board.
+
 ## Outcome labels
 
 The outcome is the empirical label the evals score against, so it is a
@@ -85,3 +95,22 @@ the polarity oracle fed from the board's schematic when there is one. A
 finding on a human board is therefore a question for the owner, not a verdict:
 either the board has the problem, or the gate is wrong about a board it was
 not tuned on. Both are what the evals want to know.
+
+## Scoring the corpus
+
+`bench.py --scorecard-corpus --record` turns the recorded runs into the
+design-evals scorecard (docs/design-evals.md) and appends it to
+`results/corpus-scorecard.jsonl`. It reads `CACHE/runs/<id>/result.json` and
+runs nothing, so it takes seconds; re-run `human_corpus.py run` first when
+the checks change. Three things to know when reading the scores:
+
+- Only the layout, signal-integrity and manufacturing areas are scored. The
+  schematic and power checks need a parts dir or constraints a bare board
+  does not have, so those areas are unscored and stay out of the composite.
+  ERC and DRC were never run, so there is no gate column.
+- The manufacturing score is near zero on most boards because `dfm_check`
+  counts every trace, ring and hole below JLCPCB's minimums, and boards made
+  for other fabs have thousands. The per-check counts say more than the score.
+- Every finding is untriaged, so each counts at its check's smoothed precision
+  (docs/check-scorecard.jsonl). A product board scoring low is a question for
+  the check before it is one for the board.

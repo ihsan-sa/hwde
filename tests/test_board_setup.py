@@ -1394,3 +1394,51 @@ def test_rules_gen_pro_write_keeps_board_clean(cli, tmp_path):
     assert fabfloors.check_pro(pro, _cap()) == []
     rep = _drc(cli, pcb, parity=True)
     assert rep["counts"]["total"] == 0, rep["violations"]
+
+
+def test_board_init_retry_keeps_project_settings(tmp_path, monkeypatch):
+    """The unconnected-nets retry re-runs the worker, which can leave a default
+    .kicad_pro; board_init must rewrite its own so the ignore settings (and
+    with them the lib_footprint_issues suppression) survive to the self-check."""
+    net = tmp_path / "m.net"
+    net.write_text(MINI_NET, encoding="utf-8")
+    out = tmp_path / "k"
+    runs = []
+
+    class CP:
+        def __init__(self, out_):
+            self.stdout, self.stderr = out_, ""
+
+    def fake_run(cmd, **kw):
+        job = json.loads(Path(cmd[2]).read_text(encoding="utf-8"))
+        pcb = Path(job["out"])
+        pcb.write_text("(kicad_pcb (version 20260101))\n", encoding="utf-8")
+        # the worker's save drops a default project file over ours
+        pcb.with_suffix(".kicad_pro").write_text('{"board": {}}', encoding="utf-8")
+        runs.append(bool(job.get("skip_unconnected_nets")))
+        return CP(json.dumps({"status": "pass", "nets": 2, "bbox": [0, 0, 1, 1]}))
+
+    seen = []
+
+    def fake_check(cli, pcb, has_sch):
+        pro = json.loads(pcb.with_suffix(".kicad_pro").read_text(encoding="utf-8"))
+        seen.append(pro["board"]["design_settings"]["rule_severities"]
+                    ["lib_footprint_issues"])
+        return {"clean": True, "drc": {}, "setup_violations": [],
+                "parity_count": 0, "unconnected_count": 0}
+
+    monkeypatch.setattr(board_init.env, "find_kicad_cli", lambda: Path("kc"))
+    monkeypatch.setattr(board_init.env, "find_kicad_python", lambda c: Path("bp"))
+    monkeypatch.setattr(board_init.subprocess, "run", fake_run)
+    monkeypatch.setattr(board_init, "inject_stackup", lambda *a: None)
+    monkeypatch.setattr(board_init, "mode_outline_guard", lambda *a, **k: None)
+    monkeypatch.setattr(board_init, "self_check", fake_check)
+    # first check asks for the retry, the second is clean
+    calls = iter([True, False])
+    monkeypatch.setattr(board_init, "_rejects_unconnected_nets",
+                        lambda c: next(calls))
+    rc = board_init.main(["--netlist", str(net), "--name", "b", "--out", str(out),
+                          "--mounting-holes", "0", "--workspace", str(tmp_path)])
+    assert rc == 0
+    assert runs == [False, True]
+    assert seen == ["ignore", "ignore"]

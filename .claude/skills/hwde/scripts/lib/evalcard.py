@@ -16,7 +16,10 @@ so two triaged findings do not make a check certain, and a check nobody has
 triaged counts at 0.5. weight = severity
 weight x that probability, and an area scores 1 / (1 + sum of its weights).
 A waiver is the designer's call, not ground truth, so a waived finding still
-counts; the scorecard reports it as waived.
+counts; the scorecard reports it as waived. An area no check ran in (a bare
+board has no constraints, so its power checks skip) can be passed to
+`board_card()` as unscored: its score is None and it stays out of the
+composite and the suite, because no finding there is not a clean bill.
 
 Suite score: the mean of per-board scores with a 95 % cluster-bootstrap
 interval (resample clusters - briefs, or boards when each board is its own
@@ -64,6 +67,7 @@ CHECK_AREA = {
     "check_creepage": "power",
     "check_silk": "manufacturing",
     "gate_dfm": "manufacturing",
+    "dfm_check": "manufacturing",
 }
 SEVERITY_WEIGHT = {"error": 1.0, "warning": 0.25, "info": 0.0}
 PRIOR_PRECISION = 0.5
@@ -170,14 +174,27 @@ def precisions(history: Path = SCORECARD_HISTORY) -> dict[str, float]:
 
 
 def load_failure_modes(path: Path) -> dict:
-    """(check, kind) -> failure-mode id from pcb-failure-research's
-    docs/failure-modes.yaml, when it exists. Entries are read as
-    {id, checks: [{check, kind?}]}; anything else maps nothing."""
+    """(check, kind) -> failure-mode id from docs/failure-modes.yaml, when it
+    exists. Two entry forms are read:
+
+    - {id, checks: [{check, kind?} | check]};
+    - {id, coverage: {script, rule}}, the form docs/failure-modes.yaml uses:
+      script names the check, rule is '-' (any kind) or a list of kinds
+      split on ',' and ';', where 'other_script:kind' names another check.
+      A parenthetical note ('(partial)', '(when family listed)') is dropped.
+
+    The first mode to claim a (check, kind) keeps it; anything else maps
+    nothing."""
     if not path.is_file():
         return {}
+    import re
     import yaml
     doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     modes = doc.get("modes") if isinstance(doc, dict) else doc
+
+    def bare(s) -> str:
+        return re.sub(r"\s*\(.*?\)", "", str(s or "")).strip()
+
     out = {}
     for m in modes or []:
         if not isinstance(m, dict) or not m.get("id"):
@@ -187,6 +204,15 @@ def load_failure_modes(path: Path) -> dict:
                 out.setdefault((c["check"], c.get("kind")), m["id"])
             elif isinstance(c, str):
                 out.setdefault((c, None), m["id"])
+        cov = m.get("coverage")
+        script = bare(cov.get("script")) if isinstance(cov, dict) else ""
+        if not script or script == "-" or " " in script:
+            continue
+        for item in re.split(r"[,;]", str(cov.get("rule") or "-")):
+            item = bare(item)
+            chk, kind = (item.split(":", 1) if ":" in item else (script, item))
+            if chk and " " not in chk and " " not in kind:
+                out.setdefault((chk, None if kind in ("", "-") else kind), m["id"])
     return out
 
 
@@ -203,12 +229,20 @@ def area_scores(findings: list[dict]) -> dict:
 
 
 def board_card(board: str, findings: list[dict], info: dict | None = None,
-               top: int = 10) -> dict:
+               top: int = 10, scored_areas=None) -> dict:
     """A board's scorecard: areas, composite (unweighted area mean until
-    bring-up data can fit weights) and the ranked findings."""
+    bring-up data can fit weights) and the ranked findings. scored_areas,
+    when given, names the areas some check actually ran in; any other area
+    has score None (no check looked, which is not a clean bill) and stays
+    out of the composite."""
     ranked = rank(findings)
     areas = area_scores(ranked)
-    composite = round(100 * statistics.fmean(a["score"] for a in areas.values()), 2)
+    if scored_areas is not None:
+        for a in AREAS:
+            if a not in scored_areas:
+                areas[a]["score"] = None
+    scores = [a["score"] for a in areas.values() if a["score"] is not None]
+    composite = round(100 * statistics.fmean(scores), 2) if scores else None
     unmapped = sorted({f["check"] for f in ranked if f["check"] not in CHECK_AREA})
     return {"board": board, "composite": composite, "areas": areas,
             "counts": {"findings": len(ranked),
@@ -262,10 +296,14 @@ def suite_score(cards: list[dict], cluster_of=None) -> dict:
             g.setdefault(cluster_of(c), []).append(val(c))
         return g
 
+    def kept(g):  # an unscored area (None) is left out, not counted as 0 or 100
+        return {k: [x for x in v if x is not None] for k, v in g.items()}
+
     out = {"boards": len(cards),
-           "composite": cluster_bootstrap(grouped(lambda c: c["composite"]))}
-    out["areas"] = {a: cluster_bootstrap(grouped(lambda c, a=a: 100 * c["areas"][a]["score"]))
-                    for a in AREAS}
+           "composite": cluster_bootstrap(kept(grouped(lambda c: c["composite"])))}
+    out["areas"] = {a: cluster_bootstrap(kept(grouped(
+        lambda c, a=a: None if c["areas"][a]["score"] is None
+        else 100 * c["areas"][a]["score"]))) for a in AREAS}
     return out
 
 

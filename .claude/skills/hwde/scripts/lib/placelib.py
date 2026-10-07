@@ -495,7 +495,9 @@ def build_clusters(model: PlaceModel, decoupling: dict | None,
 
 def _forbidden(model: PlaceModel, placement: dict | None, side: str):
     """Keepout polygons for footprints on side: constraints keepouts + board
-    rule areas whose layers include that side's copper (conservative)."""
+    rule areas that forbid footprints and whose layers include that side's
+    copper (conservative). A rule area whose footprints flag is "allowed"
+    only scopes a rule (e.g. a track width) and is not a placement keepout."""
     polys = []
     for k in (placement or {}).get("keepouts", []):
         ks = k.get("side", "both")
@@ -510,6 +512,8 @@ def _forbidden(model: PlaceModel, placement: dict | None, side: str):
                           k.get("reason", "keepout")))
     want = "F.Cu" if side == "front" else "B.Cu"
     for ra in model.rule_areas:
+        if (ra.get("flags") or {}).get("footprints") != "not_allowed":
+            continue
         lays = ra.get("layers") or []
         if want in lays or "*.Cu" in lays or not lays:
             polys.append((ra["outline"], f"rule area '{ra.get('name') or '?'}'"))

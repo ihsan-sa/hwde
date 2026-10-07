@@ -298,6 +298,30 @@ def test_outline_and_edge_rules(tmp_path_factory):
     assert not any(r == ("H1",) for _k, r in kinds)   # board_only exempt
 
 
+def _rule_area(name: str, footprints: str) -> str:
+    return (f'  (zone (net 0) (net_name "") (layers "F.Cu") (name "{name}")\n'
+            f'    (keepout (tracks allowed) (vias allowed) (pads allowed)\n'
+            f'      (copperpour allowed) (footprints {footprints}))\n'
+            f'    (polygon (pts (xy 8 8) (xy 12 8) (xy 12 12) (xy 8 12))))\n')
+
+
+def test_rule_area_scoping_only_is_not_a_keepout(tmp_path_factory):
+    # a rule area that only scopes a track-width rule (all flags allowed)
+    # must not flag parts inside it
+    body = _fp("A1", 10, 10) + _rule_area("sig_branch_X", "allowed")
+    m = _model(tmp_path_factory, "ra_allowed", body)
+    v = placelib.legality_violations(m, {})
+    assert not any(x["kind"] == "keepout_violation" for x in v)
+
+
+def test_rule_area_forbidding_footprints_is_a_keepout(tmp_path_factory):
+    body = _fp("A1", 10, 10) + _rule_area("no_parts", "not_allowed")
+    m = _model(tmp_path_factory, "ra_forbid", body)
+    v = placelib.legality_violations(m, {})
+    assert any(x["kind"] == "keepout_violation" and x["refs"] == ["A1"]
+               for x in v)
+
+
 def test_keepout_and_missing_courtyard(tmp_path_factory):
     body = _fp("A1", 10, 10) + _fp("N1", 25, 10, courtyard=None,
                                    pads=_pad("1", 0, 0, "X"))
@@ -472,6 +496,56 @@ def test_validate_text_ops_good():
 def test_validate_text_ops_rejects(doc):
     with pytest.raises(CheckError):
         place_edit.validate_ops(doc)
+
+
+def test_validate_set_text_ops_good():
+    ops = place_edit.validate_ops({"version": 1, "ops": [
+        {"op": "set_text", "ref": "C1", "field": "reference", "hide": True},
+        {"op": "set_text", "ref": "C2", "field": "reference",
+         "size": 0.8, "thickness": 0.15},
+        {"op": "set_text", "ref": "C3", "field": "value", "layer": "B.SilkS"},
+        # a field sent to a fab layer is not printed: no silk floor there
+        {"op": "set_text", "ref": "C4", "field": "reference",
+         "layer": "F.Fab", "size": 0.5, "thickness": 0.08},
+    ]})
+    assert len(ops) == 4
+
+
+def test_silk_text_floor_matches_checkers():
+    import check_silk
+    size, stroke = place_edit.silk_text_floor()
+    assert size == check_silk.MIN_TEXT_H == 0.8
+    assert stroke == 0.15          # JLC min_silk_width_mm > MIN_TEXT_TH
+
+
+@pytest.mark.parametrize("op", [
+    {"op": "set_text", "ref": "C1", "field": "reference"},   # no option
+    {"op": "set_text", "ref": "C1", "field": "lcsc", "hide": True},
+    {"op": "set_text", "field": "reference", "hide": True},  # missing ref
+    {"op": "set_text", "ref": "C1", "field": "reference", "hide": "yes"},
+    {"op": "set_text", "ref": "C1", "field": "reference", "layer": "F.Cu"},
+    {"op": "set_text", "ref": "C1", "field": "reference", "size": 0.6},
+    {"op": "set_text", "ref": "C1", "field": "reference", "size": 0.7,
+     "layer": "B.SilkS"},                                     # floor on B too
+    {"op": "set_text", "ref": "C1", "field": "reference",
+     "thickness": 0.12},                                      # fab width floor
+    {"op": "set_text", "ref": "C1", "field": "reference", "size": True},
+    {"op": "set_text", "ref": "C1", "field": "reference", "hide": True,
+     "x": 1.0},                                               # unknown key
+])
+def test_validate_set_text_ops_reject(op):
+    with pytest.raises(CheckError):
+        place_edit.validate_ops({"version": 1, "ops": [op]})
+
+
+def test_verify_set_text_reports_mismatch():
+    got = {"x": 0, "y": 0, "deg": 0, "layer": "F.SilkS", "hidden": False,
+           "size_x": 1.0, "size_y": 1.0, "thickness": 0.15}
+    op = {"op": "set_text", "ref": "C1", "field": "reference", "hide": True,
+          "size": 0.8, "layer": "B.SilkS", "thickness": 0.2}
+    assert len(place_edit._verify_set_text(op, got)) == 4
+    assert place_edit._verify_set_text(op, None) == [
+        "set_text C1.reference: field not found in saved board"]
 
 
 def test_expected_state_skips_text_ops():
@@ -853,6 +927,48 @@ def test_remove_text_relocates_gr_text(edit_board):
     place_edit.apply_ops(edit_board, ops)          # idempotent re-apply
     gr2, _ = place_edit._parse_board_texts(edit_board)
     assert len([t for t in gr2 if t["text"] == "K"]) == 1
+
+
+@pytest.mark.smoke
+def test_set_text_hides_shrinks_and_relayers(edit_board):
+    """set_text: the fix for a refdes with no legal spot (dense 0603 rows).
+    Hide, shrink to the floor and move to back silk (mirrored), each verified
+    by the driver's own parse; re-apply is a no-op."""
+    import check_silk
+    import sexpdata
+    ops = [
+        {"op": "set_text", "ref": "C9", "field": "reference", "hide": True},
+        {"op": "set_text", "ref": "C7", "field": "reference",
+         "size": 0.8, "thickness": 0.15},
+        {"op": "set_text", "ref": "C8", "field": "reference",
+         "layer": "B.SilkS"},
+    ]
+    results = place_edit.apply_ops(edit_board, ops)
+    assert results[0]["hidden"] is True
+    assert results[2]["layer"] == "B.SilkS"
+    _, fields = place_edit._parse_board_texts(edit_board)
+    assert fields[("C9", "reference")]["hidden"] is True
+    assert fields[("C7", "reference")]["size_y"] == pytest.approx(0.8)
+    assert fields[("C7", "reference")]["hidden"] is False
+    assert fields[("C8", "reference")]["layer"] == "B.SilkS"
+    text = edit_board.read_text(encoding="utf-8")
+    i = text.index('(property "Reference" "C8"')
+    assert "(justify mirror)" in text[i:text.index("(property", i + 10)]
+    # check_silk lists the hidden refdes for the assembly drawing
+    off = {d["ref"]: d["why"]
+           for d in check_silk.refdes_off_silk(sexpdata.loads(text))}
+    assert off.get("C9") == "hidden" and "C7" not in off
+    place_edit.apply_ops(edit_board, ops)              # idempotent
+    _, again = place_edit._parse_board_texts(edit_board)
+    assert again[("C9", "reference")]["hidden"] is True
+    # un-hide and back to front silk restores the label
+    place_edit.apply_ops(edit_board, [
+        {"op": "set_text", "ref": "C9", "field": "reference", "hide": False},
+        {"op": "set_text", "ref": "C8", "field": "reference",
+         "layer": "F.SilkS"}])
+    _, back = place_edit._parse_board_texts(edit_board)
+    assert back[("C9", "reference")]["hidden"] is False
+    assert back[("C8", "reference")]["layer"] == "F.SilkS"
 
 
 @pytest.mark.smoke

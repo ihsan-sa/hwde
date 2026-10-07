@@ -16,8 +16,9 @@ When the user says `run step N` (or just `step N`):
    Do not load prior steps' code beyond what the entry needs.
 2. Check prerequisites on the status board against the plan's dependency graph. Unmet -> stop
    and tell the user which step is missing.
-3. Grep `LEARNINGS.md` for the step's area tags BEFORE writing code; append new gotchas as hit
-   (append-only, dated, tagged).
+3. Grep `LEARNINGS.md` and `learnings.d/` for the step's area tags BEFORE writing code; add
+   each new gotcha as hit as its own file in `learnings.d/`, its triage row as its last line
+   (format: `learnings.d/README.md`; `LEARNINGS.md` is a closed archive - never append to it).
 4. Honor the plan's Conventions: smoke-test any "verify-later" claim the step first touches
    before building on it; scripts follow the SPEC.md section 6 contract (argparse, JSON to
    stdout or --out, exit 0/1/2, no interactivity, ASCII-safe output).

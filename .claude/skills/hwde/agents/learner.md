@@ -71,7 +71,8 @@ SAME commit.
 2. Scorer terms committed + touched baselines re-recorded, same commit.
 3. Records indexed: `knowledge.py --validate` green, topology views
    re-rendered, consumed queue entries ruled via `learnings.py resolve`.
-4. Root LEARNINGS entries + design/ladder-triage.md rows, same session.
+4. Root lessons, same session: one `learnings.d/` file each, its triage
+   row as its last line (`learnings.d/README.md`).
 5. `bench.py --compare` on the stage's OTHER frozen fixtures - exit 1 on
    any = fix before closing.
 6. Commit by explicit paths; end with the output contract.

@@ -40,9 +40,16 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(autouse=True)
-def _never_file_documents(monkeypatch):
+def _never_file_documents(monkeypatch, tmp_path_factory):
     for k in [k for k in os.environ if k.startswith("DOC_")]:
         monkeypatch.delenv(k)
+    # report_gen looks the board's filed documents up in cc-docs' register:
+    # never the owner's, so a test reads an empty one unless it writes its own
+    # (the env var reaches scripts a test runs as subprocesses too)
+    empty = tmp_path_factory.mktemp("no-docs-register")
+    monkeypatch.setenv("CC_DOCS_ROOT", str(empty))
+    if "report_gen" in sys.modules:
+        monkeypatch.setattr(sys.modules["report_gen"], "DOCS_HOME", empty)
     dirs = [d for d in os.environ.get("PATH", "").split(os.pathsep)
             if d and not os.access(os.path.join(d, "cc-docs"), os.X_OK)]
     monkeypatch.setenv("PATH", os.pathsep.join(dirs))
@@ -56,3 +63,8 @@ def _easyeda_offline(monkeypatch, tmp_path_factory):
     monkeypatch.setenv("HWDE_EASYEDA_OFFLINE", "1")
     monkeypatch.setenv("HWDE_EASYEDA_CACHE",
                        str(tmp_path_factory.mktemp("easyeda_empty")))
+    # The rate-limit latch is process state: one test's mocked 403 must not
+    # skip every later test's fetches.
+    mod = sys.modules.get("easyeda")
+    if mod is not None and hasattr(mod, "reset_rate_limit"):
+        mod.reset_rate_limit()

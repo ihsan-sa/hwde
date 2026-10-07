@@ -19,6 +19,11 @@ only then does os.replace() swap it in (same volume -> atomic). Any failure
 leaves the original board byte-identical. Re-applying the same op list is
 idempotent (ops are absolute). exit 0 applied+verified / 2 error (rolled back).
 
+set_text (hide / resize / re-layer a Reference or Value field) is the fix
+for a refdes with no legal spot near its own pads (dense 0603 rows): on a
+silk layer it refuses a size below check_silk's legibility floor or a stroke
+below the fab's silk width floor (silk_text_floor()).
+
 Note: KiCad regenerates footprint/graphic UUIDs on every save, so two saves of
 the same placement are NOT byte-identical - compare parsed positions, never
 file hashes.
@@ -58,6 +63,10 @@ OP_FIELDS = {  # op -> (required, optional)
     # (add_text matches on the TARGET position, so it can never move one).
     "remove_text": ({"text", "x", "y", "layer"}, set()),
     "move_text": ({"ref", "field", "x", "y"}, {"deg"}),
+    # hide / resize / re-layer a Reference|Value field in place: the fix when
+    # no legal spot for a refdes exists near its own pads (dense 0603 rows),
+    # where move_text has nowhere to go. Needs at least one of the options.
+    "set_text": ({"ref", "field"}, {"hide", "size", "thickness", "layer"}),
     # footprint-INTERNAL silk graphics on an already-placed board: a library
     # edit cannot reach one without re-running board_init (and losing the
     # placement), so this is the only scripted route. Never touches text.
@@ -67,6 +76,32 @@ TEXT_LAYERS = {"F.SilkS", "B.SilkS", "F.Fab", "B.Fab"}
 POS_TOL = 1e-3   # mm
 ANG_TOL = 0.05   # deg
 FOOTPRINT_OPS = {"place", "move", "rotate", "flip"}  # copper-relevant ops
+TEXT_OPS = ("add_text", "remove_text", "move_text", "set_text")
+SILK_LAYERS = {"F.SilkS", "B.SilkS"}
+SIZE_TOL = 1e-3  # mm
+
+
+def silk_text_floor() -> tuple[float, float]:
+    """(min size, min stroke) for refdes/value text that stays on silk.
+
+    Size is check_silk's legibility floor (MIN_TEXT_H, measured on size_y).
+    Stroke is the larger of check_silk's MIN_TEXT_TH and the fab's silk width
+    floor (jlc_capabilities.yaml min_silk_width_mm, the same number
+    rules_gen writes as the .kicad_dru aiee_silk_width_floor text_thickness
+    rule), taken across every profile because the op does not know the
+    board's. A shrink below either would trade one finding for another."""
+    if str(SCRIPTS) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS))
+    import check_silk
+    import yaml
+    caps = yaml.safe_load((SCRIPTS.parent / "reference"
+                           / "jlc_capabilities.yaml").read_text(
+                               encoding="utf-8"))
+    widths = [row["min_silk_width_mm"]
+              for row in (caps.get("design_rules") or {}).values()
+              if isinstance(row, dict) and "min_silk_width_mm" in row]
+    return (check_silk.MIN_TEXT_H,
+            max([check_silk.MIN_TEXT_TH] + widths))
 
 
 def board_routed(pcb: Path) -> bool:
@@ -113,8 +148,11 @@ def validate_ops(doc: dict) -> list[dict]:
                 if k in op and not (isinstance(op[k], (int, float))
                                     and 0 < op[k] < 20):
                     raise CheckError(f"ops[{i}]: {k} out of range")
-        if kind == "move_text" and op["field"] not in ("reference", "value"):
+        if kind in ("move_text", "set_text") \
+                and op["field"] not in ("reference", "value"):
             raise CheckError(f"ops[{i}]: field must be reference|value")
+        if kind == "set_text":
+            _validate_set_text(i, op)
         if kind == "silk_clear":
             if op.get("layer", "F.SilkS") not in ("F.SilkS", "B.SilkS"):
                 raise CheckError(f"ops[{i}]: layer must be F.SilkS|B.SilkS")
@@ -124,11 +162,43 @@ def validate_ops(doc: dict) -> list[dict]:
     return ops
 
 
+def _validate_set_text(i: int, op: dict) -> None:
+    if not op.keys() & {"hide", "size", "thickness", "layer"}:
+        raise CheckError(f"ops[{i}] (set_text): needs at least one of "
+                         "hide, size, thickness, layer")
+    if "hide" in op and not isinstance(op["hide"], bool):
+        raise CheckError(f"ops[{i}]: hide must be a boolean")
+    if "layer" in op and op["layer"] not in TEXT_LAYERS:
+        raise CheckError(f"ops[{i}]: layer must be one of "
+                         f"{sorted(TEXT_LAYERS)}")
+    for k in ("size", "thickness"):
+        if k in op and not (isinstance(op[k], (int, float))
+                            and not isinstance(op[k], bool)
+                            and 0 < op[k] < 20):
+            raise CheckError(f"ops[{i}]: {k} out of range")
+    # the floor holds unless the op explicitly sends the field to a fab
+    # layer (fab text is never printed); without a layer the field is
+    # assumed to stay on silk, which is where refdes fields live
+    if op.get("layer", "F.SilkS") in SILK_LAYERS \
+            and ("size" in op or "thickness" in op):
+        min_size, min_th = silk_text_floor()
+        if "size" in op and op["size"] + 1e-9 < min_size:
+            raise CheckError(
+                f"ops[{i}] (set_text): size {op['size']} mm is below the "
+                f"{min_size} mm silk legibility floor (check_silk) - hide "
+                "the field instead")
+        if "thickness" in op and op["thickness"] + 1e-9 < min_th:
+            raise CheckError(
+                f"ops[{i}] (set_text): thickness {op['thickness']} mm is "
+                f"below the {min_th} mm silk stroke floor (fab min silk "
+                "width)")
+
+
 def _expected_state(ops: list[dict]) -> dict[str, dict]:
     """Fold the op list into the final expected {ref: {x,y,deg,side,locked}}."""
     want: dict[str, dict] = {}
     for op in ops:
-        if op["op"] in ("add_text", "remove_text", "move_text"):
+        if op["op"] in TEXT_OPS:
             continue  # verified independently by _verify_texts
         if op["op"] == "silk_clear":
             continue  # moves nothing; the worker reports what it removed
@@ -222,23 +292,75 @@ def _parse_board_texts(pcb: Path):
                                 lx, ly = float(p[1]), float(p[2])
                                 if len(p) > 3:
                                     adeg = float(p[3])
-                        props[pname] = (_sx_str(sub[2]), lx, ly, adeg)
+                        props[pname] = (_sx_str(sub[2]), lx, ly, adeg,
+                                        _field_style(sub))
             if fx is None or "reference" not in props:
                 continue
             ref = props["reference"][0]
             th = math.radians(fdeg or 0.0)
-            for pname, (_, lx, ly, adeg) in props.items():
+            for pname, (_, lx, ly, adeg, style) in props.items():
                 if lx is None:
                     continue
                 ax = fx + lx * math.cos(th) + ly * math.sin(th)
                 ay = fy - lx * math.sin(th) + ly * math.cos(th)
-                fields[(ref, pname)] = {"x": ax, "y": ay, "deg": adeg}
+                fields[(ref, pname)] = {"x": ax, "y": ay, "deg": adeg,
+                                        **style}
     return gr_texts, fields
 
 
+def _field_style(prop) -> dict:
+    """{layer, hidden, size_x, size_y, thickness} of a footprint property.
+
+    Hidden is `(hide yes)` on the property (KiCad 8+; `(hide no)` is shown),
+    or the older bare `hide` token inside (effects ...)."""
+    import sexpdata
+    out = {"layer": None, "hidden": False, "size_x": None, "size_y": None,
+           "thickness": None}
+    for p in prop[3:]:
+        h = _sx_head(p)
+        if h == "layer" and len(p) > 1:
+            out["layer"] = _sx_str(p[1])
+        elif h == "hide":
+            out["hidden"] = not (len(p) > 1 and _sx_str(p[1]) == "no")
+        elif h == "effects":
+            for e in p[1:]:
+                if isinstance(e, sexpdata.Symbol) and e.value() == "hide":
+                    out["hidden"] = True
+                if _sx_head(e) != "font":
+                    continue
+                for f in e[1:]:
+                    fh = _sx_head(f)
+                    if fh == "size" and len(f) >= 3:
+                        out["size_x"], out["size_y"] = float(f[1]), float(f[2])
+                    elif fh == "thickness" and len(f) >= 2:
+                        out["thickness"] = float(f[1])
+    return out
+
+
+def _verify_set_text(op: dict, got: dict | None) -> list[str]:
+    tag = f"set_text {op['ref']}.{op['field']}"
+    if got is None:
+        return [f"{tag}: field not found in saved board"]
+    problems = []
+    if "hide" in op and got["hidden"] != op["hide"]:
+        problems.append(f"{tag}: hidden {got['hidden']} != {op['hide']}")
+    if "layer" in op and got["layer"] != op["layer"]:
+        problems.append(f"{tag}: layer {got['layer']} != {op['layer']}")
+    if "size" in op and (got["size_y"] is None
+                         or abs(got["size_x"] - op["size"]) > SIZE_TOL
+                         or abs(got["size_y"] - op["size"]) > SIZE_TOL):
+        problems.append(f"{tag}: size ({got['size_x']}, {got['size_y']}) "
+                        f"!= {op['size']}")
+    if "thickness" in op and (got["thickness"] is None
+                              or abs(got["thickness"] - op["thickness"])
+                              > SIZE_TOL):
+        problems.append(f"{tag}: thickness {got['thickness']} != "
+                        f"{op['thickness']}")
+    return problems
+
+
 def _verify_texts(pcb: Path, ops: list[dict]) -> list[str]:
-    text_ops = [op for op in ops
-                if op["op"] in ("add_text", "remove_text", "move_text")]
+    text_ops = [op for op in ops if op["op"] in TEXT_OPS]
     if not text_ops:
         return []
     problems = []
@@ -266,6 +388,9 @@ def _verify_texts(pcb: Path, ops: list[dict]) -> list[str]:
                     and _angdiff(hits[0]["deg"], op["deg"]) > ANG_TOL:
                 problems.append(f"add_text '{op['text']}': angle "
                                 f"{hits[0]['deg']} != {op['deg']}")
+        elif op["op"] == "set_text":
+            problems += _verify_set_text(op, fields.get((op["ref"],
+                                                         op["field"])))
         else:
             got = fields.get((op["ref"], op["field"]))
             if got is None:

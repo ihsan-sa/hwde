@@ -7,7 +7,9 @@ the owner's: PCB-0021-A lipo-boost J4 (USB-A, mouth into the board toward L1)
 and PCB-0018-A bldc-motor-driver J701/J702 (mouths into the board, backs at
 the edge), read from trimmed copies frozen before and after each fix under
 tests/fixtures/mating/ (README there), never from the live boards repo. The
-golden corpus's planted fault (usb-faces-inward) is checked here too.
+golden corpus's planted fault (usb-faces-inward) is checked here too, and
+PCB-0023-A's edge-launch SMAs, whose 3D models face into the board, are read
+from the boards repo through tests/_boards.py (skipped when it is absent).
 """
 from __future__ import annotations
 
@@ -23,6 +25,7 @@ import matinglib  # noqa: E402
 import place_metrics  # noqa: E402
 import placelib  # noqa: E402
 import yaml  # noqa: E402
+from _boards import real_board  # noqa: E402
 
 FIXTURES = REPO / "tests" / "fixtures" / "mating"
 GOLDEN = REPO / "tests" / "golden"
@@ -34,7 +37,7 @@ def _pad(num, x, y, w, h, kind="smd rect", layers='"F.Cu"'):
 
 
 def _fp(ref, fpid, x, y, angle=0.0, pads="", cy=(-1.0, -1.0, 1.0, 1.0),
-        layer="F.Cu"):
+        layer="F.Cu", extra=""):
     crt = "F.CrtYd" if layer == "F.Cu" else "B.CrtYd"
     at = f"(at {x} {y} {angle})" if angle else f"(at {x} {y})"
     return (f'  (footprint "t:{fpid}" (layer "{layer}")\n    {at}\n'
@@ -42,7 +45,7 @@ def _fp(ref, fpid, x, y, angle=0.0, pads="", cy=(-1.0, -1.0, 1.0, 1.0),
             f'    (attr smd)\n'
             f'    (fp_rect (start {cy[0]} {cy[1]}) (end {cy[2]} {cy[3]})'
             f' (stroke (width 0.05)) (fill no) (layer "{crt}"))\n'
-            f'{pads})\n')
+            f'{pads}{extra})\n')
 
 
 def _board(tmp_path, body, w=30.0, h=20.0) -> Path:
@@ -89,6 +92,12 @@ def test_family_table_matches_and_skips():
     # the DO-214AC diode package is called SMA too - not a connector
     assert matinglib.family_of("aiee:SMA_L4.3-W2.6-LS5.2-RD") is None
     assert matinglib.family_of("aiee:CONN-TH_P5.08_KF128-5.08-2P") is None
+    # BAT Wireless KE = "PCB-end" edge launch (PCB-0023-A), KWE = right
+    # angle; both enter parallel to the board. Plain SMA-SMD is vertical.
+    for name in ("aiee:SMA-SMD_BWSMA-KE-P001", "aiee:SMA-TH_BWSMA-KWE-Z001"):
+        assert matinglib.family_of(name)["family"] == "sma_edge", name
+    assert matinglib.family_of("aiee:SMA-SMD_BWSMA-KHD-P001")["family"] \
+        == "sma_vertical"
 
 
 def test_mouth_read_from_pad_layout_and_rotation(tmp_path):
@@ -231,3 +240,132 @@ def test_golden_usb_faces_inward_mutant_caught():
     gold, _ = check_mating.run(["--pcb", str(
         GOLDEN / m["board"] / f"{m['board']}.kicad_pcb")])
     assert gold["status"] == "pass"
+
+
+# ---------------------------------- the straddle class and the 3D model's way
+
+# An edge-launch SMA like PCB-0023-A's BWSMA-KE-P001: five SMD pads at
+# x = 0 (three on F.Cu, two on B.Cu, the legs clamping the board edge), the
+# flange and barrel reaching to +x - the mouth is +x.
+STRADDLE_PADS = "".join(_pad(str(i), 0, y, 4.8, 1.2)
+                        for i, y in ((1, 2.55), (2, -2.55), (5, 0.0))) + \
+    "".join(_pad(str(i), 0, y, 4.8, 1.2, layers='"B.Cu"')
+            for i, y in ((3, -2.55), (4, 2.55)))
+STRADDLE_CY = (-2.65, -3.25, 4.42, 3.25)
+
+
+def _box_wrl(path, x0, x1, y0, y1, z0, z1):
+    """A one-shape VRML box (mm in, VRML units of 2.54 mm out)."""
+    pts = ", ".join(f"{x / 2.54} {y / 2.54} {z / 2.54}"
+                    for x in (x0, x1) for y in (y0, y1) for z in (z0, z1))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("#VRML V2.0 utf8\nShape { geometry IndexedFaceSet {"
+                    f" coord Coordinate {{ point [ {pts} ] }} }} }}\n",
+                    encoding="utf-8")
+    return path
+
+
+def _sma(ref, fpid, x, y, angle=0.0, model=None, rot=(0, 0, 0)):
+    extra = ""
+    if model is not None:
+        extra = (f'    (model "{model}" (offset (xyz 0 0 0))'
+                 f' (scale (xyz 1 1 1))'
+                 f' (rotate (xyz {rot[0]} {rot[1]} {rot[2]})))\n')
+    return _fp(ref, fpid, x, y, angle, STRADDLE_PADS, STRADDLE_CY,
+               extra=extra)
+
+
+def test_pads_on_both_sides_make_a_vertical_name_horizontal(tmp_path):
+    # named like a vertical SMA, but its legs straddle the board: J1 faces
+    # the right edge, J2 beside it (turned 180) faces into 25 mm of board
+    pcb = _board(tmp_path, _sma("J1", "SMA-SMD_TEST", 27.5, 5)
+                 + _sma("J2", "SMA-SMD_TEST", 27.5, 15, 180))
+    vs, facts = _run(pcb)
+    by = {f["ref"]: f for f in facts}
+    for ref in ("J1", "J2"):
+        assert by[ref]["family"] == "sma_vertical"
+        assert by[ref]["entry"] == "horizontal"
+        assert by[ref]["entry_from"] == "pads on both outer layers"
+    assert by["J1"]["mouth"] == by["J1"]["nearest_edge"] == "+x"
+    inward = [v for v in vs if v["kind"] == "mating_faces_inward"]
+    assert [v["connector"] for v in inward] == ["J2"]
+    assert not [v for v in vs if v["connector"] == "J1"]
+
+
+def test_one_sided_vertical_sma_stays_vertical(tmp_path):
+    pads = "".join(_pad(str(i), x, y, 1.0, 1.0) for i, (x, y) in
+                   enumerate(((0, 0), (-2, -2), (2, -2), (-2, 2), (2, 2))))
+    pcb = _board(tmp_path, _fp("J1", "SMA-SMD_TEST", 15, 10, pads=pads,
+                               cy=(-3, -3, 3, 3)))
+    _, facts = _run(pcb)
+    assert facts[0]["entry"] == "vertical" and "entry_from" not in facts[0]
+
+
+def test_model_turned_round_is_caught_and_a_shifted_one_is_not(tmp_path):
+    # The model is drawn mouth +x from the leg line, like the copper. J1
+    # carries it as drawn; J2 turned 180 about z (PCB-0023-A's fault: it
+    # then lies wholly behind the legs); J3 pushed 9 mm back by its offset,
+    # so its centre sits behind the legs but it still reaches ahead of them
+    # (PCB-0025-A J101's case, 5.6 mm back): misplaced, not turned round.
+    wrl = _box_wrl(tmp_path / "lib" / "t.3dshapes" / "sma.wrl",
+                   0.45, 13.95, -3.25, 3.25, -3.25, 3.25)
+    shifted = _sma("J3", "SMA-SMD_BWSMA-KE-P001", 27.5, 17, model=wrl)
+    shifted = shifted.replace("(offset (xyz 0 0 0))", "(offset (xyz -9 0 0))")
+    pcb = _board(tmp_path, _sma("J1", "SMA-SMD_BWSMA-KE-P001", 27.5, 3,
+                                model=wrl)
+                 + _sma("J2", "SMA-SMD_BWSMA-KE-P001", 27.5, 10, model=wrl,
+                        rot=(0, 0, 180)) + shifted)
+    vs, facts = _run(pcb)
+    by = {f["ref"]: f for f in facts}
+    assert by["J1"]["family"] == "sma_edge"
+    assert by["J1"]["model_span_mm"] == [0.45, 13.95]
+    assert by["J2"]["model_span_mm"] == [-13.95, -0.45]
+    assert by["J3"]["model_span_mm"] == [-8.55, 4.95]
+    assert [(v["kind"], v["connector"]) for v in vs] == [
+        ("mating_model_reversed", "J2")]
+    v = vs[0]
+    assert v["mouth"] == "+x" and v["model_mouth"] == "-x"
+    assert v["severity"] == "error"
+
+
+def test_model_found_beside_the_board_and_absent_is_not_failed(tmp_path):
+    # a path baked in another checkout resolves to the workspace's
+    # lib/*.3dshapes; no .wrl at all is a fact, never a failure
+    ws = tmp_path / "ws"
+    _box_wrl(ws / "lib" / "t.3dshapes" / "sma.wrl",
+             0.45, 13.95, -3.25, 3.25, -3.25, 3.25)
+    (ws / "kicad").mkdir()
+    pcb = _board(ws / "kicad", _sma(
+        "J1", "SMA-SMD_BWSMA-KE-P001", 27.5, 5,
+        model="/elsewhere/lib/t.3dshapes/sma.wrl", rot=(0, 0, 180))
+        + _sma("J2", "SMA-SMD_BWSMA-KE-P001", 27.5, 15,
+               model="/elsewhere/lib/t.3dshapes/gone.step"))
+    vs, facts = _run(pcb)
+    by = {f["ref"]: f for f in facts}
+    assert [v["connector"] for v in vs] == ["J1"]
+    assert by["J2"]["model_span_mm"] is None
+
+
+def test_gan_rf_inverter_smas_face_their_edges_with_models_turned_round():
+    """PCB-0023-A J101/J102/J501 (owner, 2026-10-06: "SMAs backwards"): the
+    copper faces each SMA's edge, the 3D model (rotate 0 270 180) faces
+    into the board. Before the fix the name read as a vertical SMA and the
+    direction was never checked."""
+    ws = real_board("gan-rf-inverter")
+    pcb = next((ws / "kicad").glob("*.kicad_pcb"))
+    vs, facts = _run(pcb)
+    smas = {f["ref"]: f for f in facts if f["ref"] in ("J101", "J102", "J501")}
+    assert set(smas) == {"J101", "J102", "J501"}
+    for f in smas.values():
+        assert f["family"] == "sma_edge" and f["entry"] == "horizontal"
+        assert f["mouth"] == f["nearest_edge"]
+    copper = [v for v in vs if v["connector"] in smas
+              and v["kind"] != "mating_model_reversed"]
+    assert copper == []
+    # the model fault is flagged for exactly the SMAs whose model still lies
+    # behind the legs, so this holds before and after the board is fixed
+    reversed_ = {v["connector"] for v in vs
+                 if v["kind"] == "mating_model_reversed"}
+    assert reversed_ == {r for r, f in smas.items()
+                         if f["model_span_mm"] and f["model_span_mm"][1] < 1}
+    assert all(f["model_span_mm"] is not None for f in smas.values())
