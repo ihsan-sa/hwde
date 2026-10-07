@@ -93,6 +93,13 @@ A "less is better" value scores 1 at or under its bound and falls linearly to
 composite = 100 - 45*(1-electrical) - 20*(1-layout) - 35*(1-cost)
 ```
 
+That is the bench's composite. A brief with a known-answer in the repo's
+`evals/known_answers/` (usbc_ldo, stereo_amp) is also scored by
+`evals/e2e_electrical.py` (datasheet pin-level connectivity, values, power
+and thermal, decap distance, ERC/DRC gates), and the eval run record's
+composite is then `100*(0.70*E + 0.15*layout + 0.15*cost)`, with the bench's
+kept as `composite_bench`.
+
 Cost keeps EEBench's 0.35, and electrical plus layout split its 0.65
 technical share. `e2e.eebench_equiv = 100*(0.65*electrical + 0.35*cost)` is
 what EEBench's own split would say, with no layout term. Baselines live in
