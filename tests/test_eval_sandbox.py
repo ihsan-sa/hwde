@@ -375,6 +375,22 @@ def test_key_mode_passes_the_key_in_the_environment_only(keyenv, monkeypatch):
     assert calls[1]["creds"] == creds and calls[1]["add_env"] == {}
 
 
+def test_effort_is_passed_to_claude_and_recorded(keyenv, monkeypatch):
+    tmp, creds = keyenv
+    creds.write_text("{}")
+    calls, argv = _fake_run(monkeypatch, tmp)
+    e2e_run.main(argv + ["--effort", "medium"])
+    cmd = calls[0]["cmd"]
+    assert cmd[cmd.index("--effort") + 1] == "medium"
+    rec = json.loads((tmp / "out.jsonl").read_text())
+    assert rec["effort"] == "medium"
+    # unset: no flag, so claude keeps its own default
+    e2e_run.main(argv + ["--seed", "2"])
+    assert "--effort" not in calls[1]["cmd"]
+    with pytest.raises(SystemExit):
+        e2e_run.main(argv + ["--effort", "huge"])
+
+
 def test_a_named_missing_key_file_starts_no_run(keyenv, monkeypatch):
     tmp, creds = keyenv
     creds.write_text("{}")
@@ -451,6 +467,18 @@ def test_allowed_tools_scope_bash():
     assert ("Bash(python3 .claude/skills/hwde/scripts/*)"
             in e2e_run.ALLOWED_TOOLS["hwde"])
     assert not any("python3:" in t for t in e2e_run.ALLOWED_TOOLS["hwde"])
+
+
+def test_the_bare_arm_gets_the_hwde_arms_tools_minus_the_skill():
+    """Owner, 2026-10-06: the arms differ only by /hwde. Bare = hwde minus
+    Skill and the skill-script grants, plus python on any script."""
+    hwde, bare = e2e_run.ALLOWED_TOOLS["hwde"], e2e_run.ALLOWED_TOOLS["bare"]
+    scripts = {t for t in hwde if t.startswith("Bash(")
+               and any(sc in t for sc in e2e_run._SCRIPTS)}
+    assert scripts
+    assert (set(bare) - {"Bash(python3:*)", "Bash(python:*)"}
+            == set(hwde) - {"Skill"} - scripts)
+    assert "Agent" in bare and "Skill" not in bare
 
 
 def test_paused_project_starts_no_run(monkeypatch):
