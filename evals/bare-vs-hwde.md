@@ -4,9 +4,10 @@ Each run got the same brief in the e2e sandbox (`evals/e2e_run.py`), with
 claude-opus-5-5 at medium effort. The bare arm has no skill. "bare" runs
 predate the tool-parity change, so they had no Agent tool and no hint about
 the egress allowlist; "bare+tools" runs have both, so they get the hwde arm's
-tools minus the Skill. The score is the electrical composite from
-`evals/e2e_electrical.py --rescore` (0-100, checked against a hidden known
-answer). Run records: `bare-vs-hwde.jsonl` (LDO) and `bare-amp.jsonl` (amp, RF).
+tools minus the Skill. Run records: `bare-vs-hwde.jsonl` (LDO) and
+`bare-amp.jsonl` (amp, RF).
+
+The table's scores come from `evals/e2e_electrical.py --rescore` (0-100, checked against a hidden known answer); a record's `composite` field is the bench score recorded at run time, so the two differ.
 
 | Brief | Run | Score | Cost | Wall | Main faults |
 |---|---|---|---|---|---|
@@ -18,7 +19,7 @@ answer). Run records: `bare-vs-hwde.jsonl` (LDO) and `bare-amp.jsonl` (amp, RF).
 | Stereo amp | bare+tools s1 | 63.5 | unknown | unknown | no thermal pad vias (fatal); +12V and output traces too thin. Session died after the board was done; scored from the work dir |
 | Stereo amp | bare+tools s2 | 50.0 | $12.33 | 51 min | no thermal pad vias (fatal); +12V at 0.30 mm for 2 A; PVCC, GVDD and bootstrap caps 3.4-4.4 mm out |
 | Stereo amp | hwde PCB-0017-A | 89.40 | - | - | output traces 0.30 mm for 1.5 A; PVCC and bootstrap caps 3.1-4.9 mm out |
-| GaN RF inverter | bare+tools s1 | no known answer yet | $14.36 | 60 min | see below |
+| GaN RF inverter | bare+tools s1 | bench 57.74; no electrical known-answer yet | $14.36 | 60 min | see below |
 
 The amp's hwde row is the board hwde built for PCB-0017-A outside the eval,
 scored against the same known answer, so it has no eval cost or wall time.
