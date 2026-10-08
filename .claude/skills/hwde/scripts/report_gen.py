@@ -66,6 +66,18 @@ fab set that changed under an unchanged PDF still goes up; a failed attach
 warns and leaves the stamp alone. The payload's `attached` lists the names
 put up this run. A board with no fab set files as before. The workspace may be named by its directory, the board's old name or
 its part number (lib/boardreg.py resolves the last two).
+--note TEXT (only with --file) is the filed revision's note, passed as
+`cc-docs file --note`; an unchanged rebuild files nothing and warns that
+the note was dropped.
+
+The Verification section (and the highlight's Checks and Cost) lists the
+board's accepted verify waivers, one item each: what fires (check, kind),
+where (net, refs, pos), the reason, `approved` (who accepted it and when)
+and `expires`, each only when the entry has it. They are read as the verify
+gate reads them (releaselib.waivers_for_input + gate.load_waivers); a file
+the gate would refuse is a warning and a line saying so, and a board with
+no reports/verify-waivers.json gets nothing. The highlight cuts each reason
+at HL_REASON_CAP characters.
 
 --kind picks the document (KINDS): `design` (the default, everything above),
 `highlight` (a few pages: the brief's opening, the board's facts, top and
@@ -104,9 +116,9 @@ Exit 2 "error"  = unusable workspace / internal error (a bad HWDE_LUALATEX
                   pin propagates here - loud, never degraded).
 
 CLI:
-  report_gen.py --workspace ~/dev/boards/<name> [--out report.json] [--tex-only] [--file]
-                [--name NAME] [--kind design|highlight|full] [--render-history]
-                [--render-layers] [--history-ref REF]
+  report_gen.py --workspace ~/dev/boards/<name> [--out report.json] [--tex-only]
+                [--file [--note TEXT]] [--name NAME] [--kind design|highlight|full]
+                [--render-history] [--render-layers] [--history-ref REF]
 """
 from __future__ import annotations
 
@@ -460,6 +472,65 @@ def read_json(ws: Path, rel: str) -> dict | None:
         return None
 
 
+VERIFY_WAIVERS = "verify-waivers.json"
+HL_REASON_CAP = 260   # the highlight cuts a waiver's reason here
+
+
+def verify_waivers(ws: Path) -> tuple[list[dict], str | None, str | None]:
+    """The board's verify waivers as the verify gate reads them: the file
+    releaselib.waivers_for_input resolves for this workspace (the first
+    parent of state.json holding state.json is the workspace itself), loaded
+    and checked by gate.load_waivers. Returns (waivers, the file's path
+    relative to the workspace, None); ([], path, error) for a file the gate
+    would refuse; ([], None, None) for a board with none."""
+    from lib import releaselib
+    path = releaselib.waivers_for_input(ws / "state.json", VERIFY_WAIVERS)
+    if path is None:
+        return [], None, None
+    try:
+        rel = path.resolve().relative_to(ws.resolve()).as_posix()
+    except ValueError:
+        rel = str(path)
+    import gate  # sibling script, loaded only for a board with waivers
+    try:
+        return gate.load_waivers(path), rel, None
+    except (OSError, ValueError, RuntimeError, AttributeError) as exc:
+        return [], rel, f"{type(exc).__name__}: {exc}"
+
+
+def waiver_item(w: dict, reason_cap: int | None = None) -> str:
+    """One verify waiver as a LaTeX \\item: what fires (check, kind), where
+    (net, refs, pos), the reason, who accepted it and when (`approved`) and
+    `expires`. A field the entry lacks is left out, never filled in."""
+    fires = " / ".join(str(w[k]) for k in ("check", "kind") if w.get(k))
+    where = []
+    if w.get("net"):
+        where.append(f"net {w['net']}")
+    refs = w.get("refs")
+    if refs:
+        where.append("refs " + (", ".join(map(str, refs))
+                                if isinstance(refs, list) else str(refs)))
+    pos = w.get("pos")
+    if pos is not None:
+        try:
+            where.append(f"at ({float(pos[0]):g}, {float(pos[1]):g}) mm")
+        except (TypeError, ValueError, IndexError, KeyError):
+            where.append(f"at {pos}")
+    head = r"\textbf{" + latex_escape(fires) + "}"
+    if where:
+        head += " on " + latex_escape(", ".join(where))
+    lines = [head + "."]
+    reason = " ".join(str(w.get("reason") or "").split())
+    if reason:
+        if reason_cap and len(reason) > reason_cap:
+            reason = reason[:reason_cap - 3].rstrip() + "..."
+        lines.append("Reason: " + latex_escape(reason))
+    for key, label in (("approved", "Accepted"), ("expires", "Expires")):
+        if str(w.get(key) or "").strip():
+            lines.append(f"{label}: " + latex_escape(" ".join(str(w[key]).split())))
+    return r"\item " + " \\par\n".join(lines)
+
+
 SPEND_REL = "reports/design_spend.json"
 
 
@@ -802,6 +873,7 @@ class DocBuilder:
         else:
             self.warn("reports/verify_all.json not found or unparseable")
             self.body.append(r"\emph{reports/verify\_all.json not available.}")
+        self.verify_waiver_block(used)
         review = read_text(self.ws, "reports/review-board.md")
         if review is not None:
             self.body.append(r"\subsection*{Design review of record}")
@@ -811,6 +883,35 @@ class DocBuilder:
             self.warn("reports/review-board.md not found")
         self.record("verification", "included" if used else "missing",
                     ", ".join(used) or "reports/verify_all.json")
+
+    def verify_waiver_block(self, used: list[str],
+                            reason_cap: int | None = None) -> None:
+        """The findings a person accepted instead of fixing, one
+        item per entry of its verify-waivers.json (verify_waivers). Nothing
+        at all for a board without one, or with an empty list; a file the
+        gate would refuse is a warning and a line saying so."""
+        waivers, rel, err = verify_waivers(self.ws)
+        if rel is None or not (waivers or err):
+            return
+        used.append(rel)
+        self.body.append(r"\subsection*{Accepted verify waivers}")
+        if err:
+            self.warn(f"{rel} could not be read: {err}")
+            self.body.append(r"\emph{" + latex_escape(
+                f"{rel} could not be read: {err}") + "}")
+            return
+        n = len(waivers)
+        self.body.append(latex_escape(
+            f"{n} verify finding{'s were' if n != 1 else ' was'} accepted rather "
+            "than fixed. The verify gate still reports each one as waived but "
+            f"does not fail on it ({rel}).") + "\n")
+        self.body.append("\\begin{itemize}")
+        self.body.extend(waiver_item(w, reason_cap) for w in waivers)
+        self.body.append("\\end{itemize}")
+        if reason_cap and any(len(" ".join(str(w.get("reason") or "").split()))
+                              > reason_cap for w in waivers):
+            self.body.append(latex_escape(
+                "The design doc gives each reason in full.") + "\n")
 
     def castellation_line(self, bom: dict | None, order: dict | None) -> None:
         """Say 'castellated' only when the board has castellated pads: the
@@ -1213,6 +1314,7 @@ class DocBuilder:
         self.body.append(longtable("llrr", [r"\textbf{Gate}", r"\textbf{Status}",
                                             r"\textbf{Attempts}", r"\textbf{Failing}"], rows))
         used = ["state.json"]
+        self.verify_waiver_block(used, HL_REASON_CAP)
         cheap = (read_json(self.ws, "fab/quote.json") or {}).get("cheapest") or {}
         if isinstance(cheap.get("total"), (int, float)):
             self.body.append(latex_escape(
@@ -1808,17 +1910,20 @@ def doc_target(ws: Path | None, board: str,
 
 def cc_docs_args(ws: Path | None, board: str, pdf: Path,
                  project: str | None = None, kind: str = "design",
-                 title: str | None = None) -> list[str]:
+                 title: str | None = None, note: str | None = None) -> list[str]:
     """The `cc-docs file` arguments for this board's document of `kind`
-    into `project` with `title` (both default to doc_target's): the part
-    number it describes when the register has one, and one --cost per step
-    of reports/cost.json that carries a number (neither without a ws)."""
+    into `project` with `title` (both default to doc_target's): the
+    revision's --note when given, the part number it describes when the
+    register has one, and one --cost per step of reports/cost.json that
+    carries a number (neither of those two without a ws)."""
     if project is None or title is None:
         p, t = doc_target(ws, board, kind)
         project, title = project or p, title or t
     pn = boardreg.part_number(ws)[0] if ws is not None else None
     args = ["file", str(pdf), "--project", project, "--title", title,
             "--source", str(pdf)]
+    if note:
+        args += ["--note", note]
     if ws is None:
         return args
     if pn:
@@ -1898,7 +2003,7 @@ def content_hash(tex_text: str, ws: Path) -> str:
 
 def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
                      digest: str | None = None, ws: Path | None = None,
-                     kind: str = "design") -> None:
+                     kind: str = "design", note: str | None = None) -> None:
     """File the finished design doc with cc-docs, as doc_target(ws) names it.
 
     Only when asked (requested, or DOC_PROJECT in the environment) and cc-docs
@@ -1910,6 +2015,8 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
     The board's fab set (fab_attachments) then goes on the revision cc-docs
     named, and its hashes into the stamp, so a changed fab set alone files
     again; a failed attach leaves the stamp unwritten so the next run retries.
+    `note` goes to cc-docs as the revision's --note; an unchanged rebuild
+    files nothing, so its note is dropped with a warning.
     """
     project = os.environ.get("DOC_PROJECT", "").strip()
     if not (requested or project):
@@ -1926,6 +2033,9 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
         try:
             if json.loads(stamp.read_text(encoding="utf-8")) == want:
                 builder.unchanged = True
+                if note:
+                    builder.warn("--note not filed: the document is unchanged "
+                                 "since it was last filed")
                 return
         except (OSError, ValueError):
             pass
@@ -1935,7 +2045,7 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
         return
     try:
         cp = subprocess.run(
-            [exe, *cc_docs_args(ws, board, pdf, project, kind, title)],
+            [exe, *cc_docs_args(ws, board, pdf, project, kind, title, note)],
             capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired) as exc:
         builder.warn(f"cc-docs filing failed: {type(exc).__name__}: {exc}")
@@ -1957,7 +2067,8 @@ def file_in_register(pdf: Path, board: str, builder, requested: bool = False,
 def run(workspace: str, name: str | None = None, tex_only: bool = False,
         file_doc: bool = False, kind: str = "design",
         render_history: bool = False,
-        history_ref: str = "HEAD", render_layers: bool = False) -> tuple[dict, int]:
+        history_ref: str = "HEAD", render_layers: bool = False,
+        note: str | None = None) -> tuple[dict, int]:
     ws = resolve_workspace(workspace)
     st = load_state(ws)
     subdir, suffix = KINDS[kind][:2]
@@ -2006,7 +2117,7 @@ def run(workspace: str, name: str | None = None, tex_only: bool = False,
             if pages is None:
                 builder.warn("pypdf could not read the produced PDF")
             file_in_register(pdf_path, name or st["board"], builder, file_doc,
-                             content_hash(tex_text, ws), ws, kind)
+                             content_hash(tex_text, ws), ws, kind, note)
 
     degraded = (not tex_only) and pdf_path is None
     violations = bool(builder.missing) or degraded
@@ -2043,6 +2154,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--file", action="store_true", dest="file_doc",
                     help="file the finished PDF in the document register "
                          "(also: DOC_PROJECT set); default files nothing")
+    ap.add_argument("--note",
+                    help="with --file: the filed revision's note, passed to "
+                         "`cc-docs file --note`")
     ap.add_argument("--name", help="override the board name from state.json")
     ap.add_argument("--kind", choices=sorted(KINDS), default="design",
                     help="design (default), highlight (short) or full (design "
@@ -2056,13 +2170,16 @@ def main(argv: list[str] | None = None) -> int:
                     help="--kind full: the git ref whose log is the run's history "
                          "(the board's track branch once its PR squash-merged)")
     args = ap.parse_args(argv)
+    if args.note and not (args.file_doc
+                          or os.environ.get("DOC_PROJECT", "").strip()):
+        ap.error("--note is the filed revision's note: it needs --file")
 
     try:
         payload, code = run(args.workspace, name=args.name,
                             tex_only=args.tex_only, file_doc=args.file_doc,
                             kind=args.kind, render_history=args.render_history,
                             history_ref=args.history_ref,
-                            render_layers=args.render_layers)
+                            render_layers=args.render_layers, note=args.note)
     except Exception as exc:  # noqa: BLE001 (SPEC: any error -> exit 2)
         err = {"script": "report_gen", "status": "error",
                "error": f"{type(exc).__name__}: {exc}"}

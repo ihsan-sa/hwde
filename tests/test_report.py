@@ -45,6 +45,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import struct
 import subprocess
 import sys
@@ -1235,3 +1236,160 @@ def test_missing_cc_docs_warns(tmp_path, monkeypatch):
     b = _Builder()
     report_gen.file_in_register(tmp_path / "x.pdf", "b", b)
     assert b.warnings == []
+
+
+# ------------------------------------------------- accepted verify waivers
+
+FULL_WAIVER = {
+    "check": "check_return_path", "kind": "corridor_void", "net": "/USB_DP",
+    "refs": ["U4", "J1"], "pos": [24.45, 36.46],
+    "reason": "One 0.13 mm2 void under the pair; USB full speed\n does not see it.",
+    "approved": "owner 2026-10-08, #ai-ee: 'ok it's fine but flag it in the documentation'",
+    "expires": "next revision"}
+BARE_WAIVER = {"check": "check_silk", "reason": "silk ring clears the pad",
+               "approved": "Ihsan S. 2026-08-08"}
+
+
+def _waivers(ws: Path, waivers) -> None:
+    (ws / "reports" / "verify-waivers.json").write_text(
+        json.dumps({"waivers": waivers}), encoding="utf-8")
+
+
+def _tex(tmp_path, capsys, ws, *extra, name="out"):
+    code, payload = run_main(["--workspace", str(ws), "--tex-only", *extra],
+                             tmp_path, capsys, name=name)
+    return code, payload, (ws / payload["tex"]).read_text(encoding="utf-8")
+
+
+def _item(text: str, marker: str) -> str:
+    """The waiver \\item of the tex that contains marker."""
+    return next(i for i in text.split(r"\item ")[1:] if marker in i).split(
+        r"\end{itemize}")[0]
+
+
+def test_design_doc_lists_each_accepted_verify_waiver(tmp_path, capsys):
+    ws = make_workspace(tmp_path)
+    _waivers(ws, [FULL_WAIVER, BARE_WAIVER])
+    code, payload, text = _tex(tmp_path, capsys, ws)
+    assert code == 0, payload
+    assert all(ord(c) < 128 for c in text)
+    verification = text.split(r"\section{Verification}")[1].split(r"\section{")[0]
+    assert r"\subsection*{Accepted verify waivers}" in verification
+    assert "2 verify findings were accepted rather than fixed" in verification
+    full = _item(verification, "corridor")
+    assert (r"\textbf{check\_return\_path / corridor\_void} on net /USB\_DP, "
+            "refs U4, J1, at (24.45, 36.46) mm.") in full
+    assert "Reason: One 0.13 mm2 void under the pair; USB full speed does not" in full
+    assert "Accepted: owner 2026-10-08, \\#ai-ee:" in full
+    assert "Expires: next revision" in full
+    bare = _item(verification, "check\\_silk")
+    assert bare.startswith(r"\textbf{check\_silk}.")       # no net/refs/pos invented
+    assert "Accepted: Ihsan S. 2026-08-08" in bare
+    assert "Expires" not in bare and " on " not in bare.split(".")[0]
+    source = next(x["source"] for x in payload["sections"]
+                  if x["name"] == "verification")
+    assert "reports/verify-waivers.json" in source
+    assert not any("waiver" in w for w in payload["warnings"])
+
+
+@pytest.mark.parametrize("content", [None, {"waivers": []}])
+def test_no_or_empty_verify_waivers_render_as_before(tmp_path, capsys, content):
+    ws = make_workspace(tmp_path)
+    _, base, before = _tex(tmp_path, capsys, ws, name="a")
+    if content is not None:
+        (ws / "reports" / "verify-waivers.json").write_text(
+            json.dumps(content), encoding="utf-8")
+    _, payload, after = _tex(tmp_path, capsys, ws, name="b")
+    assert "verify waivers" not in after
+    strip = lambda t: re.sub(r"\d{4}-\d\d-\d\dT[\d:]+", "", t)  # noqa: E731
+    if content is not None:   # an empty file is still listed as an artifact
+        cut = lambda t: t.split(r"\section{Artifact Index}")[0]  # noqa: E731
+        before, after = cut(before), cut(after)
+    assert strip(after) == strip(before)
+    assert payload["warnings"] == base["warnings"]
+    assert payload["sections"] == base["sections"]
+
+
+def test_verify_waivers_the_gate_refuses_are_a_warning(tmp_path, capsys):
+    ws = make_workspace(tmp_path)
+    _waivers(ws, [{"check": "check_silk", "reason": "no approver"}])
+    code, payload, text = _tex(tmp_path, capsys, ws)
+    assert code == 0
+    assert any("reports/verify-waivers.json could not be read" in w
+               and "lacks reason/approved" in w for w in payload["warnings"])
+    assert r"\emph{reports/verify-waivers.json could not be read" in text
+    (ws / "reports" / "verify-waivers.json").write_text("{broken", encoding="utf-8")
+    _, payload, _ = _tex(tmp_path, capsys, ws, name="b")
+    assert any("JSONDecodeError" in w for w in payload["warnings"])
+
+
+def test_highlight_flags_verify_waivers_with_a_cut_reason(tmp_path, capsys):
+    ws = make_workspace(tmp_path)
+    long = dict(FULL_WAIVER, reason="word " * 100)
+    _waivers(ws, [long])
+    code, payload, text = _tex(tmp_path, capsys, ws, "--kind", "highlight")
+    assert code == 0, payload
+    checks = text.split(r"\section{Checks and Cost}")[1]
+    assert "1 verify finding was accepted rather than fixed" in checks
+    item = _item(checks, "corridor")
+    reason = item.split("Reason: ")[1].split(r" \par")[0]
+    assert len(reason) == report_gen.HL_REASON_CAP and reason.endswith("...")
+    assert "Accepted: owner 2026-10-08" in item
+    assert "The design doc gives each reason in full." in checks
+    # a reason under the cap is whole and needs no pointer
+    _waivers(ws, [FULL_WAIVER])
+    _, _, text = _tex(tmp_path, capsys, ws, "--kind", "highlight", name="b")
+    assert "does not see it." in text and "gives each reason in full" not in text
+
+
+def test_waiver_item_odd_fields():
+    item = report_gen.waiver_item({"kind": "creepage", "refs": "Q1",
+                                   "pos": "near U2", "reason": "", "approved": "x"})
+    assert item.startswith(r"\item \textbf{creepage} on refs Q1, at near U2.")
+    assert "Reason:" not in item
+    item = report_gen.waiver_item({"check": "c", "net": None, "pos": [1, "y"],
+                                   "approved": "x"})
+    assert "on at {[}1, 'y'{]}." in item
+
+
+def test_cc_docs_args_note(tmp_path):
+    pdf = tmp_path / "x.pdf"
+    args = report_gen.cc_docs_args(None, "b", pdf, "Boards", "design", "t",
+                                   note="waiver flagged")
+    assert args[args.index("--note") + 1] == "waiver flagged"
+    assert "--note" not in report_gen.cc_docs_args(None, "b", pdf, "Boards",
+                                                   "design", "t")
+
+
+def test_file_with_note_passes_it_to_cc_docs(tmp_path, capsys, monkeypatch):
+    log = _fake_cc_docs(tmp_path, monkeypatch)
+    _stub_compile(tmp_path, monkeypatch)
+    ws = make_workspace(tmp_path)
+    _, p = run_main(["--workspace", str(ws), "--file", "--note",
+                     "Accepted waiver flagged"], tmp_path, capsys, name="a")
+    assert p["filed"] is not None
+    assert "--note Accepted waiver flagged" in log.read_text()
+    # unchanged: nothing filed, so the note is dropped with a warning
+    _, p = run_main(["--workspace", str(ws), "--file", "--note", "again"],
+                    tmp_path, capsys, name="b")
+    assert p["unchanged"] is True
+    assert any("--note not filed" in w for w in p["warnings"])
+    assert len(log.read_text().splitlines()) == 1
+    # without --note the call carries none and nothing warns
+    (ws / "reports" / "design_doc" / report_gen.FILED_STAMP).unlink()
+    _, p = run_main(["--workspace", str(ws), "--file"], tmp_path, capsys, name="c")
+    assert "--note" not in log.read_text().splitlines()[-1]
+    assert not any("note" in w for w in p["warnings"])
+
+
+def test_note_without_file_is_refused(tmp_path, capsys, monkeypatch):
+    ws = make_workspace(tmp_path)
+    monkeypatch.delenv("DOC_PROJECT", raising=False)
+    with pytest.raises(SystemExit) as exc:
+        report_gen.main(["--workspace", str(ws), "--tex-only", "--note", "x"])
+    assert exc.value.code == 2
+    assert "--note" in capsys.readouterr().err
+    # DOC_PROJECT files too, so it accepts the note
+    monkeypatch.setenv("DOC_PROJECT", "Boards")
+    assert report_gen.main(["--workspace", str(ws), "--tex-only", "--note", "x",
+                            "--out", str(tmp_path / "o.json")]) == 0

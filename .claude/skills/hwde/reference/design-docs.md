@@ -3,7 +3,8 @@
 `report_gen.py` assembles state.json + digests + reports + renders
 into the design doc; without pdflatex it degrades to .tex-only (check_env
 warns). Only the FINAL design doc is filed in the document register: run that
-one with `--file`. When the library already holds this board's document of
+one with `--file`, and give the revision a note with `--note "<text>"`
+(passed to `cc-docs file --note`). When the library already holds this board's document of
 that kind (found read-only in cc-docs' register: its source under the board's
 `reports/<kind>/`, or its last revision describing the part number), the
 filing reuses that document's project and exact title, so a rebuild from any
@@ -24,3 +25,10 @@ it is, a picture, BOM, the decisions that changed it, checks) and `--kind full
 every decision and why, the run's history and a diagram-maker figure of how it
 went). Once the board's boards PR has squash-merged, pass `--history-ref <its
 track branch>` so the history reads the run's own commits.
+
+Waivers the owner accepted are shown in the documents with no extra work:
+the design and full docs list every entry of `reports/verify-waivers.json`
+under Verification, and the highlight lists them under Checks and Cost,
+each with what fires, where, the reason and its `approved` line. So a
+waiver accepted on condition it is "flagged in the documentation" needs
+only its waiver entry, not a hand-written review note or a decision.
