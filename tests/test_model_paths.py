@@ -231,6 +231,141 @@ def test_lib_pull_leaves_paths_without_a_project(tmp_path):
     assert GONE in (lib / "aiee.pretty" / "R.kicad_mod").read_text("utf-8")
 
 
+# ------------------------------------------------------------ gate freshness
+
+PCB_GATES = ["place", "drc_routed", "verify", "dfm"]
+
+
+def _recorded_ws(tmp_path: Path, crlf: bool = False):
+    """A fixture board with a real v2 state.json: the four board-reading
+    gates passed against it, drc failed, erc passed (it does not read the
+    board)."""
+    import state as state_mod
+    pcb = _ws(tmp_path, _fp("R1", "10 20", f"{GONE}/R.wrl"),
+              _fp("J1", "50 20", f"{GONE}/USBC.wrl"))
+    if crlf:
+        pcb.write_bytes(pcb.read_bytes().replace(b"\n", b"\r\n"))
+    ws = pcb.parent.parent
+    st = state_mod.State.init(ws, "b", "P9", force=True)
+    for g in PCB_GATES + ["erc"]:
+        st.record_gate(g, {"status": "pass"})
+    st.record_gate("drc", {"status": "fail", "failing_count": 1})
+    st.save()
+    return pcb, ws, state_mod
+
+
+def _fresh(state_mod, ws: Path) -> list[str]:
+    return state_mod.State.load(ws / "state.json").freshness()["summary"][
+        "fresh"]
+
+
+@pytest.mark.parametrize("crlf", [False, True])
+def test_fix_keeps_passed_gates_fresh(tmp_path, crlf):
+    """bb-buck, 2026-10-08: --fix rewrote model paths only and place,
+    drc_routed, verify and dfm read as stale. They stay fresh now; the failed
+    drc is not carried over and goes stale like any edit would make it. A
+    CRLF board hashes the same way from the bytes read as from the file."""
+    pcb, ws, state_mod = _recorded_ws(tmp_path, crlf)
+    assert _fresh(state_mod, ws) == sorted(PCB_GATES + ["erc", "drc"])
+    payload, _ = cmp.run(["--pcb", str(pcb), "--fix"])
+    assert str(pcb) in payload["fixed"]
+    assert payload["restamped"] == {"gates": sorted(PCB_GATES)}
+    assert _fresh(state_mod, ws) == sorted(PCB_GATES + ["erc"])
+    st = state_mod.State.load(ws / "state.json")
+    assert st.data["artifacts"]["pcb"]["sha256"] == \
+        st.freshness()["gates"]["verify"]["current_inputs"]["pcb"]
+    assert st.data["history"][-1]["event"] == "restamp"
+    # the board is clean now: a second --fix rewrites and restamps nothing
+    again, _ = cmp.run(["--pcb", str(pcb), "--fix"])
+    assert again["fixed"] == {} and "restamped" not in again
+
+
+def test_geometry_edit_still_stales_the_gates(tmp_path):
+    """A footprint move stales every board-reading gate, and a --fix after it
+    does not revive them: they were recorded against another board."""
+    pcb, ws, state_mod = _recorded_ws(tmp_path)
+    pcb.write_text(pcb.read_text("utf-8").replace("(at 10 20)", "(at 11 20)"),
+                   encoding="utf-8")
+    assert _fresh(state_mod, ws) == ["erc"]
+    payload, _ = cmp.run(["--pcb", str(pcb), "--fix"])
+    assert str(pcb) in payload["fixed"]
+    assert payload["restamped"] == {"gates": []}
+    assert _fresh(state_mod, ws) == ["erc"]
+
+
+def test_restamp_skips_what_it_cannot_prove(tmp_path, monkeypatch):
+    # no v2 state: the fixture's "{}" is not a state file
+    pcb = _ws(tmp_path, _fp("R1", "10 20", f"{GONE}/R.wrl"))
+    payload, _ = cmp.run(["--pcb", str(pcb), "--fix"])
+    assert payload["restamped"]["gates"] == []
+    assert "unreadable" in payload["restamped"]["skipped"]
+    # no state.json at all
+    pcb = _ws(tmp_path / "n", _fp("R1", "10 20", f"{GONE}/R.wrl"),
+              state=False)
+    payload, _ = cmp.run(["--pcb", str(pcb), "--fix"])
+    assert payload["restamped"]["skipped"] == "no state.json"
+    # a board that is not the workspace's pcb kind
+    pcb, ws, state_mod = _recorded_ws(tmp_path / "o")
+    other = pcb.with_name("other.kicad_pcb")
+    pcb.rename(other)
+    payload, _ = cmp.run(["--pcb", str(other), "--fix"])
+    assert "not this file" in payload["restamped"]["skipped"]
+    # a rewrite that touched more than model paths
+    pcb, ws, state_mod = _recorded_ws(tmp_path / "g")
+    real = kc.model_paths_portable
+
+    def moving(text, *a):
+        new, done = real(text, *a)
+        return new.replace("(at 10 20)", "(at 11 20)"), done
+    monkeypatch.setattr(kc, "model_paths_portable", moving)
+    payload, _ = cmp.run(["--pcb", str(pcb), "--fix"])
+    assert "more than model paths" in payload["restamped"]["skipped"]
+    assert _fresh(state_mod, ws) == ["erc"]
+
+
+@pytest.mark.parametrize("edit", [
+    ("(offset (xyz 0 0 0))", "(offset (xyz 0 0 1))"),
+    ("(offset (xyz 0 0 0))", "(offset (xyz 0 0 0)) (scale (xyz 2 2 2))"),
+    ("(offset (xyz 0 0 0))", "(offset (xyz 0 0 0)) (rotate (xyz 0 0 90))"),
+])
+def test_a_changed_model_transform_blocks_the_restamp(tmp_path, monkeypatch,
+                                                      edit):
+    """Only the path string may differ: a rewrite that also moved, scaled or
+    turned a model is not provably harmless, so the gates go stale."""
+    pcb, ws, state_mod = _recorded_ws(tmp_path)
+    real = kc.model_paths_portable
+
+    def turning(text, *a):
+        new, done = real(text, *a)
+        return new.replace(*edit, 1), done
+    monkeypatch.setattr(kc, "model_paths_portable", turning)
+    payload, _ = cmp.run(["--pcb", str(pcb), "--fix"])
+    assert "more than model paths" in payload["restamped"]["skipped"]
+    assert _fresh(state_mod, ws) == ["erc"]
+
+
+def test_a_state_written_meanwhile_is_reported_not_a_crash(tmp_path,
+                                                            monkeypatch):
+    """Another writer lands on state.json between load and save: the CAS
+    refuses, the board stays fixed, the report says why the gates went
+    stale and the exit code is the fix's, not an error."""
+    pcb, ws, state_mod = _recorded_ws(tmp_path)
+    real = state_mod.State.restamp_input
+
+    def racing(self, *a, **kw):
+        sp = ws / "state.json"
+        sp.write_text(sp.read_text("utf-8") + " ", encoding="utf-8")
+        return real(self, *a, **kw)
+    monkeypatch.setattr(state_mod.State, "restamp_input", racing)
+    out = tmp_path / "r.json"
+    assert cmp.main(["--pcb", str(pcb), "--fix", "--out", str(out)]) == 0
+    payload = json.loads(out.read_text("utf-8"))
+    assert payload["restamped"]["gates"] == []
+    assert "state.json not updated" in payload["restamped"]["skipped"]
+    assert str(pcb) in payload["fixed"]
+    assert _fresh(state_mod, ws) == ["erc"]
+
+
 # ------------------------------------------------------------ a real board
 
 def test_fix_on_a_copy_of_a_real_board(tmp_path):

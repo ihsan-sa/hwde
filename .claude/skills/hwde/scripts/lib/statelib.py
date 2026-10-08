@@ -95,13 +95,20 @@ def _eol(text: str) -> str:
     return text.replace("\r\n", "\n").replace("\r", "\n")
 
 
+def _bytes_text_eol(data: bytes) -> bytes:
+    return _eol(_text(data)).encode("utf-8")
+
+
+def _bytes_sexpr_no_uuid(data: bytes) -> bytes:
+    return _UUID_TOKEN.sub("", _eol(_text(data))).encode("utf-8")
+
+
 def _norm_text_eol(path: Path) -> bytes:
-    return _eol(_text(path.read_bytes())).encode("utf-8")
+    return _bytes_text_eol(path.read_bytes())
 
 
 def _norm_sexpr_no_uuid(path: Path) -> bytes:
-    text = _eol(_text(path.read_bytes()))
-    return _UUID_TOKEN.sub("", text).encode("utf-8")
+    return _bytes_sexpr_no_uuid(path.read_bytes())
 
 
 def _norm_json_canonical(path: Path) -> bytes:
@@ -208,6 +215,22 @@ def hash_artifact(path: Path | str, norm: str) -> str | None:
     if isinstance(out, str):        # gerber_design returns a finished digest
         return f"{norm}:{out}"
     return f"{norm}:{hashlib.sha256(out).hexdigest()}"
+
+
+_BYTE_NORMALIZERS = {
+    "text_eol": _bytes_text_eol,
+    "sexpr_no_uuid": _bytes_sexpr_no_uuid,
+}
+
+
+def hash_bytes(data: bytes, norm: str) -> str:
+    """hash_artifact() of a file holding `data`, for a caller that must hash
+    exactly the bytes it read (one read, no second look at the file). Only
+    the text normalizers, which never fail, have a bytes form."""
+    fn = _BYTE_NORMALIZERS.get(norm)
+    if fn is None:
+        raise ValueError(f"normalizer {norm!r} has no bytes form")
+    return f"{norm}:{hashlib.sha256(fn(data)).hexdigest()}"
 
 
 # ---------------------------------------------------------------------------
