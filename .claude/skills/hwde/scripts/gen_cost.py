@@ -235,27 +235,40 @@ def step_of(t: datetime, ms: list[tuple]) -> str:
     return nxt[1] if nxt[2] == "exit" else ms[i][1]
 
 
-def read_loop_log(path: Path) -> list[dict]:
+LOOP_COST = re.compile(r"\$(\d+(?:\.\d+)?)?(?:~(\w+))?$")
+
+
+def read_loop_log(path: Path, bad: list | None = None) -> list[dict]:
     """Iterations of a cc-loop log: start/end, rc and cost (None when the
-    iteration died without reporting one, e.g. a timeout, rc=124)."""
+    iteration died without reporting one, e.g. a timeout, rc=124). A cost
+    field is `$1.23` (exact), `$1.23~transcript` (estimated from that source)
+    or `$` (none); an end line whose cost is none of these is appended to
+    `bad` (as "path:line: text") and skipped, never fatal."""
     try:
         lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
     except OSError as exc:
         raise CostError(f"loop log unreadable: {path}: {exc}") from exc
     its, start = [], None
-    for ln in lines:
+    for n, ln in enumerate(lines, 1):
         m = re.match(r"(\S+Z) iter (\d+)/\d+ start", ln)
         if m:
             start = parse_ts(m.group(1), None)
             continue
-        m = re.match(r"(\S+Z) iter (\d+) end rc=(\d+).*?cost=\$(\S*)", ln)
-        if m and start:
-            cost = m.group(4)
-            its.append({"start": start, "end": parse_ts(m.group(1), None),
-                        "iter": int(m.group(2)), "rc": int(m.group(3)),
-                        "cost_usd": float(cost) if cost else None,
-                        "log": str(path)})
+        m = re.match(r"(\S+Z) iter (\d+) end rc=(\d+)(.*)", ln)
+        if not (m and start):
+            continue
+        c = re.search(r"\bcost=(\S*)", m.group(4))
+        cm = LOOP_COST.match(c.group(1)) if c else None
+        if not cm:
+            if bad is not None:
+                bad.append(f"{path}:{n}: {ln.strip()[:120]}")
             start = None
+            continue
+        its.append({"start": start, "end": parse_ts(m.group(1), None),
+                    "iter": int(m.group(2)), "rc": int(m.group(3)),
+                    "cost_usd": float(cm.group(1)) if cm.group(1) else None,
+                    "cost_source": cm.group(2), "log": str(path)})
+        start = None
     return its
 
 
@@ -364,9 +377,12 @@ def attach_loop(rnd: dict, iters: list[dict]) -> None:
         "logs": sorted({_home(Path(i["log"])) for i in mine}),
         "iterations": [{"iter": i["iter"], "start": iso(i["start"]),
                         "end": iso(i["end"]), "rc": i["rc"],
-                        "cost_usd": i["cost_usd"]} for i in mine],
+                        "cost_usd": i["cost_usd"],
+                        **({"estimated": i["cost_source"]}
+                           if i.get("cost_source") else {})} for i in mine],
         "logged_usd": round(sum(i["cost_usd"] or 0 for i in mine), 4),
         "unlogged_iterations": sum(1 for i in mine if i["cost_usd"] is None),
+        "estimated_iterations": sum(1 for i in mine if i.get("cost_source")),
     }
 
 
@@ -480,9 +496,15 @@ def build(ws: Path, *, sessions: list[Path], project_dirs: list[Path],
     doc["rounds"] = [summarize_round(r, ms) for r in doc["rounds"]
                      if r["sessions"]]
     doc["rounds"].sort(key=lambda r: r.get("start") or "")
-    iters = [i for p in loop_logs for i in read_loop_log(p)]
+    bad: list[str] = []
+    iters = [i for p in loop_logs for i in read_loop_log(p, bad)]
+    for b in bad:
+        print(f"warning: loop log line skipped, cost unparseable: {b}",
+              file=sys.stderr)
     if iters and found:
         attach_loop(rnd, iters)
+    if loop_logs:
+        doc["loop_unparsed_lines"] = len(bad)
     for n in notes:
         if n not in doc["notes"]:
             doc["notes"].append(n)

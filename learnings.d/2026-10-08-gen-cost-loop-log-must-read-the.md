@@ -1,0 +1,4 @@
+## 2026-10-08 [gen_cost][loop-log] gen_cost --loop-log must read the box's `cost=$N~transcript` marker
+The box's loop.log end lines carry cost as `$1.23` (exact), `$1.23~transcript` (estimated from the transcript; 76 of 669 end lines across ~/.cc/state/*/*/loop.log) or a bare `$` (timeout, rc=124, no cost). `float("3.4630~transcript")` raised ValueError and killed the whole run, so cost.json got no loop reconciliation. `read_loop_log` now takes the number, keeps the marker as `estimated` per iteration (`estimated_iterations` per round), and an end line whose cost parses as nothing is warned on stderr, counted in `loop_unparsed_lines` and skipped. A parser for a log another tool writes must never let one odd line end the run.
+
+Triage: now L2 | target L2 | owner scripts/gen_cost.py | status done | note tests/test_gen_cost.py::test_loop_log_cost_forms pins it.

@@ -16,6 +16,9 @@ Criteria -> tests:
                                      -> test_unsplit_and_shared_rounds
   - loop log: a timed-out iteration logs no cost and is counted
                                      -> test_loop_log_timeout
+  - loop log: `$1.2~transcript` is a number flagged estimated; a cost
+    that parses as nothing is warned, counted, and does not kill the run
+                                     -> test_loop_log_cost_forms
   - --out merges: a session whose transcript is gone keeps its figures
                                      -> test_merge_keeps_recorded_sessions
   - no session -> exit 1, --out untouched; no workspace -> exit 2
@@ -191,6 +194,36 @@ def test_loop_log_timeout(tmp_path):
     assert [i["rc"] for i in loop["iterations"]] == [0, 124]
     assert loop["logged_usd"] == 1.0 and loop["unlogged_iterations"] == 1
     assert doc["loop_logged_usd"] == 1.0 and doc["total_usd"] == 2.0
+
+
+def test_loop_log_cost_forms(tmp_path, capsys):
+    ws = workspace(tmp_path, HISTORY)
+    pdir = tmp_path / "proj"
+    session(pdir, "run", [msg("10:05", "m1", 100000),
+                          msg("10:35", "m2", 100000)], recorded=2.0)
+    log = tmp_path / "loop.log"
+    log.write_text(
+        "2026-09-24T10:00:00Z iter 1/3 start (budget $8)\n"
+        "2026-09-24T10:10:00Z iter 1 end rc=0 err=false/success turns=3 "
+        "cost=$1.5 total=$1.5 commits=yes\n"
+        "2026-09-24T10:11:00Z iter 2/3 start (budget $8)\n"
+        "2026-09-24T10:20:00Z iter 2 end rc=0 err=false/success turns=3 "
+        "cost=$3.4630~transcript total=$4.963 commits=yes\n"
+        "2026-09-24T10:21:00Z iter 3/3 start (budget $8)\n"
+        "2026-09-24T10:30:00Z iter 3 end rc=0 err=false/success turns=3 "
+        "cost=$oops total=$4.963 commits=yes\n", encoding="utf-8")
+    out = ws / "reports" / "cost.json"
+    assert run(tmp_path, ws, "--project-dir", str(pdir), "--loop-log",
+               str(log), "--out", str(out)) == 0
+    doc = json.loads(out.read_text())
+    loop = doc["rounds"][0]["loop"]
+    assert [i["cost_usd"] for i in loop["iterations"]] == [1.5, 3.463]
+    assert [i.get("estimated") for i in loop["iterations"]] == \
+        [None, "transcript"]
+    assert loop["estimated_iterations"] == 1
+    assert loop["logged_usd"] == 4.963
+    assert doc["loop_unparsed_lines"] == 1
+    assert "cost=$oops" in capsys.readouterr().err
 
 
 def test_merge_keeps_recorded_sessions(tmp_path):
