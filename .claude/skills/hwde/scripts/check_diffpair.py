@@ -40,12 +40,20 @@ constraints.json["diff_pairs"] entries (all keys but the nets optional):
      "coupling_factor": 3.0,           # coupled if gap <= factor * nominal
      "term_pair_mm": 2.5,              # cross-ref terminal pairing window
      "impedance_ohm": 90,              # differential target
-     "impedance_tol_pct": 10}          # allowed miss, percent
+     "impedance_tol_pct": 10,          # allowed miss, percent
+     "kind": "sense"}                  # DC Kelvin / low-frequency sense pair
+A "kind" of sense (also kelvin, dc_sense, low_frequency) marks a shunt-sense
+pair: no skew, uncoupled-length or impedance limits (high-speed rules mean
+nothing at DC); open trunk and via asymmetry still apply, and an optional
+"max_sense_uncoupled_mm" keeps a "routed together" limit. Auto-discovered
+pairs get kind sense only on a narrow name rule (is_sense_name).
 """
 from __future__ import annotations
 
 import argparse
 import math
+import os
+import re
 import statistics
 import sys
 from pathlib import Path
@@ -77,6 +85,24 @@ SAMPLE_MM = 0.1               # centerline sampling step for gap / uncoupled
 # not a bare P/M. Explicit constraints.json["diff_pairs"] always wins.
 SUFFIX_PAIRS = [("_P", "_N"), ("DP", "DM"), ("D+", "D-"), ("+", "-"), ("P", "N")]
 POSITIVE = {"_P", "DP", "D+", "+", "P"}       # which token is the + net
+
+
+SENSE_KINDS = {"sense", "kelvin", "dc_sense", "low_frequency"}
+# Narrow name default for AUTO-discovered pairs only (an explicit diff_pairs
+# entry classifies itself via "kind"): the last path segment of the stem is a
+# current-sense name. Deliberately not "SNS"/"SENSE" alone (VSNS, feedback
+# sense nets are not shunt pairs).
+SENSE_STEM = re.compile(r"(?:^|[/_])(ISNS|ISENSE|ISEN|CSA|SHUNT|KELVIN)\d*_?$")
+
+
+def is_sense_name(p: str, n: str) -> bool:
+    """True when the auto-discovered pair p/n names a shunt-sense pair."""
+    stem = os.path.commonprefix([p.upper(), n.upper()])
+    return bool(SENSE_STEM.search(stem))
+
+
+def is_sense(spec: dict) -> bool:
+    return str(spec.get("kind", "")).lower() in SENSE_KINDS
 
 
 # ------------------------------------------------------------ pairing
@@ -267,7 +293,8 @@ def check_pair(bg: geom.BoardGeom, spec: dict):
             SCRIPT, **{**common, "kind": "diffpair_open_trunk",
                        "fallback_length_mm": checklib.rnd(length)}))
 
-    if skew > max_skew:
+    sense = is_sense(spec)
+    if skew > max_skew and not sense:
         violations.append(violation(
             SCRIPT, "error" if skew > 2 * max_skew else "warning", rep_pt, None,
             p, [], f"diff pair {p}/{n} length skew {skew:.2f} mm "
@@ -275,6 +302,8 @@ def check_pair(bg: geom.BoardGeom, spec: dict):
             SCRIPT, **{**common, "kind": "diffpair_skew",
                        "skew_mm": checklib.rnd(skew),
                        "skew_ps": checklib.rnd(skew_ps), "limit_mm": max_skew}))
+    if sense:
+        max_unc = float(spec.get("max_sense_uncoupled_mm", math.inf))
     if uncoupled > max_unc:
         who, uval = (p, unc_p) if unc_p >= unc_n else (n, unc_n)
         violations.append(violation(
@@ -300,7 +329,7 @@ def check_pair(bg: geom.BoardGeom, spec: dict):
                        "vias_p": vp, "vias_n": vn}))
 
     zinfo = pair_impedance(bg, p, n, stats["gap_median_mm"])
-    target = spec.get("impedance_ohm")
+    target = None if sense else spec.get("impedance_ohm")
     if target and zinfo.get("zdiff_ohm"):
         tol = float(spec.get("impedance_tol_pct", IMPEDANCE_TOL_PCT))
         miss = (zinfo["zdiff_ohm"] - float(target)) / float(target) * 100
@@ -314,7 +343,7 @@ def check_pair(bg: geom.BoardGeom, spec: dict):
                            "target_ohm": float(target), "miss_pct": checklib.rnd(miss),
                            **zinfo}))
 
-    facts = {"pair": [p, n], "length_p_mm": checklib.rnd(lp),
+    facts = {"pair": [p, n], "kind": "sense" if sense else "diff", "length_p_mm": checklib.rnd(lp),
              "length_n_mm": checklib.rnd(ln), "skew_mm": checklib.rnd(skew),
              "skew_ps": checklib.rnd(skew_ps), "branch_free": bool(okp and okn),
              "uncoupled_p_mm": checklib.rnd(unc_p),
@@ -410,7 +439,8 @@ def resolve_pairs(bg, cons) -> list[dict]:
     # only a missing key falls back to name-based auto-discovery.
     if cons and "diff_pairs" in cons:
         return [s for s in (cons["diff_pairs"] or []) if s.get("p") and s.get("n")]
-    return [{"p": p, "n": n} for p, n in discover_pairs(bg.nets)]
+    return [{"p": p, "n": n, **({"kind": "sense"} if is_sense_name(p, n) else {})}
+            for p, n in discover_pairs(bg.nets)]
 
 
 def run(argv=None):

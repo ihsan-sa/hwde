@@ -1,0 +1,4 @@
+## 2026-10-08 [check_diffpair][constraints] A DC Kelvin sense pair is not a high-speed pair, so it needs its own kind
+PCB-0026-A's ISNS_P/ISNS_N (shunt into an INA240-class amp) sat in diff_pairs and drew 8.37 mm skew and 18.66 mm uncoupled errors that mean nothing at DC. check_diffpair now takes `"kind": "sense"` (or kelvin, dc_sense, low_frequency) on a diff_pairs entry: skew, uncoupled length and impedance are reported as facts but not judged; open trunk and via asymmetry still are; `max_sense_uncoupled_mm` opts back into a routed-together limit. Auto-discovered pairs get it only when the stem ends ISNS/ISENSE/ISEN/CSA/SHUNT/KELVIN (not VSNS). The board must add `"kind": "sense"` to the entry; USB/LVDS/Ethernet entries are unchanged.
+
+Triage: now L2 | target L2 | owner scripts/check_diffpair.py | status done | note tests/test_t2_diffpair.py pins it.
