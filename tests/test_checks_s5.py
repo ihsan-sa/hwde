@@ -329,6 +329,150 @@ def test_thermal_2l_full_via_array_small_pours_says_grow(tmp_path_factory):
     assert err and "grow the top and back GND pours" in err[0]["msg"]
 
 
+# ------------------------------------------- thermal: forced air and ratings
+
+HOT_PAD = ('  (footprint "t:U" (at 10 6) (layer "F.Cu")\n'
+           '    (property "Reference" "U9" (at 0 0 0) (layer "F.SilkS"))\n'
+           '    (pad "1" smd rect (at 0 0) (size 2 2) (layers "F.Cu") '
+           '(net "GND")))\n')
+XAL1010 = {"rise_c": 40, "current_a": 24.5, "dcr_ohm": 0.0028,
+           "source": "Coilcraft XAL1010-222 Irms (40 C rise), DCR"}
+
+
+def test_airflow_factor_is_the_least_scba017d_improvement():
+    f = check_thermal.airflow_factor
+    assert f(0) == 1.0
+    # worst row of SCBA017D Tables 3-5 (14-pin QFN, JESD51-7)
+    assert f(150) == pytest.approx(46.0 / 52.5)
+    assert f(250) == pytest.approx(42.9 / 52.5)
+    assert f(500) == pytest.approx(40.5 / 52.5)
+    assert f(2000) == f(500)                       # no extrapolation
+    assert f(250) < f(200) < f(150)                # linear between anchors
+    vals = [f(x) for x in range(0, 800, 25)]
+    assert all(b <= a for a, b in zip(vals, vals[1:]))
+    with pytest.raises(checklib.CheckError):
+        f(-1)
+
+
+def test_entry_airflow_units_and_conflicts():
+    e = check_thermal.entry_airflow_lfm
+    assert e({"ref": "U9"}) == 0.0
+    assert e({"ref": "U9", "airflow_lfm": 300}) == 300.0
+    assert e({"ref": "U9", "airflow_m_s": 1.0}) == pytest.approx(196.85)
+    with pytest.raises(checklib.CheckError, match="not both"):
+        e({"ref": "U9", "airflow_lfm": 300, "airflow_m_s": 1.0})
+    with pytest.raises(checklib.CheckError, match="number"):
+        e({"ref": "U9", "airflow_m_s": "fast"})
+
+
+def test_thermal_airflow_derates_and_still_air_is_unchanged(tmp_path_factory):
+    bg = _board(tmp_path_factory, "hotair", HOT_PAD)
+    entry = {"ref": "U9", "net": "GND", "power_w": 1.5, "dt_c": 40}
+    vs0, still = check_thermal.check_part(bg, entry)
+    assert "airflow_lfm" not in still and "theta_still_air_cw" not in still
+    vs, facts = check_thermal.check_part(bg, dict(entry, airflow_lfm=500))
+    assert facts["theta_still_air_cw"] == pytest.approx(still["theta_ja"])
+    assert facts["theta_ja"] == pytest.approx(
+        still["theta_ja"] * check_thermal.airflow_factor(500), rel=1e-3)
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "at 500 LFM" in err[0]["msg"]      # still over 40 C
+
+
+def test_thermal_2l_best_case_scales_with_airflow(tmp_path_factory):
+    """2.8 W into 16 vias: past the still-air best 2L case, within it at
+    500 LFM, so the remedy turns from 'move to 4 layers' to 'more vias'."""
+    vias = _via_grid(THERMAL_VIA, base=20.0)
+    bg = _thermal_2l_board(tmp_path_factory, "amp2lair", vias=vias)
+    vs, _ = check_thermal.check_part(bg, dict(AMP_2L, power_w=2.8))
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "even the best 2-layer case" in err[0]["msg"]
+    vs, _ = check_thermal.check_part(bg, dict(AMP_2L, power_w=2.8,
+                                              airflow_lfm=500))
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "add thermal vias into a back-side GND pour" in \
+        err[0]["msg"]
+
+
+def test_thermal_rating_replaces_the_copper_model(tmp_path_factory):
+    """PCB-0026 L201: XAL1010-222 at 1.1 W is ~26 C by its own rating, where
+    the area curve said ~58 C/W; no via array is asked of a rated part."""
+    bg = _board(tmp_path_factory, "ind", HOT_PAD)
+    entry = {"ref": "U9", "net": "GND", "power_w": 1.1, "dt_c": 40,
+             "rating": XAL1010}
+    vs, facts = check_thermal.check_part(bg, entry)
+    assert facts["theta_rated_cw"] == pytest.approx(23.8, abs=0.05)
+    assert facts["rise_c"] == pytest.approx(26.2, abs=0.1)
+    assert facts["theta_model_cw"] > 40 / 1.1          # the model would fail
+    assert vs == [], json.dumps(vs)
+    vs, facts = check_thermal.check_part(bg, dict(entry, airflow_m_s=1.0))
+    assert facts["theta_ja"] < facts["theta_rated_cw"]
+
+
+def test_thermal_rating_over_budget_says_so(tmp_path_factory):
+    bg = _board(tmp_path_factory, "indhot", HOT_PAD)
+    vs, facts = check_thermal.check_part(
+        bg, {"ref": "U9", "net": "GND", "power_w": 2.0, "dt_c": 40,
+             "rating": XAL1010})
+    assert facts["rise_c"] == pytest.approx(47.6, abs=0.1)
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "by its own rating (40 C at 24.5 A)" in err[0]["msg"]
+    assert "pick a part rated for more current" in err[0]["msg"]
+    assert [v for v in vs if v["kind"] == "thermal_vias"] == []
+
+
+@pytest.mark.parametrize("rating,match", [
+    ({k: v for k, v in XAL1010.items() if k != "source"}, "source"),
+    (dict(XAL1010, dcr_ohm=0), "> 0"),
+    (dict(XAL1010, current_a="lots"), "numeric"),
+    ({"source": "x", "rise_c": 40}, "numeric"),
+    ("40 C at 24.5 A", "source"),
+])
+def test_thermal_rating_must_be_complete(tmp_path_factory, rating, match):
+    bg = _board(tmp_path_factory, "indbad", HOT_PAD)
+    with pytest.raises(checklib.CheckError, match=match):
+        check_thermal.check_part(bg, {"ref": "U9", "net": "GND",
+                                      "power_w": 1.0, "rating": rating})
+
+
+LMG2100 = {"theta_ja_c_w": 29,
+           "theta_source": "LMG2100R044 SNOSDF9B 5.4 Thermal Information"}
+
+
+def test_thermal_datasheet_theta_replaces_model_and_takes_airflow(
+        tmp_path_factory):
+    """PCB-0026 U201: 3.0 W on the datasheet's 29 C/W is 87 C, over 70 in
+    still air; airflow scales the datasheet figure, nothing else does."""
+    bg = _board(tmp_path_factory, "dsth", HOT_PAD)
+    entry = {"ref": "U9", "net": "GND", "power_w": 3.0, "dt_c": 70,
+             "min_vias": 0, **LMG2100}
+    vs, facts = check_thermal.check_part(bg, entry)
+    assert facts["theta_ja"] == 29.0 and facts["theta_datasheet_cw"] == 29.0
+    assert facts["theta_model_cw"] > 29.0
+    assert facts["rise_c"] == pytest.approx(87.0)
+    err = [v for v in vs if v["kind"] == "thermal_area"]
+    assert err and "datasheet theta_JA (29 C/W, JEDEC board)" in err[0]["msg"]
+    assert "add a heatsink, or add forced air" in err[0]["msg"]
+    vs, facts = check_thermal.check_part(bg, dict(entry, airflow_m_s=2.0))
+    assert facts["theta_still_air_cw"] == 29.0
+    assert facts["rise_c"] == pytest.approx(
+        87.0 * check_thermal.airflow_factor(2.0 * 196.85))
+    assert [v for v in vs if v["kind"] == "thermal_area"] == []
+
+
+@pytest.mark.parametrize("extra,match", [
+    ({"theta_ja_c_w": 29}, "theta_source"),
+    ({**LMG2100, "theta_ja_c_w": "low"}, "number"),
+    ({**LMG2100, "theta_ja_c_w": 0}, "> 0"),
+    ({**LMG2100, "rating": XAL1010}, "not both"),
+])
+def test_thermal_datasheet_theta_must_be_sourced(tmp_path_factory, extra,
+                                                 match):
+    bg = _board(tmp_path_factory, "dsbad", HOT_PAD)
+    with pytest.raises(checklib.CheckError, match=match):
+        check_thermal.check_part(bg, {"ref": "U9", "net": "GND",
+                                      "power_w": 1.0, **extra})
+
+
 # ============================================================ pure: pdn
 
 def test_pdn_no_bulk_and_undecoupled():

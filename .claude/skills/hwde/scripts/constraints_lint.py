@@ -75,7 +75,10 @@ SECTIONS: dict[str, dict[str, dict[str, str]]] = {
     },
     "thermal": {
         "required": {"ref": "str", "power_w": "num"},
-        "optional": {"net": "str", "dt_c": "num", "min_vias": "num"},
+        "optional": {"net": "str", "dt_c": "num", "min_vias": "num",
+                     "airflow_lfm": "num", "airflow_m_s": "num",
+                     "rating": "map", "theta_ja_c_w": "num",
+                     "theta_source": "str"},
     },
     "planes": {
         "required": {"layer": "str", "net": "str"},

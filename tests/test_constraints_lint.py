@@ -66,6 +66,9 @@ def test_entry_keys_cover_schema_md_documented_entry_keys():
     assert "term_pair_mm" in dp["optional"]
     pw = constraints_lint.SECTIONS["power"]
     assert {"plane_fed", "pdn", "overrides"} <= set(pw["optional"])
+    th = constraints_lint.SECTIONS["thermal"]
+    assert {"airflow_lfm", "airflow_m_s", "rating",
+            "theta_ja_c_w", "theta_source"} <= set(th["optional"])
     assert constraints_lint.COATINGS == {"none", "soldermask", "conformal"}
 
 
