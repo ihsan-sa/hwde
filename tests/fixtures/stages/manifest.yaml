@@ -247,6 +247,9 @@ fixtures:
         sha256: 9b6bca4717a9c50f70c483f2a7d3e897973a6fbc2d69afcf838fadbd5b502df4
     known_answer:
       forbid_errors: true
+      expected:
+      - check: check_model_paths
+        kind: model_path_absolute
   carrier_verify:
     stage: P8
     board: lumina-carrier
@@ -327,6 +330,8 @@ fixtures:
       - check: check_current
         kind: insufficient_transition_vias
         net: GND
+      - check: check_model_paths
+        kind: model_path_absolute
   mutant_planesplit_verify:
     stage: P8
     board: rf4
