@@ -14,7 +14,7 @@ Checks (land_pattern fields drive which run):
   - pad_size  : MIN and MAX pad size vs pad_size_mm (the mode hid a (warning)
                 tied asymmetric column 0.25 mm over max - LEARNINGS
                 2026-07-28 SSOP-20)
-  - annulus   : THT (min(size)-drill)/2 vs the 0.15 mm JLC floor,  (error)
+  - annulus   : THT min over axes of (size-drill)/2 vs the 0.15 mm JLC floor,  (error)
                 and vs land_pattern drill_mm/annulus_mm when given
   - courtyard : a courtyard layer is present                       (warning)
 
@@ -124,11 +124,14 @@ def verify(footprint: Path, ds: dict, pitch_tol: float, size_tol: float) -> tupl
     for p in copper:
         if p.ptype != "thru_hole" or p.drill is None:
             continue
-        ann = (min(p.size) - p.drill) / 2.0
+        # per axis: an oval drill in an oval pad (C165948 shell: 1.2x2.0 pad,
+        # 0.8x1.5 drill) is 0.20 mm all round, not min(size) - long axis
+        dx, dy = p.drill_xy or (p.drill, p.drill)
+        ann = min((p.size[0] - dx) / 2.0, (p.size[1] - dy) / 2.0)
         if ann < ANNULUS_FLOOR_MM - 1e-9:
             v("error", p.center,
               f"pad {p.number}: THT annulus {ann:.3f} mm < {ANNULUS_FLOOR_MM} mm "
-              f"JLC floor (pad {min(p.size):g} mm on {p.drill:g} mm drill)",
+              f"JLC floor (pad {p.size[0]:g}x{p.size[1]:g} mm on {dx:g}x{dy:g} mm drill)",
               "annulus_floor", measured_mm=round(ann, 4),
               floor_mm=ANNULUS_FLOOR_MM, drill_mm=p.drill)
         if land.get("drill_mm") is not None and \

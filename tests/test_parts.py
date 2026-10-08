@@ -168,6 +168,46 @@ def test_fp_verify_flags_pad_count(tmp_path, capsys):
     assert payload["copper_pads"] == 1
 
 
+def _tht_annulus(tmp_path, capsys, pad, drill):
+    """fp_verify one THT pad: (pad 1 thru_hole <shape> (size W H) (drill ...))."""
+    fp = tmp_path / "t.kicad_mod"
+    fp.write_text(
+        '(footprint "T" (layer "F.Cu")\n'
+        f'  (pad "1" thru_hole {pad} (at 0 0 0) {drill} (layers "*.Cu" "*.Mask")))\n',
+        encoding="utf-8")
+    ds = write_ds(tmp_path, {"mpn": "X", "package": "T",
+                             "land_pattern": {"package": "T"}})
+    _, payload = run_main(
+        fp_verify, ["--footprint", str(fp), "--datasheet-json", str(ds),
+                    "--svg", str(tmp_path / "o.svg")], tmp_path, capsys)
+    return [v for v in payload["violations"] if v["kind"] == "annulus_floor"]
+
+
+def test_fp_verify_annulus_oval_pad_oval_drill(tmp_path, capsys):
+    # C165948 USB-C shell: 1.2x2.0 oval pad, 0.8x1.5 oval drill -> 0.20 mm
+    assert _tht_annulus(tmp_path, capsys, "oval (size 1.2 2.0)",
+                        "(drill oval 0.8 1.5)") == []
+
+
+def test_fp_verify_annulus_round_regression(tmp_path, capsys):
+    assert _tht_annulus(tmp_path, capsys, "circle (size 1.6 1.6)", "(drill 1.0)") == []
+    bad = _tht_annulus(tmp_path, capsys, "circle (size 1.2 1.2)", "(drill 1.0)")
+    assert [v["measured_mm"] for v in bad] == [pytest.approx(0.10)]
+
+
+def test_fp_verify_annulus_drill_rotated_vs_pad(tmp_path, capsys):
+    # long drill axis across the short pad axis: x = (1.2-1.5)/2 = -0.15
+    bad = _tht_annulus(tmp_path, capsys, "oval (size 1.2 2.0)",
+                       "(drill oval 1.5 0.8)")
+    assert [v["measured_mm"] for v in bad] == [pytest.approx(-0.15)]
+
+
+def test_fp_verify_annulus_thin_oval_fails(tmp_path, capsys):
+    bad = _tht_annulus(tmp_path, capsys, "oval (size 1.2 2.0)",
+                       "(drill oval 1.0 1.5)")
+    assert [v["measured_mm"] for v in bad] == [pytest.approx(0.10)]
+
+
 def test_fp_verify_flags_wrong_pitch(tmp_path, capsys):
     text = LEGACY_FP.read_text(encoding="utf-8")
     corrupt = text.replace("(at 0.42 0.00 0.00)", "(at 1.42 0.00 0.00)")
