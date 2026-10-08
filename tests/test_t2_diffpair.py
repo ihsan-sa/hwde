@@ -365,3 +365,75 @@ def test_diffpair_impedance_miss_is_flagged(tmp_path_factory):
     vs, _ = check_diffpair.check_pair(bg, {"p": "/D_P", "n": "/D_N", "impedance_ohm": 90})
     hit = [v for v in vs if v["kind"] == "diffpair_impedance"]
     assert len(hit) == 1 and hit[0]["severity"] == "error"
+
+
+# ---- DC Kelvin / low-frequency sense pairs (raised-hwde-model-gaps-pcb0026 c)
+
+def _skewed_pair(tmp_path_factory, name, extra=""):
+    """P short and straight; N runs 3 mm away and detours: skewed and uncoupled."""
+    def fp(ref, x):
+        return (f'  (footprint "t:{ref}" (at {x} 2) (layer "F.Cu")\n'
+                f'    (property "Reference" "{ref}" (at 0 0 0) (layer "F.SilkS"))\n'
+                '    (pad "1" smd rect (at 0 0) (size 0.5 0.5) (layers "F.Cu") (net "/ISNS_P"))\n'
+                '    (pad "2" smd rect (at 0 4) (size 0.5 0.5) (layers "F.Cu") (net "/ISNS_N")))\n')
+    body = (fp("R1", 2) + fp("U1", 18)
+            + seg(2, 2, 18, 2, net="/ISNS_P")
+            + seg(2, 6, 2, 10, net="/ISNS_N") + seg(2, 10, 18, 10, net="/ISNS_N")
+            + seg(18, 10, 18, 6, net="/ISNS_N") + extra)
+    return _board(tmp_path_factory, name, body, outline=(0, 0, 20, 14))
+
+
+def _kinds(vs):
+    return {v["kind"] for v in vs}
+
+
+def test_diffpair_plain_pair_still_gets_skew_and_uncoupled(tmp_path_factory):
+    bg = _skewed_pair(tmp_path_factory, "skp")
+    vs, facts = check_diffpair.check_pair(
+        bg, {"p": "/ISNS_P", "n": "/ISNS_N", "gap_mm": 0.2})
+    assert {"diffpair_skew", "diffpair_uncoupled"} <= _kinds(vs)
+    assert facts["kind"] == "diff"
+
+
+@pytest.mark.parametrize("kind", ["sense", "kelvin", "DC_Sense", "low_frequency"])
+def test_diffpair_sense_kind_skips_skew_uncoupled_impedance(tmp_path_factory, kind):
+    bg = _skewed_pair(tmp_path_factory, "sk" + kind.lower())
+    vs, facts = check_diffpair.check_pair(
+        bg, {"p": "/ISNS_P", "n": "/ISNS_N", "gap_mm": 0.2, "kind": kind,
+             "max_skew_mm": 3, "max_uncoupled_mm": 3, "impedance_ohm": 90})
+    assert _kinds(vs) == set()
+    assert facts["kind"] == "sense" and facts["skew_mm"] > 3   # still reported
+
+
+def test_diffpair_sense_keeps_via_asymmetry_and_open_trunk(tmp_path_factory):
+    bg = _skewed_pair(tmp_path_factory, "skv", extra=via(10, 10, net="/ISNS_N"))
+    vs, _ = check_diffpair.check_pair(
+        bg, {"p": "/ISNS_P", "n": "/ISNS_N", "kind": "sense"})
+    assert "diffpair_via_asymmetry" in _kinds(vs)
+
+
+def test_diffpair_sense_optional_routed_together_limit(tmp_path_factory):
+    bg = _skewed_pair(tmp_path_factory, "sku")
+    spec = {"p": "/ISNS_P", "n": "/ISNS_N", "gap_mm": 0.2, "kind": "sense"}
+    assert "diffpair_uncoupled" not in _kinds(check_diffpair.check_pair(bg, spec)[0])
+    vs, _ = check_diffpair.check_pair(bg, {**spec, "max_sense_uncoupled_mm": 3})
+    assert "diffpair_uncoupled" in _kinds(vs)
+
+
+def test_diffpair_sense_name_default_is_narrow():
+    f = check_diffpair.is_sense_name
+    assert f("/ISNS_P", "/ISNS_N") and f("/power/ISENSE_P", "/power/ISENSE_N")
+    assert f("/CSA1_P", "/CSA1_N") and f("/SHUNT+", "/SHUNT-")
+    for p, n in (("/USB_DP", "/USB_DM"), ("/VSNS_P", "/VSNS_N"),
+                 ("/ETH_TX_P", "/ETH_TX_N"), ("/LVDS0_P", "/LVDS0_N"),
+                 ("/CLK_P", "/CLK_N")):
+        assert not f(p, n), p
+
+
+def test_diffpair_resolve_pairs_sense_default_only_when_discovered(tmp_path_factory):
+    bg = _skewed_pair(tmp_path_factory, "skr")
+    specs = check_diffpair.resolve_pairs(bg, {})
+    assert specs == [{"p": "/ISNS_P", "n": "/ISNS_N", "kind": "sense"}]
+    # an explicit entry classifies itself: no name default applied to it
+    ex = check_diffpair.resolve_pairs(bg, {"diff_pairs": [{"p": "/ISNS_P", "n": "/ISNS_N"}]})
+    assert "kind" not in ex[0]

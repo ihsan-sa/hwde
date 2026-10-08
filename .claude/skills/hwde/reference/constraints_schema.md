@@ -53,6 +53,13 @@ Consumers per key (script -> phase):
     "gap_mm": 0.2, "max_skew_mm": 5, "max_uncoupled_mm": 5,
     "term_pair_mm": 2.5              // cross-ref terminal-match window (T2);
                                      // same-footprint P/N pads always match
+  }, {
+    // DC Kelvin / low-frequency shunt-sense pair: "kind" sense|kelvin|
+    // dc_sense|low_frequency drops the skew, uncoupled-length and impedance
+    // limits (kept: open trunk, via asymmetry); optional
+    // "max_sense_uncoupled_mm" keeps a routed-together limit. Auto-discovered
+    // pairs whose stem ends ISNS/ISENSE/ISEN/CSA/SHUNT/KELVIN get it by name.
+    "p": "/ISNS_P", "n": "/ISNS_N", "kind": "sense", "gap_mm": 0.2
   }],
 
   // check_creepage (P8) + rules_gen (P5, T6): IPC-2221 spacing for pairs
