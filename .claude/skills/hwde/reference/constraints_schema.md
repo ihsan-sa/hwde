@@ -83,7 +83,27 @@ Consumers per key (script -> phase):
 
   // check_thermal (P8), place_anneal spreading term (P6)
   "thermal": [{"ref": "U2", "power_w": 0.8, "net": "GND", "dt_c": 40,
-               "min_vias": 4}],
+               "min_vias": 4},
+              {"ref": "L1", "power_w": 1.1, "net": "VL", "dt_c": 40,
+               "airflow_m_s": 1.0,
+               "rating": {"rise_c": 40, "current_a": 24.5, "dcr_ohm": 0.0028,
+                          "source": "XAL1010-222 datasheet: Irms, 40 C rise"}},
+              {"ref": "U3", "power_w": 3.0, "net": "GND", "dt_c": 70,
+               "theta_ja_c_w": 29,
+               "theta_source": "LMG2100R044 SNOSDF9B 5.4 Thermal Information"}],
+  //        airflow_lfm | airflow_m_s (never both): forced air over the part.
+  //        Declare it only when the board has the fan (a requirement, not
+  //        a hope); theta is cut by TI SCBA017D's least QFN improvement
+  //        (x0.876 at 150, x0.817 at 250, x0.771 at >= 500 LFM). Absent =
+  //        still air. rating: the part's own datasheet self-heating rating
+  //        (rise_c at current_a through dcr_ohm; source required) replaces
+  //        the copper-area model - for inductors and other parts the
+  //        datasheet rates by temperature rise. power_w stays the TOTAL
+  //        loss (copper + core). theta_ja_c_w (+ theta_source, required):
+  //        the datasheet's JEDEC 2s2p theta_JA, used as-is in place of the
+  //        copper model (no area or via credit on top; optimistic on a
+  //        crowded board). A part takes rating or theta_ja_c_w, not both;
+  //        airflow multiplies either.
 
   // placelib/place_seed/place_metrics/place_anneal (P6)
   "placement": {
