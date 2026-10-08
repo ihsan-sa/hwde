@@ -610,8 +610,11 @@ def test_cleanup_acceptance_blinky2(dirty_board, tmp_path):
 
     # dry-run twice: identical plans, board untouched
     raw = pcb.read_bytes()
-    p1, _ = rcl.run(["--pcb", str(pcb), "--dry-run"])
-    p2, _ = rcl.run(["--pcb", str(pcb), "--dry-run"])
+    # --no-snap: this tests the hygiene and corner passes; the off-angle
+    # "chain" track is the fixture's keep-me item, and the snap has its own
+    # tests.
+    p1, _ = rcl.run(["--pcb", str(pcb), "--dry-run", "--no-snap"])
+    p2, _ = rcl.run(["--pcb", str(pcb), "--dry-run", "--no-snap"])
     assert _plan(p1) == _plan(p2)
     assert pcb.read_bytes() == raw
     assert p1["dangling_segments"] == 1 and p1["dangling_vias"] == 0
@@ -635,7 +638,7 @@ def test_cleanup_acceptance_blinky2(dirty_board, tmp_path):
 
     # the real thing
     rep = tmp_path / "cleanup.json"
-    rc = rcl.main(["--pcb", str(pcb), "--out-report", str(rep)])
+    rc = rcl.main(["--pcb", str(pcb), "--no-snap", "--out-report", str(rep)])
     r = json.loads(rep.read_text("utf-8"))
     assert rc == 0 and r["status"] == "pass", r
     # stub + loop side (+ orphaned short sides) + (2 removes + 3 adds)

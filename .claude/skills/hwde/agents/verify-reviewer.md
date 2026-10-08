@@ -42,7 +42,9 @@ with the repo venv python. Keep output ASCII.
 - Routing style (owner: straight and 45-degree traces, no needless arcs).
   `reports/checks/check_route_style.json` already scores the geometry: its
   `style` block counts arcs, off-45 segments and needless jogs, and each
-  `route_style` warning lists the tracks. Do not recount those. Look at the
+  `route_style` finding lists the tracks (arcs and off-45 segments are
+  errors that fail verify unless waived; jogs are warnings). Do not recount
+  those. Look at the
   renders for what geometry cannot see: a trace wandering round a part it
   could pass straight, a bus whose members do not run parallel, a detour
   far longer than the gap it clears, staircases of 45s where one diagonal

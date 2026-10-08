@@ -1,15 +1,16 @@
 """check_route_style + the fixed review render set (competitive-research item 9).
 
-The owner's routing preference - straight and 45-degree traces, no needless
-arcs - scored from the .kicad_pcb as a WARNING, never an error:
+The owner's routing rule (2026-10-08) - straight and 45-degree traces, no
+needless arcs - scored from the .kicad_pcb: arcs and off-angle segments are
+ERRORS (waivable per net), needless jogs stay warnings:
 
   - the golden blinky2 is clean (score 1.0), the frozen bb_adc fixture board
     scores exactly 4 off-angle segments + 2 jogs      -> test_frozen_*
   - each style is caught on its own synthetic board, and its look-alike that
     must NOT be caught sits on the same board         -> test_arc_*, test_angle_*,
                                                         test_jog_*
-  - verify_all runs it on the board alone and a board full of findings still
-    counts it as passed (warnings only)              -> test_verify_all_*
+  - verify_all runs it on the board alone; the off-angle errors fail it, a
+    per-net waiver on every erroring net passes it  -> test_verify_all_*
   - render.py --views review is the fixed set top,bottom,iso -> test_review_*
 """
 from __future__ import annotations
@@ -25,6 +26,7 @@ sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 import check_route_style  # noqa: E402
 import cluster_violations  # noqa: E402
+import gate  # noqa: E402
 import render  # noqa: E402
 import verify_all  # noqa: E402
 
@@ -68,7 +70,8 @@ def test_frozen_bb_adc_scores_exactly():
     p = _score(BB_ADC)
     assert p["style"] == {"segments": 73, "arcs": 0, "off_angle": 4, "jogs": 2,
                           "flagged": 6, "score": 0.918}
-    assert {v["severity"] for v in p["violations"]} == {"warning"}
+    assert {(v["style"], v["severity"]) for v in p["violations"]} == {
+        ("angle", "error"), ("jog", "warning")}
     assert {v["kind"] for v in p["violations"]} == {"route_style"}
     assert sorted((v["net"], v["style"], len(v["items"]))
                   for v in p["violations"]) == [
@@ -119,17 +122,40 @@ def test_jog_flagged_real_sidestep_and_via_joint_kept(tmp_path):
     assert p["style"]["jogs"] == 1
 
 
-def test_verify_all_runs_it_as_a_warning_not_a_gate(tmp_path):
+def test_verify_all_fails_it_on_off_angle_until_waived_per_net(tmp_path):
     summary, _ = verify_all.run(["--pcb", str(BB_ADC),
                                  "--reports-dir", str(tmp_path / "rep")])
     entry = summary["checks"]["check_route_style"]
     assert entry["status"] == "violations"
     mine = [v for v in summary["violations"]
             if v["source"] == "check_route_style"]
-    assert len(mine) == 5 and {v["severity"] for v in mine} == {"warning"}
-    assert "check_route_style" in summary["coverage"]["passed"]
-    assert "check_route_style" not in summary["coverage"]["failed"]
+    assert len(mine) == 5
+    assert sorted((v["style"], v["severity"]) for v in mine) == [
+        ("angle", "error")] * 3 + [("jog", "warning")] * 2
+    assert "check_route_style" in summary["coverage"]["failed"]
     assert cluster_violations.FIXER_HINTS["route_style"] == "router"
+
+    g = {"tool": "verify", "fail_severities": ["error"], "max_count": 0}
+    res = gate.evaluate("verify", g, summary, waivers=[])
+    assert sorted(v["net"] for v in res["failing"]
+                  if v["source"] == "check_route_style") == [
+        "/AGND_SENSE", "/AIN_ADC", "/AIN_DIV"]
+    # one waiver per net that needs its geometry clears exactly that net
+    waivers = [{"check": "check_route_style", "kind": "route_style",
+                "net": n, "reason": "analog sense geometry is intent",
+                "approved": "test 2026-10-08"}
+               for n in ("/AGND_SENSE", "/AIN_ADC")]
+    res = gate.evaluate("verify", g, summary, waivers=waivers)
+    left = [v for v in res["failing"] if v["source"] == "check_route_style"]
+    assert [v["net"] for v in left] == ["/AIN_DIV"]
+    assert res["status"] == "fail"
+    waivers.append({**waivers[0], "net": "/AIN_DIV"})
+    res = gate.evaluate("verify", g, summary, waivers=waivers)
+    assert not [v for v in res["failing"]
+                if v["source"] == "check_route_style"]
+    assert res["waived_count"] == 3
+    assert "check_route_style" not in res["coverage"]["failed"]
+    assert "check_route_style" in res["coverage"]["waived"]
 
 
 def test_verify_all_clean_board_passes_it(tmp_path):

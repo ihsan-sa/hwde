@@ -12,8 +12,8 @@ reads this summary; cluster_violations.py groups its violations for fixers.
 Default (exploratory) mode: a check is SKIPPED (not failed) when an input it
 requires is absent - e.g. no constraints.json means the constraint-driven
 checks do not run. check_silk, check_diffpair, check_route_style and
-check_mating need only the board (check_route_style only ever warns: a style
-score, not a gate);
+check_mating need only the board (check_route_style fails on arcs and
+off-45 segments, warns on jogs);
 check_ratings needs the workspace parts dir (--parts, default <ws>/parts
 beside the board's kicad/ dir).
 

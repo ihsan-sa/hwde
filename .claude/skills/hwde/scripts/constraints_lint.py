@@ -65,6 +65,11 @@ SECTIONS: dict[str, dict[str, dict[str, str]]] = {
                      "max_skew_mm": "num", "max_uncoupled_mm": "num",
                      "term_pair_mm": "num", "operating_point": "map"},
     },
+    # route_cleanup --snap-only leaves these nets as routed
+    "length_match": {
+        "required": {"nets": "str_list"},
+        "optional": {"tol_mm": "num", "reason": "str"},
+    },
     "voltages": {
         "required": {"net": "str", "voltage": "num"},
         "optional": {},

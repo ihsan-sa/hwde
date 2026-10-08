@@ -12,10 +12,10 @@ rules as routing constraints; cite the record id when you apply one.
 
 ## The chain (board-class dependent - this order is live-verified)
 - **2-layer:** route_critical -> route_auto -> stitch_vias -> plane_repair
-  -> [route_cleanup] -> gate. (Pre-route stitch vias would be Freerouting
+  -> snap45 -> [route_cleanup] -> gate. (Pre-route stitch vias would be Freerouting
   obstacles.)
 - **4-layer:** route_critical -> stitch_vias -> route_auto -> plane_repair
-  -> [route_cleanup] -> gate. (Stitching first pre-connects SMD pads to the
+  -> snap45 -> [route_cleanup] -> gate. (Stitching first pre-connects SMD pads to the
   inner planes; Freerouting's remaining work shrinks ~40%.)
 
 ## Steps
@@ -39,7 +39,23 @@ rules as routing constraints; cite the record id when you apply one.
 4. `scripts/plane_repair.py --pcb <board>` - detects electrically-split
    pours and repairs (bridge/jumper ladder). Mutates in place; on exit 1
    restore the pre-step snapshot (orchestrator has one) and report.
-5. Optional `scripts/route_cleanup.py --pcb <board>` - hygiene. S14's
+5. Mandatory snap45: `scripts/route_cleanup.py --pcb <board> --snap-only
+   --constraints <board dir>/constraints.json` (drop `--constraints` only
+   when the board has none) rewrites each off-angle segment (cut at any mid-length joint) as 0/90
+   and 45-degree legs between the same endpoints - a dogleg, else a Z -
+   that clears foreign copper, merges the jogs it makes, and refills. Re-
+   clean an already routed board the same way: `route_cleanup.py --pcb
+   <board> --snap-only --constraints <board dir>/constraints.json
+   --out-report <dir>/route_cleanup.json`. The owner's rule is straight and
+   45-degree copper: verify FAILS on every off-angle segment left. Pass
+   `--keep-net <net>` for an RF or length-matched net whose geometry is
+   intent and constraints.json does not declare (its diff_pairs,
+   length_match, rf and impedance-controlled high_speed nets, and pairs
+   found by name, are kept automatically). Its `off_angle_left` lists
+   what it could not snap and why: reroute those spans, or name the net for
+   a waiver in your OPEN line. Exit 1 `cleanup_regression`: restore the
+   snapshot, report it.
+5a. Optional `scripts/route_cleanup.py --pcb <board>` - hygiene. S14's
    2L-pour regression (union-find/fill edge, V13) was root-cause-fixed at
    T6, so this is no longer a blanket skip on 2L pour boards: run it with
    `--dry-run` first, inspect the planned ops, then live (bb-amp: 0 ops, DRC
@@ -83,5 +99,5 @@ rules as routing constraints; cite the record id when you apply one.
 ## Output contract (end your final message with exactly this block)
 FILES: <board + route/ artifacts>
 GATE: drc_routed: <pass/fail, violations>; completion <fraction>
-SUMMARY: <up to 10 lines: chain ran, FR rungs, KRT finish, repairs>
+SUMMARY: <up to 10 lines: chain ran, FR rungs, KRT finish, repairs, snap45 snapped/left>
 OPEN: <placement_adjust_request verbatim if any, else "none">

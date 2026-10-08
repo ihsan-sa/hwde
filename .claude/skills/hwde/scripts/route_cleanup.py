@@ -1,8 +1,8 @@
-"""route_cleanup - post-route hygiene: dangling copper, loops, 90-deg corners
-(S11, SPEC P7.4).
+"""route_cleanup - post-route hygiene: dangling copper, loops, off-angle snap,
+90-deg corners (S11, SPEC P7.4).
 
 Runs AFTER route_auto / stitch_vias / plane_repair and BEFORE the drc_routed
-gate. Three ordered passes, each a pure analysis over the parsed board that
+gate. Four ordered passes, each a pure analysis over the parsed board that
 emits route_edit ops:
 
   1. DANGLING: iteratively (fixpoint, cap 20) remove track segments and vias
@@ -26,12 +26,55 @@ emits route_edit ops:
      BRIDGE of the net's full copper graph (tracks+vias+pads+zones) is load-
      bearing by definition and is vetoed, never removed. After loop removal
      the dangling sweep re-runs once (a broken loop can orphan a stub).
-  3. CORNERS (skip with --no-smooth): same-net/layer/width segment pairs
+  3. SNAP (skip with --no-snap): every straight segment check_route_style
+     calls off-angle (its own `off_angle` helper) is rerouted between the
+     same endpoints on 0/90 and 45-degree legs. A segment is first cut at
+     its joints: KiCad joins two items when an anchor of one (track or arc
+     end, via centre, pad centre) lies inside the other's copper, so a
+     same-net anchor on the segment's centreline, away from its end caps,
+     is a joint the legs must pass through. Copper that only overlaps the
+     segment, with no anchor on it, is not a joint. Each piece tries the
+     two doglegs first (diagonal-first, axis-first), then, only when both
+     fail, the two Z routes (axis-45-axis, 45-axis-45), which swing half as
+     far off the line. A route is legal when its legs keep width/2 + the
+     pair's clearance (max of the two nets' netclass and .kicad_dru
+     clearance, never below the board floor) from every foreign track, via,
+     pad and drill (a drill - NPTH, pad or via hole - also keeps the board's
+     min_hole_clearance, default 0.25 mm), width/2 + the copper-to-edge rule
+     from the board edge, and stay out of track keepouts. Where the router
+     already left the replaced copper closer than that, a route is also
+     legal when it comes no closer to each foreign net than the old copper
+     did and still keeps what DRC enforces: an unconditioned .kicad_dru
+     clearance rule overrides the netclass in KiCad's DRC. That fallback is
+     off when the .kicad_dru has any conditioned or layer-scoped clearance
+     rule, since its value then depends on the pair. Legs accepted this run count as foreign copper for the
+     next, and a foreign segment already replaced stops blocking (sweeps
+     repeat, cap 5). Foreign zone FILL is not an obstacle: the refill after
+     apply moves it. Of the legal routes the one that makes the fewest
+     needless jogs wins, then the one with more spare clearance
+     (diagonal-first on a tie). Then each needless jog that contains a
+     snapped leg is merged: its three segments become one straight or
+     dogleg between the outer ends, when legal and the net ends with fewer
+     jogs (fact `jogs_merged`). Left alone: a piece with no legal route,
+     every diff-pair member (check_diffpair.discover_pairs), every net
+     named with --keep-net and, with --constraints, every net that
+     constraints.json gives intended geometry (diff_pairs members,
+     length_match groups, rf entries, high_speed entries with an
+     impedance_ohm), since bending one side alone breaks a pair's coupling
+     and a matched net's length. Each one left is listed in `off_angle_left` with
+     its reason (blocked + the limiting net, or kept_net); check_route_style
+     fails verify on it until it is fixed by hand or waived for that net.
+  4. CORNERS (skip with --no-smooth): same-net/layer/width segment pairs
      meeting at 88-92 deg with both legs >= 3*width get a 45-deg chamfer:
      both legs shortened by c = min(min_leg/3, 2*width, 1.0 mm) plus the
      connecting diagonal - only when the diagonal's corridor (width/2 +
      0.2 mm) is clear of foreign copper and of pad copper of ANY net, and the
      corner is not at a pad center/via (0.05 mm) or near other attachments.
+     Segments the snap pass replaced are not chamfered.
+
+--snap-only runs pass 3 alone (no dangling/loop/corner edits). It is the
+routing stage's mandatory step after plane_repair; the full cleanup stays
+optional.
 
 The full op list is generated from the parse BEFORE anything is applied
 (--dry-run stops there and needs no toolchain). Otherwise: DRC before,
@@ -42,8 +85,9 @@ LOUDLY (violation kind "cleanup_regression", exit 1) - the orchestrator can
 git-restore the board.
 
 Contract (SPEC section 6):
-  route_cleanup.py --pcb B.kicad_pcb [--dry-run] [--no-smooth]
-                   [--out-report r.json]
+  route_cleanup.py --pcb B.kicad_pcb [--dry-run] [--no-smooth] [--no-snap]
+                   [--snap-only] [--keep-net NET ...]
+                   [--constraints constraints.json] [--out-report r.json]
   JSON to stdout or --out-report; exit 0 pass / 1 violations / 2 error.
   Deterministic: stable sorts (uuid order) everywhere, no RNG.
 """
@@ -62,6 +106,7 @@ sys.path.insert(0, str(SCRIPTS / "lib"))
 import sexpdata  # noqa: E402
 from shapely.geometry import LineString, Point  # noqa: E402
 
+import check_route_style as crs  # noqa: E402  (off_angle: one definition)
 import checklib  # noqa: E402
 import geom  # noqa: E402
 import kc  # noqa: E402
@@ -76,6 +121,12 @@ SMOOTH_MAX_C = 1.0      # mm: chamfer cut ceiling
 SMOOTH_CLEAR = 0.2      # mm: clearance margin around the chamfer corridor
 DANGLING_CAP = 20       # fixpoint iteration caps
 LOOP_CAP = 10
+SNAP_MARGIN = 0.005     # mm: kept beyond the clearance rule (rounding)
+SNAP_PROBE = 0.05       # mm: spatial-query slack around the snapped legs
+KICAD_CLEARANCE = 0.2   # mm: KiCad defaults when the project sets none
+KICAD_EDGE = 0.5
+KICAD_HOLE_CLEARANCE = 0.25  # mm: board-setup min_hole_clearance default
+DRILL = "<drill>"       # SnapEnv obstacle uuid of a hole (NPTH, pad, via)
 
 
 # ============================================================ data model
@@ -459,7 +510,484 @@ def loop_bridge_veto(bg: geom.BoardGeom, victims: list[Seg]
     return sorted(removable), sorted(vetoed)
 
 
-# ============================================================ pass 3: corners
+# ============================================================ pass 3: snap
+
+@dataclass
+class SnapEnv:
+    """What a snapped leg must clear. obstacles: layer -> [(net, geom, uuid)]
+    of every track, via, pad and drill on that layer (zone fill excluded:
+    the refill moves it; a drill's uuid is DRILL). clearance: net -> netclass/DRU clearance; floor: the
+    board minimum any pair keeps; edge: copper-to-edge rule (None = no
+    outline check); keepouts: [(layers, polygon)] areas tracks may not enter.
+    hard / hard_floor: the clearance KiCad's DRC actually enforces, when the
+    .kicad_dru has a clearance rule (hard_floor = the largest of them, scoped
+    ones included) - a custom rule overrides
+    the netclass value, so a board can pass DRC with gaps under its netclass
+    clearance (None: DRC enforces the netclass model, same as clr).
+    hole: the board's min_hole_clearance, kept from every foreign drill in
+    both models.
+    """
+    obstacles: dict
+    clearance: dict
+    floor: float
+    edge: float | None = None
+    outline: object = None
+    keepouts: tuple = ()
+    hard: dict | None = None
+    hard_floor: float = 0.0
+    hole: float = KICAD_HOLE_CLEARANCE
+
+    def clr(self, a: str, b: str) -> float:
+        return max(self.floor, self.clearance.get(a, 0.0),
+                   self.clearance.get(b, 0.0))
+
+    def clr_hard(self, a: str, b: str) -> float:
+        if self.hard is None:
+            return self.clr(a, b)
+        return max(self.hard_floor, self.hard.get(a, 0.0),
+                   self.hard.get(b, 0.0))
+
+
+def snap_paths(a, b) -> list[tuple[str, list[tuple[float, float]]]]:
+    """The 0/90 + 45 routes from a to b as [(name, interior points)]: the
+    two one-bend doglegs (diagonal-first, axis-first), then the two Z routes
+    that put the bend run in the middle (axis_z: axis-45-axis, diagonal_z:
+    45-axis-45). A Z swings half as far off the a-b line as a dogleg, so it
+    fits a gap a dogleg does not, at the cost of one more leg."""
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    m = min(abs(dx), abs(dy))
+    d = (math.copysign(m, dx), math.copysign(m, dy))   # the 45 run
+    r = (dx - d[0], dy - d[1])                         # the 0/90 run
+
+    def at(*steps):
+        x, y = a
+        out = []
+        for sx, sy in steps:
+            x, y = x + sx, y + sy
+            out.append((round(x, 6), round(y, 6)))
+        return out
+
+    hd, hr = (d[0] / 2, d[1] / 2), (r[0] / 2, r[1] / 2)
+    return [("diagonal_first", at(d)), ("axis_first", at(r)),
+            ("axis_z", at(hr, d)), ("diagonal_z", at(hd, r))]
+
+
+def _tee_joints(s: Seg, segs, vias, pads, arcs, tol=TOL) -> list:
+    """Where same-net copper joins s away from both end caps, ordered from a
+    to b ([] when nothing does). KiCad joins two items when an anchor of one
+    lies inside the other's copper: track and arc ends, via centres, pad
+    centres. So a joint is such an anchor within half-width + tol of s's
+    centreline and more than half-width from both ends; the snapped legs bend
+    through it. Copper that only overlaps s, with no anchor on it, is not
+    joined through s and does not stop the snap."""
+    half = s.width / 2.0
+    reach = half + tol
+    cands: list = []
+    for o in segs:
+        if o is not s and o.net == s.net and o.layer == s.layer:
+            cands += [o.a, o.b]
+    for net, layer, aline, _aw in arcs:
+        if net == s.net and layer == s.layer:
+            cands += [aline.coords[0], aline.coords[-1]]
+    cands += [v.at for v in vias if v.net == s.net and s.layer in v.layers]
+    cands += [pd.center for pd in pads
+              if pd.net == s.net and s.layer in pd.layers]
+    joints = {}
+    for p in cands:
+        p = (float(p[0]), float(p[1]))
+        if _pt_seg_dist(p, s.a, s.b) <= reach \
+                and min(math.dist(p, s.a), math.dist(p, s.b)) > half:
+            joints[crs._key(p)] = p
+    return sorted(joints.values(), key=lambda p: math.dist(s.a, p))
+
+
+def _path_margin(s: Seg, pts, env: SnapEnv, trees: dict, added: list,
+                 gone: set) -> tuple[float, str, float, dict]:
+    """(spare clearance of the route s.a -> pts -> s.b in mm against the
+    netclass/DRU model, what limits it, spare against what DRC enforces,
+    the netclass spare per foreign net). A negative spare breaks that rule;
+    -inf means the route leaves the board or enters a keepout. A drill
+    keeps max(rule, hole clearance). The per-net map keys the board edge as
+    EDGE. `gone`: uuids of tracks already replaced this run."""
+    legs = LineString([s.a, *pts, s.b])
+    half = s.width / 2.0
+    worst, why, hard = math.inf, "", math.inf
+    per: dict[str, float] = {}
+    if env.outline is not None and env.edge is not None:
+        if not env.outline.covers(legs):
+            return -math.inf, "board edge", -math.inf, {EDGE: -math.inf}
+        worst = hard = env.outline.boundary.distance(legs) - (
+            half + env.edge + SNAP_MARGIN)
+        why = "board edge"
+        per[EDGE] = worst
+    for layers, poly in env.keepouts:
+        if s.layer in layers and poly.intersects(legs):
+            return -math.inf, "keepout", -math.inf, {EDGE: -math.inf}
+    tree, items = trees.get(s.layer, (None, []))
+    reach = half + max([env.floor, env.hole]
+                       + list(env.clearance.values())) \
+        + SNAP_MARGIN + SNAP_PROBE
+    near = tree.query(legs.buffer(reach)) if tree is not None else ()
+    cands = [items[i] for i in near if items[i][2] not in gone]
+    cands += [(net, g, "") for layer, net, g in added if layer == s.layer]
+    for net, geom_, uid in cands:
+        if net == s.net:
+            continue
+        dist = geom_.distance(legs) - half - SNAP_MARGIN
+        hole = env.hole if uid == DRILL else 0.0
+        gap = dist - max(env.clr(s.net, net), hole)
+        name = net or "<no net>"
+        if gap < worst:
+            worst, why = gap, name
+        per[name] = min(per.get(name, math.inf), gap)
+        hard = min(hard, dist - max(env.clr_hard(s.net, net), hole))
+    return worst, why, hard, per
+
+
+EDGE = "<board edge>"
+
+
+def _legal(m: float, hard: float, per: dict, before: dict) -> bool:
+    """A route is legal when it keeps the full netclass/DRU clearance, or -
+    where the router already left the copper it replaces closer than that -
+    when it still keeps what DRC enforces and comes no closer to EACH
+    foreign net (and the edge) under the netclass than the replaced copper
+    did. `per` / `before`: _path_margin's per-net spares of the route and of
+    the replaced copper; a net absent from `before` was out of reach."""
+    if m >= 0:
+        return True
+    if hard < 0:
+        return False
+    return all(g >= 0 or g >= before.get(k, 0.0) - 1e-6
+               for k, g in per.items())
+
+
+def _chain(a, pts, b) -> list:
+    """a, pts..., b without zero-length steps."""
+    out = [tuple(a)]
+    for p in [*pts, tuple(b)]:
+        if math.dist(out[-1], p) > 1e-6:
+            out.append(tuple(p))
+    return out
+
+
+def find_snaps(segs, vias, pads, arcs, env: SnapEnv,
+               skip_nets=frozenset(), cap: int = 5
+               ) -> tuple[list[dict], list[dict], list[dict], int]:
+    """Plans for off-angle segments -> (ops, snaps, left, jogs_merged).
+
+    Each off-angle segment (cut at its tee joints, if any) gets the legal
+    route that makes the fewest needless jogs, then has the most spare
+    clearance - a dogleg when one fits, else a Z. Sweeps until no blocked
+    segment frees up (a foreign segment replaced in one sweep no longer
+    blocks in the next), cap sweeps. Then every needless jog that has a
+    snapped leg in it is merged: its three segments become one dogleg (or
+    one straight) between the outer ends when that is legal and leaves the
+    net with fewer jogs. The ops are the difference between the board and
+    the final copper: removes for replaced segments, add_track for legs."""
+    from shapely.strtree import STRtree  # noqa: PLC0415
+    trees = {}
+    for layer, items in env.obstacles.items():
+        items = list(items)
+        trees[layer] = (STRtree([g for _n, g, _u in items]) if items
+                        else None, items)
+    added: list[tuple] = []   # (layer, net, copper) of accepted legs
+    gone: set[str] = set()    # uuids replaced so far
+    snaps: list[dict] = []
+    left: dict[str, dict] = {}
+    todo = []
+    for s in sorted(segs, key=lambda s: (s.uuid, s.layer, s.a, s.b)):
+        if not s.uuid or not crs.off_angle(s.a, s.b):
+            continue
+        item = {"uuid": s.uuid, "net": s.net, "layer": s.layer,
+                "pos": _r4(((s.a[0] + s.b[0]) / 2, (s.a[1] + s.b[1]) / 2))}
+        if s.net in skip_nets:
+            left[s.uuid] = {**item, "reason": "kept_net"}
+        else:
+            stops = [s.a, *_tee_joints(s, segs, vias, pads, arcs), s.b]
+            todo.append((s, item, list(zip(stops, stops[1:]))))
+    # live copper per (net, layer): {id: (a, b, width, id)}; ids are the
+    # board uuid (or id() for a uuid-less track) and "<uuid>:<n>" for legs
+    live: dict[tuple, dict] = {}
+    for s in segs:
+        k = s.uuid or id(s)
+        live.setdefault((s.net, s.layer), {})[k] = (s.a, s.b, s.width, k)
+    board = {s.uuid for s in segs if s.uuid}
+    legs: dict[str, tuple] = {}    # leg id -> (net, layer)
+    anchors: dict[tuple, list] = {}
+    for v in vias:
+        for layer in v.layers:
+            anchors.setdefault((v.net, layer), []).append(
+                Point(v.at).buffer(v.size / 2.0))
+    for pd in pads:
+        for layer in pd.layers:
+            anchors.setdefault((pd.net, layer), []).append(pd.poly)
+
+    def jogs_made(s: Seg, path) -> int:
+        """Needless jogs the legs of `path` form with the tracks at its ends."""
+        ends = {crs._key(path[0]), crs._key(path[-1])}
+        local = [t for k, t in live.get((s.net, s.layer), {}).items()
+                 if k != s.uuid and (crs._key(t[0]) in ends
+                                     or crs._key(t[1]) in ends)]
+        local += [(p, q, s.width, f"leg{i}")
+                  for i, (p, q) in enumerate(zip(path, path[1:]))]
+        return len(crs.find_jogs(local, anchors.get((s.net, s.layer), [])))
+
+    def best_route(s: Seg, a, b):
+        """(name, path, spare) of the best legal route a -> b, or (None,
+        limiting item, None)."""
+        piece = Seg(s.uuid, s.net, s.layer, s.width, a, b)
+        if not crs.off_angle(a, b):
+            return "kept", [tuple(a), tuple(b)], math.inf
+        limit = ""
+        before = _path_margin(piece, [], env, trees, added, gone)[3]
+        routes = snap_paths(a, b)
+        for tier in (routes[:2], routes[2:]):
+            best = None
+            for name, pts in tier:
+                m, why, hard, per = _path_margin(piece, pts, env, trees,
+                                                 added, gone)
+                if not _legal(m, hard, per, before):
+                    limit = limit or why
+                    continue
+                path = _chain(a, pts, b)
+                rank = (-jogs_made(s, path), m)
+                if best is None or rank > best[0]:
+                    best = (rank, name, path)
+            if best is not None:
+                return best[1], best[2], best[0][1]
+        return None, limit, None
+
+    def put(key, base: str, path, width) -> None:
+        cur = live.setdefault(key, {})
+        for p, q in zip(path, path[1:]):
+            lid = f"{base}:{len(legs) + 1}"
+            legs[lid] = key
+            cur[lid] = (p, q, width, lid)
+        added.append((key[1], key[0], LineString(path).buffer(
+            width / 2.0, quad_segs=8)))
+
+    for _ in range(cap):
+        progress = False
+        for s, item, pieces in todo:
+            if s.uuid in gone:
+                continue
+            routes, limit = [], ""
+            for a, b in pieces:
+                name, path, spare = best_route(s, a, b)
+                if name is None:
+                    limit = path
+                    break
+                routes.append((name, path, spare))
+            if len(routes) < len(pieces):
+                left[s.uuid] = {**item, "reason": "blocked", "by": limit}
+                continue
+            left.pop(s.uuid, None)
+            gone.add(s.uuid)
+            progress = True
+            key = (s.net, s.layer)
+            live[key].pop(s.uuid, None)
+            for _name, path, _spare in routes:
+                put(key, s.uuid, path, s.width)
+            spare = min(r[2] for r in routes)
+            snaps.append({
+                **item, "bend": "+".join(r[0] for r in routes),
+                "path": [_r4(p) for r in routes for p in r[1][:-1]]
+                + [_r4(s.b)],
+                "spare_mm": round(spare, 4) if math.isfinite(spare)
+                else None})
+        if not progress:
+            break
+    merged = _merge_jogs(live, legs, board, gone, anchors, env, trees,
+                         added, vias, pads, arcs, put)
+    ops = [{"op": "remove", "uuid": u} for u in sorted(gone & board)]
+    for (net, layer), cur in sorted(live.items(), key=lambda kv: kv[0]):
+        for lid in sorted(k for k in cur if k in legs):
+            a, b, w, _k = cur[lid]
+            ops.append({"op": "add_track", "start": _r6(a), "end": _r6(b),
+                        "width": round(w, 4), "layer": layer, "net": net})
+    return ops, snaps, sorted(left.values(), key=lambda x: x["uuid"]), merged
+
+
+def _merge_jogs(live, legs, board, gone, anchors, env, trees, added,
+                vias, pads, arcs, put, cap: int = 50) -> int:
+    """Merge the needless jogs (check_route_style.find_jogs) that have a
+    snapped leg in them: s1-s2-s3 through two bare joints becomes one route
+    from s1's far end to s3's far end - straight when that is on the grid,
+    else the dogleg with the most spare clearance - when all three are the
+    same width, none has another track joining mid-length, the route is
+    legal, and the net ends with fewer jogs. Returns how many merged."""
+    merged = 0
+    for key in sorted({k for k in legs.values()}):
+        net, layer = key
+        anch = anchors.get(key, [])
+        for _ in range(cap):
+            cur = live[key]
+            vals = list(cur.values())
+            jogs = crs.find_jogs(vals, anch)
+            done = False
+            for _pos, _side, mid in jogs:
+                a, b, w, _ = cur[mid]
+                ka, kb = crs._key(a), crs._key(b)
+                i1 = next(k for k, t in cur.items() if k != mid
+                          and ka in (crs._key(t[0]), crs._key(t[1])))
+                i3 = next(k for k, t in cur.items() if k != mid
+                          and kb in (crs._key(t[0]), crs._key(t[1])))
+                trio = (i1, mid, i3)
+                if not any(k in legs for k in trio) or any(
+                        k not in legs and k not in board for k in trio):
+                    continue
+                if len({round(cur[k][2], 4) for k in trio}) != 1:
+                    continue
+                t1, t3 = cur[i1], cur[i3]
+                p0 = t1[0] if crs._key(t1[1]) == ka else t1[1]
+                p3 = t3[1] if crs._key(t3[0]) == kb else t3[0]
+                segs_now = [Seg(str(k), net, layer, t[2], t[0], t[1])
+                            for k, t in cur.items()]
+                names = {str(k) for k in trio}
+                if any(_tee_joints(sg, segs_now, vias, pads, arcs) != []
+                       for sg in segs_now if sg.uuid in names):
+                    continue
+                pseudo = Seg("", net, layer, w, p0, p3)
+                before = _path_margin(pseudo, [a, b], env, trees, added,
+                                      gone)[3]
+                cands = ([("straight", [])] if not crs.off_angle(p0, p3)
+                         else snap_paths(p0, p3)[:2])
+                best = None
+                for _name, pts in cands:
+                    m, _why, hard, per = _path_margin(pseudo, pts, env,
+                                                      trees, added, gone)
+                    if not _legal(m, hard, per, before):
+                        continue
+                    path = _chain(p0, pts, p3)
+                    trial = [t for k, t in cur.items() if k not in trio]
+                    trial += [(p, q, w, f"t{i}")
+                              for i, (p, q) in enumerate(zip(path, path[1:]))]
+                    n = len(crs.find_jogs(trial, anch))
+                    if n < len(jogs) and (best is None
+                                          or (n, -m) < best[0]):
+                        best = ((n, -m), path)
+                if best is None:
+                    continue
+                for k in trio:
+                    del cur[k]
+                    if k in board:
+                        gone.add(k)
+                base = next(str(k).split(":")[0] for k in trio
+                            if k in legs)
+                put(key, base, best[1], w)
+                merged += 1
+                done = True
+                break
+            if not done:
+                break
+    return merged
+
+
+def _snap_legs(ops):
+    """(layer, net, copper) of every add_track in a snap op list."""
+    return [(op["layer"], op["net"],
+             LineString([op["start"], op["end"]]).buffer(op["width"] / 2.0,
+                                                         quad_segs=8))
+            for op in ops if op["op"] == "add_track"]
+
+
+def _rules_clearance(pcb: Path, nets) -> tuple[dict, float, float,
+                                                dict | None, float, float]:
+    """(per-net clearance, board floor, copper-to-edge, hard per-net, hard
+    floor, hole clearance) from the .kicad_pro netclasses and the .kicad_dru
+    beside the board. hard is None unless the .kicad_dru carries a
+    clearance rule: KiCad then enforces such rules instead of the netclass
+    clearance. hard_floor is the LARGEST clearance min over all clearance
+    rules, conditioned, layer-scoped or per-net included: what DRC enforces
+    depends on the pair there, so the fallback takes the conservative
+    maximum and a scoped rule can only make it stricter. Hole
+    clearance: the board setup's min_hole_clearance (KiCad's 0.25 mm when
+    unset), raised by any .kicad_dru hole_clearance rule."""
+    import json  # noqa: PLC0415
+    import route_critical as rc  # noqa: PLC0415 - heavy, lazy
+    pro, dru = pcb.with_suffix(".kicad_pro"), pcb.with_suffix(".kicad_dru")
+    floor, edge = KICAD_CLEARANCE, KICAD_EDGE
+    try:
+        proj = json.loads(pro.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        proj = {}
+    rules = ((proj.get("board") or {}).get("design_settings") or {}).get(
+        "rules") or {}
+    for c in (proj.get("net_settings") or {}).get("classes") or []:
+        if c.get("name") == "Default" and \
+                isinstance(c.get("clearance"), (int, float)):
+            floor = float(c["clearance"])
+    if isinstance(rules.get("min_clearance"), (int, float)):
+        floor = max(floor, float(rules["min_clearance"]))
+    if isinstance(rules.get("min_copper_edge_clearance"), (int, float)):
+        edge = float(rules["min_copper_edge_clearance"])
+    hole = KICAD_HOLE_CLEARANCE
+    if isinstance(rules.get("min_hole_clearance"), (int, float)):
+        hole = float(rules["min_hole_clearance"])
+    try:
+        text = dru.read_text(encoding="utf-8")
+    except OSError:
+        text = ""
+    hard, hard_floor = None, 0.0
+    for r in rc.parse_dru_rules(text):
+        if r["constraint"] == "hole_clearance":
+            hole = max(hole, r["min_mm"])
+        if r["constraint"] == "clearance":
+            # conservative: the largest clearance of ANY rule, scoped or
+            # not, so a conditioned rule can only make the fallback stricter
+            hard_floor = max(hard_floor, r["min_mm"])
+            hard = {}
+        if r["nets"]:
+            continue
+        if r["constraint"] == "clearance":
+            floor = max(floor, r["min_mm"])
+        elif r["constraint"] == "edge_clearance":
+            edge = max(edge, r["min_mm"])
+    if hard is not None and isinstance(rules.get("min_clearance"),
+                                       (int, float)):
+        hard_floor = max(hard_floor, float(rules["min_clearance"]))
+    per_net = rc.build_net_clearances(pro if pro.is_file() else None,
+                                      dru, nets) or {}
+    return per_net, floor, edge, hard, hard_floor, hole
+
+
+def snap_env(bg: geom.BoardGeom) -> SnapEnv:
+    """The SnapEnv of a parsed board."""
+    obstacles: dict = {l: [] for l in bg.copper_layers}
+    for t in bg.tracks_of():
+        obstacles[t.layer].append((t.net or "", t.poly, t.uuid or ""))
+    for v in bg.vias_of():
+        hole = Point(v.at).buffer(v.drill / 2.0, quad_segs=8) \
+            if v.drill > 0 else None
+        for layer in bg.copper_layers:
+            if v.spans(layer):
+                obstacles[layer].append((v.net or "", v.poly, ""))
+                if hole is not None:
+                    obstacles[layer].append((v.net or "", hole, DRILL))
+    for p in bg.pads_of():
+        for layer in bg.copper_layers:
+            if p.on(layer):
+                obstacles[layer].append((p.net or "", p.poly, ""))
+            if not p.drill_poly.is_empty:
+                obstacles[layer].append((p.net or "", p.drill_poly, DRILL))
+    per_net, floor, edge, hard, hard_floor, hole_clr = _rules_clearance(
+        bg.path, sorted(bg.nets))
+    keepouts = tuple(
+        (tuple(ra["layers"]), ra["outline"]) for ra in bg.rule_areas
+        if ra.get("flags", {}).get("tracks") == "not_allowed"
+        and not ra["outline"].is_empty)
+    outline = bg.outline if bg.outline is not None \
+        and not bg.outline.is_empty else None
+    return SnapEnv(obstacles, per_net, floor, edge if outline else None,
+                   outline, keepouts, hard, hard_floor, hole_clr)
+
+
+# ============================================================ pass 4: corners
+
+def _r6(p) -> list[float]:
+    return [round(p[0], 6), round(p[1], 6)]
+
 
 def _r4(p) -> list[float]:
     return [round(p[0], 4), round(p[1], 4)]
@@ -550,8 +1078,11 @@ def find_corners(segs, vias, pads, foreign_fn, tol=TOL) -> tuple[list[dict],
 
 # ============================================================ plan + driver
 
-def build_plan(bg: geom.BoardGeom, segs, vias, smooth: bool = True) -> dict:
-    """All three passes over one parse -> {ops, op_layers, facts...}."""
+def build_plan(bg: geom.BoardGeom, segs, vias, smooth: bool = True,
+               snap: bool = True, hygiene: bool = True,
+               keep_nets=()) -> dict:
+    """All four passes over one parse -> {ops, op_layers, facts...}.
+    hygiene=False (--snap-only) skips dangling, loops and corners."""
     pads = [PadItem(p.net, tuple(p.layers), p.center, p.poly)
             for p in bg.pads_of()]
     arcs = tuple((t.net, t.layer, t.shape, t.width) for t in bg.tracks_of()
@@ -564,11 +1095,13 @@ def build_plan(bg: geom.BoardGeom, segs, vias, smooth: bool = True) -> dict:
             cache[key] = bg.zone_fill(net, layer)
         return cache[key]
 
-    gone_s, gone_v = find_dangling(segs, vias, pads, fillfn, arcs)
+    gone_s, gone_v = (find_dangling(segs, vias, pads, fillfn, arcs)
+                      if hygiene else ([], []))
     dead = set(gone_s) | set(gone_v)
     alive_s = [s for s in segs if s.uuid not in dead]
     alive_v = [v for v in vias if v.uuid not in dead]
-    loop_uuids, _loops = find_loops(alive_s, alive_v)
+    loop_uuids, _loops = (find_loops(alive_s, alive_v) if hygiene
+                          else ([], 0))
     # T6/V13 guard: a victim that is a bridge of the net's FULL connectivity
     # graph is load-bearing - veto its removal (the loop stays, warning-level
     # outcome; the veto can only PREVENT copper loss).
@@ -586,18 +1119,40 @@ def build_plan(bg: geom.BoardGeom, segs, vias, smooth: bool = True) -> dict:
         dead |= set(orphan_s) | set(orphan_v)
         alive_s = [s for s in alive_s if s.uuid not in dead]
         alive_v = [v for v in alive_v if v.uuid not in dead]
+    snap_ops: list[dict] = []
+    snaps: list[dict] = []
+    left: list[dict] = []
+    merged = 0
+    env = None
+    if snap:
+        import check_diffpair  # noqa: PLC0415 - lazy
+        skip = {n for pair in check_diffpair.discover_pairs(bg.nets)
+                for n in pair} | set(keep_nets)
+        env = snap_env(bg)
+        snap_ops, snaps, left, merged = find_snaps(
+            alive_s, alive_v, pads, arcs, env, frozenset(skip))
     corner_ops: list[dict] = []
     corners: list[dict] = []
-    if smooth:
+    if smooth and hygiene:
+        # every track the snap replaced (snapped, or merged into a jog fix)
+        snapped = {o["uuid"] for o in snap_ops if o["op"] == "remove"}
+
+        def foreign(layer, net):
+            # snapped legs of other nets are foreign copper for a chamfer
+            legs = [g for (l, n, g) in _snap_legs(snap_ops) if l == layer
+                    and n != net]
+            base = bg.layer_copper(layer, exclude=net)
+            return geom._union([base] + legs) if legs else base
+
         corner_ops, corners = find_corners(
-            alive_s, alive_v, pads,
-            lambda layer, net: bg.layer_copper(layer, exclude=net))
+            [s for s in alive_s if s.uuid not in snapped], alive_v, pads,
+            foreign)
     ops = ([{"op": "remove", "uuid": u} for u in gone_s]
            + [{"op": "remove", "uuid": u} for u in gone_v]
            + [{"op": "remove", "uuid": u} for u in loop_uuids]
            + [{"op": "remove", "uuid": u} for u in orphan_s]
            + [{"op": "remove", "uuid": u} for u in orphan_v]
-           + corner_ops)
+           + snap_ops + corner_ops)
     layer_of = {s.uuid: (s.layer,) for s in segs}
     layer_of.update({v.uuid: v.layers for v in vias})
     op_layers: set[str] = set()
@@ -611,10 +1166,34 @@ def build_plan(bg: geom.BoardGeom, segs, vias, smooth: bool = True) -> dict:
         "dangling_segments": len(gone_s), "dangling_vias": len(gone_v),
         "dangling_removed": len(gone_s) + len(gone_v),
         "loops_broken": len(loop_uuids), "loop_bridge_vetoed": len(loop_vetoed),
+        "off_angle_snapped": len(snaps), "snaps": snaps,
+        "off_angle_left": left, "jogs_merged": merged,
         "orphaned_after_loops": len(orphan_s) + len(orphan_v),
         "corners_smoothed": len(corners),
         "corners": corners,
     }
+
+
+def constraint_keep_nets(cons: dict) -> set[str]:
+    """Nets constraints.json gives intended geometry, which the snap must
+    leave: both members of every declared diff pair (check_diffpair takes
+    diff_pairs as authoritative), every net of a length_match group
+    ({"nets": [...]}), every rf entry and every high_speed entry carrying an
+    impedance_ohm target (route_critical routes both at impedance width)."""
+    def entries(key):
+        return [e for e in (cons.get(key) or []) if isinstance(e, dict)]
+    out: set[str] = set()
+    for e in entries("diff_pairs"):
+        out.update(n for n in (e.get("p"), e.get("n")) if n)
+    for e in entries("length_match"):
+        out.update(n for n in (e.get("nets") or []) if isinstance(n, str) and n)
+    for e in entries("rf"):
+        if e.get("net"):
+            out.add(e["net"])
+    for e in entries("high_speed"):
+        if e.get("net") and e.get("impedance_ohm") is not None:
+            out.add(e["net"])
+    return out
 
 
 def _drc_facts(report: dict) -> dict:
@@ -636,9 +1215,23 @@ def run(argv: list[str] | None = None):
                     help="generate + report ops only; board untouched, "
                          "no toolchain needed")
     ap.add_argument("--no-smooth", action="store_true",
-                    help="skip pass 3 (corner smoothing)")
+                    help="skip pass 4 (corner smoothing)")
+    ap.add_argument("--no-snap", action="store_true",
+                    help="skip pass 3 (off-angle segments to 0/90 + 45)")
+    ap.add_argument("--snap-only", action="store_true",
+                    help="run pass 3 alone (no dangling/loop/corner edits)")
+    ap.add_argument("--keep-net", action="append", default=[],
+                    metavar="NET",
+                    help="leave this net's off-angle segments (an RF or "
+                         "length-matched net); repeatable")
+    ap.add_argument("--constraints", default=None,
+                    help="constraints.json: also leave its diff_pairs, "
+                         "length_match, rf and impedance-controlled "
+                         "high_speed nets")
     ap.add_argument("--out-report", default=None)
     args = ap.parse_args(argv)
+    if args.snap_only and args.no_snap:
+        raise CheckError("--snap-only and --no-snap exclude each other")
 
     pcb = Path(args.pcb).resolve()
     if not pcb.is_file():
@@ -648,11 +1241,21 @@ def run(argv: list[str] | None = None):
     # unfilled pour would make live pour-terminated stubs look dangling
     # (S11 review finding; plane_repair has the same guard).
     bg.assert_fresh()
+    keep = set(args.keep_net)
+    if args.constraints:
+        cons = checklib.load_json(args.constraints, "constraints")
+        if not isinstance(cons, dict):
+            raise CheckError(f"constraints {args.constraints} is not an "
+                             "object")
+        keep |= constraint_keep_nets(cons)
     segs, vias = parse_items(pcb, bg.copper_layers)
-    plan = build_plan(bg, segs, vias, smooth=not args.no_smooth)
+    plan = build_plan(bg, segs, vias, smooth=not args.no_smooth,
+                      snap=not args.no_snap, hygiene=not args.snap_only,
+                      keep_nets=sorted(keep))
     facts = {k: plan[k] for k in (
         "dangling_removed", "dangling_segments", "dangling_vias",
         "loops_broken", "loop_bridge_vetoed", "orphaned_after_loops",
+        "off_angle_snapped", "snaps", "off_angle_left", "jogs_merged",
         "corners_smoothed", "corners")}
 
     if args.dry_run:
