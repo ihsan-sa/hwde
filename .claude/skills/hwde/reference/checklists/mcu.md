@@ -12,5 +12,7 @@
   strapped when unused (to VDD unless DS says otherwise).
 - Debug port pins un-conflicted (SWD/JTAG default pins not repurposed
   without a stated waiver); connector pinout matches the debugger family.
+  STM32 debug connector = STDC14 (2x7 1.27 mm) unless the brief opts out
+  to TC2030 or a 0.1 in header.
 - 5V-tolerance: any pin fed >VDD verified FT in the datasheet pin table.
 - Unused inputs: NC-flagged or defined level; no floating inputs.
