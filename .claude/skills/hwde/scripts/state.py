@@ -570,6 +570,29 @@ class State:
         self._log("rehash", names=sorted(out))
         return out
 
+    def restamp_input(self, kind: str, old: str, new: str,
+                      why: str) -> list[str]:
+        """Carry PASSED gates recorded against input `kind` at hash `old`
+        over to hash `new`, and the registry entry with them. Only for an
+        edit the caller has proved changes nothing a gate reads except in a
+        direction that can only clear findings (check_model_paths --fix
+        rewrites 3D model paths and nothing else). A gate recorded against
+        any other hash was already stale and stays so; a failed gate is left
+        to re-run; stale marks are untouched. Returns the gates moved."""
+        moved = []
+        for gname, g in sorted(self.data["gates"].items()):
+            inputs = (g.get("last") or {}).get("inputs") or {}
+            if g.get("status") == "pass" and inputs.get(kind) == old:
+                inputs[kind] = new
+                moved.append(gname)
+        entry = self.data["artifacts"].get(kind)
+        if isinstance(entry, dict) and entry.get("sha256") == old:
+            entry.update({"sha256": new, "hashed": now()})
+        if moved:
+            self._log("restamp", kind=kind, gates=moved, why=why,
+                      old=old, new=new)
+        return moved
+
     def record_spawn(self, record: dict) -> dict:
         """Append a subagent spawn to the first-class ledger (XC-8: tier
         choices survived only as digest prose; the SKILL step-5 log form
