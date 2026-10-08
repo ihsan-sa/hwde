@@ -75,7 +75,29 @@ DOMAIN_KINDS = ("vendor", "distributor", "standards", "forum")
 EXPECTS = ("pdf", "html", "any")
 VERDICTS = ("verified", "refuted")
 TASK_STATUSES = ("open", "closed")
-OUTCOMES = ("verified", "abandoned")
+OUTCOMES = ("verified", "abandoned", "blocked")
+# A host that REFUSES the fetch (auth/forbidden/rate-limit, or a bot-manager
+# challenge page in place of the document) is a distinct outcome from "the
+# document has nothing": PCB-0028 closed its ldo + tvs slots empty after every
+# Torex/Littelfuse fetch got an Akamai 403. Never evaded - recorded, then the
+# distributor's hosted copy is tried (distributor_datasheets).
+BLOCK_STATUSES = (401, 403, 429)
+_CHALLENGE_MARKERS = (            # lower-cased, searched in a non-PDF body head
+    (b"_sec/cp_challenge", "akamai"),     # Akamai Bot Manager interstitial
+    (b"/cdn-cgi/challenge-platform", "cloudflare"),
+    (b"cf-chl", "cloudflare"),
+    (b"<title>just a moment...</title>", "cloudflare"),
+    (b"attention required! | cloudflare", "cloudflare"),
+)
+# Weak markers also turn up in real pages served through Akamai (asset links
+# to edgesuite.net), so they count only on an error status or a short body.
+_WEAK_CHALLENGE_MARKERS = (
+    (b"edgesuite", "akamai"),             # Akamai "Access Denied" reference link
+    (b"bm-verify", "akamai"),
+)
+WEAK_MARKER_MAX_BODY = 4096       # bytes: an interstitial, not a real page
+_LCSC_PN = re.compile(r"^C\d{2,}$", re.I)
+FALLBACK_TRIES = 3          # distributor copies tried per block (attempts cap)
 # Mirror of state.DEFAULT_BUDGETS["research"] (a lib must not import the
 # state script); tests pin the two equal.
 DEFAULT_CAPS = {"per_run": 6, "depth_per_gap": 4}
@@ -479,7 +501,10 @@ def brief(task: dict, ws: Path, library_records: list[dict] | None = None,
         "fetch": (f"scripts/research.py fetch --workspace {ws_posix} --task "
                   f"{task['id']} --url <https://vendor/...pdf> --tier "
                   "<vendor-layout|vendor-appnote|cross-vendor|forum> "
-                  "[--about <mpn>] [--expect pdf|html]"),
+                  "[--about <mpn>] [--expect pdf|html] [--part <LCSC|MPN>]"
+                  " (a host that refuses - 401/403/429 or a bot challenge - "
+                  "is recorded blocked_by_host, never evaded; --part then "
+                  "tries the distributor's hosted datasheet)"),
         "validate": (f"scripts/research.py validate --workspace {ws_posix} "
                      f"--task {task['id']}"),
         "status": (f"scripts/research.py status --workspace {ws_posix} "
@@ -571,7 +596,179 @@ def http_transport(url: str, timeout: float = 60.0) -> dict:
     hops = [str(h.url) for h in r.history] + [str(r.url)]
     return {"status": r.status_code, "final_url": str(r.url), "hops": hops,
             "content_type": r.headers.get("content-type", ""),
+            "server": r.headers.get("server", ""),
+            "cf_mitigated": r.headers.get("cf-mitigated", ""),
             "body": r.content}
+
+
+def host_block(resp: dict, url: str) -> dict | None:
+    """{host, http_status, challenge} when the host REFUSED the fetch: HTTP
+    401/403/429, a `cf-mitigated` header, or an Akamai/Cloudflare challenge
+    page served in place of the document (any status; the weak markers only
+    on an error status or a short body). None otherwise - a
+    404 or a 500 is an ordinary failure, not a block."""
+    status = int(resp.get("status") or 0)
+    body = resp.get("body") or b""
+    head = b"" if body.startswith(b"%PDF") else body[:8192].lower()
+    challenge = next((v for m, v in _CHALLENGE_MARKERS if m in head), None)
+    if challenge is None and (status >= 400 or len(body) < WEAK_MARKER_MAX_BODY):
+        challenge = next((v for m, v in _WEAK_CHALLENGE_MARKERS if m in head),
+                         None)
+    server = str(resp.get("server") or "").lower()
+    if resp.get("cf_mitigated"):
+        challenge = challenge or "cloudflare"
+    if status not in BLOCK_STATUSES and not challenge:
+        return None
+    if challenge is None:
+        challenge = ("akamai" if "akamai" in server else
+                     "cloudflare" if "cloudflare" in server else None)
+    return {"host": urlsplit(resp.get("final_url") or url).hostname or "",
+            "http_status": status, "challenge": challenge}
+
+
+def fallback_parts(task: dict, part: str | None = None) -> list[str]:
+    """Part numbers the distributor fallback may look up: an explicit --part
+    first, then a part slot's own LCSC number and MPN."""
+    out: list[str] = []
+    gap = task.get("gap") or {}
+    for k in (part, gap.get("lcsc"), gap.get("mpn")):
+        k = str(k or "").strip()
+        if k and k not in out:
+            out.append(k)
+    return out
+
+
+def _lcsc_search(part: str) -> list[dict]:
+    import partslib
+    hits, _total = partslib.live_search(part, page_size=10)
+    return [partslib.normalize(h) for h in hits]
+
+
+def vendor_token(url: str, domains: dict | None = None) -> str | None:
+    """The vendor a URL belongs to, as a lower-case brand token: the first
+    word of its allowlist note ("Torex", "Littelfuse (TVS, fuses)"), else
+    the domain's first label. None for a distributor/forum/standards host."""
+    domains = domains or load_domains()
+    ck = check_url(url, domains)
+    e = ck.get("entry") or {}
+    if not ck["ok"] or e.get("kind") != "vendor":
+        return None
+    note = next((d.get("note") for d in domains.get("domains") or []
+                 if d.get("domain") == e["domain"]), None)
+    words = re.findall(r"[a-z0-9]+", str(note or "").lower())
+    return words[0] if words else e["domain"].split(".")[0]
+
+
+def distributor_datasheets(parts: list[str], search=None, lookup=None,
+                           vendor: str | None = None
+                           ) -> tuple[list[dict], list[str]]:
+    """Distributor-hosted datasheet copies for `parts` (LCSC numbers or MPNs):
+    ([{source, part, mpn, brand, url}], notes). LCSC/JLC first (anonymous
+    search, the wmsc PDF mirror), then DigiKey/Mouser by MPN when their
+    credentials are present - a provider without credentials is skipped and
+    named in `notes`, never raised. Only exact LCSC-number / MPN matches
+    count (an MPN may carry a `-suffix`), and an MPN match must carry `vendor`'s brand when the vendor is
+    known: an MPN search also returns second-source clones (UMW XC6206,
+    Brightking SMBJ5.0A), whose datasheet is not the subject part's."""
+    import distributors
+    import partslib
+    search = search or _lcsc_search
+    lookup = lookup or distributors.lookup
+    cands: list[dict] = []
+    notes: list[str] = []
+    mpns: list[str] = []
+
+    def _add(c: dict) -> None:
+        if c["url"] and c["url"] not in {x["url"] for x in cands}:
+            cands.append(c)
+
+    for p in parts:
+        if not _LCSC_PN.match(p):
+            mpns.append(p)
+        try:
+            hits = search(p)
+        except Exception as exc:  # noqa: BLE001 - a lookup failure is a note
+            notes.append(f"lcsc: lookup of {p} failed ({type(exc).__name__}: "
+                         f"{exc})")
+            continue
+        want = p.upper()
+        # an MPN also matches its packaging/RoHS suffix (LCSC lists Torex's
+        # XC6206P332MR as XC6206P332MR-G)
+        match = [h for h in hits or []
+                 if want == str(h.get("lcsc") or "").upper()
+                 or str(h.get("mpn") or "").upper() == want
+                 or str(h.get("mpn") or "").upper().startswith(want + "-")]
+        if not match:
+            notes.append(f"lcsc: no exact match for {p} (or the JLC search "
+                         "is unreachable)")
+        if vendor and not _LCSC_PN.match(p):
+            clones = [h for h in match
+                      if vendor not in str(h.get("brand") or "").lower()]
+            if clones:
+                notes.append(f"lcsc: skipped {len(clones)} other-brand "
+                             f"cop{'y' if len(clones) == 1 else 'ies'} of {p} "
+                             "(" + ", ".join(sorted({str(h.get('brand'))
+                                                     for h in clones}))
+                             + f") - not {vendor}'s datasheet")
+            match = [h for h in match if h not in clones]
+        for h in match:
+            if h.get("mpn") and h["mpn"] not in mpns:
+                mpns.append(h["mpn"])
+            url = partslib.fix_datasheet_url(h.get("datasheet") or "")
+            if not url:
+                notes.append(f"lcsc: {h.get('lcsc') or p} lists no datasheet")
+            _add({"source": "lcsc", "part": p, "lcsc": h.get("lcsc"),
+                  "mpn": h.get("mpn"), "brand": h.get("brand"), "url": url})
+    if not mpns:
+        notes.append("digikey/mouser: not tried - no MPN known")
+    for m in mpns:
+        try:
+            res = lookup(m)
+        except Exception as exc:  # noqa: BLE001
+            notes.append(f"distributors: lookup of {m} failed "
+                         f"({type(exc).__name__}: {exc})")
+            continue
+        for prov, msg in sorted((res.get("missing") or {}).items()):
+            note = f"{prov}: skipped - {msg}"
+            if note not in notes:
+                notes.append(note)
+        for prov, r in sorted((res.get("results") or {}).items()):
+            for h in r.get("hits") or []:
+                if str(h.get("mpn") or "").upper() != m.upper():
+                    continue
+                if vendor and vendor not in str(
+                        h.get("manufacturer") or "").lower():
+                    continue
+                url = str(h.get("datasheet_url") or "")
+                if url.startswith("//"):
+                    url = "https:" + url
+                _add({"source": prov, "part": m, "mpn": h.get("mpn"),
+                      "brand": h.get("manufacturer"), "url": url})
+    return cands, notes
+
+
+def blocked_hosts(task: dict) -> list[dict]:
+    """The task's blocked_by_host attempts grouped by host:
+    [{host, http_status[], challenge, urls}]."""
+    by: dict[str, dict] = {}
+    for a in task.get("attempts") or []:
+        if a.get("kind") != "blocked_by_host":
+            continue
+        e = by.setdefault(a.get("host") or "", {
+            "host": a.get("host") or "", "http_status": [],
+            "challenge": None, "urls": 0})
+        if a.get("http_status") not in e["http_status"]:
+            e["http_status"].append(a.get("http_status"))
+        e["challenge"] = e["challenge"] or a.get("challenge")
+        e["urls"] += 1
+    return [by[h] for h in sorted(by)]
+
+
+def _blocked_text(blocked: list[dict]) -> str:
+    return ", ".join(
+        f"{b['host']} (HTTP {'/'.join(str(s) for s in b['http_status'])}"
+        + (f", {b['challenge']} challenge" if b.get("challenge") else "")
+        + ")" for b in blocked)
 
 
 def _pdf_pages(data: bytes) -> int | None:
@@ -627,14 +824,22 @@ def fetch_source(root: Path, task: dict, url: str, tier: str,
                  about: str | None = None, expect: str = "pdf",
                  local_file: Path | str | None = None,
                  note: str | None = None, transport=None,
-                 domains: dict | None = None) -> tuple[dict, int]:
+                 domains: dict | None = None, part: str | None = None,
+                 resolver=None,
+                 fallback_of: dict | None = None) -> tuple[dict, int]:
     """Acquire ONE source into quarantine under the task's ledger.
 
     Returns (payload, exit): 0 acquired (or de-duplicated against an
     identical file already in quarantine), 1 checkpoint (depth/attempt cap)
     or a content refusal (not a PDF when one was expected), 2 allowlist
-    refusal / transport failure / bad arguments. Refusals and failures are
-    recorded as attempts; only acquisitions consume depth."""
+    refusal / blocked by host / transport failure / bad arguments. Refusals
+    and failures are recorded as attempts; only acquisitions consume depth.
+
+    A host that refuses the fetch (host_block) is ledgered as
+    `blocked_by_host`, then the distributor's hosted datasheet copy for
+    `part` (or the part slot's LCSC/MPN) is tried through this same function
+    (`resolver` = distributor_datasheets, injectable); the acquired entry
+    names the source used under `fallback`."""
     if task.get("status") != "open":
         return {"status": "error", "error": f"task {task['id']} is "
                 f"{task.get('status')} - fetch needs an open task"}, 2
@@ -643,10 +848,10 @@ def fetch_source(root: Path, task: dict, url: str, tier: str,
                 "error": f"--expect {expect!r} not in {EXPECTS}"}, 2
     domains = domains or load_domains()
 
-    def _attempt(kind: str, detail: str) -> None:
+    def _attempt(kind: str, detail: str, **extra) -> None:
         """Every refusal/failure is ledgered (audit + the attempts cap)."""
         task.setdefault("attempts", []).append(
-            {"ts": now(), "url": url, "kind": kind, "detail": detail})
+            {"ts": now(), "url": url, "kind": kind, "detail": detail, **extra})
         write_task(root, task)
 
     ds = depth_state(task)
@@ -699,6 +904,31 @@ def fetch_source(root: Path, task: dict, url: str, tier: str,
                         f"redirect to {hop} refused: {hk['reason']}"}, 2
             if hk["forced_tier"]:
                 tier_eff = effective_tier(tier_eff, hk["forced_tier"])
+        blk = host_block(resp, url)
+        if blk:
+            _attempt("blocked_by_host",
+                     f"HTTP {blk['http_status']} from {blk['host']}"
+                     + (f" ({blk['challenge']} challenge)"
+                        if blk["challenge"] else ""), **blk)
+            fb_payload, fb = _distributor_fallback(
+                root, task, url, blk, tier, about, expect, note, transport,
+                domains, part, resolver, fallback_of)
+            if fb_payload is not None:
+                return fb_payload
+            return {"status": "error", "refused": "blocked_by_host",
+                    "url": url, **blk, "fallback": fb,
+                    "error": (f"blocked by host: {blk['host']} answered HTTP "
+                              f"{blk['http_status']}"
+                              + (f" ({blk['challenge']} challenge page)"
+                                 if blk["challenge"] else "")
+                              + " - the host refused, the document was not "
+                              "read; this is not 'no records found'"),
+                    "depth": depth_state(task),
+                    "next": ("try another allowlisted source; pass --part "
+                             "<LCSC or MPN> to try the distributor's copy; "
+                             "or register an owner-downloaded copy with "
+                             "--file. A task whose every fetch was blocked "
+                             "closes as `blocked` (research.py close).")}, 2
         if int(resp.get("status") or 0) >= 400:
             _attempt("http", f"HTTP {resp.get('status')}")
             return {"status": "error", "url": url,
@@ -744,7 +974,7 @@ def fetch_source(root: Path, task: dict, url: str, tier: str,
                          ("application/pdf" if is_pdf else "")),
         "pages": _pdf_pages(data) if is_pdf else None,
         "fetched": now(), "via": via, "note": note,
-        "deduplicated": dedup,
+        "deduplicated": dedup, "fallback": fallback_of,
     }
     task.setdefault("sources", []).append(entry)
     write_task(root, task)
@@ -753,6 +983,47 @@ def fetch_source(root: Path, task: dict, url: str, tier: str,
             "next": ("Read the cited pages VISUALLY, then write research/"
                      "records/<id>.yaml citing " + entry["file"] +
                      " by page + note; research.py validate")}, 0
+
+
+def _distributor_fallback(root, task, url, blk, tier, about, expect, note,
+                          transport, domains, part, resolver, fallback_of):
+    """After a host block: fetch the first distributor-hosted copy that
+    lands. Returns ((payload, exit) | None, info{parts, tried[], notes[]})."""
+    info: dict = {"parts": [], "tried": [], "notes": []}
+    if fallback_of is not None:          # already a fallback - no recursion
+        info["notes"].append("this fetch was itself the fallback")
+        return None, info
+    info["parts"] = fallback_parts(task, part)
+    if not info["parts"]:
+        info["notes"].append("no part number to look up: pass --part <LCSC "
+                             "number or MPN> to try the distributor copy")
+        return None, info
+    cands, notes = (resolver or distributor_datasheets)(
+        info["parts"], vendor=vendor_token(url, domains))
+    info["notes"] += notes
+    for c in cands[:FALLBACK_TRIES]:
+        if c["url"] == url:
+            continue
+        pl, code = fetch_source(
+            root, task, c["url"], tier, about=about, expect=expect, note=note,
+            transport=transport, domains=domains,
+            fallback_of={"source": c["source"], "part": c["part"],
+                         "mpn": c.get("mpn"), "brand": c.get("brand"),
+                         "for_url": url,
+                         "blocked": blk})
+        info["tried"].append({"source": c["source"], "url": c["url"],
+                              "status": pl.get("status"),
+                              "error": pl.get("error")})
+        if code == 0:
+            pl.update({"blocked": blk, "fallback": info,
+                       "source_used": c["source"]})
+            return (pl, code), info
+        if pl.get("status") == "checkpoint":
+            pl.update({"blocked": blk, "fallback": info})
+            return (pl, code), info
+    if not cands:
+        info["notes"].append("no distributor-hosted datasheet found")
+    return None, info
 
 
 # ---------------------------------------------------------------------------
@@ -1249,13 +1520,36 @@ def close_task(root: Path, task: dict, abandon: bool = False,
     payload so the caller can record the decision.
     --abandon closes with a reason and no queue entry (a cap-hit task the
     owner chose not to extend, a slot that turned out not to need
-    research)."""
+    research).
+    A task that acquired NOTHING and was refused by a host at least once
+    closes as `blocked` (on --abandon, or on a plain close with no records
+    and no checklist): the slot's gap is named with the host and status
+    instead of reading as an empty research pass."""
     import learnlib
     root = Path(root)
     ws = root.parent
     if task.get("status") != "open":
         return {"status": "error",
                 "error": f"task {task['id']} is already {task.get('status')}"}, 2
+    blocked = [] if task.get("sources") else blocked_hosts(task)
+    if blocked and (abandon or not (task_records(root, task)
+                                    or task_checklists(root, task))):
+        text = _blocked_text(blocked)
+        reason = (reason or "").strip() or (
+            f"every fetch was refused by the host: {text}")
+        task.update({"status": "closed", "outcome": "blocked",
+                     "closed": now(), "reason": reason,
+                     "blocked_by": blocked})
+        write_task(root, task)
+        return {"status": "pass", "task": task["id"], "slot": task["slot"],
+                "outcome": "blocked", "blocked_by": blocked,
+                "reason": reason,
+                "next": (f"the slot stays a coverage gap, named as blocked "
+                         f"by {text} in knowledge.py --coverage "
+                         "(research_blocked). Get the document another way "
+                         "(an owner download registered with research.py "
+                         "fetch --file) or accept the gap as a state "
+                         "decision.")}, 0
     if abandon:
         if not reason or len(reason.strip()) < SOURCE_NOTE_MIN:
             return {"status": "error",

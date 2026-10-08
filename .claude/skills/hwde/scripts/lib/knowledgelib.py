@@ -981,6 +981,30 @@ def render_topology(records: list[dict], topology: str) -> str:
 WS_RESEARCH = "research"
 WS_RECORDS = "research/records"
 WS_CHECKLISTS = "research/checklists"
+WS_TASKS = "research/tasks"
+
+
+def workspace_research_blocks(ws: Path | str) -> dict[str, dict]:
+    """slot -> {task, closed, blocked_by[]} when the slot's LATEST closed
+    research task closed `blocked` (every fetch refused by the host, nothing
+    acquired). A later task on the slot that closed otherwise clears it.
+    Unreadable task files are skipped - research.py status names them."""
+    d = Path(ws) / WS_TASKS
+    latest: dict[str, dict] = {}
+    for p in sorted(d.glob("*.json")) if d.is_dir() else []:
+        try:
+            t = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(t, dict) or t.get("status") != "closed":
+            continue
+        slot = t.get("slot")
+        if slot and str(t.get("closed") or "") >= str(
+                (latest.get(slot) or {}).get("closed") or ""):
+            latest[slot] = t
+    return {s: {"task": t.get("id"), "closed": t.get("closed"),
+                "blocked_by": t.get("blocked_by") or []}
+            for s, t in latest.items() if t.get("outcome") == "blocked"}
 
 
 def workspace_records(ws: Path | str) -> list[dict]:
@@ -1475,9 +1499,34 @@ def coverage(ws: Path | str, records: list[dict] | None = None,
                 })
         out_slots.append(entry)
 
+    # a slot whose research was refused by the host is a NAMED gap, not an
+    # empty research pass (PCB-0028: Torex/Littelfuse behind Akamai 403s)
+    blocks = workspace_research_blocks(ws)
+    blocked_slots = []
+    for entry in out_slots:
+        b = blocks.get(entry["id"])
+        if b and entry.get("verdict") != "covered":
+            entry["research_blocked"] = b
+            blocked_slots.append(entry["id"])
+    for g in gaps:
+        b = blocks.get(g["slot"])
+        if b:
+            g["research_blocked"] = b
+            g["reasons"] = list(g["reasons"]) + [
+                "research blocked by host: " + ", ".join(
+                    f"{h.get('host')} HTTP "
+                    + "/".join(str(x) for x in h.get("http_status") or [])
+                    for h in b["blocked_by"])]
+    if blocked_slots:
+        warnings.append(
+            f"{len(blocked_slots)} slot(s) left uncovered because the host "
+            "refused every research fetch (research_blocked): "
+            + ", ".join(blocked_slots))
+
     counts = {"slots": len(out_slots)}
     for v in ("covered", "provisional", "gap"):
         counts[v] = sum(1 for s in out_slots if s.get("verdict") == v)
+    counts["research_blocked"] = len(blocked_slots)
     counts["draft_unverified"] = len({d["slot"] for d in draft_unverified})
     if draft_unverified:
         n = len({r for d in draft_unverified for r in d["records"]})

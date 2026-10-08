@@ -1237,3 +1237,279 @@ def test_run_close_on_a_workspace_without_research_is_unchanged(tmp_path):
         "Body text.\n", encoding="utf-8", newline="\n")
     comp, code = run(learnings, tmp_path, ["compile", "--workspace", str(ws)])
     assert code == 0 and comp["research_drafts"]["drafts"] == 0
+
+
+# ---------------------------------------------------------------------------
+# 8. a host that refuses the fetch (PCB-0028: Torex + Littelfuse behind Akamai)
+# ---------------------------------------------------------------------------
+TOREX = "https://www.torexsemi.com/file/xc6206/XC6206.pdf"
+LITTELFUSE = "https://www.littelfuse.com/assetdocs/smbj-datasheet.pdf"
+LCSC_PDF = "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/XC6206.pdf"
+AKAMAI_403 = (b"<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n"
+              b"<H1>Access Denied</H1>\nReference&#32;&#35;18&#46;1\n<P>"
+              b"https&#58;&#47;&#47;errors&#46;edgesuite&#46;net&#47;18</P>")
+
+
+def transport_vendor_blocked(url):
+    """Vendor hosts 403 (Akamai); every other host serves the PDF."""
+    if "torexsemi.com" in url or "littelfuse.com" in url:
+        return {"status": 403, "final_url": url, "hops": [url],
+                "content_type": "text/html", "server": "AkamaiGHost",
+                "body": AKAMAI_403}
+    return transport_ok(url)
+
+
+def no_resolver(parts, vendor=None):
+    raise AssertionError("the fallback must not run without a part number")
+
+
+def blank_task(tmp_path):
+    """An open task that has acquired nothing yet."""
+    lib = make_lib(tmp_path)
+    ws = make_ws(tmp_path)
+    report, _cov, _code = coverage_report(tmp_path, ws, lib)
+    payload, code = open_task(tmp_path, ws, report)
+    assert code == 0, payload
+    return ws, payload["opened"][0], lib
+
+
+@pytest.mark.parametrize("resp,challenge", [
+    ({"status": 403, "server": "AkamaiGHost", "body": AKAMAI_403}, "akamai"),
+    ({"status": 401, "body": b""}, None),
+    ({"status": 429, "body": b"slow down"}, None),
+    ({"status": 503, "body": b"<html><script src='/cdn-cgi/challenge-platform/"
+                             b"h/b/orchestrate'></script>"}, "cloudflare"),
+    ({"status": 200, "body": b"<!DOCTYPE html><html><head><title>Just a "
+                             b"moment...</title>"}, "cloudflare"),
+    ({"status": 200, "cf_mitigated": "challenge", "body": b"<html></html>"},
+     "cloudflare"),
+])
+def test_a_refusing_host_is_blocked_by_host_not_an_empty_result(
+        tmp_path, resp, challenge):
+    ws, tid, _lib = blank_task(tmp_path)
+
+    def t(url):
+        return {"final_url": url, "hops": [url], "content_type": "text/html",
+                **resp}
+    pl, code = fetch(ws, tid, url=TOREX, transport=t, resolver=no_resolver)
+    assert code == 2 and pl["refused"] == "blocked_by_host", pl
+    assert pl["host"] == "www.torexsemi.com"
+    assert pl["http_status"] == resp["status"] and pl["challenge"] == challenge
+    assert "not 'no records found'" in pl["error"]
+    assert "--part" in pl["fallback"]["notes"][0]
+    task = researchlib.load_task(researchlib.root_of(ws), tid)
+    att = task["attempts"][-1]
+    assert att["kind"] == "blocked_by_host" and att["host"] == "www.torexsemi.com"
+    assert not task["sources"]
+
+
+def test_a_404_or_a_real_pdf_is_not_a_block(tmp_path):
+    ws, tid, _lib = blank_task(tmp_path)
+
+    def t404(url):
+        return {"status": 404, "final_url": url, "hops": [url],
+                "content_type": "text/html", "body": b"<html>not found"}
+    pl, code = fetch(ws, tid, url=TOREX, transport=t404, resolver=no_resolver)
+    assert code == 2 and "refused" not in pl and "HTTP 404" in pl["error"]
+    assert researchlib.host_block({"status": 200, "body": PDF + b"cf-chl"},
+                                  TOREX) is None
+
+
+def test_a_real_akamai_fronted_page_is_not_a_block():
+    page = (b"<html><head><link href='https://a.edgesuite.net/site.css'>"
+            + b"<p>app note</p>" * 600)
+    assert researchlib.host_block({"status": 200, "body": page}, TOREX) is None
+    short = b"<html><script src='/bm-verify.js'></script></html>"
+    assert researchlib.host_block({"status": 200, "body": short},
+                                  TOREX)["challenge"] == "akamai"
+
+
+def test_blocked_fetch_falls_back_to_the_distributor_copy(tmp_path):
+    ws, tid, _lib = blank_task(tmp_path)
+    asked = []
+
+    def resolver(parts, vendor=None):
+        asked.append((parts, vendor))
+        return ([{"source": "lcsc", "part": "C5446", "mpn": "XC6206P332MR",
+                  "url": LCSC_PDF}], ["digikey: skipped - no credentials"])
+    pl, code = fetch(ws, tid, url=TOREX, tier="vendor-layout",
+                     transport=transport_vendor_blocked, part="C5446",
+                     resolver=resolver)
+    assert code == 0, pl
+    assert asked == [(["C5446"], "torex")]
+    assert pl["source_used"] == "lcsc"
+    assert pl["blocked"]["host"] == "www.torexsemi.com"
+    assert pl["fallback"]["notes"] == ["digikey: skipped - no credentials"]
+    src = pl["source"]
+    assert src["url"] == LCSC_PDF and src["domain"] == "lcsc.com"
+    assert src["tier"] == "vendor-layout"
+    assert src["fallback"]["source"] == "lcsc"
+    assert src["fallback"]["for_url"] == TOREX
+    assert src["fallback"]["blocked"]["http_status"] == 403
+    task = researchlib.load_task(researchlib.root_of(ws), tid)
+    assert [a["kind"] for a in task["attempts"]] == ["blocked_by_host"]
+    assert len(task["sources"]) == 1
+
+
+def test_a_blocked_fallback_does_not_recurse_and_names_what_it_tried(tmp_path):
+    ws, tid, _lib = blank_task(tmp_path)
+    calls = []
+
+    def resolver(parts, vendor=None):
+        calls.append(parts)
+        return ([{"source": "digikey", "part": "SMBJ5.0A", "mpn": "SMBJ5.0A",
+                  "url": LITTELFUSE}], [])
+    pl, code = fetch(ws, tid, url=TOREX, transport=transport_vendor_blocked,
+                     part="SMBJ5.0A", resolver=resolver)
+    assert code == 2 and pl["refused"] == "blocked_by_host"
+    assert calls == [["SMBJ5.0A"]]
+    assert pl["fallback"]["tried"][0]["source"] == "digikey"
+    assert "blocked by host" in pl["fallback"]["tried"][0]["error"]
+    task = researchlib.load_task(researchlib.root_of(ws), tid)
+    assert [a["kind"] for a in task["attempts"]] == ["blocked_by_host"] * 2
+
+
+def test_vendor_token_names_the_blocked_vendor_only():
+    assert researchlib.vendor_token(TOREX) == "torex"
+    assert researchlib.vendor_token(LITTELFUSE) == "littelfuse"
+    assert researchlib.vendor_token(LCSC_PDF) is None
+    assert researchlib.vendor_token("https://evil.example/x.pdf") is None
+
+
+def test_fallback_tries_at_most_a_few_copies(tmp_path):
+    ws, tid, _lib = blank_task(tmp_path)
+
+    def resolver(parts, vendor=None):
+        return ([{"source": "lcsc", "part": "C1", "url":
+                  f"https://www.littelfuse.com/{i}.pdf"} for i in range(6)], [])
+    pl, code = fetch(ws, tid, url=TOREX, transport=transport_vendor_blocked,
+                     part="C1", resolver=resolver)
+    assert code == 2 and len(pl["fallback"]["tried"]) == \
+        researchlib.FALLBACK_TRIES
+
+
+def test_fallback_parts_take_part_then_the_part_slot_keys():
+    task = {"gap": {"kind": "part", "lcsc": "C5446", "mpn": "XC6206P332MR"}}
+    assert researchlib.fallback_parts(task) == ["C5446", "XC6206P332MR"]
+    assert researchlib.fallback_parts(task, "C5446") == ["C5446", "XC6206P332MR"]
+    assert researchlib.fallback_parts({"gap": {"kind": "block"}}) == []
+
+
+def test_distributor_datasheets_lcsc_exact_match_and_quiet_credential_skip(
+        monkeypatch):
+    for var in distributors.DIGIKEY_ENV + distributors.MOUSER_ENV:
+        monkeypatch.delenv(var, raising=False)
+
+    def search(p):
+        return [{"lcsc": "C5446", "mpn": "XC6206P332MR-G", "brand": "Torex Semicon",
+                 "datasheet": "https://www.lcsc.com/datasheet/"
+                              "lcsc_datasheet_XC6206.pdf"},
+                {"lcsc": "C9999", "mpn": "XC6206P302MR", "brand": "Torex Semicon",
+                 "datasheet": "https://wmsc.lcsc.com/other.pdf"},
+                {"lcsc": "C347376", "mpn": "XC6206P332MR", "brand": "UMW",
+                 "datasheet": "https://wmsc.lcsc.com/umw.pdf"}]
+    cands, notes = researchlib.distributor_datasheets(["C5446"], search=search)
+    assert cands == [{"source": "lcsc", "part": "C5446", "lcsc": "C5446",
+                      "mpn": "XC6206P332MR-G", "brand": "Torex Semicon",
+                      "url": LCSC_PDF}]
+    # by MPN: the second-source clone is dropped when the vendor is known
+    cands, notes = researchlib.distributor_datasheets(
+        ["XC6206P332MR"], search=search, vendor="torex")
+    assert [c["lcsc"] for c in cands] == ["C5446"]
+    assert "skipped 1 other-brand copy of XC6206P332MR (UMW)" in notes[0]
+    cands, _n = researchlib.distributor_datasheets(["XC6206P332MR"],
+                                                   search=search)
+    assert [c["lcsc"] for c in cands] == ["C5446", "C347376"]
+    # DigiKey/Mouser were asked by the MPN LCSC returned, and skipped quietly
+    assert any(n.startswith("digikey: skipped") for n in notes)
+    assert any(n.startswith("mouser: skipped") for n in notes)
+
+    def boom(p):
+        raise OSError("offline")
+    cands, notes = researchlib.distributor_datasheets(["C5446"], search=boom)
+    assert cands == [] and "lookup of C5446 failed" in notes[0]
+    assert "no MPN known" in notes[1]
+
+    def lookup(m):
+        return {"results": {"mouser": {"hits": [
+            {"mpn": "smbj5.0a", "manufacturer": "Littelfuse",
+             "datasheet_url": "//www.littelfuse.com/x.pdf"},
+            {"mpn": "SMBJ5.0A", "manufacturer": "Brightking",
+             "datasheet_url": "https://bk/x.pdf"},
+            {"mpn": "SMBJ5.0CA", "manufacturer": "Littelfuse",
+             "datasheet_url": "https://other/x.pdf"}]}},
+            "missing": {"digikey": "no creds"}}
+    cands, notes = researchlib.distributor_datasheets(
+        ["SMBJ5.0A"], search=lambda p: [], lookup=lookup, vendor="littelfuse")
+    assert cands == [{"source": "mouser", "part": "SMBJ5.0A",
+                      "mpn": "smbj5.0a", "brand": "Littelfuse",
+                      "url": "https://www.littelfuse.com/x.pdf"}]
+    assert "digikey: skipped - no creds" in notes
+
+
+def test_an_all_blocked_slot_closes_blocked_and_coverage_names_it(tmp_path):
+    ws, tid, lib = blank_task(tmp_path)
+    for url in (TOREX, LITTELFUSE, TOREX):
+        pl, code = fetch(ws, tid, url=url, transport=transport_vendor_blocked,
+                         resolver=no_resolver)
+        assert code == 2 and pl["refused"] == "blocked_by_host"
+    stt, code = run(research, tmp_path, ["status", "--workspace", str(ws)])
+    assert [b["host"] for b in stt["tasks"][0]["blocked_by"]] == [
+        "www.littelfuse.com", "www.torexsemi.com"]
+    cl, code = run(research, tmp_path, ["close", "--workspace", str(ws),
+                                        "--task", tid])
+    assert code == 0 and cl["outcome"] == "blocked", cl
+    torex = next(b for b in cl["blocked_by"] if "torex" in b["host"])
+    assert torex["urls"] == 2 and torex["http_status"] == [403]
+    assert torex["challenge"] == "akamai"
+    assert "www.torexsemi.com (HTTP 403, akamai challenge)" in cl["reason"]
+    st = json.loads((ws / "state.json").read_text(encoding="utf-8"))
+    assert any("blocked by host" in d["what"] and "block:PWR" in d["what"]
+               for d in st["decisions"])
+    assert not (ws / "learnings" / "queue.yaml").exists()
+    # the coverage report names the gap with its reason
+    report, cov, code = coverage_report(tmp_path, ws, lib, label="cov2")
+    assert code == 1 and cov["summary"]["research_blocked"] == 1
+    gap = cov["gaps"][0]
+    assert gap["research_blocked"]["task"] == tid
+    assert any("research blocked by host: www.littelfuse.com HTTP 403" in r
+               for r in gap["reasons"])
+    assert next(s for s in cov["slots"] if s["id"] == "block:PWR")[
+        "research_blocked"]["blocked_by"]
+    assert any("refused every research fetch" in w for w in cov["warnings"])
+    # open --all does not re-burn the cap on it; --slot reopens on purpose
+    op, code = open_task(tmp_path, ws, report)
+    assert code == 1 and op["opened"] == []
+    assert "blocked by host" in op["skipped"][0]["reason"]
+    op, code = open_task(tmp_path, ws, report, slot="block:PWR")
+    assert code == 0 and len(op["opened"]) == 1
+    # a later pass that closes otherwise clears the mark
+    blocks = knowledgelib.workspace_research_blocks(ws)
+    assert list(blocks) == ["block:PWR"]
+    t2 = researchlib.load_task(researchlib.root_of(ws), op["opened"][0])
+    t2.update({"status": "closed", "outcome": "abandoned",
+               "closed": "9999-01-01T00:00:00"})
+    researchlib.write_task(researchlib.root_of(ws), t2)
+    assert knowledgelib.workspace_research_blocks(ws) == {}
+
+
+def test_abandon_after_blocks_closes_blocked_but_a_source_keeps_it_abandoned(
+        tmp_path, opened):
+    (tmp_path / "b").mkdir()
+    ws, tid, _lib = blank_task(tmp_path / "b")
+    fetch(ws, tid, url=TOREX, transport=transport_vendor_blocked,
+          resolver=no_resolver)
+    cl, code = run(research, tmp_path, ["close", "--workspace", str(ws),
+                                        "--task", tid, "--abandon", "--reason",
+                                        "Torex refuses every fetch"])
+    assert code == 0 and cl["outcome"] == "blocked"
+    assert cl["reason"] == "Torex refuses every fetch"
+    # the fixture task acquired a source, so a block alongside it is no
+    # reason to call the slot blocked
+    ws2, tid2 = opened["ws"], opened["tid"]
+    fetch(ws2, tid2, url=TOREX, transport=transport_vendor_blocked,
+          resolver=no_resolver)
+    cl, code = run(research, tmp_path, ["close", "--workspace", str(ws2),
+                                        "--task", tid2, "--abandon", "--reason",
+                                        "slot needs no research after all"])
+    assert code == 0 and cl["outcome"] == "abandoned"

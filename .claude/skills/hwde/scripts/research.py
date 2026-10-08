@@ -18,7 +18,7 @@ verify); every checkable step in between is a subcommand here
             policies, templates, exact commands, caps).
   brief     --workspace WS --task ID     re-emit a task's brief.
   fetch     --workspace WS --task ID --url URL --tier T [--about MPN]
-            [--file LOCAL] [--expect pdf|html|any] [--note ..]
+            [--file LOCAL] [--expect pdf|html|any] [--note ..] [--part P]
             The ONLY way a source enters the workspace: https + allowlist
             (reference/knowledge/domains.yaml) checked before any bytes and
             on every redirect hop (off-list = exit 2, refused); quarantined
@@ -27,6 +27,11 @@ verify); every checkable step in between is a subcommand here
             sources acquired per task -> checkpoint (exit 1). --file
             registers a locally held copy against an allowlisted origin
             URL (no network); --expect pdf refuses HTML shells (exit 1).
+            A host that refuses (HTTP 401/403/429 or an Akamai/Cloudflare
+            challenge page) is ledgered `blocked_by_host` with host + status
+            (exit 2) - never evaded; the distributor's hosted datasheet for
+            --part (or the part slot's LCSC/MPN) is then tried, and the
+            source entry names it under `fallback`.
   verify    --workspace WS --task ID --record RID --verdict verified|refuted
             --note ".." [--by second-reader]
             The second reader's ruling: verified = maturity verified +
@@ -40,7 +45,10 @@ verify); every checkable step in between is a subcommand here
   close     --workspace WS --task ID [--abandon --reason ..]
             validate clean + every record ruled -> appends the workspace
             LEARNINGS.md entry and compiles the promotion queue (U6); the
-            slot then reads provisional on the next coverage run.
+            slot then reads provisional on the next coverage run. A task
+            that acquired nothing and was blocked by a host closes as
+            `blocked` (a state decision names the hosts; coverage reports
+            the slot under research_blocked; open --all skips it).
   promote   --workspace WS --record RID [--dry-run]
             Copies a VERIFIED record (or a draft checklist) + its sources
             into the library, rewrites the citation paths, re-lints the
@@ -155,6 +163,15 @@ def do_open(args) -> tuple[dict, int]:
     lib_cls = knowledgelib.load_checklists()
     domains = researchlib.load_domains()
     for gap in wanted:
+        if not args.slot and gap.get("research_blocked"):
+            # the last pass on this slot was refused by the host: --all does
+            # not burn the cap re-hitting it; --slot reopens it on purpose
+            b = gap["research_blocked"]
+            skipped.append({"slot": gap.get("slot"), "reason": (
+                f"last research pass ({b.get('task')}) was blocked by host: "
+                + ", ".join(h.get("host", "") for h in b.get("blocked_by")
+                            or []) + " - reopen with --slot")})
+            continue
         # per-run cap: consume through the state ledger (visible history)
         try:
             remaining = st.budget("research.per_run")
@@ -231,7 +248,8 @@ def do_fetch(args) -> tuple[dict, int]:
     task = _load_task(root, args.task)
     payload, code = researchlib.fetch_source(
         root, task, args.url, args.tier, about=args.about,
-        expect=args.expect, local_file=args.file, note=args.note)
+        expect=args.expect, local_file=args.file, note=args.note,
+        part=args.part)
     payload = {"script": SCRIPT, **payload}
     if payload.get("status") == "checkpoint":
         st = _state(ws, required=False)
@@ -290,6 +308,14 @@ def do_close(args) -> tuple[dict, int]:
             if payload.get("outcome") == "abandoned":
                 st.add_decision(what=f"research task {task['id']} abandoned",
                                 why=args.reason or "", phase=task.get("phase"))
+            elif payload.get("outcome") == "blocked":
+                hosts = ", ".join(b["host"] for b in payload["blocked_by"])
+                st.add_decision(
+                    what=(f"research on {task['slot']} blocked by host "
+                          f"({hosts}) - the coverage gap stands, unresearched"),
+                    why=payload.get("reason") or "", phase=task.get("phase"))
+                st._log("research_blocked", task=task["id"],
+                        slot=task["slot"], blocked_by=payload["blocked_by"])
             drafts = payload.get("accepted_drafts") or []
             if drafts:
                 # U21: closing over unverified research is a RULING, never a
@@ -343,6 +369,8 @@ def do_status(args) -> tuple[dict, int]:
                      "counts": researchlib.task_record_counts(root, t),
                      "verdicts": t.get("verdicts") or {},
                      "accepted_drafts": t.get("accepted_drafts"),
+                     "blocked_by": (t.get("blocked_by")
+                                    or researchlib.blocked_hosts(t) or None),
                      "queue_entry": t.get("queue_entry")})
     # U21: the workspace-wide sweep - a draft hidden behind a CLOSED task is
     # the failure the per-task counts above cannot see.
@@ -417,6 +445,9 @@ def main(argv: list[str] | None = None) -> int:
                                   "downloading (origin URL still checked)")
     p.add_argument("--expect", default="pdf", choices=researchlib.EXPECTS)
     p.add_argument("--note", help="ledger note (why this source)")
+    p.add_argument("--part", help="LCSC number or MPN: when the host refuses "
+                                  "(blocked_by_host), try the distributor's "
+                                  "hosted datasheet for this part")
 
     p = common(sub.add_parser("verify", help="the second reader's verdict"))
     p.add_argument("--task", required=True)
