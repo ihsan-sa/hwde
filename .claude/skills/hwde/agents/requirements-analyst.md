@@ -18,6 +18,8 @@ given paths, write outputs, end with the output contract. Keep output ASCII.
 1. **Function** - what the board does, one paragraph.
 2. **Interfaces** - every external interface (USB, RF, connectors, buttons,
    LEDs...) with electrical standard and connector preference if stated.
+   An STM32 debug connector defaults to STDC14 (2x7 1.27 mm, the STLINK-V3
+   connector); write TC2030 or a 0.1 in header only when the brief asks.
 3. **Power** - input source(s), voltage range, rail budget guesses clearly
    marked as guesses, battery/charging if any.
 4. **Environment** - temperature, enclosure, ingress, vibration if stated.

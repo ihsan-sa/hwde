@@ -62,6 +62,10 @@ APPROVAL = {"by": "owner", "date": "2026-08-15"}
 # 2026-10-04). A perms ruling says so and cites the redirect thread; it never
 # claims to be the owner's own.
 RULINGS = {"owner": "2026-08-15", "perms": "2026-10-04"}
+# Later owner rulings, each pinned to the records it approved. 2026-10-08
+# (#ai-ee thread 1791465870.806379): STDC14 for the STLINK-V3MINIE is the
+# default debug header on new STM32 boards.
+LATER_RULINGS = {"swd-debug-port-stm32-stdc14-default": ("owner", "2026-10-08")}
 REDIRECT_THREAD = "1791102051.529859"
 # The five U22 second-read records land verified, not approved: the rulings
 # approved only the promoted set (design/u22-staged/second-reads.md).
@@ -73,6 +77,9 @@ U22_SECOND_READS = {"in-aggressor-separation", "in-leakage-symmetry-and-guarding
 def assert_ruled(item: dict) -> None:
     a = item.get("approval") or {}
     rid = item["id"]
+    if rid in LATER_RULINGS:
+        assert (a.get("by"), a.get("date")) == LATER_RULINGS[rid], rid
+        return
     assert a.get("by") in RULINGS, rid
     assert a.get("date") == RULINGS[a["by"]], rid
     if a["by"] == "perms":

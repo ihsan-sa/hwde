@@ -21,7 +21,9 @@ requires:
       The connector and what hangs on its pins: pin count, pitch, keying,
       which lines are brought out, and whether ANY external pull, pull-down
       or series part is needed - which the target silicon's own internal
-      terminations decide, not the board.
+      terminations decide, not the board. On an STM32 target the connector
+      defaults to ST's STDC14 (record swd-debug-port-stm32-stdc14-default);
+      a TC2030 or a 0.1 in header only when the brief names one.
   - class: sequencing
     min_level: topology
     note: >

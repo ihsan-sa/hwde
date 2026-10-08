@@ -48,6 +48,12 @@ output ASCII.
    switching_kind, rectifier_kind, integration_kind, source_kind to reach
    `covered` (U14 backfill; board-level dims are repeated per block - the
    coverage check reads no board-level defaults).
+   An STM32 board declares a `{"topology": "swd-debug-port"}` block with
+   operating_point `mcu_family_kind: stm32` + `debug_connector_kind: stdc14`:
+   STDC14 (2x7 1.27 mm, SWD + SWO + NRST + VCP UART, the owner's STLINK-V3MINIE
+   connector) is the default. Use `tc2030` or `pin-header-2.54` only when the
+   brief names one. Tell the user the STDC14 is keyed, not shrouded, so the
+   cable's pin 1 must be checked against the silk.
    Reconcile net names with the sheet plan - these are now the CANONICAL
    names the schematic must produce.
 6. Record key decisions for the orchestrator to log: stackup, layer count,

@@ -337,3 +337,47 @@ def test_boards_sources_resolve_in_the_boards_repo(tmp_path, monkeypatch):
     (tmp_path / "empty").mkdir()
     monkeypatch.setenv("HWDE_BOARDS_ROOT", str(tmp_path / "empty"))
     assert knowledgelib._source_exists("boards/ws/parts/gone.pdf")
+
+
+# ---------------------------------------------------------------------------
+# STDC14 is the default STM32 debug header; TC2030 / 0.1 in are brief opt-outs
+# ---------------------------------------------------------------------------
+STDC14_ID = "swd-debug-port-stm32-stdc14-default"
+
+
+def _stdc14_record():
+    return yaml.safe_load((SKILL / "reference" / "knowledge" / "records"
+                           / f"{STDC14_ID}.yaml").read_text(encoding="utf-8"))
+
+
+def test_swd_debug_port_block_selects_the_stdc14_default(tmp_path):
+    payload, code = run_knowledge(
+        tmp_path, ["--select", "--blocks", "swd-debug-port"])
+    assert code == 0
+    rec = next(r for r in payload["records"] if r["id"] == STDC14_ID)
+    assert rec["rule"]["lcsc"] == "C5307809"
+    assert rec["rule"]["mpn"] == "FTSH-107-01-L-DV-K"
+    assert "T_VCC" in rec["rule"]["pin_3"]
+    assert "VCP" in rec["rule"]["pin_13"] and "VCP" in rec["rule"]["pin_14"]
+
+
+def test_stdc14_envelope_holds_for_stm32_and_opt_outs_fall_outside():
+    env = _stdc14_record()["envelope"]
+    verdict = lambda **op: knowledgelib.envelope_contains(env, op)["verdict"]
+    assert verdict(mcu_family_kind="stm32", debug_connector_kind="stdc14") \
+        == "inside"
+    assert verdict(mcu_family_kind="stm32", debug_connector_kind="tc2030") \
+        == "outside"
+    assert verdict(mcu_family_kind="stm32",
+                   debug_connector_kind="pin-header-2.54") == "outside"
+
+
+def test_agents_and_checklist_default_to_stdc14_with_named_opt_outs():
+    arch = (SKILL / "agents" / "architect.md").read_text(encoding="utf-8")
+    assert "STDC14" in arch and "tc2030" in arch and "pin-header-2.54" in arch
+    ra = (SKILL / "agents" / "requirements-analyst.md").read_text(
+        encoding="utf-8")
+    assert "STDC14" in ra and "TC2030" in ra and "0.1 in" in ra
+    mcu = (SKILL / "reference" / "checklists" / "mcu.md").read_text(
+        encoding="utf-8")
+    assert "STDC14" in mcu and "TC2030" in mcu
