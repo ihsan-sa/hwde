@@ -23,21 +23,24 @@ test `tests/test_check_scorecard.py` fails when a check's false positives or
 misses on the golden or mutant corpus rise above the last recorded line.
 
 <!-- SCORECARD:BEGIN (score_checks.py --record writes this) -->
-Last run 2026-09-29.
+Last run 2026-10-07, compared with 2026-09-29.
 Corpora: boards scored, golden scored, mutants scored.
 
 | check | fp | misses | caught | precision | recall | change |
 |---|---|---|---|---|---|---|
-| check_creepage | 36 | 0 | 1 | 0.32 | 1.00 |  |
-| check_current | 362 | 0 | 1 | 0.01 | 1.00 |  |
-| check_decoupling | 0 | 0 | 1 | 1.00 | 1.00 |  |
-| check_diffpair | 7 | 0 | 1 | 0.12 | 1.00 |  |
-| check_pdn | 1 | 0 | 1 | 0.67 | 1.00 |  |
-| check_ratings | 0 | 0 | 1 | 1.00 | 1.00 |  |
-| check_return_path | 1 | 0 | 2 | 0.89 | 1.00 |  |
-| check_route_style | 0 | 0 | 1 | 1.00 | 1.00 |  |
-| check_silk | 5 | 0 | 1 | 0.38 | 1.00 |  |
-| check_thermal | 6 | 0 | 1 | 0.14 | 1.00 |  |
+| check_bom_sync | 0 | 0 | 1 | 1.00 | 1.00 | new |
+| check_creepage | 25 | 0 | 1 | 0.36 | 1.00 | fp 36->25 |
+| check_current | 114 | 0 | 1 | 0.03 | 1.00 | fp 362->114 |
+| check_decoupling | 0 | 0 | 1 | 1.00 | 1.00 | same |
+| check_diffpair | 7 | 0 | 1 | 0.12 | 1.00 | same |
+| check_mate_pins | 0 | 0 | 2 | 1.00 | 1.00 | new |
+| check_mating | 0 | 0 | 1 | 1.00 | 1.00 | new |
+| check_pdn | 1 | 0 | 1 | 0.67 | 1.00 | same |
+| check_ratings | 0 | 0 | 1 | 1.00 | 1.00 | same |
+| check_return_path | 1 | 0 | 2 | 0.89 | 1.00 | same |
+| check_route_style | 0 | 0 | 1 | 1.00 | 1.00 | same |
+| check_silk | 5 | 0 | 1 | 0.38 | 1.00 | same |
+| check_thermal | 6 | 0 | 1 | 0.14 | 1.00 | same |
 <!-- SCORECARD:END -->
 
 ## Open findings
