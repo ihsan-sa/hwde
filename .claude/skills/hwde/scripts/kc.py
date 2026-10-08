@@ -413,6 +413,78 @@ def model_audit(pcb: Path, env_vars: dict | None = None) -> dict:
     return {"referenced": len(paths), "missing": missing}
 
 
+def model_libs(base: Path) -> list[Path]:
+    """The workspace's own model dirs: lib/*.3dshapes beside the board dir
+    `base`, or one level up as in boards/<name>/lib."""
+    base = Path(base).resolve()
+    return [d for root in (base, base.parent)
+            for d in sorted((root / "lib").glob("*.3dshapes"))]
+
+
+def model_lib_file(path: str, libs: list[Path]) -> Path | None:
+    """The file named like model `path`'s last component in the first of
+    `libs` that has it, else None. The lookup by name that render's relink,
+    check_model_paths and its --fix share."""
+    name = path.replace("\\", "/").rsplit("/", 1)[-1]
+    return next((d / name for d in libs if (d / name).is_file()), None)
+
+
+_STOCK_MODEL_RE = re.compile(r"\$\{KICAD\d*_3DMODEL_DIR\}/")
+_KIPRJMOD = "${KIPRJMOD}/"
+
+
+def model_path_kind(path: str, project: Path, ws: Path) -> str | None:
+    """Why a model path is not portable, or None when it is. Portable means
+    KiCad finds the same file on any checkout: the stock library through
+    ${KICAD<n>_3DMODEL_DIR}, or a ${KIPRJMOD}/ path (project = the board's
+    dir) that stays inside workspace `ws`.
+      absolute            /home/.., C:/.., \\\\host\\..: dies with that checkout
+      outside_workspace   ${KIPRJMOD}/ climbing out of the workspace
+      unanchored          a bare relative path or any other ${VAR}"""
+    if _STOCK_MODEL_RE.match(path):
+        return None
+    if path.startswith(_KIPRJMOD):
+        target = os.path.normpath(Path(project).resolve() / path[len(_KIPRJMOD):])
+        root = str(Path(ws).resolve())
+        inside = target == root or target.startswith(root.rstrip(os.sep) + os.sep)
+        return None if inside else "outside_workspace"
+    if re.match(r"^([A-Za-z]:)?[\\/]", path):
+        return "absolute"
+    return "unanchored"
+
+
+def portable_model_path(file: Path, project: Path) -> str:
+    """${KIPRJMOD}/-relative path of `file` for a board in dir `project`
+    (boards/<name>/lib beside boards/<name>/kicad -> ${KIPRJMOD}/../lib/..)."""
+    rel = os.path.relpath(Path(file).resolve(), Path(project).resolve())
+    return _KIPRJMOD + Path(rel).as_posix()
+
+
+def model_paths_portable(text: str, project: Path, ws: Path,
+                         libs: list[Path]) -> tuple[str, dict[str, str]]:
+    """Rewrite every non-portable (model "...") path in board or footprint
+    text whose file, by name, is in `libs` to its ${KIPRJMOD}/ form.
+    Returns (text, {old: new}); a path with no file in `libs` is left as
+    written, for check_model_paths to report."""
+    new_of: dict[str, str] = {}
+    for m in _MODEL_RE.finditer(text):
+        p = m.group(1)
+        if p in new_of or model_path_kind(p, project, ws) is None:
+            continue
+        hit = model_lib_file(p, libs)
+        if hit:
+            new_of[p] = portable_model_path(hit, project)
+    if not new_of:
+        return text, {}
+
+    def sub(m: re.Match) -> str:
+        p = m.group(1)
+        if p not in new_of:
+            return m.group(0)
+        return m.group(0).replace(f'"{p}"', f'"{new_of[p]}"', 1)
+    return _MODEL_RE.sub(sub, text), new_of
+
+
 def model_relink(pcb: Path, env_vars: dict | None = None
                  ) -> tuple[str | None, dict[str, str]]:
     """Board text to render when a model path no longer resolves but the
@@ -426,16 +498,13 @@ def model_relink(pcb: Path, env_vars: dict | None = None
     The board file itself is never written."""
     resolve = _model_resolver(pcb, env_vars)
     text = pcb.read_text(encoding="utf-8", errors="replace")
-    base = pcb.resolve().parent
-    libs = [d for root in (base, base.parent)
-            for d in sorted((root / "lib").glob("*.3dshapes"))]
+    libs = model_libs(pcb.resolve().parent)
     relinked: dict[str, str] = {}
     for m in _MODEL_RE.finditer(text):
         p = m.group(1)
         if p in relinked or resolve(p).is_file():
             continue
-        name = p.replace("\\", "/").rsplit("/", 1)[-1]
-        hit = next((d / name for d in libs if (d / name).is_file()), None)
+        hit = model_lib_file(p, libs)
         if hit:
             relinked[p] = str(hit)
     if not relinked:

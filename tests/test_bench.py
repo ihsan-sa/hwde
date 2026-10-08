@@ -254,7 +254,7 @@ def test_known_answers_fire_where_expected():
     assert ka["status"] == "ok" and ka["forbidden_errors"] == 0
     # T6: the pre-fix GND-choke board fires the derived return-net coverage
     ka = run_bench("P8", "mutant_gndchoke_verify")["known_answer"]
-    assert ka["status"] == "ok" and ka["matched"] == 2
+    assert ka["status"] == "ok" and ka["matched"] == 3
     # T6: the carrier's 8 surviving true-defect clusters are pinned
     ka = run_bench("P8", "carrier_verify")["known_answer"]
     assert ka["status"] == "ok" and ka["matched"] == 8

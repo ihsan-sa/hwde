@@ -17,6 +17,9 @@ the pull is reported (both idempotent, both text surgery):
                   hidden under the body      -> --no-autofix to skip
   lib_refdes_norm every reference text sits at a blanket (0,-4.0) mm whatever the
                   part size                  -> --no-refdes-norm to skip
+Every footprint's (model ...) path is then rewritten from the absolute path
+easyeda2kicad writes to ${KIPRJMOD}/../lib/<lib>.3dshapes/<name> (relative to
+--project, else <out_dir>/../kicad), so the board survives its checkout moving.
 `--verify-drc` measures the result the only way that counts: one instance of each
 pulled footprint alone on a scratch board, real DRC (LEARNINGS 2026-07-28
 [easyeda2kicad][drc] - geometry checkers and DRC disagree).
@@ -61,6 +64,7 @@ sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(SCRIPTS / "lib"))
 import fplib  # noqa: E402
 import fpfix  # noqa: E402
+import kc  # noqa: E402
 import lib_refdes_norm  # noqa: E402
 from lib import env  # noqa: E402
 
@@ -325,6 +329,34 @@ def _refdes_norm(pretty: Path, dry_run: bool) -> dict:
             "results": [r for r in rows if r["status"] == "changed"]}
 
 
+def _portable_models(pretty: Path, models: Path, project: Path | None,
+                     explicit: bool = False) -> dict:
+    """Point every footprint's (model ...) at ${KIPRJMOD}/.. instead of the
+    absolute path easyeda2kicad writes (out_dir is resolved before the pull,
+    LEARNINGS 2026-07-28). An absolute path names the checkout that ran the
+    pull and dies with it - eleven boards' models pointed into removed track
+    worktrees. The project dir is --project, else <out_dir>/../kicad, the
+    workspace layout; with neither the paths stay absolute and `skipped` says
+    so, and check_model_paths.py flags the board later. An explicit
+    --project need not exist yet: _register_project creates it after this,
+    and the rewrite only resolves paths."""
+    if project is None or not (explicit or project.is_dir()):
+        return {"rewritten": 0, "skipped": "no --project and no kicad/ dir "
+                f"beside {pretty.parent} - model paths left absolute"}
+    if not models.is_dir():
+        return {"rewritten": 0, "skipped": f"no {models.name} (--no-3d?)"}
+    proj = project.resolve()
+    changed = {}
+    for f in sorted(pretty.glob("*.kicad_mod")):
+        text = f.read_text(encoding="utf-8")
+        new, done = kc.model_paths_portable(text, proj, pretty.parent.parent,
+                                            [models])
+        if done:
+            f.write_text(new, encoding="utf-8")
+            changed[f.name] = sorted(set(done.values()))
+    return {"rewritten": len(changed), "footprints": changed}
+
+
 # ---------------------------------------------------------- optional load check
 
 def _verify_load(pretty: Path) -> dict:
@@ -442,6 +474,13 @@ def main(argv: list[str] | None = None) -> int:
             if not args.no_refdes_norm:
                 refdes = _refdes_norm(pretty, dry_run=False)
 
+        models = None
+        if pretty.is_dir():
+            project = (Path(args.project) if args.project
+                       else out_dir.parent / "kicad")
+            models = _portable_models(pretty, Path(str(base) + ".3dshapes"),
+                                      project, explicit=bool(args.project))
+
         registered = None
         if args.project:
             registered = _register_project(
@@ -472,6 +511,7 @@ def main(argv: list[str] | None = None) -> int:
             "registered": registered,
             "autofix": autofix,
             "refdes_norm": refdes,
+            "model_paths": models,
             "load_check": load,
             "drc_check": drc,
         }
