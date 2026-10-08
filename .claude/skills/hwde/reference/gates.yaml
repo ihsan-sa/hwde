@@ -104,8 +104,9 @@ gates:
       diff pairs, creepage, thermal, silk, PDN, pin ratings (check_ratings:
       every pin's datasheet rating against its net's voltage; needs the
       workspace parts dir, so it can run from P4 on), routing style
-      (check_route_style: arcs, off-45 segments and needless jogs, warnings
-      only - a score, not a gate, until U11 sets rules), connector mating
+      (check_route_style: arcs and off-45 segments are errors - the owner's
+      straight-and-45 rule; needless jogs are warnings; an RF or
+      length-matched net that needs its geometry is waived per net), connector mating
       (check_mating: the place gate's mating rules again, so a later edit
       cannot turn a connector round unnoticed), plus every check a
       scripts/checks.d/<name>.yaml fragment registers. Fails on any error-severity

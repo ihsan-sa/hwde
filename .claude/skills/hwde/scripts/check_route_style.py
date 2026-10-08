@@ -17,12 +17,18 @@ Three styles are counted per copper track (geom.load_board, every copper layer):
           heading and the sidestep between their lines is under
           max(track width, JOG_MM) - a kink too small to clear anything.
 
-Findings are WARNINGS, never errors: this is a scored review term, not a hard
-gate. One violation per (net, layer, style) with every instance in `items`
-(pos, detail, and the track `uuid` route_edit.py removes by),
-kind `route_style` (remediation: reference/remediations/route_style.md).
-The owner's U11 routing teaching cycle may later turn these into rules
-(thresholds or a gate); until then they stay warnings.
+Severity (owner, 2026-10-08: straight and 45-degree copper, no needless
+arcs, is a rule, not a preference): `arc` and `angle` findings are ERRORS, so
+they fail the verify gate until they are fixed or waived; `jog` stays a
+warning. route_cleanup.py's snap pass (pass 3, run in the routing stage)
+rewrites every off-angle segment it can, so what reaches verify is what it
+had to leave. One violation per (net, layer, style) with every instance in
+`items` (pos, detail, and the track `uuid` route_edit.py removes by), kind
+`route_style` (remediation: reference/remediations/route_style.md). The
+violation carries the net, so a net that needs its geometry - an RF feed's
+arc, a length-matched or diff-pair net's meander - is waived per net in
+reports/verify-waivers.json ({"check": "check_route_style", "kind":
+"route_style", "net": ..., "reason": ..., "approved": ...}).
 
 Report facts: `style` = {segments, arcs, off_angle, jogs, flagged, score}
 where score = 1 - flagged / (segments + arcs), 1.0 on a board with no tracks.
@@ -50,6 +56,8 @@ LATERAL_MM = 0.01     # ... when the end also lands this far off that heading
 MIN_LEN_MM = 0.05     # shorter segments carry no heading worth judging
 JOG_MM = 0.25         # sidestep floor under which a jog clears nothing
 KEY_ND = 4            # joint matching resolution (mm decimals)
+
+SEVERITY = {"arc": "error", "angle": "error", "jog": "warning"}
 
 MSG = {
     "arc": "track arc(s) - owner style is straight and 45-degree copper",
@@ -164,9 +172,8 @@ def score_board(bg) -> tuple[dict, list[dict]]:
     for (net, layer, style), hits in sorted(found.items()):
         hits.sort(key=lambda h: (h[0], h[1]))
         msg = f"{len(hits)} {MSG[style]} on {net or '<no net>'} {layer}"
-        # brief: "a warning-level finding ... not a hard gate" - never error
-        v = violation(SCRIPT, "warning", hits[0][0], layer, net or None, [],
-                      msg, SCRIPT, kind=KIND, style=style)
+        v = violation(SCRIPT, SEVERITY[style], hits[0][0], layer,
+                      net or None, [], msg, SCRIPT, kind=KIND, style=style)
         v["items"] = [{"msg": d, "pos": [checklib.rnd(p[0]), checklib.rnd(p[1])],
                        "uuid": u} for p, d, u in hits]
         violations.append(v)

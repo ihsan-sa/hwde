@@ -62,6 +62,12 @@ Consumers per key (script -> phase):
     "p": "/ISNS_P", "n": "/ISNS_N", "kind": "sense", "gap_mm": 0.2
   }],
 
+  // route_cleanup --snap-only (P7): nets routed to a matched length. The
+  // snap pass leaves every net here (and every diff_pairs member, rf net
+  // and high_speed net with impedance_ohm) as routed: re-bending one
+  // changes its length.
+  "length_match": [{"nets": ["/DQ0", "/DQ1", "/DQS"], "tol_mm": 1.0}],
+
   // check_creepage (P8) + rules_gen (P5, T6): IPC-2221 spacing for pairs
   // > 30 V apart. rules_gen emits named aiee_hv_* clearance DRU rules from
   // these (never hand-author HV rules); check_creepage audits the routed
