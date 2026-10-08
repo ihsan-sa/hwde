@@ -1,0 +1,4 @@
+## 2026-10-08 [check_env][venv][gates] check_env compares the venv with requirements.lock
+A boards run hit "no module pypdf" in ~/.local/hwde-venv (pypdf==6.14.2 is locked) and its extractor silently fell back to hand-written extracts; nothing had told the run the venv was short a locked package. check_env now has a `lock-packages` check (default, --quiet and --full) that fails on a locked package that is missing and warns on one at another version, with the `pip install -r requirements.lock` remedy; pywin32 and other platform-marked pins are skipped where they do not apply. datasheet_extract --pdf exits 2 with "missing-module" naming the module and pointing at check_env. Do not pip install into the shared venv to fix a run; report the failing check.
+
+Triage: now L2 | target L2 | owner scripts/check_env.py | status done | note tests/test_check_env.py pins it.

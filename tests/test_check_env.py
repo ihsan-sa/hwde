@@ -134,3 +134,57 @@ def test_lualatex_check_survives_report_gen_import_failure(monkeypatch):
     c = check_env.check_lualatex(resolved)
     assert c["name"] == "lualatex" and c["status"] == "warn"
     assert "cannot load report_gen" in c["detail"]
+
+
+# --- lock-packages: venv vs requirements.lock -------------------------------
+
+def _lock_check(monkeypatch, tmp_path, lock_text, installed, platform="linux"):
+    import importlib.metadata as md
+
+    import check_env as ce
+    lock = tmp_path / "requirements.lock"
+    lock.write_text(lock_text, encoding="utf-8")
+
+    def fake_version(name):
+        if name in installed:
+            return installed[name]
+        raise md.PackageNotFoundError(name)
+    monkeypatch.setattr(ce.importlib.metadata, "version", fake_version)
+    monkeypatch.setattr(ce.sys, "platform", platform)
+    return ce.check_lock(lock)
+
+
+def test_lock_missing_package_fails_with_pip_remedy(monkeypatch, tmp_path):
+    c = _lock_check(monkeypatch, tmp_path, "pypdf==6.14.2\nrich==1.0\n", {"rich": "1.0"})
+    assert c["status"] == "fail"
+    assert "pypdf missing" in c["detail"]
+    assert "pip install -r" in c["remediation"] and "requirements.lock" in c["remediation"]
+
+
+def test_lock_version_mismatch_warns(monkeypatch, tmp_path):
+    c = _lock_check(monkeypatch, tmp_path, "rich==1.0\n", {"rich": "0.9"})
+    assert c["status"] == "warn" and "rich 0.9 installed, locked 1.0" in c["detail"]
+
+
+def test_lock_missing_beats_version_drift(monkeypatch, tmp_path):
+    c = _lock_check(monkeypatch, tmp_path, "pypdf==6.14.2\nrich==1.0\n", {"rich": "0.9"})
+    assert c["status"] == "fail"
+
+
+def test_lock_skips_windows_only_and_false_markers(monkeypatch, tmp_path):
+    text = "pywin32==312\npywin32-ctypes==0.2.3\nfoo==1 ; sys_platform == 'win32'\nrich==1.0\n"
+    c = _lock_check(monkeypatch, tmp_path, text, {"rich": "1.0"})
+    assert c["status"] == "pass"
+    c = _lock_check(monkeypatch, tmp_path, text, {"rich": "1.0"}, platform="win32")
+    assert c["status"] == "fail" and "pywin32 missing" in c["detail"]
+
+
+def test_datasheet_extract_pdf_names_missing_module(monkeypatch, tmp_path, capsys):
+    import datasheet_extract as de
+    pdf = tmp_path / "a.pdf"
+    pdf.write_bytes(b"%PDF-1.4\n")
+    monkeypatch.setitem(sys.modules, "pypdf", None)  # import raises ImportError
+    rc = de.main(["--pdf", str(pdf)])
+    out = capsys.readouterr().out
+    assert rc == 2
+    assert "missing-module" in out and "pypdf" in out and "check_env" in out

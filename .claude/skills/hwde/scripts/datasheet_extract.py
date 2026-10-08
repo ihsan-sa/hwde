@@ -206,9 +206,20 @@ def blank_template() -> dict:
     }
 
 
+class MissingModule(RuntimeError):
+    """A locked dependency is absent from this venv (exit 2, named remedy)."""
+
+
 def extract_pdf_text(pdf_path: Path) -> list[dict]:
     """Per-page text via pypdf. Never raises on a page - records the error instead."""
-    from pypdf import PdfReader
+    try:
+        from pypdf import PdfReader
+    except ImportError as exc:
+        raise MissingModule(
+            f"python module '{exc.name or 'pypdf'}' is not installed in "
+            f"{sys.executable}; run check_env.py (it compares the venv with "
+            f"requirements.lock) and install with: {sys.executable} -m pip "
+            "install -r requirements.lock") from exc
     reader = PdfReader(str(pdf_path))
     pages = []
     for i, page in enumerate(reader.pages):
@@ -458,6 +469,9 @@ def main(argv: list[str] | None = None) -> int:
             payload, code = do_implications(args)
         else:
             payload, code = do_validate(args)
+    except MissingModule as exc:
+        payload, code = {"script": "datasheet_extract", "status": "error",
+                         "error": "missing-module: " + str(exc)}, 2
     except Exception as exc:  # noqa: BLE001 - contract: any error -> exit 2
         payload, code = {"script": "datasheet_extract", "status": "error",
                          "error": f"{type(exc).__name__}: {exc}"}, 2
