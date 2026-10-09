@@ -64,6 +64,9 @@ class Pad:
     size: tuple[float, float]
     layers: list[str] = field(default_factory=list)
     drill: float | None = None       # largest drill dimension, mm (None for SMD)
+    # drill (x, y) in the pad's own frame (a round drill is (d, d)); size and
+    # drill both rotate with the pad, so axis i of one pairs with axis i of the other
+    drill_xy: tuple[float, float] | None = None
 
     @property
     def center(self) -> tuple[float, float]:
@@ -113,14 +116,15 @@ def _parse_pad(node) -> Pad | None:
     if len(an) < 2 or len(sn) < 2:
         return None
     rot = an[2] if len(an) >= 3 else 0.0
-    # (drill D) or (drill oval W H): keep the LARGEST dimension - the annulus
-    # worst case (fp_verify checks (min(size) - drill) / 2 against the floor).
+    # (drill D) or (drill oval W H): `drill` keeps the LARGEST dimension;
+    # fp_verify's annulus uses `drill_xy` per axis.
     drill = _kid(node, "drill")
     dn = _nums(drill) if drill is not None else []
     return Pad(number=number, ptype=ptype, shape=shape,
                at=(an[0], an[1], rot), size=(sn[0], sn[1]),
                layers=[str(_tok(t)) for t in (_kid(node, "layers") or [None])[1:]],
-               drill=max(dn) if dn else None)
+               drill=max(dn) if dn else None,
+               drill_xy=((dn[0], dn[1] if len(dn) > 1 else dn[0]) if dn else None))
 
 
 def _strip_lib_prefix(name: str) -> str:
