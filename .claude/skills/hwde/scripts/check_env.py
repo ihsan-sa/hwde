@@ -126,6 +126,67 @@ def check_python() -> dict:
     )
 
 
+LOCK_FILE = "requirements.lock"
+# Windows-only pins in requirements.lock carry no environment marker there;
+# a Linux venv is built from the lock minus these.
+WINDOWS_ONLY = {"pywin32", "pywin32-ctypes"}
+
+
+def _norm(name: str) -> str:
+    return name.lower().replace("_", "-").replace(".", "-")
+
+
+def parse_lock(text: str) -> list[tuple[str, str, str]]:
+    """(name, version, marker) for each `name==version[ ; marker]` line."""
+    rows = []
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line or line.startswith("-") or "==" not in line:
+            continue
+        spec, _, marker = line.partition(";")
+        name, _, ver = spec.partition("==")
+        rows.append((name.strip().split("[")[0], ver.strip(), marker.strip()))
+    return rows
+
+
+def _lock_applies(name: str, marker: str) -> bool:
+    if marker:
+        try:
+            from packaging.markers import Marker
+            return bool(Marker(marker).evaluate())
+        except Exception:  # noqa: BLE001 - unparseable marker: still check it
+            return True
+    return not (sys.platform != "win32" and _norm(name) in WINDOWS_ONLY)
+
+
+def check_lock(lock_path: Path | None = None) -> dict | None:
+    """Installed distributions vs requirements.lock (missing / wrong version)."""
+    lock_path = lock_path or env.repo_root() / LOCK_FILE
+    if not lock_path.is_file():
+        return None
+    problems = []
+    missing = False  # a missing package fails; version drift only warns
+    for name, want, marker in parse_lock(lock_path.read_text(encoding="utf-8")):
+        if not _lock_applies(name, marker):
+            continue
+        try:
+            have = importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            problems.append(f"{name} missing (locked {want})")
+            missing = True
+            continue
+        if have != want:
+            problems.append(f"{name} {have} installed, locked {want}")
+    return check(
+        "lock-packages", not problems,
+        "all requirements.lock packages installed at the locked version"
+        if not problems else f"{len(problems)} off the lock: " + "; ".join(problems),
+        f"{Path(sys.executable)} -m pip install -r {lock_path}"
+        + ("   (drop the pywin32 lines on Linux)" if sys.platform != "win32" else ""),
+        warn=not missing,
+    )
+
+
 def check_packages() -> list[dict]:
     import contextlib
     import io
@@ -436,6 +497,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         checks.append(check_python())
         checks.extend(check_packages())
+        lock = check_lock()
+        if lock is not None:
+            checks.append(lock)
         checks.extend(check_kicad(resolved, args.full))
         checks.extend(check_java(resolved))
         checks.append(check_lualatex(resolved))
