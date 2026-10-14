@@ -7,9 +7,11 @@
 # writes at the end of each session transcript (totalCostUSD per model). With
 # these rates the per-message token counts reproduce every recorded session
 # total for these models to within $0.001 (17 Opus 5.5 and 7 Sonnet 5 sessions
-# of this repo's tracks). The `[1m]` context variant is billed at the same
-# rates. Haiku 4.5 is the published list price; it only appears in tiny
-# title calls. A model not listed here is reported as unpriced tokens, never
+# of this repo's tracks). Fable 5.1 was fitted the same way on 2026-10-14:
+# its rates reproduce 330 recorded session totals (sessions from every repo
+# on the box) to within $0.001, and they equal its published list price. The
+# `[1m]` context variant is billed at the same rates. Haiku 4.5 is the
+# published list price; it only appears in tiny title calls. A model not listed here is reported as unpriced tokens, never
 # given a guessed price.
 #
 # Columns: input, output, cache_read, cache_write_5m, cache_write_1h.
@@ -21,9 +23,16 @@ meta:
   unit: per million tokens
   source: >-
     fitted to Claude Code cost-state session totals, 2026-09-24
-  verified: "2026-09-24"
+    (Fable 5.1: 2026-10-14, equal to its list price)
+  verified: "2026-10-14"
 
 models:
+  claude-fable-5-1:
+    input: 10.0
+    output: 50.0
+    cache_read: 0.25
+    cache_write_5m: 12.5
+    cache_write_1h: 20.0
   claude-opus-5-5:
     input: 4.0
     output: 20.0

@@ -23,6 +23,8 @@ Criteria -> tests:
                                      -> test_merge_keeps_recorded_sessions
   - no session -> exit 1, --out untouched; no workspace -> exit 2
                                      -> test_exit_codes
+  - the shipped price table reproduces recorded session totals, Fable 5.1
+    included, and prices the `[1m]` variant alike -> test_shipped_table
 """
 from __future__ import annotations
 
@@ -253,3 +255,21 @@ def test_exit_codes(tmp_path, capsys):
     assert json.loads(out.read_text()) == {"keep": True}
     assert "ran while the workspace recorded its steps" in capsys.readouterr().out
     assert run(tmp_path, tmp_path / "nope") == 2
+
+
+def test_shipped_table():
+    # Token sums and cost-state totals of real sessions (usage fields only).
+    # The second mixes Opus 5.5 and Fable 5.1, so it pins Fable's 5m write.
+    prices = gen_cost.load_prices(gen_cost.PRICES)
+    sessions = [
+        ({"claude-fable-5-1[1m]": (1022, 45695, 4067416, 0, 247824)},
+         8.2684464),
+        ({"claude-fable-5-1": (2, 17945, 0, 0, 104005)}, 2.97737),
+        ({"claude-opus-5-5": (250, 74565, 5705670, 256888, 54909),
+          "claude-fable-5-1": (292, 7555, 242836, 58029, 0)}, 5.5238875),
+    ]
+    for by_model, recorded in sessions:
+        priced = sum(gen_cost.price(m, dict(zip(gen_cost.TOKEN_FIELDS, toks)),
+                                    prices)
+                     for m, toks in by_model.items())
+        assert abs(priced - recorded) <= 0.001, (by_model, priced)
