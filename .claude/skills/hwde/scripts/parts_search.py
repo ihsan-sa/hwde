@@ -130,16 +130,38 @@ def search(args) -> dict:
     min_stock = int(filters["min_stock"]) if "min_stock" in filters else 0
     max_price = float(filters["max_price"]) if "max_price" in filters else None
 
+    # Clear error before any network call. With --db the cache still works
+    # without the live-search dependencies, so skip live search and say why.
+    notes: list[str] = []
+    net_errors: tuple = (OSError,)
+    try:
+        net_errors = (OSError, partslib.require_httpx().HTTPError)
+    except partslib.PartsError as exc:
+        if not args.db:
+            raise
+        notes.append(f"live search skipped, using --db: {exc}")
+
     # Fetch a generous window so filters + ranking have material to work on.
     window = max(args.limit * 4, 25)
     source = "live"
     total = 0
     raw: list[dict] = []
-    try:
-        raw, total = partslib.live_search(
-            args.query, page=args.page, page_size=window, part_type=part_type)
-    except Exception as exc:  # noqa: BLE001 - network layer is fragile; fall through
-        raw = []
+
+    def _live(q: str) -> tuple[list[dict], int]:
+        if notes:  # a dependency is missing; the cache answers instead
+            return [], 0
+        try:
+            return partslib.live_search(
+                q, page=args.page, page_size=window, part_type=part_type)
+        except partslib.PartsError as exc:
+            if not args.db:
+                raise
+            notes.append(f"live search skipped, using --db: {exc}")
+            return [], 0
+        except net_errors:  # network failure; anything else is a bug and surfaces
+            return [], 0
+
+    raw, total = _live(args.query)
 
     # Value tokens like 10K silently return zero rows; retry once spelled out
     # so a bad query is not mistaken for a stock-out (ladder row 100).
@@ -148,11 +170,7 @@ def search(args) -> dict:
         norm_q = _normalize_value_query(args.query)
         if norm_q:
             query_retried = norm_q
-            try:
-                raw, total = partslib.live_search(
-                    norm_q, page=args.page, page_size=window, part_type=part_type)
-            except Exception:  # noqa: BLE001
-                raw = []
+            raw, total = _live(norm_q)
 
     if not raw:
         # Empty live result: cached DB > web-search hint. Disambiguate offline.
@@ -214,6 +232,8 @@ def search(args) -> dict:
                 "not a bad query - pick by judgment")
     if query_retried:
         payload["query_retried"] = query_retried
+    if notes:
+        payload["note"] = notes[0]
     return payload
 
 
