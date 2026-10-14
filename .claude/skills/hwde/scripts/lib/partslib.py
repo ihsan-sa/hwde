@@ -26,6 +26,7 @@ import json
 import logging
 import re
 import sqlite3
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -38,12 +39,32 @@ class PartsError(RuntimeError):
 
 # ------------------------------------------------------------- live search
 
+def _missing_dep(module: str, exc: BaseException) -> PartsError:
+    return PartsError(
+        f"cannot search: python module '{module}' is not importable under "
+        f"{sys.executable} ({type(exc).__name__}: {exc}). This is a missing "
+        "dependency, not a network outage. Fix: run with the hwde venv "
+        "(.venv/bin/python; on Linux hosts ~/.local/hwde-venv/bin/python).")
+
+
+def require_httpx():
+    """Import httpx or raise a PartsError naming the cause (call before any network)."""
+    try:
+        import httpx
+    except ImportError as exc:
+        raise _missing_dep("httpx", exc) from exc
+    return httpx
+
+
 def _import_easyeda_api():
     """Import EasyedaApi with its import-time stdout/stderr muffled."""
     logging.disable(logging.CRITICAL)
     sink = io.StringIO()
-    with contextlib.redirect_stdout(sink), contextlib.redirect_stderr(sink):
-        from easyeda2kicad.easyeda.easyeda_api import EasyedaApi
+    try:
+        with contextlib.redirect_stdout(sink), contextlib.redirect_stderr(sink):
+            from easyeda2kicad.easyeda.easyeda_api import EasyedaApi
+    except ImportError as exc:
+        raise _missing_dep("easyeda2kicad", exc) from exc
     return EasyedaApi
 
 
@@ -64,12 +85,12 @@ def live_search(keyword: str, page: int = 1, page_size: int = 25,
 
 def endpoint_reachable(timeout: float = 8.0) -> bool:
     """True if jlcpcb.com answers - distinguishes 'no matches' from 'offline'."""
+    httpx = require_httpx()
     try:
-        import httpx
         r = httpx.get("https://jlcpcb.com/", timeout=timeout,
                       headers={"User-Agent": "Mozilla/5.0"})
         return r.status_code < 500
-    except Exception:
+    except (httpx.TransportError, httpx.TimeoutException, OSError):
         return False
 
 

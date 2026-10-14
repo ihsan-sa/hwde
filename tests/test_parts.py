@@ -381,6 +381,67 @@ def test_parts_search_offline_no_db_exit2(tmp_path, capsys, monkeypatch):
     assert "unreachable" in payload["error"]
 
 
+def _block_import(monkeypatch, name):
+    import builtins
+    real = builtins.__import__
+
+    def fake(n, *a, **k):
+        if n == name or n.startswith(name + "."):
+            raise ImportError(f"No module named '{name}'")
+        return real(n, *a, **k)
+    monkeypatch.delitem(sys.modules, name, raising=False)
+    monkeypatch.setattr(builtins, "__import__", fake)
+
+
+def test_parts_search_missing_httpx_names_cause(tmp_path, capsys, monkeypatch):
+    called = []
+    monkeypatch.setattr(partslib, "live_search",
+                        lambda *a, **k: called.append(1) or ([], 0))
+    _block_import(monkeypatch, "httpx")
+    code, payload = run_main(parts_search, ["--query", "x"], tmp_path, capsys)
+    assert code == 2 and payload["status"] == "error"
+    assert "httpx" in payload["error"] and sys.executable in payload["error"]
+    assert "hwde-venv" in payload["error"]
+    assert "unreachable" not in payload["error"]
+    assert not called
+
+
+def test_parts_search_missing_easyeda_names_cause(tmp_path, capsys, monkeypatch):
+    _block_import(monkeypatch, "easyeda2kicad")
+    code, payload = run_main(parts_search, ["--query", "x"], tmp_path, capsys)
+    assert code == 2 and "easyeda2kicad" in payload["error"]
+    assert "unreachable" not in payload["error"]
+
+
+def test_parts_search_unexpected_error_not_unreachable(tmp_path, capsys, monkeypatch):
+    def boom(*a, **k):
+        raise KeyError("oops")
+    monkeypatch.setattr(partslib, "live_search", boom)
+    code, payload = run_main(parts_search, ["--query", "x"], tmp_path, capsys)
+    assert code == 2 and "KeyError" in payload["error"]
+    assert "unreachable" not in payload["error"]
+
+
+def test_endpoint_reachable_network_error_is_false(monkeypatch):
+    import httpx
+
+    def boom(*a, **k):
+        raise httpx.ConnectError("down")
+    monkeypatch.setattr(httpx, "get", boom)
+    assert partslib.endpoint_reachable() is False
+
+
+def test_parts_search_real_network_error_says_unreachable(tmp_path, capsys, monkeypatch):
+    import httpx
+
+    def boom(*a, **k):
+        raise httpx.ConnectError("down")
+    monkeypatch.setattr(partslib, "live_search", lambda *a, **k: ([], 0))
+    monkeypatch.setattr(httpx, "get", boom)
+    code, payload = run_main(parts_search, ["--query", "x"], tmp_path, capsys)
+    assert code == 2 and "unreachable" in payload["error"]
+
+
 def test_parts_search_empty_but_reachable_exit0(tmp_path, capsys, monkeypatch):
     monkeypatch.setattr(partslib, "live_search", lambda *a, **k: ([], 0))
     monkeypatch.setattr(partslib, "endpoint_reachable", lambda *a, **k: True)
@@ -428,6 +489,18 @@ def test_parts_search_db_fallback(tmp_path, capsys, monkeypatch):
         parts_search, ["--query", "10k", "--db", str(db)], tmp_path, capsys)
     assert code == 0 and payload["source"] == "db"
     assert payload["results"][0]["lcsc"] == "C25804"
+
+
+@pytest.mark.parametrize("module", ["httpx", "easyeda2kicad"])
+def test_parts_search_db_works_without_live_deps(tmp_path, capsys, monkeypatch, module):
+    db = tmp_path / "cache.sqlite3"
+    _make_jlcparts_db(db)
+    _block_import(monkeypatch, module)
+    code, payload = run_main(
+        parts_search, ["--query", "10k", "--db", str(db)], tmp_path, capsys)
+    assert code == 0 and payload["source"] == "db"
+    assert payload["results"][0]["lcsc"] == "C25804"
+    assert module in payload["note"] and sys.executable in payload["note"]
 
 
 def test_lib_pull_registration_idempotent(tmp_path):
