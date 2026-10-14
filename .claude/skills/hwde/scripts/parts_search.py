@@ -132,22 +132,23 @@ def search(args) -> dict:
 
     # Clear error before any network call. With --db the cache still works
     # without the live-search dependencies, so skip live search and say why.
-    note = None
+    notes: list[str] = []
     net_errors: tuple = (OSError,)
     try:
         net_errors = (OSError, partslib.require_httpx().HTTPError)
     except partslib.PartsError as exc:
         if not args.db:
             raise
-        note = f"live search skipped, using --db: {exc}"
+        notes.append(f"live search skipped, using --db: {exc}")
 
     # Fetch a generous window so filters + ranking have material to work on.
     window = max(args.limit * 4, 25)
     source = "live"
     total = 0
     raw: list[dict] = []
+
     def _live(q: str) -> tuple[list[dict], int]:
-        if note:
+        if notes:  # a dependency is missing; the cache answers instead
             return [], 0
         try:
             return partslib.live_search(
@@ -155,12 +156,11 @@ def search(args) -> dict:
         except partslib.PartsError as exc:
             if not args.db:
                 raise
-            nonlocal_note.append(f"live search skipped, using --db: {exc}")
+            notes.append(f"live search skipped, using --db: {exc}")
             return [], 0
         except net_errors:  # network failure; anything else is a bug and surfaces
             return [], 0
 
-    nonlocal_note: list[str] = []
     raw, total = _live(args.query)
 
     # Value tokens like 10K silently return zero rows; retry once spelled out
@@ -197,9 +197,6 @@ def search(args) -> dict:
     else:
         parts = [partslib.normalize(it) for it in raw]
 
-    if nonlocal_note and not note:
-        note = nonlocal_note[0]
-
     dropped = 0
     if not args.include_placeholders:
         parts, dropped = _split_placeholders(parts)
@@ -235,8 +232,8 @@ def search(args) -> dict:
                 "not a bad query - pick by judgment")
     if query_retried:
         payload["query_retried"] = query_retried
-    if note:
-        payload["note"] = note
+    if notes:
+        payload["note"] = notes[0]
     return payload
 
 
