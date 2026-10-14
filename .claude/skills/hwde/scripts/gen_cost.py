@@ -27,7 +27,21 @@ place -> placement, drc_routed -> routing, verify -> verification, dfm ->
 DFM). Spend before the workspace existed goes to "before the workspace";
 spend after the last record goes to the furthest phase reached. A round of
 sessions with no hwde record inside its time span is NOT split: it keeps one
-line, and `breakdown_reason` says why. Nothing is ever apportioned by guess.
+line, and `breakdown_reason` says why. Nothing is ever apportioned by guess;
+the one estimate, below, only shares out a total that is known exactly.
+
+Output Claude Code never wrote down. A streamed message is written once per
+content block, and those records carry the usage of the stream's start (a
+handful of output tokens). The final count comes with `stop_reason`, on a
+closing record that background subagents mostly never write (PCB-0017-A: 384
+of 444 Fable messages). One session's transcript shows 642 output tokens
+where cost-state billed 99,849, while its input and cache tokens match to the
+token. Cost-state's `modelUsage` holds each model's exact total, so the
+missing output is added back to that model's messages with no closing
+record, shared by their visible content size (OPEN_FLOOR), and they are then
+priced and placed in steps like the rest. A session's `apportioned_output` /
+`apportioned_usd` and the document's `apportioned_usd` say how much of the
+split was shared out that way.
 
 Rounds. A round is a set of sessions with a label. With no --session, the
 round is every session in the worktree's Claude project directory (or each
@@ -108,6 +122,12 @@ LOOP_SLACK = timedelta(minutes=2)
 # A session that ended this soon before the workspace's first record is the
 # run's lead-in (reading the brief and the skill, then creating the workspace).
 LEAD_IN = timedelta(hours=1)
+# Output a message's transcript never got is shared in proportion to the
+# message's visible content plus this fraction of the mean, so a message whose
+# content is only (redacted) thinking still gets a share. Measured on the
+# PCB-0017-A sessions' closed messages: 0.5 gave the least per-message error
+# for two of three models.
+OPEN_FLOOR = 0.5
 
 
 class CostError(RuntimeError):
@@ -159,12 +179,57 @@ def price(model: str, toks: dict, prices: dict) -> float | None:
     return sum(toks[f] * float(rates[f]) for f in TOKEN_FIELDS) / 1e6
 
 
+def _block_chars(c: dict) -> int:
+    """Visible size of one content block (thinking is stored redacted)."""
+    t = c.get("type")
+    if t == "text":
+        return len(c.get("text") or "")
+    if t == "tool_use":
+        return len(json.dumps(c.get("input"), ensure_ascii=True))
+    if t == "thinking":
+        return len(c.get("thinking") or "")
+    return 0
+
+
+def apportion_output(best: dict, model_usage: dict) -> dict[str, int]:
+    """Restore output tokens the transcript never got (module docstring,
+    'Output Claude Code never wrote down'). Adds them in place to the open
+    messages of `best` and returns {model: tokens added}."""
+    added: dict[str, int] = {}
+    for model, mu in (model_usage or {}).items():
+        mine = [e for e in best.values() if e["model"] == model]
+        try:
+            missing = int(mu.get("outputTokens") or 0) - sum(
+                e["toks"]["output"] for e in mine)
+        except (TypeError, ValueError, AttributeError):
+            continue
+        open_ = [e for e in mine if not e["stopped"]]
+        if missing <= 0 or not open_:
+            continue
+        chars = [sum(e["chars"].values()) for e in open_]
+        floor = OPEN_FLOOR * sum(chars) / len(chars)
+        w = [c + floor for c in chars] if floor else [1.0] * len(open_)
+        tot = sum(w)
+        share = [missing * x / tot for x in w]
+        whole = [int(s) for s in share]
+        # largest remainder, so the tokens added sum exactly to `missing`
+        for i in sorted(range(len(open_)), key=lambda i: whole[i] - share[i])[
+                :missing - sum(whole)]:
+            whole[i] += 1
+        for e, n in zip(open_, whole):
+            e["toks"]["output"] += n
+        added[model] = missing
+    return added
+
+
 def read_session(main: Path, naive_tz=None) -> dict:
     """One session: its messages (main + subagents) and its cost-state.
 
-    A streamed message is written several times under one message id with a
-    growing output count; the record with the largest output count is the
-    final one (the sums then match cost-state exactly)."""
+    A streamed message is written once per content block under one message
+    id; the record with the largest output count is the final one when the
+    message's closing record (a `stop_reason`) was written. When it was not,
+    the count is the stream's opening one, and apportion_output restores the
+    rest from cost-state's per-model usage."""
     files = [main] + sorted(Path(p) for p in glob.glob(
         str(main.with_suffix("")) + "/subagents/*.jsonl"))
     best: dict = {}
@@ -189,11 +254,23 @@ def read_session(main: Path, naive_tz=None) -> dict:
                 continue  # <synthetic> error turns bill nothing
             key = (str(f), m.get("id") or d.get("requestId") or d.get("uuid"))
             out = u.get("output_tokens", 0) or 0
-            if key not in best or out > best[key][2]:
-                best[key] = (parse_ts(ts, naive_tz), model, out, usage_tokens(u))
-    msgs = sorted(((t, mod, toks) for t, mod, _, toks in best.values()),
+            e = best.get(key)
+            if e is None or out > e["toks"]["output"]:
+                e = best[key] = {
+                    "t": parse_ts(ts, naive_tz), "model": model,
+                    "toks": usage_tokens(u),
+                    "stopped": bool(e and e["stopped"]),
+                    "chars": e["chars"] if e else {}}
+            e["stopped"] = e["stopped"] or bool(m.get("stop_reason"))
+            blk = d.get("apiBlockIndex", d.get("uuid"))
+            e["chars"][blk] = max(e["chars"].get(blk, 0), sum(
+                _block_chars(c) for c in m.get("content") or []
+                if isinstance(c, dict)))
+    added = apportion_output(best, (recorded or {}).get("modelUsage"))
+    msgs = sorted(((e["t"], e["model"], e["toks"]) for e in best.values()),
                   key=lambda x: x[0])
     return {"id": main.stem, "transcript": main, "messages": msgs,
+            "apportioned_output": added,
             "recorded_usd": (float(recorded["totalCostUSD"])
                              if recorded and "totalCostUSD" in recorded else None)}
 
@@ -326,6 +403,9 @@ def session_record(s: dict, ms: list[tuple], prices: dict) -> dict:
         by_step[k] = by_step.get(k, 0.0) + usd
     msgs = s["messages"]
     rec = s["recorded_usd"]
+    added = s.get("apportioned_output") or {}
+    est = sum(price(m, {**dict.fromkeys(TOKEN_FIELDS, 0), "output": n},
+                    prices) or 0.0 for m, n in added.items())
     return {"id": s["id"], "transcript": _home(s["transcript"]),
             "usd": round(max(total, rec or 0.0), 4),
             "start": iso(msgs[0][0]) if msgs else None,
@@ -337,7 +417,9 @@ def session_record(s: dict, ms: list[tuple], prices: dict) -> dict:
             "complete": s["recorded_usd"] is not None,
             "by_step": {k: round(v, 4) for k, v in sorted(
                 by_step.items(), key=lambda kv: STEP_ORDER[kv[0]])},
-            "unpriced_tokens": unpriced}
+            "unpriced_tokens": unpriced,
+            "apportioned_output": added,
+            "apportioned_usd": round(est, 4)}
 
 
 def summarize_round(rnd: dict, ms: list[tuple]) -> dict:
@@ -396,6 +478,9 @@ def totals(doc: dict) -> dict:
                 by[k] = by.get(k, 0.0) + v
     steps = [{"step": k, "label": STEP_LABEL[k], "usd": round(by[k], 4)}
              for k, _ in STEPS if k in by]
+    doc["apportioned_usd"] = round(sum(s.get("apportioned_usd") or 0.0
+                                       for r in split
+                                       for s in r["sessions"]), 4)
     rest = sum(r["usd"] - r["priced_usd"] for r in split)
     if rest >= 0.005:
         steps.append({"step": "unattributed",
