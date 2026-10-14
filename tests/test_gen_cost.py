@@ -19,6 +19,11 @@ Criteria -> tests:
   - loop log: `$1.2~transcript` is a number flagged estimated; a cost
     that parses as nothing is warned, counted, and does not kill the run
                                      -> test_loop_log_cost_forms
+  - a message whose closing record was never written gets its share of the
+    output cost-state billed for its model, by visible content size, and
+    lands in its step; closed messages and a model with no open message
+    are left alone; with no content at all the share is equal
+                                     -> test_unwritten_output_apportioned
   - --out merges: a session whose transcript is gone keeps its figures
                                      -> test_merge_keeps_recorded_sessions
   - no session -> exit 1, --out untouched; no workspace -> exit 2
@@ -253,3 +258,57 @@ def test_exit_codes(tmp_path, capsys):
     assert json.loads(out.read_text()) == {"keep": True}
     assert "ran while the workspace recorded its steps" in capsys.readouterr().out
     assert run(tmp_path, tmp_path / "nope") == 2
+
+
+def block(hhmm: str, mid: str, out: int, idx: int, content: dict,
+          stop: str | None = None, model: str = "m-test") -> str:
+    """One content block of a streamed message, as Claude Code writes it."""
+    return json.dumps({"type": "assistant", "apiBlockIndex": idx,
+                       "timestamp": f"2026-09-24T{hhmm}:00.000Z",
+                       "message": {"id": mid, "model": model,
+                                   "stop_reason": stop, "content": [content],
+                                   "usage": {"input_tokens": 0,
+                                             "output_tokens": out}}})
+
+
+def test_unwritten_output_apportioned(tmp_path):
+    ws = workspace(tmp_path, HISTORY)
+    pdir = tmp_path / "proj"
+    # m1 and m2 never got their closing record: they carry the stream's
+    # opening count (10, 5). m1 shows 300 visible chars (its text block is
+    # written twice, counted once; its thinking is redacted), m2 shows 100;
+    # the floor is half the mean (100), so they share 400:200. m3 closed.
+    lines = [block("10:05", "m1", 10, 0, {"type": "thinking", "thinking": ""}),
+             block("10:05", "m1", 10, 1, {"type": "text", "text": "a" * 300}),
+             block("10:05", "m1", 10, 1, {"type": "text", "text": "a" * 300}),
+             block("10:15", "m3", 100000, 0, {"type": "text", "text": "c"},
+                   stop="end_turn"),
+             block("10:35", "m2", 5, 0, {"type": "text", "text": "b" * 100}),
+             block("10:36", "m4", 100, 0, {"type": "text", "text": "d"},
+                   stop="end_turn", model="m-other")]
+    p = pdir / "run.jsonl"
+    pdir.mkdir()
+    p.write_text("\n".join(lines + [json.dumps({
+        "type": "cost-state", "totalCostUSD": 4.1,
+        "modelUsage": {"m-test": {"outputTokens": 400000},
+                       "m-other": {"outputTokens": 500}}})]) + "\n",
+        encoding="utf-8")
+    s = gen_cost.read_session(p, timezone.utc)
+    assert s["apportioned_output"] == {"m-test": 299985}
+    assert [t["output"] for _, _, t in s["messages"]] == \
+        [200000, 100000, 100000, 100]  # m-other: nothing open, left alone
+    out = ws / "reports" / "cost.json"
+    assert run(tmp_path, ws, "--project-dir", str(pdir), "--out", str(out)) == 0
+    doc = json.loads(out.read_text())
+    (sess,) = doc["rounds"][0]["sessions"]
+    assert sess["by_step"] == {"P0": 2.0, "P4": 1.0, "P9": 1.0}
+    assert sess["apportioned_usd"] == doc["apportioned_usd"] == \
+        round(299985 * 10 / 1e6, 4)
+    steps = {s["step"]: s["usd"] for s in doc["by_step"]}
+    assert steps == {"P0": 2.0, "P4": 1.0, "P9": 1.0, "unattributed": 0.1}
+    # No visible content at all: an equal share, summing exactly.
+    best = {k: {"model": "m", "stopped": False, "chars": {},
+                "toks": {"output": 1}} for k in "ab"}
+    assert gen_cost.apportion_output(best, {"m": {"outputTokens": 5}}) == \
+        {"m": 3}
+    assert sorted(e["toks"]["output"] for e in best.values()) == [2, 3]
