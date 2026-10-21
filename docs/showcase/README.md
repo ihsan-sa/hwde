@@ -13,7 +13,9 @@ document 003-0001, the PCB flow (hwde) showcase). The two copies are made two wa
     board stopped comes from its files: "ordered and made" when `fab/` has a
     `tracking.json`, "<stage>, findings open" when a gate in `state.json`
     failed, "package ready" when `fab/` has the Gerbers zip and a placement
-    file, and otherwise the phase it reached.
+    file, and otherwise the phase it reached. A `stage` in the board's
+    `gallery.yaml` entry replaces that when its files can't show it, as for
+    the amplifier, which was "made and measured" on a bench.
   - A board the register lists and `gallery.yaml` does not is shown anyway,
     in a "New boards" section, with the first sentences of its
     `requirements.md` "## 1. Function", or its register title when it has

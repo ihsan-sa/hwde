@@ -4,7 +4,9 @@
 #
 # Facts (layers, size, footprints, where a board stopped) are never written
 # here: gallery.py reads them from each board's .kicad_pcb and state.json in
-# the boards repo. A board the register lists and this file does not is still
+# the boards repo. The one exception is a board's stage: an entry's stage
+# replaces it when the board's files can't show where it is (a board that was
+# made and measured on a bench, say). A board the register lists and this file does not is still
 # shown, in the "New boards" section, with its blurb taken from its own
 # requirements.md and, failing that, its register title. So a new board needs
 # nothing written here; an entry below only gives it a better place and words.
@@ -13,7 +15,8 @@
 # generator sets them for LaTeX and leaves them as they are for Markdown.
 #
 #   hero      the board the hand-written opening shows; it counts as shown
-#   boards    per board: what (the table's short phrase), blurb (the caption)
+#   boards    per board: what (the table's short phrase), blurb (the caption),
+#             stage (only to replace the one its files give)
 #   sections  in order; each has blocks, and each block is one of
 #               board: <name>          a full-width plate
 #               pair: [<name>, <name>] two half-width plates (one is fine)
@@ -50,6 +53,7 @@ boards:
       down every gap it had to fill as a numbered assumption.
   stereo-class-d-amp:
     what: stereo class-D amplifier
+    stage: made and measured, verification not passed
     blurb: >-
       A stereo class-D amplifier that runs from a single 12 V supply and drives
       4 to 8 Ω speakers. Each output has a 10 µH LC filter. The brief asked
@@ -216,6 +220,14 @@ sections:
             left channel's filter below it and the right channel's above. The
             input connector is on the left edge and the speaker pads are on the
             right.
+      - text: >-
+          Ten assembled boards were ordered from JLCPCB on 30 September 2026,
+          and one was wired up and measured on the bench on 13 October. From
+          12 V into 6 Ω speakers, one channel gave 10.9 W at 0.37% THD, and
+          at 4.1 W a channel the board delivered about 90% of its supply power to
+          the speakers. It was ordered before its verification checks passed, with
+          eight waivers unsigned, and nobody has yet measured the chip's
+          temperature under load.
 
   - title: A card, a sensor node and a battery board
     blocks:
@@ -241,8 +253,8 @@ sections:
           stage-lighting fixture. It takes power over Ethernet through a PD
           controller and a 100 V buck, and it has an expansion connector that a
           fixture-specific daughter board plugs into. The connector's pinout is
-          frozen, because another board depends on it. The other board that was
-          ordered is a bench tool.
+          frozen, because another board depends on it. The amplifier was
+          ordered too, and the third board that was ordered is a bench tool.
       - board: pd-trigger
 
   - title: Power and RF

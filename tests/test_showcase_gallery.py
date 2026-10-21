@@ -104,6 +104,15 @@ def test_board_without_words_gets_its_register_title(tmp_path):
     assert "early" not in m["shown"]
 
 
+def test_a_stage_in_the_spec_replaces_the_files_and_counts_as_made(tmp_path):
+    root = make_root(tmp_path)
+    m = gallery.model(root, {"sections": [], "boards": {
+        "routed": {"stage": "made and measured, verification not passed"}}})
+    assert m["table"][0]["stage"] == "made and measured, verification not passed"
+    assert m["ordered"] == 1
+    assert "One board was ordered from JLCPCB and made." in gallery.table_note(m)
+
+
 def test_shown_finds_pictured_boards_only():
     tex = "\\board{a}{alpha}%\n{2 layers}{}%\n{x}\n\\board{a-fcu}{alpha, top copper}%"
     assert gallery.shown_in_tex(tex) == ["alpha", "alpha, top copper"]
