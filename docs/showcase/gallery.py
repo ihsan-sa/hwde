@@ -146,6 +146,9 @@ def _arc_extent(s, m, e) -> list:
     return out
 
 
+MADE = ("ordered and made", "made and measured")   # stages of a board JLCPCB made
+
+
 def stage(ws: Path, state: dict) -> str:
     """Where the board stopped, in the words the gallery prints."""
     fab = ws / "fab"
@@ -239,6 +242,9 @@ def finished(root: Path) -> list[str]:
 def model(root: Path, spec: dict) -> dict:
     allb = boards(root)
     words = spec.get("boards") or {}
+    for n, w in words.items():          # a stage the board's files can't show
+        if n in allb and w.get("stage"):
+            allb[n]["stage"] = w["stage"]
     shown_in_spec: list[str] = []
 
     def plate(item):
@@ -300,7 +306,7 @@ def model(root: Path, spec: dict) -> dict:
                              "blocks": blocks, "boards": new})
 
     routed = [n for n, b in allb.items() if b["routed"]]
-    order = sorted(routed, key=lambda n: (allb[n]["stage"] != "ordered and made",
+    order = sorted(routed, key=lambda n: (not allb[n]["stage"].startswith(MADE),
                                           _neg_date(allb[n]["date"]), allb[n]["pn"]))
     table = []
     for n in order:
@@ -310,7 +316,7 @@ def model(root: Path, spec: dict) -> dict:
                       "stage": b["stage"]})
     unrouted = [b for b in allb.values() if b["present"] and not b["routed"]]
     return {"count": len(routed), "lead": " ".join(str(spec.get("lead", "")).split()),
-            "ordered": sum(1 for b in allb.values() if b["stage"] == "ordered and made"),
+            "ordered": sum(1 for b in allb.values() if b["stage"].startswith(MADE)),
             "table": table, "sections": sections, "unrouted": unrouted,
             "shown": sorted(placed | set(new)), "new": new,
             "changed": max((allb[n]["changed"] for n in routed), default="")}
@@ -336,11 +342,11 @@ def long_date(iso: str) -> str:
 def table_note(m: dict) -> list[str]:
     o = m["ordered"]
     ordered = (f"{number(o).capitalize()} board{'s were' if o != 1 else ' was'} "
-               f"ordered and made, and {'their' if o != 1 else 'its'} files record "
-               f"the JLCPCB order numbers.") if o else ""
+               f"ordered from JLCPCB and made.") if o else ""
     return [s for s in (
         "\u201cWhere it stopped\u201d is the last stage the board reached, and it "
         "does not mean the board is fit to release.", ordered,
+        "\u201cMade and measured\u201d means the board was also tested on a bench.",
         "\u201cPackage ready\u201d means every recorded check passed and the "
         "manufacturing package is built. \u201cFindings open\u201d means a check "
         "failed and a person has yet to rule on it. Each size is the bounding "

@@ -98,10 +98,10 @@ regulator with five parts to a three-phase motor driver.
 
 | Board | What it is | Layers | Size (mm) | Where it stopped |
 |---|---|--:|--:|---|
+| stereo-class-d-amp | stereo class-D amplifier | 2 | 53.6 × 36.8 | made and measured, verification not passed |
 | pd-trigger | USB-C PD bench trigger | 2 | 48 × 30 | ordered and made |
 | lumina-carrier | lighting carrier, PoE-powered | 4 | 100 × 80 | ordered and made |
 | rf-load-50ohm | 50 ohm / 200 W RF load at 13.56 MHz, fan-cooled, -40 dB tap | 2 | 60 × 60 | package ready |
-| stereo-class-d-amp | stereo class-D amplifier | 2 | 53.6 × 36.8 | package ready |
 | rp2040-mini | RP2040 dev board on the Pico footprint, USB-C | 2 | 21 × 51 | package ready |
 | esp32c3-node | WiFi/BLE sensor node, LiPo | 2 | 26 × 38 | verification, findings open |
 | lipo-boost | LiPo charger and 5 V boost | 2 | 53.9 × 38.8 | package ready |
@@ -123,11 +123,12 @@ regulator with five parts to a three-phase motor driver.
 | stm32-blinky | minimal STM32 dev board | 2 | 50 × 40 | package ready |
 
 “Where it stopped” is the last stage the board reached, and it does not mean
-the board is fit to release. Two boards were ordered and made, and their files
-record the JLCPCB order numbers. “Package ready” means every recorded check
-passed and the manufacturing package is built. “Findings open” means a check
-failed and a person has yet to rule on it. Each size is the bounding box of the
-board outline, and not every outline is a rectangle.
+the board is fit to release. Three boards were ordered from JLCPCB and made.
+“Made and measured” means the board was also tested on a bench. “Package ready”
+means every recorded check passed and the manufacturing package is built.
+“Findings open” means a check failed and a person has yet to rule on it. Each
+size is the bounding box of the board outline, and not every outline is a
+rectangle.
 
 ### New boards
 
@@ -176,10 +177,11 @@ result says anything about real hardware, because the board has not been made.
 
 ![stereo-class-d-amp](docs/showcase/renders/stereo-class-d-amp.png)
 
-*__stereo-class-d-amp__ · 2 layers · 53.6 × 36.8 mm · 44 footprints · package
-ready. A stereo class-D amplifier that runs from a single 12 V supply and
-drives 4 to 8 Ω speakers. Each output has a 10 µH LC filter. The brief asked
-hwde to reproduce a published reference design, so the two can be compared.*
+*__stereo-class-d-amp__ · 2 layers · 53.6 × 36.8 mm · 44 footprints · made and
+measured, verification not passed. A stereo class-D amplifier that runs from a
+single 12 V supply and drives 4 to 8 Ω speakers. Each output has a 10 µH LC
+filter. The brief asked hwde to reproduce a published reference design, so the
+two can be compared.*
 
 The brief named the TPA3116D2, but hwde used the TPA3118D2 instead. The 3116
 only comes with its thermal pad on top, which needs a heatsink bolted on. The
@@ -193,6 +195,13 @@ board is bigger than the 44 by 34 mm reference.
 in the middle of a solid ground pour, with the left channel's filter below it
 and the right channel's above. The input connector is on the left edge and the
 speaker pads are on the right.*
+
+Ten assembled boards were ordered from JLCPCB on 30 September 2026, and one was
+wired up and measured on the bench on 13 October. From 12 V into 6 Ω speakers,
+one channel gave 10.9 W at 0.37% THD, and at 4.1 W a channel the board
+delivered about 90% of its supply power to the speakers. It was ordered before
+its verification checks passed, with eight waivers unsigned, and nobody has yet
+measured the chip's temperature under load.
 
 ### A card, a sensor node and a battery board
 
@@ -230,7 +239,8 @@ lumina-carrier, the board at the start, is the carrier for a stage-lighting
 fixture. It takes power over Ethernet through a PD controller and a 100 V buck,
 and it has an expansion connector that a fixture-specific daughter board plugs
 into. The connector's pinout is frozen, because another board depends on it.
-The other board that was ordered is a bench tool.
+The amplifier was ordered too, and the third board that was ordered is a bench
+tool.
 
 ![pd-trigger](docs/showcase/renders/pd-trigger.png)
 
@@ -330,8 +340,9 @@ a person signs off at every stage.
 - The electrical and thermal checks are engineering screens, and each states
   its own accuracy. None of them is a certification, and nothing here is
   certified for mains, medical, automotive or aerospace use.
-- The firmware and the bring-up procedure have only run in simulation. No board
-  hwde designed has been brought up with them on a real bench yet.
+- The firmware and the bring-up procedure have only run in simulation. The
+  amplifier, which has no firmware, was measured on a real bench by hand, but
+  no board has been brought up with them yet.
 
 ---
 
