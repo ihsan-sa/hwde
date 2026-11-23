@@ -1,5 +1,7 @@
 # hwde
 
+> **This repo has moved.** pcb-flow now lives at [Hive-RSI-Lab/hive-pcb-flow](https://github.com/Hive-RSI-Lab/hive-pcb-flow), where it's kept up to date as a Hive module. This copy is no longer updated.
+
 **An AI PCB engineer for KiCad and JLCPCB.** Printed circuit boards, designed
 from a written brief.
 
